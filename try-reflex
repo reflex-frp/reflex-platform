@@ -54,4 +54,4 @@ EOF
 )
 
 echo "Entering the ghcjs/nodejs sandbox; this may take several hours the first time you run it"
-nix-shell -j 8 --pure --command "echo \"$INFO\" ; return"
+NIXPKGS_ALLOW_UNFREE=1 nix-shell -j 8 --pure --command "echo \"$INFO\" ; return"
