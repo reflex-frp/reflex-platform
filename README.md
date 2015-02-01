@@ -277,3 +277,90 @@ After creating the two `numberInput`s, we combine them using `combineDyn` applyi
 Next, we call `combineDyn` again, combining the `_dropdown_value` and `values`. Now, instead of applying `(+)` to our `Double` values, we use `stringToOp` to select an operation based on the `Dynamic` value of our `Dropdown`.
 
 Running the app at this point will give us our two number inputs with a dropdown of operations sandwiched between them. Multiplication should be pre-selected when the page loads.
+
+### Dynamic Element Attributes
+Let's spare a thought for the user of our calculator and add a little UI styling. Our number input currently looks like this:
+
+```haskell
+    numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+    numberInput = do
+      n <- input' "number" "0" never (constDyn Map.empty)
+      mapDyn readMay $ _textInput_value n
+```
+
+Instead of passing `input'` an empty `Map`, let's give it some attributes to work with:
+
+```haskell
+    numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+    numberInput = do
+      let attrs = constDyn $ Map.fromList [("style", "border-color: blue")]
+      n <- input' "number" "0" never attrs
+      mapDyn readMay $ _textInput_value n
+```
+
+Here, we've created a `Dynamic (Map String String)`. This `Map` represents the html attributes of our inputs. Because we're using `constDyn` again, this `Dynamic` will never change. If you load this in the browser, you'll see that the inputs now have a garish blue border.
+
+Unchanging attributes are useful and quite common, but attributes will often need to change. Instead of just making the `TextInput` blue, let's change it's color based on whether the input successfully parses to a `Double`:
+
+```haskell
+    {-# LANGUAGE RecursiveDo #-}
+    ...
+    numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+    numberInput = do
+      let errorState = Map.singleton "style" "border-color: red"
+          validState = Map.singleton "style" "border-color: green"
+      rec n <- input' "number" "0" never attrs
+          result <- mapDyn readMay $ _textInput_value n
+          attrs <- mapDyn (\r -> case r of
+                                      Just _ -> validState
+                                      Nothing -> errorState) result
+      return result
+```
+
+Note that we need to add a language pragma here to enable the `RecursiveDo` language extension. We've defined two `Map`s of attributes for our inputs: one to represent bad input and one to represent valid input. Next, you'll see that the code for actually making the number input is now inside of a `rec` block. This is because the attributes we apply depend on the value of the input.
+
+In the first line of the `rec`, we have supplied the argument `attrs`, of type `Dynamic (Map String String)`. The `Dynamic` value of the input is bound to `result`. The code for parsing this value has not changed.
+
+After we bind `result`, we use `mapDyn` again to apply a switching function to `result`. The switching function checks whether the value was successfully parsed. If it was, we get the `Map` of attributes representing the valid state, otherwise we get the `Map` representing the error state. The result is a `Dynamic (Map String String)`, which is the type `input'` expects to receive.
+
+The complete program now looks like this:
+
+```haskell
+    {-# LANGUAGE RecursiveDo #-}
+    import Reflex
+    import Reflex.Dom
+    import qualified Data.Map as Map
+    import Safe (readMay)
+    import Control.Applicative ((<*>), (<$>))
+
+    main = mainWidget $ el "div" $ do
+      nx <- numberInput
+      d <- dropdown "*" $ constDyn ops
+      ny <- numberInput
+      values <- combineDyn (,) nx ny
+      result <- combineDyn (\o (x,y) -> stringToOp o <$> x <*> y) (_dropdown_value d) values
+      resultString <- mapDyn show result
+      text " = "
+      dynText resultString
+
+    numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+    numberInput = do
+      let errorState = Map.singleton "style" "border-color: red"
+          validState = Map.singleton "style" "border-color: green"
+      rec n <- input' "number" "0" never attrs
+          result <- mapDyn readMay $ _textInput_value n
+          attrs <- mapDyn (\r -> case r of
+                                      Just _ -> validState
+                                      Nothing -> errorState) result
+      return result
+
+    stringToOp s = case s of
+                          "-" -> (-)
+                          "*" -> (*)
+                          "/" -> (/)
+                          _ -> (+)
+
+    ops = Map.fromList [("+", "+"), ("-", "-"), ("*", "*"), ("/", "/")]
+```
+
+The input border colors will now change depending on their value.
