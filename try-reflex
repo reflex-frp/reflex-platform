@@ -25,15 +25,17 @@ if ! type -P nix-shell >/dev/null ; then
   fi
 fi
 
-if [ ! -d nixpkgs ] ; then
-  if ! type -P git ; then
-    echo "Please make sure that 'git' is installed and can be run from this shell"
-    exit 1
-  fi
+for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
+  if [ ! -d "$x" ] ; then
+    if ! type -P git ; then
+      echo "Please make sure that 'git' is installed and can be run from this shell"
+      exit 1
+    fi
 
-  echo "Getting ghcjs build scripts"
-  git clone https://github.com/NixOS/nixpkgs
-fi
+    echo "Getting ghcjs build scripts"
+    git submodule init "$x"
+  fi
+done
 
 INFO=$(cat <<"EOF"
 
