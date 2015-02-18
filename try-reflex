@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -eu
+set -eux
+
+PLATFORM=${1:-ghcjs}
+shift 1 || true
 
 REPO="https://github.com/ryantrinkle/try-reflex"
 
@@ -54,4 +57,4 @@ EOF
 )
 
 echo "Entering the ghcjs/nodejs sandbox; this may take several hours the first time you run it"
-NIXPKGS_ALLOW_UNFREE=1 nix-shell -j 8 --pure --command "echo \"$INFO\" ; return"
+nix-shell --argstr platform "$PLATFORM" --option extra-binary-caches https://ryantrinkle.com:5443/ -j 8 --pure --command "echo \"$INFO\" ; return" "$@"

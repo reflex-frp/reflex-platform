@@ -1,13 +1,14 @@
 let nixpkgs = import ./nixpkgs {};
     extendHaskellPackages = haskellPackages: haskellPackages.override {
-      extension = self: super: {
+      overrides = self: super: {
         reflex = self.callPackage ./reflex {};
-        reflexDom = self.callPackage ./reflex-dom {};
-        reflexTodomvc = self.callPackage ./reflex-todomvc {};
+        reflex-dom = self.callPackage ./reflex-dom {};
+        reflex-todomvc = self.callPackage ./reflex-todomvc {};
       };
     };
 in {
   inherit nixpkgs;
-  haskellPackages_ghc784 = extendHaskellPackages nixpkgs.pkgs.haskellPackages_ghc784_profiling;
-  haskellPackages_ghcjs = extendHaskellPackages nixpkgs.pkgs.haskellPackages_ghcjs;
+  ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7101;
+  ghcjs = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghcjs;
+  platforms = [ "ghcjs" "ghc" ];
 }
