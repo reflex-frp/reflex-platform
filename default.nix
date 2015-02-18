@@ -1,4 +1,4 @@
-let nixpkgs = import ./nixpkgs {};
+let nixpkgs = import ./nixpkgs {config.allowUnfree = true;};
     extendHaskellPackages = haskellPackages: haskellPackages.override {
       overrides = self: super: {
         reflex = self.callPackage ./reflex {};
