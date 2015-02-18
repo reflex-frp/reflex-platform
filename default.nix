@@ -10,5 +10,5 @@ in {
   inherit nixpkgs;
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7101;
   ghcjs = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghcjs;
-  platforms = [ "ghcjs" "ghc" ];
+  platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
 }
