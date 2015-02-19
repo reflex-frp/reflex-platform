@@ -1,6 +1,6 @@
 { }:
 let this = import ./.;
-    reflexEnv = haskellPackages: haskellPackages.ghcWithPackages (p: with p; [
+    reflexEnv = platform: (builtins.getAttr platform this).ghcWithPackages (p: with p; [
       reflex
       reflex-dom
       reflex-todomvc

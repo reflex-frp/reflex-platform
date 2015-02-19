@@ -3,6 +3,6 @@ set -eu
 
 PLATFORMS=$(eval "echo $(nix-instantiate --eval -E '(import ./nixpkgs {}).stdenv.lib.concatStringsSep " " (import ./.).platforms')")
 
-ROOTS=$(for platform in $PLATFORMS ; do nix-build -I . -j 8 --no-out-link -E "import ./shell.nix { platform = \"$platform\"; }" ; done)
+ROOTS=$(nix-build -I . -j 8 --no-out-link -E "import ./shell.nix {}")
 
 nix-copy-closure --gzip --to "$1" $ROOTS
