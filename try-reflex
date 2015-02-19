@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-set -eux
-
-PLATFORM=${1:-ghcjs}
-shift 1 || true
+set -eu
 
 REPO="https://github.com/ryantrinkle/try-reflex"
 
@@ -29,32 +26,53 @@ if ! type -P nix-shell >/dev/null ; then
 fi
 
 for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
-  if [ ! -d "$x" ] ; then
+  if [ ! "$(ls -A "$x")" ] ; then
     if ! type -P git ; then
       echo "Please make sure that 'git' is installed and can be run from this shell"
       exit 1
     fi
 
-    echo "Getting ghcjs build scripts"
     git submodule init "$x"
   fi
 done
 
-INFO=$(cat <<"EOF"
+echo "Entering the reflex sandbox..."
 
-You are now in a shell with access to ghcjs and cabal.  You can verify that ghcjs is configured correctly by checking that you get expected output like this:
-$ ghcjs --version
-The Glorious Glasgow Haskell Compilation System for JavaScript, version 0.1.0 (GHC 7.8.4)
+# TODO: Use a better check that actually checks for each platform's availability
+if [ ! "$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.isDarwin')" = "true" ] ; then
+SUGGESTION_GHC=$(cat <<EOF
+To run a simple GUI as a native binary:
+$ ghc -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
 
-$ cabal install --help | grep ghcjs
---ghcjs                         compile with GHCJS
+Or to see a more complex native binary GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs):
+$ reflex-todomvc
+EOF
+)
+else
+SUGGESTION_GHC=""
+fi
 
-To build a basic program with ghcjs, do:
-$ echo 'main = putStrLn \"Hello, world!\"' > helloWorld.hs
-$ ghcjs helloWorld.hs
-$ node helloWorld.jsexe/all.js
+SUGGESTION_GHCJS=$(cat <<EOF2
+To create a simple web GUI:
+$ cat >hello.hs <<EOF
+import Reflex.Dom
+main = mainWidget $ text \"Hello, world!\"
+EOF
+$ ghcjs hello.hs
+Then navigate your browser to file://$(pwd)/hello.jsexe/index.html
+
+Or to see a more complex GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
+EOF2
+)
+
+INFO=$(cat <<EOF
+
+You are now in a shell with access to the Reflex functional reactive programming engine.
+
+$SUGGESTION_GHC
+
+$SUGGESTION_GHCJS
 EOF
 )
 
-echo "Entering the ghcjs/nodejs sandbox; this may take several hours the first time you run it"
-nix-shell --argstr platform "$PLATFORM" --option extra-binary-caches https://ryantrinkle.com:5443/ -j 8 --pure --command "echo \"$INFO\" ; return" "$@"
+nix-shell --option extra-binary-caches https://ryantrinkle.com:5443/ -j 8 --pure --command "echo \"$INFO\" ; return" "$@"

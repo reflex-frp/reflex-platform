@@ -6,9 +6,9 @@ let nixpkgs = import ./nixpkgs {config.allowUnfree = true;};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
       };
     };
-in {
+in rec {
   inherit nixpkgs;
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7101;
   ghcjs = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghcjs;
-  platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
+  platforms = [ ghcjs ] ++ (if !nixpkgs.stdenv.isDarwin then [ ghc ] else []);
 }
