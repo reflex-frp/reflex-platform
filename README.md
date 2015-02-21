@@ -2,20 +2,20 @@ Try Reflex
 ==========
 Setup
 -----
-The steps below will set up an environment from which you can use GHCJS and Reflex. This process will install the [Nix package manager](https://nixos.org/nix/). If you prefer to install it yourself, you may do so any time prior to step 2.
+The steps below will set up an environment from which you can use Reflex with GHCJS. This process will install the [Nix package manager](https://nixos.org/nix/). If you prefer to install Nix yourself, you may do so any time prior to step 2.
 
 1. Clone the try-reflex repo:
 
     ```bash
-        git clone --recursive git@github.com:ryantrinkle/try-reflex
+        git clone git@github.com:ryantrinkle/try-reflex
     ```
 
 2. Navigate into the `try-reflex` folder and run the try-reflex bootstrapping command. This will install nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
 
     ```bash
+        cd try-reflex
         ./try-reflex
     ```
-If you hit an error about unfree licenses, you need to add `{ allowUnfree = true; }` to your `~/.nixpkgs/config.nix`. You may need to create the `~/.nixpkgs` folder and add the `config.nix` file.
 
 3. From this nix-shell, you can compile your haskell source using ghcjs:
 
@@ -32,7 +32,7 @@ In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite
 
 ### DOM Basics
 
-Reflex's companion library, Reflex.Dom contains a number of functions used to build and interact with the DOM. Let's start by getting a basic app up and running.
+Reflex's companion library, Reflex-DOM, contains a number of functions used to build and interact with the Document Object Model. Let's start by getting a basic app up and running.
 
 ```haskell
     import Reflex.Dom
@@ -40,14 +40,14 @@ Reflex's companion library, Reflex.Dom contains a number of functions used to bu
     main = mainWidget $ el "div" $ text "Welcome to Reflex"
 ```
 
-Saving this line and compiling it produces a `source.jsexe` folder, where `source` is the same as the filename of the source file you compiled. Inside the `source.jsexe` folder you'll find `index.html`. Opening that in your browser will reveal a webpage with a single div containing the text "Welcome to Reflex".
+Saving this file as `source.hs` and compiling it produces a `source.jsexe` folder (the name of the jsexe folder is based on the name of the hs file). Inside the `source.jsexe` folder you'll find `index.html`. Opening that in your browser will reveal a webpage with a single div containing the text "Welcome to Reflex".
 
 Most Reflex apps will start the same way: a call to `mainWidget` with a starting `Widget`. A `Widget` is some DOM wrapped up for easy use with Reflex. In our example, we are building the argument to `mainWidget`, (in other words, our starting `Widget`) on the same line.
 
 `el` has the type signature:
 
 ```haskell
-    MonadWidget t m => String -> m a -> m a
+    el :: MonadWidget t m => String -> m a -> m a
 ```
 
 The first argument to `el` is a `String`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced.
@@ -57,10 +57,10 @@ In our example, `el "div" $ text "Welcome to Reflex"`, the first argument to `el
 The second argument to `el` was `text "Welcome to Reflex"`. The type signature of `text` is:
 
 ```haskell
-    MonadWidget t m => String -> m ()
+    text :: MonadWidget t m => String -> m ()
 ```
 
-`text` takes a `String` and produces a `Widget`. The `String` becomes the `innerHTML` of the parent element of the `text`. Of course, instead of a `String`, we could have used `el` here as well to continue building arbitrarily complex DOM. For instance, if we wanted to make a unordered list:
+`text` takes a `String` and produces a `Widget`. The `String` becomes a text DOM node in the parent element of the `text`. Of course, instead of a `String`, we could have used `el` here as well to continue building arbitrarily complex DOM. For instance, if we wanted to make a unordered list:
 
 ```haskell
     import Reflex.Dom
@@ -68,9 +68,8 @@ The second argument to `el` was `text "Welcome to Reflex"`. The type signature o
     main = mainWidget $ el "div" $ do
       el "p" $ text "Reflex is:"
       el "ul" $ do
-        el "li" $ text "Fast"
-        el "li" $ text "Memory Safe"
-        el "li" $ text "Higher Order"
+        el "li" $ text "Efficient"
+        el "li" $ text "Higher-order"
         el "li" $ text "Glitch-free"
 ```
 
@@ -93,7 +92,7 @@ Running this in your browser, you'll see that it produces a `div` containing an 
     textInput :: MonadWidget t m => m (TextInput t)
 ```
 
-It takes no arguments, and produces a `Widget` containing a `TextInput`. In `Reflex.Dom.Widget.Input` we can see that a `TextInput` exposes the following functionality:
+It takes no arguments, and produces a `Widget` whose result is a `TextInput`. In `Reflex.Dom.Widget.Input` we can see that a `TextInput` exposes the following functionality:
 
 ```haskell
     data TextInput t
@@ -107,6 +106,10 @@ It takes no arguments, and produces a `Widget` containing a `TextInput`. In `Ref
 ```
 
 Here we are using `_textInput_value` to access the `Dynamic String` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic String` and displays it. It is the dynamic version of `text`.
+
+> #### What's with all the `t` arguments?
+> FRP-enabled datatypes in Reflex take an argument `t`, which identifies the FRP subsystem being used.  This ensures that wires don't get crossed if a single program uses Reflex in multiple different contexts.  You can think of `t` as identifying a particular "timeline" of the FRP system.
+> Because most simple programs will only deal with a single timeline, we won't revisit the `t` parameters in this tutorial.  As long as you make sure your `Event`s, `Behavior`s, and `Dynamic`s all get their `t` argument, it'll work itself out.
 
 We can also access `Event`s related to the `TextInput`. For example, consider the following code:
 
@@ -126,7 +129,7 @@ Here, we are creating a `TextInput` as we were before. The function `_textInput_
 `holdDyn` allows us to take create a `Dynamic` out of an `Event`. We must provide an initial value for the `Dynamic`. This will be the value of the `Dynamic` until the associated `Event` fires. The type of `holdDyn` is:
 
 ```haskell
-    MonadHold t m => a -> Event t a -> m (Dynamic t a)
+    holdDyn :: MonadHold t m => a -> Event t a -> m (Dynamic t a)
 ```
 
 We won't go into the details of `MonadHold` here, but the rest of the type signature should be fairly clear: `holdDyn` takes an initial value, an `Event` containing a value of the same type as the initial, and returns a `Dynamic` containing a value of the same type.
@@ -177,7 +180,7 @@ Let's do more than just take the input value and print it out. First, let's make
       mapDyn readMay $ _textInput_value n
 ```
 
-We've defined a function `numberInput` that handles both the creation of the `TextInput` and reads its value. Recall that `_textInput_value` gives us a `Dynamic String`. The final line of code in `numberInput` uses `mapDyn` to apply the function `readMay` to the `Dynamic` value of the `TextInput`. This produces a `Dynamic (Maybe Double)`. Our `main` function uses `mapDyn` to map over the `Dynamic (Maybe Double)` produced by `numberInput` and `show` the value it contains. We store the new `Dynamic String` in `numberString` and feed that into `dynText` to actually display the `String`
+We've defined a function `numberInput` that both handles the creation of the `TextInput` and reads its value. Recall that `_textInput_value` gives us a `Dynamic String`. The final line of code in `numberInput` uses `mapDyn` to apply the function `readMay` to the `Dynamic` value of the `TextInput`. This produces a `Dynamic (Maybe Double)`. Our `main` function uses `mapDyn` to map over the `Dynamic (Maybe Double)` produced by `numberInput` and `show` the value it contains. We store the new `Dynamic String` in `numberString` and feed that into `dynText` to actually display the `String`
 
 Running the app at this point should produce an input and some text showing the `Maybe Double`. Typing in a number should produce output like `Just 12.0` and typing in other text should produce the output `Nothing`.
 
@@ -217,7 +220,7 @@ In our case, `combineDyn` is combining the results of our two `numberInput`s (wi
 We use `mapDyn` again to apply show to `result` (a `Dynamic (Maybe Double)`) resulting in a `Dynamic String`. This `resultString` is then displaying using `dynText`.
 
 ### Supporting Multiple Operations
-Next, we'll add support other operations. We're going to add a dropdown so that the user can select the operation to apply. The function `dropdown` has the type:
+Next, we'll add support for other operations. We're going to add a dropdown so that the user can select the operation to apply. The function `dropdown` has the type:
 
 ```haskell
     dropdown :: (MonadWidget t m, Ord k, Show k, Read k) => k -> Dynamic t (Map k String) -> m (Dropdown t k)
