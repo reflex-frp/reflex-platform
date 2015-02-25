@@ -9,4 +9,7 @@ cabal-dev
 .cabal-sandbox/
 cabal.sandbox.config
 cabal.config
+*.jsexe
+*.js_hi
+*.js_o
 *~
