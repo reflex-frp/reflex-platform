@@ -52,6 +52,10 @@ Most Reflex apps will start the same way: a call to `mainWidget` with a starting
 
 The first argument to `el` is a `String`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced.
 
+> #### Sidebar: Interpreting the MonadWidget type
+> FRP-enabled datatypes in Reflex take an argument `t`, which identifies the FRP subsystem being used.  This ensures that wires don't get crossed if a single program uses Reflex in multiple different contexts.  You can think of `t` as identifying a particular "timeline" of the FRP system.
+> Because most simple programs will only deal with a single timeline, we won't revisit the `t` parameters in this tutorial.  As long as you make sure your `Event`, `Behavior`, and `Dynamic` values all get their `t` argument, it'll work itself out.
+
 In our example, `el "div" $ text "Welcome to Reflex"`, the first argument to `el` was `"div"`, indicating that we are going to produce a div element.
 
 The second argument to `el` was `text "Welcome to Reflex"`. The type signature of `text` is:
@@ -106,10 +110,6 @@ It takes no arguments, and produces a `Widget` whose result is a `TextInput`. In
 ```
 
 Here we are using `_textInput_value` to access the `Dynamic String` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic String` and displays it. It is the dynamic version of `text`.
-
-> #### What's with all the `t` arguments?
-> FRP-enabled datatypes in Reflex take an argument `t`, which identifies the FRP subsystem being used.  This ensures that wires don't get crossed if a single program uses Reflex in multiple different contexts.  You can think of `t` as identifying a particular "timeline" of the FRP system.
-> Because most simple programs will only deal with a single timeline, we won't revisit the `t` parameters in this tutorial.  As long as you make sure your `Event`s, `Behavior`s, and `Dynamic`s all get their `t` argument, it'll work itself out.
 
 We can also access `Event`s related to the `TextInput`. For example, consider the following code:
 
