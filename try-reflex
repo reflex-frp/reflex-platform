@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 set -eu
 
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
 REPO="https://github.com/ryantrinkle/try-reflex"
 
 trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues'; exit 1" ERR
 
 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
+
+(
+
+cd "$DIR"
 
 if [ ! -d /nix ] ; then
   if ! type -P curl >/dev/null ; then
@@ -14,8 +20,10 @@ if [ ! -d /nix ] ; then
   fi
 
   echo "In order to continue, $0 must install the Nix package manager.  This requires root access, so you will be prompted for your password.  If you do not wish to continue, just hit Ctrl-C at the password prompt."
-  bash <(curl https://nixos.org/nix/install)
+  ./installNix.sh
 fi
+
+)
 
 if ! type -P nix-shell >/dev/null ; then
   . ~/.nix-profile/etc/profile.d/nix.sh
@@ -25,16 +33,24 @@ if ! type -P nix-shell >/dev/null ; then
   fi
 fi
 
-for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
+(
+
+cd "$DIR"
+
+
+if ! type -P git ; then
+  echo "Please make sure that 'git' is installed and can be run from this shell"
+  exit 1
+fi
+
+for x in $(git submodule --quiet foreach 'echo $path') ; do
   if [ ! "$(ls -A "$x")" ] ; then
-    if ! type -P git ; then
-      echo "Please make sure that 'git' is installed and can be run from this shell"
-      exit 1
-    fi
 
     git submodule init "$x"
   fi
 done
+
+)
 
 echo "Entering the reflex sandbox..."
 
@@ -61,7 +77,7 @@ EOF
 $ ghcjs hello.hs
 Then navigate your browser to file://$(pwd)/hello.jsexe/index.html
 
-Or to see a more complex GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
+Or to see a more complex GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
 EOF2
 )
 
@@ -75,4 +91,4 @@ $SUGGESTION_GHCJS
 EOF
 )
 
-nix-shell --option extra-binary-caches https://ryantrinkle.com:5443/ -j 8 --pure --command "echo \"$INFO\" ; return" "$@"
+nix-shell "$DIR/shell.nix" --option extra-binary-caches https://ryantrinkle.com:5443/ -j 8 --pure --command "echo \"$INFO\" ; return" "$@"
