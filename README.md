@@ -14,7 +14,7 @@ The steps below will set up an environment from which you can use Reflex with GH
 
     ```bash
     cd try-reflex
-        ./try-reflex
+    ./try-reflex
     ```
 
 3. From this nix-shell, you can compile your haskell source using ghcjs:
@@ -100,13 +100,13 @@ It takes no arguments, and produces a `Widget` whose result is a `TextInput`. In
 
 ```haskell
 data TextInput t
-  = TextInput { _textInput_value :: Dynamic t String
-              , _textInput_keypress :: Event t Int
-              , _textInput_keydown :: Event t Int
-              , _textInput_keyup :: Event t Int
-              , _textInput_hasFocus :: Dynamic t Bool
-              , _textInput_element :: HTMLInputElement
-              }
+   = TextInput { _textInput_value :: Dynamic t String
+               , _textInput_keypress :: Event t Int
+               , _textInput_keydown :: Event t Int
+               , _textInput_keyup :: Event t Int
+               , _textInput_hasFocus :: Dynamic t Bool
+               , _textInput_element :: HTMLInputElement
+               }
 ```
 
 Here we are using `_textInput_value` to access the `Dynamic String` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic String` and displays it. It is the dynamic version of `text`.
