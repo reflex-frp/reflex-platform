@@ -28,7 +28,7 @@ The steps below will set up an environment from which you can use Reflex with GH
 
 Code
 ----
-In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a [simple functional reactive calculator](./main.jsexe/index.html) to be used in a web browser.
+In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a simple functional reactive calculator to be used in a web browser.
 
 ### DOM Basics
 
