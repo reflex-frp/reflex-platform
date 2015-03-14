@@ -38,15 +38,15 @@ fi
 cd "$DIR"
 
 
-if ! type -P git ; then
+if ! type -P git >/dev/null ; then
   echo "Please make sure that 'git' is installed and can be run from this shell"
   exit 1
 fi
 
-for x in $(git submodule --quiet foreach 'echo $path') ; do
+for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
   if [ ! "$(ls -A "$x")" ] ; then
 
-    git submodule init "$x"
+    git submodule update --init --recursive "$x"
   fi
 done
 
@@ -77,7 +77,7 @@ EOF
 $ ghcjs hello.hs
 Then navigate your browser to file://$(pwd)/hello.jsexe/index.html
 
-Or to see a more complex GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
+Or to see a more complex GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
 EOF2
 )
 
