@@ -7,7 +7,7 @@ The steps below will set up an environment from which you can use Reflex with GH
 1. Clone the try-reflex repo:
 
     ```bash
-    git clone git@github.com:ryantrinkle/try-reflex
+    git clone https://github.com/ryantrinkle/try-reflex
     ```
 
 2. Navigate into the `try-reflex` folder and run the try-reflex bootstrapping command. This will install nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
@@ -28,7 +28,7 @@ The steps below will set up an environment from which you can use Reflex with GH
 
 Code
 ----
-In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a [simple functional reactive calculator](./main.jsexe/index.html) to be used in a web browser.
+In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a simple functional reactive calculator to be used in a web browser.
 
 ### DOM Basics
 
