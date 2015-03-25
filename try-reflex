@@ -5,6 +5,8 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 REPO="https://github.com/ryantrinkle/try-reflex"
 
+NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
+
 trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues'; exit 1" ERR
 
 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
@@ -77,7 +79,7 @@ EOF
 $ ghcjs hello.hs
 Then navigate your browser to file://$(pwd)/hello.jsexe/index.html
 
-Or to see a more complex GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
+Or to see a more complex GUI example (based on the source at $(pwd)/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build $NIXOPTS --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
 EOF2
 )
 
@@ -91,4 +93,4 @@ $SUGGESTION_GHCJS
 EOF
 )
 
-nix-shell "$DIR/shell.nix" --option extra-binary-caches https://ryantrinkle.com:5443/ -j 8 --pure --command "echo \"$INFO\" ; return" "$@"
+nix-shell "$DIR/shell.nix" $NIXOPTS --pure --command "echo \"$INFO\" ; return" "$@"
