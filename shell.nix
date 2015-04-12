@@ -11,5 +11,7 @@ in this.nixpkgs.runCommand "shell" {
   '';
   buildInputs = [
     this.nixpkgs.nodejs
+    this.nixpkgs.curl
+    this.ghc.cabal-install
   ] ++ builtins.map reflexEnv this.platforms;
 } ""
