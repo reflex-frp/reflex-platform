@@ -26,8 +26,10 @@ The steps below will set up an environment from which you can use Reflex with GH
 
 4. Compilation will produce a `source.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
 
-Code
-----
+5. If you need to add any additional dependencies, edit packages.nix, then exit and re-enter the try-reflex shell.
+
+Tutorial
+--------
 In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a simple functional reactive calculator to be used in a web browser.
 
 ### DOM Basics
