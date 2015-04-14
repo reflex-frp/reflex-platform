@@ -93,4 +93,4 @@ $SUGGESTION_GHCJS
 EOF
 )
 
-nix-shell "$DIR/shell.nix" $NIXOPTS --pure --command "echo \"$INFO\" ; return" "$@"
+nix-shell "$DIR/shell.nix" $NIXOPTS --command "echo \"$INFO\" ; return" "$@"
