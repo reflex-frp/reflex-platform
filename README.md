@@ -1,5 +1,14 @@
 Try Reflex
 ==========
+Important Notes
+---------------
+If you're using one of these platforms, please take a look at notes before you begin:
+
+* [NixOS](notes/NixOS.md)
+* [Linux Mint](notes/LinuxMint.md)
+
+If you encounter any problems that may be specific to your platform, please submit an issue or pull request so that we can add a note for future users.
+
 Setup
 -----
 The steps below will set up an environment from which you can use Reflex with GHCJS. This process will install the [Nix package manager](https://nixos.org/nix/). If you prefer to install Nix yourself, you may do so any time prior to step 2.
@@ -26,7 +35,7 @@ The steps below will set up an environment from which you can use Reflex with GH
 
 4. Compilation will produce a `source.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
 
-5. If you need to add any additional dependencies, edit packages.nix, then exit and re-enter the try-reflex shell.
+5. If you need to add any additional dependencies, edit packages.nix, then exit and re-enter the try-reflex shell.  **Don't use cabal** to install libraries while inside the nix shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using cabal to configure, build, test, and run a particular package, however, should work just fine.
 
 Tutorial
 --------
