@@ -9,6 +9,18 @@ let overrideCabal = drv: f: (drv.override (args: args // {
         reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
+        ghcjs-dom = overrideCabal super.ghcjs-dom (drv: {
+          src = nixpkgs.fetchgit {
+            url = git://github.com/xionite/ghcjs-dom.git;
+            rev = "2d5a0aa64454f2c084b1a7c53cadb59b274d1386";
+            sha256 = "8450b1a0de67cf6bb6c304c244e211331da8f5befdf92c089498c4394c14fcc2";
+          };
+        });
+        active = overrideCabal super.active (drv: {
+          version = "0.1.0.19";
+          sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
+          doCheck = false;
+        });
       };
     };
 in rec {
