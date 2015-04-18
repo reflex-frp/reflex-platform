@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eu
 
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+. "$DIR/common-setup.sh"
+
 if [ "$#" -lt 2 ] ; then
   echo "Usage: $0 PLATFORM PACKAGE ..."
   echo "  PLATFORM can be either \"ghc\" or \"ghcjs\""
@@ -13,4 +17,4 @@ fi
 PLATFORM="$1"
 PACKAGE="$2"
 
-nix-shell -I . -E "let this = import ./default.nix; in with (this.$PLATFORM); with (import <nixpkgs/pkgs/development/haskell-modules/lib.nix> { pkgs = import <nixpkgs> {}; }); (overrideCabal $PACKAGE (drv: { buildDepends = drv.buildDepends ++ [ this.ghc.cabal-install ]; })).env" -j 8 "$@"
+nix-shell $NIXOPTS -I "$DIR" -E "let this = import ./default.nix; in with (this.$PLATFORM); with (import <nixpkgs/pkgs/development/haskell-modules/lib.nix> { pkgs = import <nixpkgs> {}; }); (overrideCabal $PACKAGE (drv: { buildDepends = drv.buildDepends ++ [ this.ghc.cabal-install ]; })).env" -j 8 "$@"
