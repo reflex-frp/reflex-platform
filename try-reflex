@@ -46,11 +46,12 @@ fi
 MIN_REQUIRED_NIX_VERSION="1.8"
 
 if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVersion \"$MIN_REQUIRED_NIX_VERSION\" >= 0")" != "true" ] ; then
-  echo "It looks like your version of Nix, $(nix-instantiate --eval --expr "builtins.nixVersion"), is older than the minimum version required by try-reflex, \"$MIN_REQUIRED_NIX_VERSION\".  You'll need to upgrade Nix to continue.  Usually, that can be done like this:"
+  echo "It looks like your version of Nix, $(nix-instantiate --eval --expr "builtins.nixVersion"), is older than the minimum version required by try-reflex, \"$MIN_REQUIRED_NIX_VERSION\".  You'll need to upgrade Nix to continue.  On non-NixOS platforms, that can usually be done like this:"
   if [ "$NEEDED_TO_SOURCE_NIX_SCRIPT" -ne 0 ] ; then
     echo "$SOURCE_NIX_SCRIPT"
   fi
   echo "nix-env --upgrade"
+  echo "If you're on NixOS, you may need to upgrade your OS to a later version.  See https://nixos.org/nixos/manual/sec-upgrading.html"
   exit 1
 fi
 
