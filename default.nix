@@ -22,9 +22,9 @@ let overrideCabal = drv: f: (drv.override (args: args // {
           doCheck = false;
         });
         HaskellForMaths = overrideCabal super.HaskellForMaths (drv: {
-          version = "0.4.5";
           src = ./HaskellForMaths;
           sha256 = null;
+          buildDepends = [ self.semigroups ] ++ drv.buildDepends; # For some reason, without the spurious import of self.semigroups, HaskellForMaths will fail to build the environment for HaskellForMaths on ghcjs (it works on ghc)
         });
       };
     };
