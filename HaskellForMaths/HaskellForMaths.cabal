@@ -1,0 +1,78 @@
+   Name:                HaskellForMaths
+   Version:             0.4.5
+   Category:            Math
+   Description:         A library of maths code in the areas of combinatorics, group theory, commutative algebra, and non-commutative algebra. The library is mainly intended as an educational resource, but does have efficient implementations of several fundamental algorithms.
+   Synopsis:            Combinatorics, group theory, commutative algebra, non-commutative algebra
+   License:             BSD3
+   License-file:        license.txt
+   Author:              David Amos
+   Maintainer:          haskellformaths-at-gmail-dot-com
+   Homepage:            http://haskellformaths.blogspot.com/
+   Stability:           experimental
+   Build-Type:          Simple
+   Cabal-Version:       >=1.2
+
+   Extra-source-files:
+        Math/Test/TDesign.hs,
+        Math/Test/TField.hs,
+        Math/Test/TFiniteGeometry.hs,
+        Math/Test/TGraph.hs,
+        Math/Test/TNonCommutativeAlgebra.hs,
+        Math/Test/TPermutationGroup.hs,
+        Math/Test/TRootSystem.hs,
+        Math/Test/TSubquotients.hs,
+        Math/Test/TestAll.hs
+        Math/Test/TAlgebras/TVectorSpace.hs
+        Math/Test/TAlgebras/TTensorProduct.hs
+        Math/Test/TAlgebras/TStructures.hs
+        Math/Test/TAlgebras/TQuaternions.hs
+        Math/Test/TAlgebras/TOctonions.hs
+        Math/Test/TAlgebras/TMatrix.hs
+        Math/Test/TAlgebras/TGroupAlgebra.hs
+        Math/Test/TCombinatorics/TCombinatorialHopfAlgebra.hs
+        Math/Test/TCombinatorics/TDigraph.hs
+        Math/Test/TCombinatorics/TFiniteGeometry.hs
+        Math/Test/TCombinatorics/TGraphAuts.hs
+        Math/Test/TCombinatorics/TIncidenceAlgebra.hs
+        Math/Test/TCombinatorics/TMatroid.hs
+        Math/Test/TCombinatorics/TPoset.hs
+        Math/Test/TCommutativeAlgebra/TPolynomial.hs
+        Math/Test/TCommutativeAlgebra/TGroebnerBasis.hs
+        Math/Test/TCore/TField.hs
+        Math/Test/TCore/TUtils.hs
+        Math/Test/TNumberTheory/TPrimeFactor.hs
+        Math/Test/TNumberTheory/TQuadraticField.hs
+        Math/Test/TProjects/TMiniquaternionGeometry.hs
+
+   Library
+     Build-Depends:     base >= 2 && < 5, containers, array, random
+     Exposed-modules:
+        Math.Algebra.LinearAlgebra,
+        Math.Algebra.Field.Base, Math.Algebra.Field.Extension,
+        Math.Algebra.Group.PermutationGroup, Math.Algebra.Group.SchreierSims,
+        Math.Algebra.Group.RandomSchreierSims, Math.Algebra.Group.Subquotients,
+        Math.Algebra.Group.StringRewriting, Math.Algebra.Group.CayleyGraph,
+        Math.Algebra.NonCommutative.NCPoly, Math.Algebra.NonCommutative.GSBasis, Math.Algebra.NonCommutative.TensorAlgebra,
+        Math.Algebras.AffinePlane, Math.Algebras.Commutative, Math.Algebras.GroupAlgebra,
+        Math.Algebras.LaurentPoly, Math.Algebras.Matrix, Math.Algebras.NonCommutative,
+        Math.Algebras.Octonions, Math.Algebras.Quaternions,
+        Math.Algebras.Structures, Math.Algebras.TensorAlgebra,
+        Math.Algebras.TensorProduct, Math.Algebras.VectorSpace,
+        Math.Combinatorics.CombinatorialHopfAlgebra,
+        Math.Combinatorics.Graph, Math.Combinatorics.GraphAuts, Math.Combinatorics.StronglyRegularGraph,
+        Math.Combinatorics.Design, Math.Combinatorics.FiniteGeometry, Math.Combinatorics.Hypergraph,
+        Math.Combinatorics.LatinSquares, Math.Combinatorics.Poset, Math.Combinatorics.IncidenceAlgebra,
+        Math.Combinatorics.Digraph, Math.Combinatorics.Matroid,
+        Math.Common.IntegerAsType, Math.Common.ListSet,
+        Math.CommutativeAlgebra.Polynomial, Math.CommutativeAlgebra.GroebnerBasis,
+        Math.Core.Utils, Math.Core.Field,
+        Math.NumberTheory.Prime, Math.NumberTheory.Factor, Math.NumberTheory.QuadraticField,
+        Math.Projects.RootSystem,
+        Math.Projects.Rubik, Math.Projects.MiniquaternionGeometry,
+        Math.Projects.ChevalleyGroup.Classical, Math.Projects.ChevalleyGroup.Exceptional,
+        Math.Projects.KnotTheory.Braid,
+        Math.Projects.KnotTheory.LaurentMPoly, Math.Projects.KnotTheory.TemperleyLieb, Math.Projects.KnotTheory.IwahoriHecke,
+        Math.QuantumAlgebra.OrientedTangle,
+        Math.QuantumAlgebra.QuantumPlane, Math.QuantumAlgebra.Tangle, Math.QuantumAlgebra.TensorCategory
+
+     ghc-options:       -w

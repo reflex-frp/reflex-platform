@@ -9,6 +9,7 @@ with haskellPackages;
   reflex
   reflex-dom
   reflex-todomvc
+  HaskellForMaths
 
 ] ++ (if platform == "ghcjs" then [
   ##############################################################################

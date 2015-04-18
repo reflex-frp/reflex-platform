@@ -1,0 +1,340 @@
+-- Copyright (c) 2010-2011, David Amos. All rights reserved.
+
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, NoMonomorphismRestriction #-}
+
+-- |A module defining the tensor algebra, symmetric algebra, exterior (or alternating) algebra, and tensor coalgebra
+module Math.Algebras.TensorAlgebra where
+
+import qualified Data.List as L
+
+import Math.Algebras.VectorSpace
+import Math.Algebras.TensorProduct
+import Math.Algebras.Structures
+
+import Math.Algebra.Field.Base
+
+
+-- TENSOR ALGEBRA
+
+-- |A data type representing basis elements of the tensor algebra over a set\/type.
+-- Elements of the tensor algebra are linear combinations of iterated tensor products of elements of the set\/type.
+-- If V = Vect k a is the free vector space over a, then the tensor algebra T(V) = Vect k (TensorAlgebra a) is isomorphic
+-- to the infinite direct sum:
+--
+-- T(V) = k &#x2295; V &#x2295; V&#x2297;V &#x2295; V&#x2297;V&#x2297;V &#x2295; ...
+data TensorAlgebra a = TA Int [a] deriving (Eq,Ord)
+
+instance Show a => Show (TensorAlgebra a) where
+    show (TA _ []) = "1"
+    show (TA _ xs) = filter (/= '"') $ concat $ L.intersperse "*" $ map show xs
+    -- show (TA _ xs) = filter (/= '"') $ concat $ L.intersperse "\x2297" $ map show xs
+
+
+instance Mon (TensorAlgebra a) where
+    munit = TA 0 []
+    mmult (TA i xs) (TA j ys) = TA (i+j) (xs++ys)
+
+instance (Eq k, Num k, Ord a) => Algebra k (TensorAlgebra a) where
+    unit x = x *> return munit
+    mult = nf . fmap (\(a,b) -> a `mmult` b)
+
+-- The tensor algebra is the free algebra. It has the following universal property:
+-- Given f :: a -> Vect k b, where Vect k b is an algebra
+-- (which induces a vector space morphism, linear f :: Vect k a -> Vect k b)
+-- then we can lift to an algebra morphism, (liftTA f) :: Vect k (TensorAlgebra a) -> Vect k b
+-- with (liftTA f) . linear injectTA = linear f
+
+-- |Inject an element of the free vector space V = Vect k a into the tensor algebra T(V) = Vect k (TensorAlgebra a)
+injectTA :: Num k => Vect k a -> Vect k (TensorAlgebra a)
+injectTA = fmap (\a -> TA 1 [a])
+-- The Num k context is not strictly necessary
+
+-- |Inject an element of the set\/type A\/a into the tensor algebra T(A) = Vect k (TensorAlgebra a).
+injectTA' :: (Eq k, Num k) => a -> Vect k (TensorAlgebra a)
+injectTA' = injectTA . return
+-- injectTA' a = return (TA 1 [a])
+
+-- |Given vector spaces A = Vect k a, B = Vect k b, where B is also an algebra,
+-- lift a linear map f: A -> B to an algebra morphism f': T(A) -> B,
+-- where T(A) is the tensor algebra Vect k (TensorAlgebra a).
+-- f' will agree with f on A itself (considered as a subspace of T(A)).
+-- In other words, f = f' . injectTA
+liftTA :: (Eq k, Num k, Ord b, Show b, Algebra k b) =>
+     (Vect k a -> Vect k b) -> Vect k (TensorAlgebra a) -> Vect k b
+liftTA f = linear (\(TA _ xs) -> product [f (return x) | x <- xs])
+-- The Show b constraint is required because we use product (and Num requires Show)!!
+
+-- |Given a set\/type A\/a, and a vector space B = Vect k b, where B is also an algebra,
+-- lift a function f: A -> B to an algebra morphism f': T(A) -> B.
+-- f' will agree with f on A itself. In other words, f = f' . injectTA'
+liftTA' :: (Eq k, Num k, Ord b, Show b, Algebra k b) =>
+     (a -> Vect k b) -> Vect k (TensorAlgebra a) -> Vect k b
+liftTA' = liftTA . linear
+-- liftTA' f = linear (\(TA _ xs) -> product [f x | x <- xs])
+-- The second version might be more efficient
+
+
+-- |Tensor algebra is a functor from k-Vect to k-Alg.
+-- The action on objects is Vect k a -> Vect k (TensorAlgebra a).
+-- The action on arrows is f -> fmapTA f.
+fmapTA :: (Eq k, Num k, Ord b, Show b) =>
+    (Vect k a -> Vect k b) -> Vect k (TensorAlgebra a) -> Vect k (TensorAlgebra b)
+fmapTA f = liftTA (injectTA . f)
+-- fmapTA f = linear (\(TA _ xs) -> product [injectTA (f (return x)) | x <- xs])
+
+-- |If we compose the free vector space functor Set -> k-Vect with the tensor algebra functor k-Vect -> k-Alg,
+-- we obtain a functor Set -> k-Alg, the free algebra functor.
+-- The action on objects is a -> Vect k (TensorAlgebra a).
+-- The action on arrows is f -> fmapTA' f.
+fmapTA' :: (Eq k, Num k, Ord b, Show b) =>
+    (a -> b) -> Vect k (TensorAlgebra a) -> Vect k (TensorAlgebra b)
+fmapTA' = fmapTA . fmap
+-- fmapTA' f = liftTA' (injectTA' . f)
+-- fmapTA' f = linear (\(TA _ xs) -> product [injectTA' (f x) | x <- xs])
+
+
+bindTA :: (Eq k, Num k, Ord b, Show b) =>
+    Vect k (TensorAlgebra a) -> (Vect k a -> Vect k (TensorAlgebra b)) -> Vect k (TensorAlgebra b)
+bindTA = flip liftTA
+
+bindTA' :: (Eq k, Num k, Ord b, Show b) =>
+    Vect k (TensorAlgebra a) -> (a -> Vect k (TensorAlgebra b)) -> Vect k (TensorAlgebra b)
+bindTA' = flip liftTA'
+-- Another way to think about this is variable substitution
+
+-- "The algebra is free until we bind it"
+
+
+-- SYMMETRIC ALGEBRA
+
+-- |A data type representing basis elements of the symmetric algebra over a set\/type.
+-- The symmetric algebra is the quotient of the tensor algebra by
+-- the ideal generated by all
+-- differences of products u&#x2297;v - v&#x2297;u.
+data SymmetricAlgebra a = Sym Int [a] deriving (Eq,Ord)
+
+instance Show a => Show (SymmetricAlgebra a) where
+    show (Sym _ []) = "1"
+    show (Sym _ xs) = filter (/= '"') $ concat $ L.intersperse "." $ map show xs
+
+instance Ord a => Mon (SymmetricAlgebra a) where
+    munit = Sym 0 []
+    mmult (Sym i xs) (Sym j ys) = Sym (i+j) $ L.sort (xs++ys)
+
+instance (Eq k, Num k, Ord a) => Algebra k (SymmetricAlgebra a) where
+    unit x = x *> return munit
+    mult = nf . fmap (\(a,b) -> a `mmult` b)
+
+-- |Algebra morphism from tensor algebra to symmetric algebra.
+-- The kernel of the morphism is the ideal generated by all
+-- differences of products u&#x2297;v - v&#x2297;u.
+toSym :: (Eq k, Num k, Ord a) =>
+     Vect k (TensorAlgebra a) -> Vect k (SymmetricAlgebra a)
+toSym = linear toSym'
+    where toSym' (TA i xs) = return $ Sym i (L.sort xs) 
+
+
+-- The symmetric algebra is the free commutative algebra. It has the following universal property:
+-- Given f :: a -> Vect k b, where Vect k b is a commutative algebra
+-- (which induces a vector space morphism, linear f :: Vect k a -> Vect k b)
+-- then we can lift to a commutative algebra morphism, (liftSym f) :: Vect k (SymmetricAlgebra a) -> Vect k b
+-- with (liftSym f) . injectSym = f
+
+injectSym :: Num k => Vect k a -> Vect k (SymmetricAlgebra a)
+injectSym = fmap (\a -> Sym 1 [a])
+
+injectSym' :: Num k => a -> Vect k (SymmetricAlgebra a)
+injectSym' = injectSym . return
+-- injectSym' a = return (Sym 1 [a])
+
+liftSym :: (Eq k, Num k, Ord b, Show b, Algebra k b) =>
+     (Vect k a -> Vect k b) -> Vect k (SymmetricAlgebra a) -> Vect k b
+liftSym f = linear (\(Sym _ xs) -> product [f (return x) | x <- xs])
+
+liftSym' :: (Eq k, Num k, Ord b, Show b, Algebra k b) =>
+     (a -> Vect k b) -> Vect k (SymmetricAlgebra a) -> Vect k b
+liftSym' = liftSym . linear
+-- liftSym' f = linear (\(Sym _ xs) -> product [f x | x <- xs])
+
+fmapSym :: (Eq k, Num k, Ord b, Show b) =>
+    (Vect k a -> Vect k b) -> Vect k (SymmetricAlgebra a) -> Vect k (SymmetricAlgebra b)
+fmapSym f = liftSym (injectSym . f)
+-- fmapSym f = linear (\(Sym _ xs) -> product [injectSym (f (return x)) | x <- xs])
+
+fmapSym' :: (Eq k, Num k, Ord b, Show b) =>
+    (a -> b) -> Vect k (SymmetricAlgebra a) -> Vect k (SymmetricAlgebra b)
+fmapSym' = fmapSym . fmap
+-- fmapSym' f = liftSym' (injectSym' . f)
+-- fmapSym' f = linear (\(Sym _ xs) -> product [injectSym' (f x) | x <- xs])
+
+bindSym :: (Eq k, Num k, Ord b, Show b) =>
+    Vect k (SymmetricAlgebra a) -> (Vect k a -> Vect k (SymmetricAlgebra b)) -> Vect k (SymmetricAlgebra b)
+bindSym = flip liftSym
+
+bindSym' :: (Eq k, Num k, Ord b, Show b) =>
+    Vect k (SymmetricAlgebra a) -> (a -> Vect k (SymmetricAlgebra b)) -> Vect k (SymmetricAlgebra b)
+bindSym' = flip liftSym'
+-- Another way to think about this is variable substitution
+
+
+-- EXTERIOR ALGEBRA
+
+-- |A data type representing basis elements of the exterior algebra over a set\/type.
+-- The exterior algebra is the quotient of the tensor algebra by
+-- the ideal generated by all
+-- self-products u&#x2297;u and sums of products u&#x2297;v + v&#x2297;u
+data ExteriorAlgebra a = Ext Int [a] deriving (Eq,Ord)
+
+instance Show a => Show (ExteriorAlgebra a) where
+    show (Ext _ []) = "1"
+    show (Ext _ xs) = filter (/= '"') $ concat $ L.intersperse "^" $ map show xs
+
+
+instance (Eq k, Num k, Ord a) => Algebra k (ExteriorAlgebra a) where
+    unit x = x *> return (Ext 0 [])
+    mult xy = nf $ xy >>= (\(Ext i xs, Ext j ys) -> signedMerge 1 (0,[]) (i,xs) (j,ys))
+        where signedMerge s (k,zs) (i,x:xs) (j,y:ys) =
+                  case compare x y of
+                  EQ -> zero
+                  LT -> signedMerge s (k+1,x:zs) (i-1,xs) (j,y:ys)
+                  GT -> let s' = if even i then s else -s -- we had to commute y past x:xs, with i sign changes
+                        in signedMerge s' (k+1,y:zs) (i,x:xs) (j-1,ys)
+              signedMerge s (k,zs) (i,xs) (0,[]) = s *> (return $ Ext (k+i) $ reverse zs ++ xs)
+              signedMerge s (k,zs) (0,[]) (j,ys) = s *> (return $ Ext (k+j) $ reverse zs ++ ys)
+
+
+-- |Algebra morphism from tensor algebra to exterior algebra.
+-- The kernel of the morphism is the ideal generated by all
+-- self-products u&#x2297;u and sums of products u&#x2297;v + v&#x2297;u
+toExt :: (Eq k, Num k, Ord a) =>
+     Vect k (TensorAlgebra a) -> Vect k (ExteriorAlgebra a)
+toExt = linear toExt'
+    where toExt' (TA i xs) = let (sign,xs') = signedSort 1 True [] xs
+                             in fromInteger sign *> return (Ext i xs')
+
+signedSort sign done ls (r1:r2:rs) =
+    case compare r1 r2 of
+    EQ -> (0,[])
+    LT -> signedSort sign done (r1:ls) (r2:rs)
+    GT -> signedSort (-sign) False (r2:ls) (r1:rs)
+signedSort sign done ls rs =
+    if done then (sign,reverse ls ++ rs) else signedSort sign True [] (reverse ls ++ rs)
+
+-- !! The above code seems a bit clumsy - can we do better
+
+
+injectExt :: Num k => Vect k a -> Vect k (ExteriorAlgebra a)
+injectExt = fmap (\a -> Ext 1 [a])
+
+injectExt' :: Num k => a -> Vect k (ExteriorAlgebra a)
+injectExt' = injectExt . return
+-- injectExt' a = return (Ext 1 [a])
+
+liftExt :: (Eq k, Num k, Ord b, Show b, Algebra k b) =>
+     (Vect k a -> Vect k b) -> Vect k (ExteriorAlgebra a) -> Vect k b
+liftExt f = linear (\(Ext _ xs) -> product [f (return x) | x <- xs])
+
+liftExt' :: (Eq k, Num k, Ord b, Show b, Algebra k b) =>
+     (a -> Vect k b) -> Vect k (ExteriorAlgebra a) -> Vect k b
+liftExt' = liftExt . linear
+-- liftExt' f = linear (\(Ext _ xs) -> product [f x | x <- xs])
+
+fmapExt :: (Eq k, Num k, Ord b, Show b) =>
+    (Vect k a -> Vect k b) -> Vect k (ExteriorAlgebra a) -> Vect k (ExteriorAlgebra b)
+fmapExt f = liftExt (injectExt . f)
+-- fmapExt f = linear (\(Ext _ xs) -> product [injectExt (f (return x)) | x <- xs])
+
+fmapExt' :: (Eq k, Num k, Ord b, Show b) =>
+    (a -> b) -> Vect k (ExteriorAlgebra a) -> Vect k (ExteriorAlgebra b)
+fmapExt' = fmapExt . fmap
+-- fmapExt' f = liftExt' (injectExt' . f)
+-- fmapExt' f = linear (\(Ext _ xs) -> product [injectExt' (f x) | x <- xs])
+
+bindExt :: (Eq k, Num k, Ord b, Show b) =>
+    Vect k (ExteriorAlgebra a) -> (Vect k a -> Vect k (ExteriorAlgebra b)) -> Vect k (ExteriorAlgebra b)
+bindExt = flip liftExt
+
+bindExt' :: (Eq k, Num k, Ord b, Show b) =>
+    Vect k (ExteriorAlgebra a) -> (a -> Vect k (ExteriorAlgebra b)) -> Vect k (ExteriorAlgebra b)
+bindExt' = flip liftExt'
+-- Another way to think about this is variable substitution
+
+
+-- TENSOR COALGEBRA
+
+-- Kassel p67
+data TensorCoalgebra c = TC Int [c] deriving (Eq,Ord,Show)
+
+instance (Eq k, Num k, Ord c) => Coalgebra k (TensorCoalgebra c) where
+    counit = unwrap . linear counit'
+        where counit' (TC 0 []) = return () -- 1
+              counit' _ = zerov
+    comult = linear comult'
+        where comult' (TC d xs) = sumv [return (TC i ls, TC (d-i) rs) | (i,ls,rs) <- L.zip3 [0..] (L.inits xs) (L.tails xs)]
+
+
+-- Now show that the tensor coalgebra is the cofree coalgebra
+-- ie that it has the required universal property:
+-- coliftTC f is a coalgebra morphism, and f == projectTC . coliftTC f
+
+-- projection onto the underlying vector space
+projectTC :: (Eq k, Num k, Ord b) => Vect k (TensorCoalgebra b) -> Vect k b
+projectTC = linear projectTC' where projectTC' (TC 1 [b]) = return b; projectTC' _ = zerov 
+-- projectTC t = V [(b,c) | (TC 1 [b], c) <- terms t]
+
+
+-- lift a vector space morphism C -> D to a coalgebra morphism C -> T'(D)
+-- this function returns an approximation, valid only up to second order terms
+coliftTC :: (Eq k, Num k, Coalgebra k c, Ord d) =>
+     (Vect k c -> Vect k d) -> Vect k c -> Vect k (TensorCoalgebra d)
+coliftTC f = sumf [coliftTC' i f | i <- [0..2] ]
+
+coliftTC' 0 f = linear f0'
+    where f0' c = counit (return c) *> return (TC 0 [])
+coliftTC' 1 f = linear f1'
+    where f1' c = fmap (\d -> TC 1 [d]) (f $ return c)
+coliftTC' n f = linear fn'
+    where f1' = coliftTC' 1 f
+          fn1' = coliftTC' (n-1) f
+          fn' c = fmap (\(TC 1 [x], TC _ xs) -> TC n (x:xs)) $ ( (f1' `tf` fn1') . comult) (return c)
+
+
+cobindTC :: (Eq k, Num k, Ord c, Ord d) =>
+     (Vect k (TensorCoalgebra c) -> Vect k d) -> Vect k (TensorCoalgebra c) -> Vect k (TensorCoalgebra d)
+cobindTC = coliftTC
+
+-- So we have a comonad:
+-- projectTC is extract :: w a -> a
+-- cobindTC is extend :: (w a -> b) -> w a -> w b
+
+{-
+Derivation of coliftTC:
+Write f' = f0' + f1' + f2' + ...,
+where fn' is the part of f' whose range is the nth iterated tensor product in TC.
+Then we can deduce f0' from counit . f' == counit
+If f': c -> sum ai*di + terms of other order
+then counit c = sum ai*counit di
+We can deduce f1' from f == projectTC . f'
+We can deduce the rest recursively from comult
+Write comult (on TC) = comult00 + (comult01+comult10) + (comult02+comult11+comult20) + ...,
+where comultij is that part that operates on the i+j'th tensor product to produce i'th `te` jth
+Then comult . f' = (f' `tf` f') . comult
+can be expanded as
+(comult00 + comult01+comult10 + ...) . (f0' + f1' + ...) = (f0' `tf` f0' + f0' `tf` f1' + f1' `tf` f0' + ...) . comult
+Looking at the 1,n-1 term, we see that
+comult1,n-1 . fn' = (f1' `tf` fn-1') . comult
+-}
+
+-- For example
+{-
+> let f = linear (\x -> case x of Dual One -> e1; Dual I -> e2; Dual J -> e3; Dual K -> e 4)
+> let f' = sumf [coliftTC' i f | i <- [0..3] ]
+
+-- then the following agree up to level three (inclusive)
+> (comult . f') one'
+> ((f' `tf` f') . comult) one'
+-}
+
+
+
+

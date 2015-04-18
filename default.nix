@@ -21,6 +21,11 @@ let overrideCabal = drv: f: (drv.override (args: args // {
           sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
           doCheck = false;
         });
+        HaskellForMaths = overrideCabal super.HaskellForMaths (drv: {
+          version = "0.4.5";
+          src = ./HaskellForMaths;
+          sha256 = null;
+        });
       };
     };
 in rec {
