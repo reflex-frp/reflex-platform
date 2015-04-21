@@ -14,6 +14,21 @@ let overrideCabal = drv: f: (drv.override (args: args // {
           sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
           doCheck = false;
         });
+        thyme = overrideCabal super.thyme (drv: {
+          doCheck = false;
+        });
+        orgmode-parse = overrideCabal super.orgmode-parse (with self; drv: {
+          version = "0.1.0.4";
+          sha256 = "098zl8nyph459zyla0y2mkqiy78zp74yzadrnwa6xv07i5zs125h";
+          buildDepends = [
+            aeson attoparsec free hashable text thyme unordered-containers
+          ];
+          testDepends = [
+            aeson attoparsec hashable HUnit tasty tasty-hunit text thyme
+            unordered-containers
+          ];
+          doCheck = false;
+        });
       };
     };
 in rec {
