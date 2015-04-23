@@ -26,7 +26,7 @@ fi
 )
 
 # The command to source the nix script.  This should be a line of valid bash code.
-SOURCE_NIX_SCRIPT=". ~/.nix-profile/etc/profile.d/nix.sh"
+SOURCE_NIX_SCRIPT=". $HOME/.nix-profile/etc/profile.d/nix.sh"
 
 # Whether the nix script needed to be sourced - i.e. nix commands are not available without doing so, from the user's basic prompt.
 NEEDED_TO_SOURCE_NIX_SCRIPT=0
