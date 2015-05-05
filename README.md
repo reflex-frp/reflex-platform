@@ -95,7 +95,7 @@ Of course, we want to do more than just view a static webpage. Let's start by ge
 import Reflex.Dom
 
 main = mainWidget $ el "div" $ do
-  t <- textInput
+  t <- textInput def
   dynText $ _textInput_value t
 ```
 
@@ -104,10 +104,10 @@ Running this in your browser, you'll see that it produces a `div` containing an 
 `textInput` is a function with the following type:
 
 ```haskell
-textInput :: MonadWidget t m => m (TextInput t)
+textInput :: MonadWidget t m => TextInputConfig t -> m (TextInput t)
 ```
 
-It takes no arguments, and produces a `Widget` whose result is a `TextInput`. In `Reflex.Dom.Widget.Input` we can see that a `TextInput` exposes the following functionality:
+It takes a `TextInputConfig` (given a default value in our example), and produces a `Widget` whose result is a `TextInput`. In `Reflex.Dom.Widget.Input` we can see that a `TextInput` exposes the following functionality:
 
 ```haskell
 data TextInput t
@@ -129,7 +129,7 @@ import Reflex
 import Reflex.Dom
 
 main = mainWidget $ el "div" $ do
-  t <- textInput
+  t <- textInput def
   text "Last key pressed: "
   let keypressEvent = fmap show $ _textInput_keypress t
   keypressDyn <- holdDyn "None" keypressEvent
@@ -156,23 +156,14 @@ import Reflex.Dom
 import qualified Data.Map as Map
 
 main = mainWidget $ el "div" $ do
-  t <- input' "number" "0" never (constDyn Map.empty)
+  t <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
   dynText $ _textInput_value t
 ```
 
-The `textInput` function we used earlier is implemented in terms of `input'`. The type signature of `input'` is:
+The code above overrides some of the default values of the `TextInputConfig`. We provide a `String` value for the 'textInputConfig_inputType`, specifying the html input element's `type` attribute. We're using `"number"` here.
 
-```haskell
-input' :: MonadWidget t m => String -> String -> Event t String -> Dynamic t (Map String String) -> m (TextInput t)
-```
-
-The first argument is a `String` that specifies the html input element's `type` attribute. We're using `"number"` here.
-
-The second argument is the initial value of the `TextInput`. We gave it `"0"`. Even though we're making an html `input` element with the attribute `type=number`, the result is still a `String`. We'll convert this later.
-
-The third argument is an `Event String`. This is an `Event` that sets the value of the `TextInput` when it fires. We supplied `never` for this argument. `never` represents an event that will never fire.
-
-The final argument is a `Dynamic (Map String String)` representing the html element attributes other than `type`. It is `Dynamic`, allowing the input's attributes to change dynamically. This can be used to, for instance, apply error styling depending on the value of the `TextInput`. We are passing an empty `Map` here, since we don't need to set any of the html attributes other than `type`. The function `constDyn` takes a pure value and turns it into a `Dynamic` that never changes value.
+Next, we override the default initial value of the `TextInput`. We gave it `"0"`. Even though we're making an html `input` element with the attribute `type=number`, the result is still a `String`. We'll convert this later.
 
 Let's do more than just take the input value and print it out. First, let's make sure the input is actually a number:
 
@@ -183,13 +174,14 @@ import qualified Data.Map as Map
 import Safe (readMay)
 
 main = mainWidget $ el "div" $ do
-  t <- numberInput
-  numberString <- mapDyn show t
+  x <- numberInput
+  numberString <- mapDyn show x
   dynText numberString
 
 numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
-  n <- input' "number" "0" never $ constDyn Map.empty
+  n <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
   mapDyn readMay $ _textInput_value n
 ```
 
@@ -218,7 +210,8 @@ main = mainWidget $ el "div" $ do
 
 numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
-  n <- input' "number" "0" never $ constDyn Map.empty
+  n <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
   mapDyn readMay $ _textInput_value n
 ```
 
@@ -238,10 +231,10 @@ We use `mapDyn` again to apply show to `result` (a `Dynamic (Maybe Double)`) res
 Next, we'll add support for other operations. We're going to add a dropdown so that the user can select the operation to apply. The function `dropdown` has the type:
 
 ```haskell
-dropdown :: (MonadWidget t m, Ord k, Show k, Read k) => k -> Dynamic t (Map k String) -> m (Dropdown t k)
+dropdown :: (MonadWidget t m, Ord k, Show k, Read k) => k -> Dynamic t (Map k String) -> DropdownConfig t k -> m (Dropdown t k)
 ```
 
-The first argument is the initial value of the `Dropdown`. The second argument is a `Dynamic (Map k String)` that represents the options in the dropdown. The `String` values of the `Map` are the strings that will be displayed to the user. If the initial key is not in the `Map`, it is added and given a `String` value of `""`.
+The first argument is the initial value of the `Dropdown`. The second argument is a `Dynamic (Map k String)` that represents the options in the dropdown. The `String` values of the `Map` are the strings that will be displayed to the user. If the initial key is not in the `Map`, it is added and given a `String` value of `""`. The final argument is a `DropdownConfig`.
 
 Our supported operations will be:
 
@@ -252,10 +245,10 @@ ops = Map.fromList [("+", "+"), ("-", "-"), ("*", "*"), ("/", "/")]
 We'll use this as an argument to `dropdown`:
 
 ```haskell
-d <- dropdown "*" $ constDyn ops
+d <- dropdown "*" (constDyn ops) def
 ```
 
-We are using `constDyn` again here to turn our `Map` of operations into a `Dynamic`. The result, `d`, will be a `Dropdown`. We can retrieve the `Dynamic` selection of a `Dropdown` by using `_dropdown_value`.
+We are using `constDyn` again here to turn our `Map` of operations into a `Dynamic`. Using `def`, we provide the default `DropdownConfig`. The result, `d`, will be a `Dropdown`. We can retrieve the `Dynamic` selection of a `Dropdown` by using `_dropdown_value`.
 
 ```haskell
 import Reflex
@@ -266,7 +259,7 @@ import Control.Applicative ((<*>), (<$>))
 
 main = mainWidget $ el "div" $ do
   nx <- numberInput
-  d <- dropdown "*" $ constDyn ops
+  d <- dropdown "*" (constDyn ops) def
   ny <- numberInput
   values <- combineDyn (,) nx ny
   result <- combineDyn (\o (x,y) -> stringToOp o <$> x <*> y) (_dropdown_value d) values
@@ -274,9 +267,10 @@ main = mainWidget $ el "div" $ do
   text " = "
   dynText resultString
 
-numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
-  n <- input' "number" "0" never (constDyn Map.empty)
+  n <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
   mapDyn readMay $ _textInput_value n
 
 ops = Map.fromList [("+", "+"), ("-", "-"), ("*", "*"), ("/", "/")]
@@ -300,23 +294,27 @@ Running the app at this point will give us our two number inputs with a dropdown
 Let's spare a thought for the user of our calculator and add a little UI styling. Our number input currently looks like this:
 
 ```haskell
-numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
-  n <- input' "number" "0" never (constDyn Map.empty)
+  n <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
   mapDyn readMay $ _textInput_value n
 ```
 
-Instead of passing `input'` an empty `Map`, let's give it some attributes to work with:
+Let's give it some html attributes to work with:
 
 ```haskell
-numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
   let attrs = constDyn $ Map.fromList [("style", "border-color: blue")]
-  n <- input' "number" "0" never attrs
+  n <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
+                       & textInputConfig_attributes .~ attrs
   mapDyn readMay $ _textInput_value n
+
 ```
 
-Here, we've created a `Dynamic (Map String String)`. This `Map` represents the html attributes of our inputs. Because we're using `constDyn` again, this `Dynamic` will never change. If you load this in the browser, you'll see that the inputs now have a garish blue border.
+Here, we've created a `Dynamic (Map String String)`. This `Map` represents the html attributes of our inputs. Because we're using `constDyn` again, this `Dynamic` will never change. If you load this in the browser, you'll see that the inputs now have a blue border.
 
 Unchanging attributes are useful and quite common, but attributes will often need to change. Instead of just making the `TextInput` blue, let's change it's color based on whether the input successfully parses to a `Double`:
 
@@ -327,7 +325,9 @@ numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
 numberInput = do
   let errorState = Map.singleton "style" "border-color: red"
       validState = Map.singleton "style" "border-color: green"
-  rec n <- input' "number" "0" never attrs
+  rec n <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
+                       & textInputConfig_attributes .~ attrs
       result <- mapDyn readMay $ _textInput_value n
       attrs <- mapDyn (\r -> case r of
                                   Just _ -> validState
@@ -339,7 +339,7 @@ Note that we need to add a language pragma here to enable the `RecursiveDo` lang
 
 In the first line of the `rec`, we have supplied the argument `attrs`, of type `Dynamic (Map String String)`. The `Dynamic` value of the input is bound to `result`. The code for parsing this value has not changed.
 
-After we bind `result`, we use `mapDyn` again to apply a switching function to `result`. The switching function checks whether the value was successfully parsed. If it was, we get the `Map` of attributes representing the valid state, otherwise we get the `Map` representing the error state. The result is a `Dynamic (Map String String)`, which is the type `input'` expects to receive.
+After we bind `result`, we use `mapDyn` again to apply a switching function to `result`. The switching function checks whether the value was successfully parsed. If it was, we get the `Map` of attributes representing the valid state, otherwise we get the `Map` representing the error state. The result is a `Dynamic (Map String String)`, which is the type `textInputConfig_attributes` expects to receive.
 
 The complete program now looks like this:
 
@@ -353,7 +353,7 @@ import Control.Applicative ((<*>), (<$>))
 
 main = mainWidget $ el "div" $ do
   nx <- numberInput
-  d <- dropdown "*" $ constDyn ops
+  d <- dropdown "*" (constDyn ops) def
   ny <- numberInput
   values <- combineDyn (,) nx ny
   result <- combineDyn (\o (x,y) -> stringToOp o <$> x <*> y) (_dropdown_value d) values
@@ -365,7 +365,9 @@ numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
 numberInput = do
   let errorState = Map.singleton "style" "border-color: red"
       validState = Map.singleton "style" "border-color: green"
-  rec n <- input' "number" "0" never attrs
+  rec n <- textInput $ def & textInputConfig_inputType .~ "number"
+                       & textInputConfig_initialValue .~ "0"
+                       & textInputConfig_attributes .~ attrs
       result <- mapDyn readMay $ _textInput_value n
       attrs <- mapDyn (\r -> case r of
                                   Just _ -> validState
