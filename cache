@@ -11,6 +11,9 @@ fi
 
 PLATFORMS=$(eval "echo $(nix-instantiate --eval -E '(import ./nixpkgs {}).stdenv.lib.concatStringsSep " " (import ./.).platforms')")
 
-ROOTS=$(nix-build -I . -j 8 --no-out-link -E "import ./shell.nix {}")
+ROOTS=""
+for x in $(eval "echo $(nix-instantiate --eval -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
+  ROOTS=$(nix-build -I . -j 8 --no-out-link -E "import ./shell.nix {}")
+done
 
 nix-copy-closure --gzip --to "$1" $ROOTS

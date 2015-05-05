@@ -1,9 +1,12 @@
+{ system ? null }:
 let overrideCabal = drv: f: (drv.override (args: args // {
       mkDerivation = drv: args.mkDerivation (drv // f drv);
     })) // {
       overrideScope = scope: overrideCabal (drv.overrideScope scope) f;
     };
-    nixpkgs = import ./nixpkgs {config.allowUnfree = true;};
+    nixpkgs = import ./nixpkgs ({
+      config.allowUnfree = true;
+    } // (if system == null then {} else { inherit system; }));
     extendHaskellPackages = haskellPackages: haskellPackages.override {
       overrides = self: super: {
         reflex = self.callPackage ./reflex {};
@@ -41,4 +44,10 @@ in rec {
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7101;
   ghcjs = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghcjs;
   platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
+
+  # The systems that we want to build for on the current system
+  cacheTargetSystems =
+    if nixpkgs.stdenv.system == "x86_64-linux"
+    then [ "x86_64-linux" "i686-linux" ] # On linux, we want to build both 32-bit and 64-bit versions
+    else [ nixpkgs.stdenv.system ];
 }
