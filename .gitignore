@@ -13,3 +13,5 @@ cabal.config
 *.js_hi
 *.js_o
 *~
+tags
+TAGS
