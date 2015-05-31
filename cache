@@ -5,6 +5,10 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 . "$DIR/common-setup.sh"
 
-for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
-  nix-copy-closure --gzip --to "$1" $(nix-build $NIXOPTS -j 8 --no-out-link -E "import ./shell.nix { system = \"$x\"; }")
-done
+(
+    cd "$DIR"
+
+    for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
+        nix-copy-closure --gzip --to "$1" $(nix-build $NIXOPTS -j 8 --no-out-link --indirect --add-root "$PWD/cache-$x.drv" -E "import ./shell.nix { system = \"$x\"; }")
+    done
+)
