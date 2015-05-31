@@ -61,5 +61,5 @@ $SUGGESTION_GHCJS
 EOF
 )
 
-nix-instantiate "$DIR/shell.nix" $NIXOPTS --indirect --add-root "$DIR/shell.drv"
-nix-shell "$DIR/shell.drv" $NIXOPTS --command "echo \"$INFO\" ; return" "$@"
+nix-instantiate "$DIR/shell.nix" $NIXOPTS --indirect --add-root "$DIR/gc-roots/shell.drv"
+nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS --command "echo \"$INFO\" ; return" "$@"
