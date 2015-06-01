@@ -9,9 +9,17 @@ let overrideCabal = drv: f: (drv.override (args: args // {
     } // (if system == null then {} else { inherit system; }));
     extendHaskellPackages = haskellPackages: haskellPackages.override {
       overrides = self: super: {
-        reflex = self.callPackage ./reflex {};
-        reflex-dom = self.callPackage ./reflex-dom {};
-        reflex-todomvc = self.callPackage ./reflex-todomvc {};
+        reflex = self.callPackage ./reflex {
+          inherit (super) reflex;
+        };
+        reflex-dom = self.callPackage ./reflex-dom {
+          inherit (super) reflex-dom;
+          inherit overrideCabal;
+          inherit (nixpkgs) fetchUrl;
+        };
+        reflex-todomvc = self.callPackage ./reflex-todomvc {
+          inherit (super) reflex-todomvc;
+        };
         active = overrideCabal super.active (drv: {
           version = "0.1.0.19";
           sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
