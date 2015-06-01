@@ -11,14 +11,15 @@ let overrideCabal = drv: f: (drv.override (args: args // {
       overrides = self: super: {
         reflex = self.callPackage ./reflex {
           inherit (super) reflex;
+          inherit overrideCabal;
         };
         reflex-dom = self.callPackage ./reflex-dom {
           inherit (super) reflex-dom;
-          inherit overrideCabal;
-          inherit (nixpkgs) fetchUrl;
+          inherit (nixpkgs) fetchFromGitHub;
         };
         reflex-todomvc = self.callPackage ./reflex-todomvc {
           inherit (super) reflex-todomvc;
+          inherit (nixpkgs) fetchFromGitHub;
         };
         active = overrideCabal super.active (drv: {
           version = "0.1.0.19";
