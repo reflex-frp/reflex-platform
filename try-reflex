@@ -47,7 +47,7 @@ EOF
 $ ghcjs hello.hs
 Then navigate your browser to file://$(pwd)/hello.jsexe/index.html
 
-Or to see a more complex GUI example (based on the source at $DIR/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build $NIXOPTS --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
+Or to see a more complex GUI example (based on the source at $DIR/reflex-todomvc/src/Main.hs), navigate your browser to file://$(nix-build $NIXOPTS --no-out-link "$DIR/deps" -A haskell-ng.packages.ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
 EOF2
 )
 
