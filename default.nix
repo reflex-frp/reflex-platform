@@ -32,6 +32,12 @@ let overrideCabal = drv: f: (drv.override (args: args // {
           ];
           doCheck = false;
         });
+        twitter-types = overrideCabal super.twitter-types (drv: {
+          doCheck = false;
+        });
+        twitter-types-lens = overrideCabal super.twitter-types-lens (drv: {
+          doCheck = false;
+        });
         HaskellForMaths = overrideCabal super.HaskellForMaths (drv: {
           version = "0.4.8";
           sha256 = "0yn2nj6irmj24j1djvnnq26i2lbf9g9x1wdhmcrk519glcn5k64j";
