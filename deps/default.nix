@@ -42,10 +42,10 @@ let extendHaskellPackages = nixpkgs: haskellPackages:
       };
     };
     extendBothHaskellPackages = super: let
-      # Should be a fixpoint, right now clobbers other `packages.*`. see nixpkgs #7659
+      # Should be a fixpoint so we can replace original. see nixpkgs #7659
       self = super // {
-        haskell-ng.packages.ghc7101 = extendHaskellPackages self super.haskell-ng.packages.ghc7101;
-        haskell-ng.packages.ghcjs = extendHaskellPackages self super.haskell-ng.packages.ghcjs;
+        reflexPackages.ghc7101 = extendHaskellPackages self super.haskell-ng.packages.ghc7101;
+        reflexPackages.ghcjs = extendHaskellPackages self super.haskell-ng.packages.ghcjs;
       };
       in self;
 

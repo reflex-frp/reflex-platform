@@ -3,11 +3,11 @@
 let
   nixpkgs = import ./deps { inherit system; };
 
-  hsPkgSet = [ { haskellPackages = nixpkgs.haskell-ng.packages.ghcjs;
+  hsPkgSet = [ { haskellPackages = nixpkgs.reflexPackages.ghcjs;
                  platform = "ghcjs";
                }]
              ++ (if !nixpkgs.stdenv.isDarwin
-                 then [ { haskellPackages = nixpkgs.haskell-ng.packages.ghc7101;
+                 then [ { haskellPackages = nixpkgs.reflexPackages.ghc7101;
                           platform =  "ghc"; } ]
                  else []);
 
