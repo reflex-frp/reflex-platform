@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 set -eu
 
-if ! type -P nix-shell >/dev/null ; then
-  . ~/.nix-profile/etc/profile.d/nix.sh
-  if ! type -P nix-shell >/dev/null ; then
-    echo "It looks like Nix isn't working.  Please make sure you can run nix-shell, then retry the $0, or submit an issue at $REPO/issues"
-    exit 1
-  fi
-fi
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-PLATFORMS=$(eval "echo $(nix-instantiate --eval -E '(import ./nixpkgs {}).stdenv.lib.concatStringsSep " " (import ./.).platforms')")
+. "$DIR/common-setup.sh"
 
-ROOTS=$(nix-build -I . -j 8 --no-out-link -E "import ./shell.nix {}")
+(
+    cd "$DIR"
 
-nix-copy-closure --gzip --to "$1" $ROOTS
+    for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E 'import ./cache.nix'") ; do
+        nix-copy-closure --gzip --to "$1" $(nix-build $NIXOPTS -j 8 --no-out-link --indirect --add-root "$PWD/gc-roots/cache-$x.drv" -E "import ./shell.nix { system = \"$x\"; }")
+    done
+)

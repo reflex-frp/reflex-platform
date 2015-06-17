@@ -25,29 +25,30 @@ fi
 
 )
 
+# The command to source the nix script.  This should be a line of valid bash code.
+SOURCE_NIX_SCRIPT=". $HOME/.nix-profile/etc/profile.d/nix.sh"
+
+# Whether the nix script needed to be sourced - i.e. nix commands are not available without doing so, from the user's basic prompt.
+NEEDED_TO_SOURCE_NIX_SCRIPT=0
+
 if ! type -P nix-shell >/dev/null ; then
-  . ~/.nix-profile/etc/profile.d/nix.sh
+  $SOURCE_NIX_SCRIPT
+  NEEDED_TO_SOURCE_NIX_SCRIPT=1
   if ! type -P nix-shell >/dev/null ; then
     echo "It looks like Nix isn't working.  Please make sure you can run nix-shell, then retry the $0, or submit an issue at $REPO/issues"
     exit 1
   fi
 fi
 
-(
+# The minimum required version of Nix to run this script.
+MIN_REQUIRED_NIX_VERSION="1.8"
 
-cd "$DIR"
-
-
-if ! type -P git >/dev/null ; then
-  echo "Please make sure that 'git' is installed and can be run from this shell"
+if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVersion \"$MIN_REQUIRED_NIX_VERSION\" >= 0")" != "true" ] ; then
+  echo "It looks like your version of Nix, $(nix-instantiate --eval --expr "builtins.nixVersion"), is older than the minimum version required by try-reflex, \"$MIN_REQUIRED_NIX_VERSION\".  You'll need to upgrade Nix to continue.  On non-NixOS platforms, that can usually be done like this:"
+  if [ "$NEEDED_TO_SOURCE_NIX_SCRIPT" -ne 0 ] ; then
+    echo "$SOURCE_NIX_SCRIPT"
+  fi
+  echo "nix-env --upgrade"
+  echo "If you're on NixOS, you may need to upgrade your OS to a later version.  See https://nixos.org/nixos/manual/sec-upgrading.html"
   exit 1
 fi
-
-for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
-  if [ ! "$(ls -A "$x")" ] ; then
-
-    git submodule update --init --recursive "$x"
-  fi
-done
-
-)

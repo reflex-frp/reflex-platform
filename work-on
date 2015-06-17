@@ -15,6 +15,8 @@ if [ "$#" -lt 2 ] ; then
 fi
 
 PLATFORM="$1"
-PACKAGE="$2"
+shift
+PACKAGE="$1"
+shift
 
-nix-shell $NIXOPTS -I "$DIR" -E "let this = import ./default.nix; in with (this.$PLATFORM); with (import <nixpkgs/pkgs/development/haskell-modules/lib.nix> { pkgs = import <nixpkgs> {}; }); (overrideCabal $PACKAGE (drv: { buildDepends = drv.buildDepends ++ [ this.ghc.cabal-install ]; })).env" -j 8 "$@"
+nix-shell $NIXOPTS -I "$DIR" -E "let this = import ./. {}; in with (this.$PLATFORM); with (import <nixpkgs/pkgs/development/haskell-modules/lib.nix> { pkgs = import <nixpkgs> {}; }); (overrideCabal $PACKAGE (drv: { buildDepends = drv.buildDepends ++ [ this.ghc.cabal-install ]; })).env" -j 8 "$@"
