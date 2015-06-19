@@ -52,22 +52,3 @@ if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVers
   echo "If you're on NixOS, you may need to upgrade your OS to a later version.  See https://nixos.org/nixos/manual/sec-upgrading.html"
   exit 1
 fi
-
-(
-
-cd "$DIR"
-
-
-if ! type -P git >/dev/null ; then
-  echo "Please make sure that 'git' is installed and can be run from this shell"
-  exit 1
-fi
-
-for x in reflex reflex-dom reflex-todomvc ; do
-  if [ ! "$(ls -A "$x")" ] ; then
-
-    git submodule update --init --recursive "$x"
-  fi
-done
-
-)
