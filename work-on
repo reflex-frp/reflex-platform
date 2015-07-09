@@ -3,8 +3,6 @@ set -eu
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-. "$DIR/common-setup.sh"
-
 if [ "$#" -lt 2 ] ; then
   echo "Usage: $0 PLATFORM PACKAGE ..."
   echo "  PLATFORM can be either \"ghc\" or \"ghcjs\""
@@ -12,7 +10,10 @@ if [ "$#" -lt 2 ] ; then
   echo "  Any extra arguments will be passed along to nix-shell"
   echo
   echo "This script will drop you into a nix shell with access to the prerequisites of the chosen package on the chosen platform.  From there, you should be able to cabal configure [--ghcjs], cabal build, and cabal test.  Note that cabal install will not interoperate with Nix packages, and may not work at all."
+  exit 1
 fi
+
+. "$DIR/common-setup.sh"
 
 PLATFORM="$1"
 shift
