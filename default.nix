@@ -46,7 +46,7 @@ let overrideCabal = drv: f: (drv.override (args: args // {
       };
     };
 in rec {
-  inherit nixpkgs;
+  inherit nixpkgs overrideCabal;
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7101;
   ghcjs = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghcjs;
   platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);

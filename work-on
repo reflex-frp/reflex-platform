@@ -29,4 +29,4 @@ PACKAGE_INVOCATION=$(
     fi
 )
 
-nix-shell $NIXOPTS -E "let this = import $DIR/. {}; haskellPackages = this.$PLATFORM; lib = import <nixpkgs/pkgs/development/haskell-modules/lib.nix>; in (lib.overrideCabal $PACKAGE_INVOCATION (drv: { buildDepends = drv.buildDepends ++ [ this.ghc.cabal-install this.ghc.ghcid ]; })).env" -j 8 "$@"
+nix-shell $NIXOPTS -E "let this = import $DIR/. {}; haskellPackages = this.$PLATFORM; in (this.overrideCabal $PACKAGE_INVOCATION (drv: { buildDepends = drv.buildDepends ++ [ this.ghc.cabal-install this.ghc.ghcid ]; })).env" "$@"
