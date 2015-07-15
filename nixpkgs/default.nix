@@ -1,5 +1,5 @@
 import ((import <nixpkgs> {}).fetchgit {
   url = git://github.com/ryantrinkle/nixpkgs;
-  rev = "57a9b2f68907b12cee3ace99c767df846e0f96a0";
-  sha256 = "4a152f3b1c52cc91906d4a8d263cc26311129a2f1a8b6305b29d71e95ff0e10d";
+  rev = "9fb4b42537ddb84bb4ab31067ea0481a8c91ba8a";
+  sha256 = "92213d333385110b4f1a946397598831552957cb6164233d8093c51018a5dba0";
 })

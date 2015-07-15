@@ -43,6 +43,14 @@ let overrideCabal = drv: f: (drv.override (args: args // {
           sha256 = "0yn2nj6irmj24j1djvnnq26i2lbf9g9x1wdhmcrk519glcn5k64j";
           buildDepends = [ self.semigroups ] ++ drv.buildDepends; # For some reason, without the spurious import of self.semigroups, HaskellForMaths will fail to build the environment for HaskellForMaths on ghcjs (it works on ghc)
         });
+        dependent-sum-template = overrideCabal super.dependent-sum-template (drv: {
+          version = "0.0.0.4";
+          src = nixpkgs.fetchgit {
+            url = git://github.com/ryantrinkle/dependent-sum-template;
+            rev = "abcd0f01a3e264e5bc1f3b00f3d03082f091ec49";
+            sha256 = "16f95348c559394a39848394a9e1aa8318c79bfc62bc6946edad9aabd20a8e2d";
+          };
+        });
       };
     };
 in rec {

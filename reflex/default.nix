@@ -1,6 +1,6 @@
 import ((import <nixpkgs> {}).fetchFromGitHub {
   owner = "ryantrinkle";
   repo = "reflex";
-  rev = "2db16855c906571a9860061c70e73214ccead534";
-  sha256 = "1yi742kpga3k3i3an8plbrxy01rp5ikkmq9sb2cgw81n0z920dzh";
+  rev = "bd678c30ec7a432b55b64f81b2e16abf066e5106";
+  sha256 = "09wkxrbip904z4bikkbkhkyaiy4z0vzjn5r0h4zqa3vlrgv3i08w";
 })
