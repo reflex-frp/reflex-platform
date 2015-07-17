@@ -12,6 +12,22 @@ let overrideCabal = drv: f: (drv.override (args: args // {
         reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
+        ghcjs-jquery = self.callPackage ({ mkDerivation, data-default, ghcjs-base, ghcjs-dom, text }:
+          mkDerivation {
+            pname = "ghcjs-jquery";
+            version = "0.1.0.0";
+            src = nixpkgs.fetchgit {
+              url = git://github.com/ghcjs/ghcjs-jquery;
+              rev = "c5eeeafcf81c0d3237b8b9fcb98c4b3633a1297f";
+              sha256 = "3b2de54224963ee17857a9737b65d49edc423e06ad7e9c9b85d9f69ca923676a";
+            };
+            buildDepends = [
+              data-default ghcjs-base ghcjs-dom text
+            ];
+            jailbreak = true;
+            license = null;
+          }
+        ) {};
         active = overrideCabal super.active (drv: {
           version = "0.1.0.19";
           sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
