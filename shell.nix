@@ -1,13 +1,23 @@
 { system ? null }:
-let this = import ./. { inherit system; };
-    reflexEnv = platform: (builtins.getAttr platform this).ghcWithPackages (p: import ./packages.nix { haskellPackages = p; inherit platform; });
-in this.nixpkgs.runCommand "shell" {
+
+let
+  nixpkgs = import <nixpkgs> (if system == null then {} else { inherit system; });
+  reflexPkgs = import ./deps { inherit system; };
+
+  hsPkgSet = [ { haskellPackages = reflexPkgs.ghcjs; platform = "ghcjs"; } ]
+             ++ (if !nixpkgs.stdenv.isDarwin
+                 then [ { haskellPackages = reflexPkgs.ghc7101; platform = "ghc"; } ]
+                 else [ ]);
+
+  versions = builtins.map (args: import ./. args) hsPkgSet;
+
+in nixpkgs.runCommand "shell" {
   buildCommand = ''
     echo "$propagatedBuildInputs $buildInputs $nativeBuildInputs $propagatedNativeBuildInputs" > $out
   '';
   buildInputs = [
-    this.nixpkgs.nodejs
-    this.nixpkgs.curl
-    this.ghc.cabal-install
-  ] ++ builtins.map reflexEnv this.platforms;
+    reflexPkgs.nixpkgs.nodejs # already build node for ghcjs, so might as well use that version
+    nixpkgs.curl
+    nixpkgs.haskellngPackages.cabal-install # no need for custom deps here
+  ] ++ nixpkgs.stdenv.lib.concatMap (p: p.env.nativeBuildInputs) versions;
 } ""
