@@ -12,8 +12,8 @@ import qualified Data.Text as T
 main :: IO ()
 main = hspec $ parallel $ do
   describe "try-reflex" $ do
+    -- Test that the try-reflex shell is able to build a simple "Hello, world!" application with both ghc and ghcjs
     forM_ ["ghc", "ghcjs"] $ \platform -> do
-      -- Test that the try-reflex shell is able to build a simple "Hello, world!" application with both ghc and ghcjs
       it ("can build hello world with " <> platform) $ do
         shelly $ silently $ do
           d <- pwd
@@ -24,6 +24,7 @@ main = hspec $ parallel $ do
             run (d </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> " " <> helloFilename <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
         return () :: IO ()
   describe "work-on" $ do
+    -- Test that the work-on shell can build the core reflex libraries in a variety of configurations
     forM_ ["ghc", "ghcjs"] $ \platform -> do
       forM_ ["reflex", "reflex-dom", "reflex-todomvc"] $ \package -> do
         forM_ [False, True] $ \workOnPath -> do
@@ -38,3 +39,8 @@ main = hspec $ parallel $ do
                 let packageSpec = if workOnPath then "./." else fromString package
                 run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; cabal build ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
             return () :: IO ()
+  describe "shell.nix" $ do
+    it "can be entered using a bare nix-shell" $ do
+      shelly $ silently $ do
+        run "nix-shell" []
+      return () :: IO ()
