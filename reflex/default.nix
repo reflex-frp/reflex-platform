@@ -1,6 +1,5 @@
-import ((import <nixpkgs> {}).fetchFromGitHub {
-  owner = "ryantrinkle";
-  repo = "reflex";
-  rev = "bd678c30ec7a432b55b64f81b2e16abf066e5106";
-  sha256 = "09wkxrbip904z4bikkbkhkyaiy4z0vzjn5r0h4zqa3vlrgv3i08w";
+import ((import <nixpkgs> {}).fetchgit {
+  url = git://github.com/ryantrinkle/reflex;
+  rev = "29c426d474a12990e42bd5dc89ce832c8f3775f6";
+  sha256 = "3128befa55ef0a67a5557dd9905f319c913ab9a112f96979d9741e5c6d1431d1";
 })
