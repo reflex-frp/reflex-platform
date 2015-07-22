@@ -1,7 +1,7 @@
 Hacking on Try Reflex
 =====================
 
-To work on a particular package, use the work-on script *instead of* try-reflex:
+To work on a particular package, use the work-on script **instead of** try-reflex:
 
 ```
 ./work-on ghcjs reflex-dom
