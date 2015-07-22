@@ -39,6 +39,43 @@ main = hspec $ parallel $ do
                 let packageSpec = if workOnPath then "./." else fromString package
                 run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; cabal build ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
             return () :: IO ()
+  describe "hack-on" $ do
+    forM_ ["nixpkgs", "reflex", "reflex-dom", "reflex-todomvc"] $ \repo -> do
+      let checkThatRepoIsNotAlreadyBeingHackedOn = shelly $ silently $ do
+            d <- pwd
+            gitNixExists <- test_e $ d </> repo </> ("git.nix" :: String)
+            let instructions = "; to test hack-on, please ensure that " <> show repo <> " is in a clean, not-being-hacked-on state"
+            when (not gitNixExists) $ fail $ show (repo </> ("git.nix" :: String)) <> " does not exist" <> instructions
+            dotGitExists <- test_d $ d </> repo </> (".git" :: String)
+            when dotGitExists $ fail $ show (repo </> (".git" :: String)) <> " exists" <> instructions
+            return ()
+      before_ checkThatRepoIsNotAlreadyBeingHackedOn $ do
+        let withSetup a = do
+              shelly $ silently $ do
+                d <- pwd
+                withTmpDir $ \tmp -> do
+                  cd tmp
+                  cp_r (d </> repo) tmp
+                  run "git" ["init"]
+                  run "git" ["add", "-A"]
+                  run "git" ["commit", "-m", "Initial commit"]
+                  a d tmp
+              return () :: IO ()
+            writefileTest filename = withSetup $ \d tmp -> do
+              let fileToChange = repo </> (filename :: String)
+                  contents = "test"
+              writefile fileToChange contents
+              True <- (liftM (const False) $ run (d </> ("hack-on" :: String)) [fromString repo]) `catchany_sh` (\_ -> return True)
+              newContents <- readfile fileToChange
+              when (newContents /= contents) $ fail $ "hack-on changed the contents of " <> show fileToChange
+              return ()
+        it ("won't trample changes in " <> repo) $ writefileTest "default.nix" -- default.nix is an already-existing file
+        it ("won't trample new files in " <> repo) $ writefileTest "test" -- test is a non-existing file
+        it ("can checkout " <> repo) $ withSetup $ \d tmp -> do
+          run (d </> ("hack-on" :: String)) [fromString repo]
+          False <- test_e $ tmp </> repo </> ("git.nix" :: String)
+          True <- test_d $ tmp </> repo </> (".git" :: String)
+          return ()
   describe "shell.nix" $ do
     it "can be entered using a bare nix-shell" $ do
       shelly $ silently $ do

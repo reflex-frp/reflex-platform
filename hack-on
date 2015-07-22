@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -eu
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+. "$DIR/common-setup.sh"
+
+REPO="$1"
+
+if [ ! -d "$REPO" ] ; then
+    echo "Error: no such directory: $REPO"
+    exit 1
+fi
+
+DIFF="$(git -C "$REPO/.." diff HEAD -- "$REPO")"
+DIFF_ERR=$?
+STATUS="$(git -C "$REPO/.." status --porcelain "$REPO")"
+STATUS_ERR=$?
+
+if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
+    >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
+    exit 1
+elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
+    >&2 echo -n "$DIFF"
+    >&2 echo -n "$STATUS"
+    >&2 echo "Error: $REPO contains unsaved modifications"
+    exit 1
+fi
+
+URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).url")")"
+REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).rev")")"
+
+echo "Checking out $URL at revision $REV"
+
+rm "$REPO/default.nix"
+rm "$REPO/git.nix"
+rmdir "$REPO"
+
+git clone -n "$URL" "$REPO"
+git -C "$REPO" checkout "$REV"
