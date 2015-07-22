@@ -42,4 +42,4 @@ git -C "$REPO" checkout "$REV"
 echo
 echo "The following remote branches contain this commit:"
 git -C "$REPO" branch -r --contains HEAD | sed -n s_origin/__p
-echo "You probably want to 'git checkout' one of them to get started.  Happy hacking!"
+echo "You should probably 'git checkout' one of them to get started.  Happy hacking!"
