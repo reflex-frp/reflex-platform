@@ -25,3 +25,9 @@ The `hack-on` script is provided for conveniently checking out a sub-repository.
 This will check out the same version of `reflex` currently being used by `try-reflex`.  Note that `reflex`, here, is a path relative to the current directory, so you must be in the try-reflex folder when you execute this.
 
 Once the repository is checked out, you can make modifications to it, which will be used the next time you enter a `try-reflex` shell.  Existing `try-reflex` sessions will not be affected.
+
+When you are done hacking on the sub-repository, you can use the `hack-add` script to check your changes into try-reflex without needing to delete the repository, like so:
+
+```
+./hack-add reflex
+```

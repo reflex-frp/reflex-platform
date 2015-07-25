@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -eu
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+. "$DIR/common-setup.sh"
+
+REPO="$1"
+
+DIFF="$(git -C "$REPO/.." diff --cached -- "$REPO/git.nix")"
+DIFF_ERR=$?
+
+if [ "$DIFF_ERR" -ne 0 ] ; then
+    >&2 echo "Error: could not determine whether $REPO/git.nix already has pending modifications"
+    exit 1
+elif [ -n "$DIFF" ] ; then
+    >&2 echo -n "$DIFF"
+    >&2 echo "Error: $REPO/git.nix has pending modifications"
+    exit 1
+fi
+
+URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_git@github.com:_git://github.com/_')" # Don't use git@github.com origins, since these can't be accessed by nix
+REV="$(git -C "$REPO" rev-parse HEAD)"
+HASH="$($(nix-build -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)"
+
+diff -u --label "a/$REPO/git.nix" --label "b/$REPO/git.nix" <(git -C "$REPO/.." show "HEAD:$REPO/git.nix") <(cat <<EOF
+{
+  url = $URL;
+  rev = "$REV";
+  sha256 = "$HASH";
+}
+EOF
+) | git apply --cached
