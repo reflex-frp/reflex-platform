@@ -28,7 +28,7 @@ main = hspec $ parallel $ do
     forM_ ["ghc", "ghcjs"] $ \platform -> do
       forM_ ["reflex", "reflex-dom", "reflex-todomvc"] $ \package -> do
         forM_ [False, True] $ \workOnPath -> do
-          it ("can enter the environment for " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
+          it ("can build " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
             shelly $ silently $ do
               d <- pwd
               srcDir <- liftM (fromText . T.filter (/= '\n')) $ run "nix-build" ["-E", "(import ./nixpkgs {}).fetchgit (import ./" <> fromString package <> "/git.nix)"]
