@@ -1,6 +1,6 @@
 sudo: required
 script:
-  - ./test
+  - travis_wait ./test
 cache:
   directories:
     - /nix
