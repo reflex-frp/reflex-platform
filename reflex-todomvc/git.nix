@@ -1,5 +1,5 @@
 {
   url = git://github.com/ryantrinkle/reflex-todomvc;
-  rev = "43bb7357f98f4a345811617086accdbb8e19cb65";
-  sha256 = "efc192f620b81bac16f028e125398410bf85f8f10a9a5630dd7ac86f1d7b157b";
+  rev = "86f11184a8100806357f7bdd58e0353621852cda";
+  sha256 = "78c75817da37770ab208e66b56c1fc694836139318d7d7a0629ce823955e8ed3";
 }
