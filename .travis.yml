@@ -1,6 +1,6 @@
 sudo: required
 script:
-  - ./try-reflex --command "exit 0"
+  - ./test
 cache:
   directories:
   - /nix
