@@ -1,5 +1,7 @@
 sudo: required
 script:
+  - git config --global user.email "travis-ci@example.com"
+  - git config --global user.name "Travis-CI"
   - ./try-reflex --command "exit 0"
   - travis_wait ./test
 cache:
