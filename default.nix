@@ -12,6 +12,37 @@ let overrideCabal = drv: f: (drv.override (args: args // {
         reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
+
+	these = overrideCabal super.these (drv: { 
+           version ="0.4.1";
+           configureFlags = [ "--constraint='vector==0.10.*'"];
+	   sha256 = "135qiyg87cf9rl10zb681mwnrwxdm37h76dnlia8amkkmpkg4wia";
+	   editedCabalFile = "195bs2vll614x6l3h1p610v31yq4sy5hqw9nc3wc5b5z01xyr4d0";
+	   jailbreak = false;
+        });
+       
+
+	vector = self.callPackage
+	  ({ mkDerivation, base, deepseq, ghc-prim, primitive, QuickCheck
+	   , random, template-haskell, test-framework
+	   , test-framework-quickcheck2, transformers,stdenv
+	   }:
+	   mkDerivation {
+	     pname = "vector";
+	     version = "0.10.12.3";
+	     sha256 = "16p8i0gvc9d4n9mxlhlnvrl2s0gmgd7kcsk5czdzz2cd4gh5qxhg";
+	     buildDepends = [ base deepseq ghc-prim primitive ];
+	     testDepends = [
+	       base QuickCheck random template-haskell test-framework
+	       test-framework-quickcheck2 transformers
+	     ];
+	     jailbreak = true;
+	     homepage = "https://github.com/haskell/vector";
+	     description = "Efficient Arrays";
+	     license = stdenv.lib.licenses.bsd3;
+	   }) {};
+
+
         ghcjs-jquery = self.callPackage ({ mkDerivation, data-default, ghcjs-base, ghcjs-dom, text }:
           mkDerivation {
             pname = "ghcjs-jquery";
@@ -28,6 +59,8 @@ let overrideCabal = drv: f: (drv.override (args: args // {
             license = null;
           }
         ) {};
+
+
         active = overrideCabal super.active (drv: {
           version = "0.1.0.19";
           sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
