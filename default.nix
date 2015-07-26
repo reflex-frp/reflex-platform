@@ -7,11 +7,40 @@ let overrideCabal = drv: f: (drv.override (args: args // {
     nixpkgs = import ./nixpkgs ({
       config.allowUnfree = true;
     } // (if system == null then {} else { inherit system; }));
+    hspecGit = nixpkgs.fetchgit {
+      url = git://github.com/ryantrinkle/hspec;
+      rev = "09d4e0c989cba82b2cb7715c689ed2686473b849";
+      sha256 = "b7f970ad28694729892729531e24aa2abcffc0ffc1f8e5be332ad7bf8d44fbe2";
+    };
     extendHaskellPackages = haskellPackages: haskellPackages.override {
       overrides = self: super: {
         reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
+        hspec = overrideCabal super.hspec (drv: {
+          version = "2.1.8";
+          src = hspecGit;
+        });
+        hspec-core = overrideCabal super.hspec-core (drv: {
+          version = "2.1.9";
+          src = hspecGit + "/hspec-core";
+          preConfigure = ''
+            rm LICENSE
+            touch LICENSE
+          '';
+        });
+        hspec-discover = overrideCabal super.hspec-discover (drv: {
+          version = "2.1.9";
+          src = hspecGit + "/hspec-discover";
+          preConfigure = ''
+            rm LICENSE
+            touch LICENSE
+          '';
+        });
+        hspec-expectations = overrideCabal super.hspec-expectations (drv: {
+          version = "0.7.0";
+          sha256 = "1gzjnmhi6ia2p5i5jlnj4586rkml5af8f7ijgipzs6fczpx7ds4l";
+        });
         ghcjs-jquery = self.callPackage ({ mkDerivation, data-default, ghcjs-base, ghcjs-dom, text }:
           mkDerivation {
             pname = "ghcjs-jquery";
