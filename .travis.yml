@@ -3,4 +3,7 @@ script:
   - ./test
 cache:
   directories:
-  - /nix
+    - /nix
+os:
+  - linux
+  - osx
