@@ -28,11 +28,6 @@ let overrideCabal = drv: f: (drv.override (args: args // {
             license = null;
           }
         ) {};
-        active = overrideCabal super.active (drv: {
-          version = "0.1.0.19";
-          sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
-          doCheck = false;
-        });
         thyme = overrideCabal super.thyme (drv: {
           doCheck = false;
         });
