@@ -9,8 +9,8 @@ let overrideCabal = drv: f: (drv.override (args: args // {
     } // (if system == null then {} else { inherit system; }));
     hspecGit = nixpkgs.fetchgit {
       url = git://github.com/ryantrinkle/hspec;
-      rev = "09d4e0c989cba82b2cb7715c689ed2686473b849";
-      sha256 = "b7f970ad28694729892729531e24aa2abcffc0ffc1f8e5be332ad7bf8d44fbe2";
+      rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
+      sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
     };
     extendHaskellPackages = haskellPackages: haskellPackages.override {
       overrides = self: super: {
