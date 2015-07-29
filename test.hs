@@ -11,6 +11,7 @@ import qualified Data.Text as T
 
 main :: IO ()
 main = hspec $ parallel $ do
+  let silently = id -- Temporarily disable 'silently'
   describe "try-reflex" $ do
     -- Test that the try-reflex shell is able to build a simple "Hello, world!" application with both ghc and ghcjs
     forM_ ["ghc", "ghcjs"] $ \platform -> do
@@ -37,7 +38,7 @@ main = hspec $ parallel $ do
                 cd $ tmp </> package
                 run "chmod" ["-R", "u+w", "."]
                 let packageSpec = if workOnPath then "./." else fromString package
-                run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; cabal build ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
+                run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
             return () :: IO ()
   describe "hack-on" $ do
     forM_ ["nixpkgs", "reflex", "reflex-dom", "reflex-todomvc"] $ \repo -> do
