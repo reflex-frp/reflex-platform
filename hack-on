@@ -37,6 +37,12 @@ rm "$REPO/git.nix"
 rmdir "$REPO"
 
 git clone -n "$URL" "$REPO"
+REMOTE_URL="$(git -C "$REPO" config --get remote.origin.url)"
+FIXED_REMOTE_URL="$(echo "$REMOTE_URL" | sed 's_^git://github.com/_git@github.com:_')"
+if [ "$REMOTE_URL" != "$FIXED_REMOTE_URL" ] ; then
+    echo "Changing remote URL from $REMOTE_URL to $FIXED_REMOTE_URL"
+    git -C "$REPO" remote set-url origin "$FIXED_REMOTE_URL"
+fi
 git -C "$REPO" checkout "$REV"
 
 echo
