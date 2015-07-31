@@ -14,7 +14,7 @@ git clone -n "$DIR" "$CLEAN"
 git -C "$CLEAN" checkout "$(git -C "$DIR" rev-parse HEAD)"
 git -C "$DIR" diff --cached >"$DIFF"
 if [ -s "$DIFF" ] ; then
-    git -C "$CLEAN" apply --index
+    git -C "$CLEAN" apply --index <"$DIFF"
 fi
 
 cd $CLEAN
