@@ -26,8 +26,18 @@ This will check out the same version of `reflex` currently being used by `try-re
 
 Once the repository is checked out, you can make modifications to it, which will be used the next time you enter a `try-reflex` shell.  Existing `try-reflex` sessions will not be affected.
 
-When you are done hacking on the sub-repository, you can use the `hack-add` script to check your changes into try-reflex without needing to delete the repository, like so:
+When you have completed some work hacking on the sub-repository, you can use the `hack-add` script to check your changes into try-reflex without needing to delete the repository, like so:
 
 ```
 ./hack-add reflex
 ```
+
+You can then commit and push try-reflex without needing to delete the sub-repository.
+
+When you are completely done with a sub-repository, you can remove it using `hack-off`:
+
+```
+./hack-off reflex
+```
+
+This will remove the repository and replace the `default.nix` and `git.nix` files that were pointing to it before running `hack-on`.

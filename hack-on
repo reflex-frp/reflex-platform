@@ -14,15 +14,15 @@ fi
 
 DIFF="$(git -C "$REPO/.." diff HEAD -- "$REPO")"
 DIFF_ERR=$?
-STATUS="$(git -C "$REPO/.." status --porcelain "$REPO")"
+STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$REPO")"
 STATUS_ERR=$?
 
 if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
     >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
     exit 1
 elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
-    >&2 echo -n "$DIFF"
-    >&2 echo -n "$STATUS"
+    >&2 echo "$DIFF"
+    >&2 echo "$STATUS"
     >&2 echo "Error: $REPO contains unsaved modifications"
     exit 1
 fi

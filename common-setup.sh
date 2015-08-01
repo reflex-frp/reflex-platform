@@ -52,3 +52,23 @@ if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVers
   echo "If you're on NixOS, you may need to upgrade your OS to a later version.  See https://nixos.org/nixos/manual/sec-upgrading.html"
   exit 1
 fi
+
+git_thunk() {
+    echo "import ((import <nixpkgs> {}).fetchgit (import ./git.nix))"
+}
+
+git_manifest() {
+    local REPO="$1"
+
+    local URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')" # Don't use git@github.com origins, since these can't be accessed by nix
+    local REV="$(git -C "$REPO" rev-parse HEAD)"
+    local HASH="$($(nix-build -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)"
+
+    cat <<EOF
+{
+  url = $URL;
+  rev = "$REV";
+  sha256 = "$HASH";
+}
+EOF
+}

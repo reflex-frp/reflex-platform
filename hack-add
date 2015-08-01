@@ -19,15 +19,4 @@ elif [ -n "$DIFF" ] ; then
     exit 1
 fi
 
-URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')" # Don't use git@github.com origins, since these can't be accessed by nix
-REV="$(git -C "$REPO" rev-parse HEAD)"
-HASH="$($(nix-build -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)"
-
-diff -u --label "a/$REPO/git.nix" --label "b/$REPO/git.nix" <(git -C "$REPO/.." show "HEAD:$REPO/git.nix") <(cat <<EOF
-{
-  url = $URL;
-  rev = "$REV";
-  sha256 = "$HASH";
-}
-EOF
-) | git apply --cached
+diff -u --label "a/$REPO/git.nix" --label "b/$REPO/git.nix" <(git -C "$REPO/.." show "HEAD:$REPO/git.nix") <(git_manifest "$REPO") | git apply --cached
