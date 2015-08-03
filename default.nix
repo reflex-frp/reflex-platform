@@ -91,8 +91,8 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
           version = "0.14.1.0";
           src = nixpkgs.fetchgit {
             url = git://github.com/gtk2hs/webkit;
-            rev = "fd275ae1954421feabc95cc91f892d1fa39dbc86";
-            sha256 = "71dce8850bd490c48f3ad29a95d78e66f6b332a0af0f43bd4f03f2e38227f8ee";
+            rev = "482e30764bcfd8207347fd71027d4c8e1f423ee4";
+            sha256 = "280eae67462787cc737ddf56178c54a9f6f2c7d308366e2dbe638c331d6e3a1b";
           };
         });
         webkitgtk3-javascriptcore = overrideCabal super.webkitgtk3-javascriptcore (drv: {
