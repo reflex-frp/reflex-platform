@@ -16,7 +16,15 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
       rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
       sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
     };
-    extendHaskellPackages = haskellPackages: haskellPackages.override {
+    combineOverrides = old: new: (old // new) // {
+      overrides = self: super:
+        let oldOverrides = old.overrides self super;
+        in oldOverrides // new.overrides self (super // oldOverrides);
+    };
+    makeRecursivelyOverridable = x: old: x.override old // {
+      override = new: makeRecursivelyOverridable x (combineOverrides old new);
+    };
+    extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super: {
         reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
@@ -83,6 +91,24 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
         comonad = overrideCabal super.comonad (drv: {
           version = "4.2.7.2";
           sha256 = "0arvbaxgkawzdp38hh53akkahjg2aa3kj2b4ns0ni8a5ylg2cqmp";
+        });
+        either = overrideCabal super.either (drv: {
+          version = "4.4.1";
+          sha256 = "1jq9b7mwljyqxmcs09bnqzza6710sfk2x444p3aagjlvq3mpvrci";
+          buildDepends = drv.buildDepends ++ (with self; [
+            mmorph
+          ]);
+        });
+        monoid-extras = overrideCabal super.monoid-extras (drv: {
+          version = "0.4.0.1";
+          sha256 = "0jcyjqmk4s64j05qisvibmy87m5xi5n837wsivq7lml8lfyrj7yf";
+        });
+        linear = overrideCabal super.linear (drv: {
+          version = "1.19.1.3";
+          sha256 = "1hprmhs1nm6l81kpnnznz92l66j10z4asn3g3l9c47165q881592";
+        });
+        vector-algorithms = overrideCabal super.vector-algorithms (drv: {
+          jailbreak = true;
         });
         vector = overrideCabal super.vector (drv: {
           version = "0.11.0.0";
@@ -185,6 +211,28 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
             rev = "abcd0f01a3e264e5bc1f3b00f3d03082f091ec49";
             sha256 = "16f95348c559394a39848394a9e1aa8318c79bfc62bc6946edad9aabd20a8e2d";
           };
+        });
+        diagrams-core = overrideCabal super.diagrams-core (drv: {
+          jailbreak = true;
+        });
+        diagrams-lib = overrideCabal super.diagrams-lib (drv: {
+          jailbreak = true;
+        });
+        diagrams-contrib = overrideCabal super.diagrams-contrib (drv: {
+          jailbreak = true;
+        });
+        force-layout = overrideCabal super.force-layout (drv: {
+          jailbreak = true;
+        });
+        active = overrideCabal super.active (drv: {
+          version = "0.2.0.4";
+          sha256 = "1xm2y8knqhd883c41194h323vchv4hx57wl32l9f64kf7gdglag0";
+        });
+        snap = overrideCabal super.snap (drv: {
+          version = "0.14.0.6";
+          sha256 = "05xnil6kfxwrnbvg7sigzh7hl8jsfr8cvbjd41z9ywn6ymxzr7zs";
+          revision = null;
+          editedCabalFile = null;
         });
       };
     };
