@@ -1,12 +1,16 @@
-{ system ? null }:
-let overrideCabal = drv: f: (drv.override (args: args // {
+{ system ? null, config ? null }:
+let overrideCabal = drv: f: if drv == null then null else (drv.override (args: args // {
       mkDerivation = drv: args.mkDerivation (drv // f drv);
     })) // {
       overrideScope = scope: overrideCabal (drv.overrideScope scope) f;
     };
     nixpkgs = import ./nixpkgs ({
       config.allowUnfree = true;
-    } // (if system == null then {} else { inherit system; }));
+    } // (
+      if system == null then {} else { inherit system; }
+    ) // (
+      if config == null then {} else { inherit config; }
+    ));
     hspecGit = nixpkgs.fetchgit {
       url = git://github.com/ryantrinkle/hspec;
       rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
