@@ -5,4 +5,4 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 . "$DIR/common-setup.sh"
 
-nix-shell $NIXOPTS -E "{nixpkgsPath}: let nixpkgs = import nixpkgsPath {}; in nixpkgs.runCommand \"shell\" { buildInputs = [ (nixpkgs.haskellPackages.ghcWithPackages (p: with p; [ shelly hspec ])) ]; } \"\"" --argstr nixpkgsPath "$DIR/nixpkgs" --show-trace --command "runghc $(printf "%q " "$DIR/test.hs" "$@")"
+nix-shell $NIXOPTS -E "{path}: let this = import path {}; in this.nixpkgs.runCommand \"shell\" { buildInputs = [ (this.ghc.ghcWithPackages (p: with p; [ shelly hspec ])) ]; } \"\"" --argstr path "$DIR/." --show-trace --command "runghc $(printf "%q " "$DIR/test.hs" "$@") ; exit $?"

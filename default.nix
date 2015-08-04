@@ -1,4 +1,4 @@
-{ system ? null }:
+{ system ? null, config ? null }:
 let overrideCabal = drv: f: if drv == null then null else (drv.override (args: args // {
       mkDerivation = drv: args.mkDerivation (drv // f drv);
     })) // {
@@ -6,7 +6,16 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
     };
     nixpkgs = import ./nixpkgs ({
       config.allowUnfree = true;
-    } // (if system == null then {} else { inherit system; }));
+    } // (
+      if system == null then {} else { inherit system; }
+    ) // (
+      if config == null then {} else { inherit config; }
+    ));
+    hspecGit = nixpkgs.fetchgit {
+      url = git://github.com/ryantrinkle/hspec;
+      rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
+      sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
+    };
     extendHaskellPackages = haskellPackages: haskellPackages.override {
       overrides = self: super: {
         reflex = self.callPackage ./reflex {};
@@ -103,6 +112,30 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
             sha256 = "04f12913d7d4a9818f3fe0c27dd57489a41adf59d8fffdf9eaced084feb34d05";
           };
         });
+        hspec = overrideCabal super.hspec (drv: {
+          version = "2.1.8";
+          src = hspecGit;
+        });
+        hspec-core = overrideCabal super.hspec-core (drv: {
+          version = "2.1.9";
+          src = hspecGit + "/hspec-core";
+          preConfigure = ''
+            rm LICENSE
+            touch LICENSE
+          '';
+        });
+        hspec-discover = overrideCabal super.hspec-discover (drv: {
+          version = "2.1.9";
+          src = hspecGit + "/hspec-discover";
+          preConfigure = ''
+            rm LICENSE
+            touch LICENSE
+          '';
+        });
+        hspec-expectations = overrideCabal super.hspec-expectations (drv: {
+          version = "0.7.0";
+          sha256 = "1gzjnmhi6ia2p5i5jlnj4586rkml5af8f7ijgipzs6fczpx7ds4l";
+        });
         ghcjs-jquery = self.callPackage ({ mkDerivation, data-default, ghcjs-base, ghcjs-dom, text }:
           mkDerivation {
             pname = "ghcjs-jquery";
@@ -119,11 +152,6 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
             license = null;
           }
         ) {};
-        active = overrideCabal super.active (drv: {
-          version = "0.1.0.19";
-          sha256 = "1zzzrjpfwxzf0zbz8vcnpfqi7djvrfxglhkvw1s6yj5gcblg2rcw";
-          doCheck = false;
-        });
         thyme = overrideCabal super.thyme (drv: {
           doCheck = false;
         });
@@ -165,6 +193,56 @@ in rec {
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7101;
   ghcjs = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghcjs;
   platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
+
+  attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
+  mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
+    inherit name;
+    value = f value;
+  }) (attrsToList s));
+  mkSdist = pkg: pkg.override {
+    mkDerivation = drv: ghc.mkDerivation (drv // {
+      postConfigure = ''
+        ./Setup sdist
+        mkdir "$out"
+        mv dist/*.tar.gz "$out/${drv.pname}-${drv.version}.tar.gz"
+        exit 0
+      '';
+    });
+  };
+  sdists = mapSet mkSdist ghc;
+  mkHackageDocs = pkg: pkg.override {
+    mkDerivation = drv: ghc.mkDerivation (drv // {
+      postConfigure = ''
+        ./Setup haddock --hoogle --hyperlink-source --html --html-location='/package/${drv.pname}-${drv.version}/docs' --contents-location='/package/${drv.pname}-${drv.version}' --haddock-option=--built-in-themes
+        cd dist/doc/html
+        mv "${drv.pname}" "${drv.pname}-${drv.version}-docs"
+        mkdir "$out"
+        tar cz --format=ustar -f "$out/${drv.pname}-${drv.version}-docs.tar.gz" "${drv.pname}-${drv.version}-docs"
+        exit 0
+      '';
+    });
+  };
+  hackageDocs = mapSet mkHackageDocs ghc;
+  mkReleaseCandidate = pkg: nixpkgs.stdenv.mkDerivation (rec {
+    name = pkg.name + "-rc";
+    sdist = mkSdist pkg + "/${pkg.pname}-${pkg.version}.tar.gz";
+    docs = mkHackageDocs pkg + "/${pkg.pname}-${pkg.version}-docs.tar.gz";
+
+    builder = builtins.toFile "builder.sh" ''
+      source $stdenv/setup
+
+      mkdir "$out"
+      echo -n "${pkg.pname}-${pkg.version}" >"$out/pkgname"
+      ln -s "$sdist" "$docs" "$out"
+    '';
+
+    # 'checked' isn't used, but it is here so that the build will fail if tests fail
+    checked = overrideCabal pkg (drv: {
+      doCheck = true;
+      src = sdist;
+    });
+  });
+  releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   # The systems that we want to build for on the current system
   cacheTargetSystems =

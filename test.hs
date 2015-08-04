@@ -11,6 +11,7 @@ import qualified Data.Text as T
 
 main :: IO ()
 main = hspec $ parallel $ do
+  let silently = id -- Temporarily disable 'silently'
   describe "try-reflex" $ do
     -- Test that the try-reflex shell is able to build a simple "Hello, world!" application with both ghc and ghcjs
     forM_ ["ghc", "ghcjs"] $ \platform -> do
@@ -28,7 +29,7 @@ main = hspec $ parallel $ do
     forM_ ["ghc", "ghcjs"] $ \platform -> do
       forM_ ["reflex", "reflex-dom", "reflex-todomvc"] $ \package -> do
         forM_ [False, True] $ \workOnPath -> do
-          it ("can enter the environment for " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
+          it ("can build " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
             shelly $ silently $ do
               d <- pwd
               srcDir <- liftM (fromText . T.filter (/= '\n')) $ run "nix-build" ["-E", "(import ./nixpkgs {}).fetchgit (import ./" <> fromString package <> "/git.nix)"]
@@ -37,19 +38,19 @@ main = hspec $ parallel $ do
                 cd $ tmp </> package
                 run "chmod" ["-R", "u+w", "."]
                 let packageSpec = if workOnPath then "./." else fromString package
-                run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; cabal build ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
+                run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
             return () :: IO ()
+  let checkThatRepoIsNotAlreadyBeingHackedOn repo = shelly $ silently $ do
+        d <- pwd
+        gitNixExists <- test_e $ d </> repo </> ("git.nix" :: String)
+        let instructions = "; to test hack-on, please ensure that " <> show repo <> " is in a clean, not-being-hacked-on state"
+        when (not gitNixExists) $ fail $ show (repo </> ("git.nix" :: String)) <> " does not exist" <> instructions
+        dotGitExists <- test_d $ d </> repo </> (".git" :: String)
+        when dotGitExists $ fail $ show (repo </> (".git" :: String)) <> " exists" <> instructions
+        return ()
   describe "hack-on" $ do
     forM_ ["nixpkgs", "reflex", "reflex-dom", "reflex-todomvc"] $ \repo -> do
-      let checkThatRepoIsNotAlreadyBeingHackedOn = shelly $ silently $ do
-            d <- pwd
-            gitNixExists <- test_e $ d </> repo </> ("git.nix" :: String)
-            let instructions = "; to test hack-on, please ensure that " <> show repo <> " is in a clean, not-being-hacked-on state"
-            when (not gitNixExists) $ fail $ show (repo </> ("git.nix" :: String)) <> " does not exist" <> instructions
-            dotGitExists <- test_d $ d </> repo </> (".git" :: String)
-            when dotGitExists $ fail $ show (repo </> (".git" :: String)) <> " exists" <> instructions
-            return ()
-      before_ checkThatRepoIsNotAlreadyBeingHackedOn $ do
+      before_ (checkThatRepoIsNotAlreadyBeingHackedOn repo) $ do
         let withSetup a = do
               shelly $ silently $ do
                 d <- pwd
@@ -76,6 +77,27 @@ main = hspec $ parallel $ do
           False <- test_e $ tmp </> repo </> ("git.nix" :: String)
           True <- test_d $ tmp </> repo </> (".git" :: String)
           return ()
+  describe "hack-off" $ do
+    let existingFilename = "test"
+        newFilename = "new"
+        ignoredFilename = "ignored"
+        writefileTest filename = do
+          shelly $ silently $ flip catchany_sh (\_ -> return True) $ liftM (const False) $ do
+            d <- pwd
+            withTmpDir $ \tmp1 -> withTmpDir $ \tmp2 -> do
+              cd tmp1
+              run "git" ["init"]
+              writefile (fromText existingFilename) "originalcontents"
+              writefile ".gitignore" ignoredFilename
+              run "git" ["add", existingFilename, ".gitignore"]
+              run "git" ["commit", "-m", "Initial commit"]
+              run "git" ["clone", toTextArg tmp1, toTextArg tmp2]
+              writefile (tmp2 </> fromText filename) "testcontents"
+              run (d </> ("hack-off" :: String)) [toTextArg tmp2]
+          return () :: IO ()
+    it "won't trample changes" $ writefileTest existingFilename
+    it "won't trample new files" $ writefileTest newFilename
+    it "won't trample new files even if they are in the .gitignore" $ writefileTest ignoredFilename
   describe "shell.nix" $ do
     it "can be entered using a bare nix-shell" $ do
       shelly $ silently $ do
