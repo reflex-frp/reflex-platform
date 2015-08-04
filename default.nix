@@ -16,7 +16,15 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
       rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
       sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
     };
-    extendHaskellPackages = haskellPackages: haskellPackages.override {
+    combineOverrides = old: new: (old // new) // {
+      overrides = self: super:
+        let oldOverrides = old.overrides self super;
+        in oldOverrides // new.overrides self (super // oldOverrides);
+    };
+    makeRecursivelyOverridable = x: old: x.override old // {
+      override = new: makeRecursivelyOverridable x (combineOverrides old new);
+    };
+    extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super: {
         reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
