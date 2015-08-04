@@ -2,7 +2,7 @@
 
 Fork, then clone the repo:
 
-    git clone git@github.com:your-username/reflex.git
+    git clone git@github.com:your-username/try-reflex.git
 
 Make sure the tests pass:
 
@@ -14,4 +14,5 @@ Make your change. Don't forget to add tests and documentation for your change! S
 
 Push to your fork and [submit a pull request][pr].
 
-[pr]: https://github.com/ryantrinkle/reflex/compare/
+[pr]: https://github.com/ryantrinkle/try-reflex/compare/
+
