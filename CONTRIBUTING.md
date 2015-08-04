@@ -2,7 +2,7 @@
 
 Fork, then clone the repo:
 
-    git clone git@github.com:your-username/reflex.git
+    git clone git@github.com:your-username/try-reflex.git
 
 Make sure the tests pass:
 
