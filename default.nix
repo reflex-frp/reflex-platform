@@ -97,11 +97,7 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
         });
         dependent-sum-template = overrideCabal super.dependent-sum-template (drv: {
           version = "0.0.0.4";
-          src = nixpkgs.fetchgit {
-            url = git://github.com/ryantrinkle/dependent-sum-template;
-            rev = "abcd0f01a3e264e5bc1f3b00f3d03082f091ec49";
-            sha256 = "16f95348c559394a39848394a9e1aa8318c79bfc62bc6946edad9aabd20a8e2d";
-          };
+          sha256 = "103jxzzw3drg7pkgmh39s7258zcwr8ixg8mijm6p33b87a8wdpwr";
         });
       };
     };
