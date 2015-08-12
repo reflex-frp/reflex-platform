@@ -234,6 +234,10 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
           revision = null;
           editedCabalFile = null;
         });
+        ad = overrideCabal super.ad (drv: {
+          version = "4.2.3";
+          sha256 = "0w9nd8llzcjb91x1d3mh5482pavbx1jpn8w2ahm6ydjwvijjd9r5";
+        });
       };
     };
 in rec {
