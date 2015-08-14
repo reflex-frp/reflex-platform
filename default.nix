@@ -26,9 +26,90 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
     };
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super: {
+        ########################################################################
+        # Reflex packages
+        ########################################################################
         reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
+
+        ########################################################################
+        # ghcjs-boot packages
+        ########################################################################
+        aeson = overrideCabal super.aeson (drv: {
+          version = "0.9.0.1";
+          sha256 = "1g7qdq7zpyvqwmh4sfhizqpb51cg24lrcj9vq5msz8k896y7vfcj";
+        });
+        async = overrideCabal super.async (drv: {
+          version = "2.0.1.6";
+          sha256 = "06fzkqjliccxqiygms7v1xff3wlkg54n9xwzv7m1yxylkzlikjkz";
+          jailbreak = true;
+        });
+        attoparsec = overrideCabal super.attoparsec (drv: {
+          version = "0.13.0.0";
+          sha256 = "12b4xi6nlnhpwz8apn4mk880mkhcv1sfvf4j3z1h5dgkadi2zgbi";
+        });
+        case-insensitive = overrideCabal super.case-insensitive (drv: {
+          version = "1.2.0.4";
+          sha256 = "07nm40r9yw2p9qsfp3pjbsmyn4dabrxw34p48171zmccdd5hv0v3";
+        });
+        dlist = overrideCabal super.dlist (drv: {
+          version = "0.7.1.1";
+          sha256 = "1zayvxvkan2s2ixajdr3f5rn1gzhprzv6cww4cbpwjhzw0l7zc08";
+        });
+        extensible-exceptions = overrideCabal super.extensible-exceptions (drv: {
+          version = "0.1.1.3";
+          sha256 = "1i8rjfczsx1wjfaq423a7cp7qrnxh053865z7bg6hwhk2pxsrxkm";
+        });
+        hashable = overrideCabal super.hashable (drv: {
+          version = "1.2.3.2";
+          sha256 = "0h9295pv2sgbaqlwpwbx2bap6nngm0jcdhkqham1wpjwyxqgqrlc";
+        });
+        mtl = overrideCabal super.mtl (drv: {
+          version = "2.2.1";
+          sha256 = "1icdbj2rshzn0m1zz5wa7v3xvkf6qw811p4s7jgqwvx1ydwrvrfa";
+        });
+        old-locale = overrideCabal super.old-locale (drv: {
+          version = "1.0.0.7";
+          sha256 = "0l3viphiszvz5wqzg7a45zp40grwlab941q5ay29iyw8p3v8pbyv";
+        });
+        old-time = overrideCabal super.old-time (drv: {
+          version = "1.1.0.3";
+          sha256 = "1h9b26s3kfh2k0ih4383w90ibji6n0iwamxp6rfp2lbq1y5ibjqw";
+        });
+        parallel = overrideCabal super.parallel (drv: {
+          version = "3.2.0.6";
+          sha256 = "0hp6vf4zxsw6vz6lj505xihmnfhgjp39c9q7nyzlgcmps3xx6a5r";
+        });
+        primitive = overrideCabal super.primitive (drv: {
+          version = "0.5.4.0";
+          sha256 = "05gdgj383xdrdkhxh26imlvs8ji0z28ny38ms9snpvv5i8l2lg10";
+        });
+        scientific = overrideCabal super.scientific (drv: {
+          version = "0.3.3.3";
+          sha256 = "1hngkmd1kggc84sz4mddc0yj2vyzc87dz5dkkywjgxczys51mhqn";
+          jailbreak = true;
+        });
+        stm = overrideCabal super.stm (drv: {
+          version = "2.4.4";
+          sha256 = "0gc8zvdijp3rwmidkpxv76b4i0dc8dw6nbd92rxl4vxl0655iysx";
+        });
+        syb = overrideCabal super.syb (drv: {
+          version = "0.5.1";
+          sha256 = "0iiqz5mamk1nsij99rypms7dhx5flm2n02k1x6miqgnhg075zc41";
+        });
+        unordered-containers = overrideCabal super.unordered-containers (drv: {
+          version = "0.2.5.1";
+          sha256 = "06l1xv7vhpxly75saxdrbc6p2zlgz1az278arfkz4rgawfnphn3f";
+        });
+        vector = overrideCabal super.vector (drv: {
+          version = "0.10.12.2";
+          sha256 = "01hc71k1z9m0g0dv4zsvq5d2dvbgyc5p01hryw5c53792yi2fm25";
+        });
+
+        ########################################################################
+        # Other packages
+        ########################################################################
         hspec = overrideCabal super.hspec (drv: {
           version = "2.1.8";
           src = hspecGit;
@@ -99,12 +180,49 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
           version = "0.0.0.4";
           sha256 = "103jxzzw3drg7pkgmh39s7258zcwr8ixg8mijm6p33b87a8wdpwr";
         });
+        ChasingBottoms = overrideCabal super.ChasingBottoms (drv: {
+          version = "1.3.0.13";
+          sha256 = "1fb86jd6cdz4rx3fj3r9n8d60kx824ywwy7dw4qnrdran46ja3pl";
+        });
+        doctest = overrideCabal super.doctest (drv: {
+          version = "0.9.13";
+          revision = "1";
+          sha256 = "0xl570ay5bw1rpd1aw59c092rnwjbp9qykh2rhpxyvl333p8mg00";
+          editedCabalFile = "592ab6d62eca8a0b43930f15c8fb653c54d60983bd232ecc505bd5a5aebe6f7f";
+        });
+        haskell-src-meta = overrideCabal super.haskell-src-meta (drv: {
+          version = "0.6.0.10";
+          sha256 = "0flcyimibz4flq66isshn2zsmzlly6sja6gfb0a0xn4ns4xpwpy1";
+        });
+        haddock = overrideCabal super.haddock (drv: {
+          version = "2.16.1";
+          sha256 = "1mnnvc5jqp6n6rj7xw8wdm0z2xp9fndkz11c8p3vbljsrcqd3v26";
+          doCheck = false;
+        });
+        haddock-api = overrideCabal super.haddock-api (drv: {
+          version = "2.16.1";
+          sha256 = "1spd5axg1pdjv4dkdb5gcwjsc8gg37qi4mr2k2db6ayywdkis1p2";
+          doCheck = false;
+        });
+        haddock-library = overrideCabal super.haddock-library (drv: {
+          version = "1.2.1";
+          sha256 = "0mhh2ppfhrvvi9485ipwbkv2fbgj35jvz3la02y3jlvg5ffs1c8g";
+          doCheck = false;
+        });
       };
     };
 in rec {
   inherit nixpkgs overrideCabal;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7101;
-  ghcjs = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghcjs;
+  ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7102;
+  ghcjsCompiler = ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
+    ghc = nixpkgs.pkgs.haskell-ng.compiler.ghc7102;
+  };
+  ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
+    ghc = ghcjsCompiler;
+    packageSetConfig = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/configuration-ghcjs.nix" { };
+  };
+
+  ghcjs = extendHaskellPackages ghcjsPackages;
   platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
