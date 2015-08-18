@@ -209,6 +209,9 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
           sha256 = "0mhh2ppfhrvvi9485ipwbkv2fbgj35jvz3la02y3jlvg5ffs1c8g";
           doCheck = false;
         });
+        cassava = overrideCabal super.cassava (drv: {
+          jailbreak = true;
+        });
       };
     };
 in rec {
