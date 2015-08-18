@@ -105,6 +105,7 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
         vector = overrideCabal super.vector (drv: {
           version = "0.10.12.2";
           sha256 = "01hc71k1z9m0g0dv4zsvq5d2dvbgyc5p01hryw5c53792yi2fm25";
+          jailbreak = true;
         });
 
         ########################################################################
@@ -208,6 +209,13 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
           version = "1.2.1";
           sha256 = "0mhh2ppfhrvvi9485ipwbkv2fbgj35jvz3la02y3jlvg5ffs1c8g";
           doCheck = false;
+        });
+        QuickCheck = overrideCabal super.QuickCheck (drv: {
+          version = "2.8.1";
+          sha256 = "0fvnfl30fxmj5q920l13641ar896d53z0z6z66m7c1366lvalwvh";
+        });
+        exceptions = overrideCabal super.exceptions (drv: {
+          jailbreak = true;
         });
         cassava = overrideCabal super.cassava (drv: {
           jailbreak = true;
