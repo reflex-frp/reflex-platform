@@ -14,4 +14,6 @@ Once it's been added, run `sudo -i nixos-rebuild switch` to make the change take
 
 The public key for the binary cache is:
 
-```ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=```
+```
+ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=
+```
