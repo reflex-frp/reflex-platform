@@ -7,6 +7,6 @@ When using Nix on NixOS, only root can add binary caches to the system.  This wi
   nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
 ```
 
-If you already have either of these options set up, just add `"https://ryantrinkle.com:5443/"` and `"ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="` to the existing lists.
+If you already have these options set up, just add `"https://ryantrinkle.com:5443/"` and `"ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="` to the existing lists.
 
 Once it's been added, run `sudo -i nixos-rebuild switch` to make the change take effect, then run try-reflex as normal.
