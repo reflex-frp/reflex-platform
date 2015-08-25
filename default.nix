@@ -223,7 +223,7 @@ let overrideCabal = drv: f: if drv == null then null else (drv.override (args: a
       };
     };
 in rec {
-  inherit nixpkgs overrideCabal;
+  inherit nixpkgs overrideCabal extendHaskellPackages;
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7102;
   ghcjsCompiler = ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     ghc = nixpkgs.pkgs.haskell-ng.compiler.ghc7102;
