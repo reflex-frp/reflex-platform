@@ -218,6 +218,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cassava = overrideCabal super.cassava (drv: {
           jailbreak = true;
         });
+        gpx-conduit = addBuildDepend super.gpx-conduit conduit-extras;
       };
     };
 in rec {
