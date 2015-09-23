@@ -161,7 +161,7 @@ main = mainWidget $ el "div" $ do
   dynText $ _textInput_value t
 ```
 
-The code above overrides some of the default values of the `TextInputConfig`. We provide a `String` value for the 'textInputConfig_inputType`, specifying the html input element's `type` attribute. We're using `"number"` here.
+The code above overrides some of the default values of the `TextInputConfig`. We provide a `String` value for the `textInputConfig_inputType`, specifying the html input element's `type` attribute. We're using `"number"` here.
 
 Next, we override the default initial value of the `TextInput`. We gave it `"0"`. Even though we're making an html `input` element with the attribute `type=number`, the result is still a `String`. We'll convert this later.
 
@@ -326,8 +326,8 @@ numberInput = do
   let errorState = Map.singleton "style" "border-color: red"
       validState = Map.singleton "style" "border-color: green"
   rec n <- textInput $ def & textInputConfig_inputType .~ "number"
-                       & textInputConfig_initialValue .~ "0"
-                       & textInputConfig_attributes .~ attrs
+                           & textInputConfig_initialValue .~ "0"
+                           & textInputConfig_attributes .~ attrs
       result <- mapDyn readMay $ _textInput_value n
       attrs <- mapDyn (\r -> case r of
                                   Just _ -> validState
