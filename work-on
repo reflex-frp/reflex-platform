@@ -23,10 +23,10 @@ shift
 PACKAGE_INVOCATION=$(
     if echo "$PACKAGE" | grep -q / ; then
         # Package name includes a slash
-        echo "(haskellPackages.callPackage $PACKAGE {})"
+        echo "(this.$PLATFORM.callPackage $PACKAGE {})"
     else
-        echo "haskellPackages.$PACKAGE"
+        echo "this.$PLATFORM.$PACKAGE"
     fi
 )
 
-nix-shell $NIXOPTS -E "let this = import $DIR/. {}; haskellPackages = this.$PLATFORM; in (this.overrideCabal $PACKAGE_INVOCATION (drv: { buildDepends = drv.buildDepends ++ [ this.ghc.cabal-install this.ghc.ghcid ]; })).env" "$@"
+nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $PACKAGE_INVOCATION" "$@"
