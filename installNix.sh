@@ -1,3 +1,4 @@
+
 #!/bin/sh
 
 # This script installs the Nix package manager on your system by
@@ -26,7 +27,7 @@ case "$(uname -s).$(uname -m)" in
     *) oops "sorry, there is no binary distribution of Nix for your platform";;
 esac
 
-url="https://nixos.org/releases/nix/nix-1.8/nix-1.8-$system.tar.bz2"
+url="https://nixos.org/releases/nix/nix-1.10/nix-1.10-$system.tar.bz2"
 
 require_util curl "download the binary tarball"
 require_util bzcat "decompress the binary tarball"
