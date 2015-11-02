@@ -1,10 +1,10 @@
 { system ? null, config ? null }:
 let nixpkgs = import ./nixpkgs ({
-      config.allowUnfree = true;
+      config = {
+        allowUnfree = true;
+      } // (if config == null then {} else config);
     } // (
       if system == null then {} else { inherit system; }
-    ) // (
-      if config == null then {} else { inherit config; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
 in with lib;
