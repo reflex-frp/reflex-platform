@@ -1,5 +1,8 @@
-{ system ? null, config ? null }:
-let nixpkgs = import ./nixpkgs ({
+{ nixpkgsFunc ? import ./nixpkgs
+, system ? null
+, config ? null
+}:
+let nixpkgs = nixpkgsFunc ({
       config = {
         allowUnfree = true;
       } // (if config == null then {} else config);
