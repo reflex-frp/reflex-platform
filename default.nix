@@ -82,7 +82,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         primitive = overrideCabal super.primitive (drv: {
           version = "0.5.4.0";
           sha256 = "05gdgj383xdrdkhxh26imlvs8ji0z28ny38ms9snpvv5i8l2lg10";
-        });
+          revision = "1";
+          editedCabalFile = "df0a129c168c61a06a02123898de081b1d0b254cce6d7ab24b8f43ec37baef9e";
+          });
         scientific = overrideCabal super.scientific (drv: {
           version = "0.3.3.3";
           sha256 = "1hngkmd1kggc84sz4mddc0yj2vyzc87dz5dkkywjgxczys51mhqn";
@@ -224,9 +226,26 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7102;
-  ghcjsCompiler = ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
+  ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     ghc = nixpkgs.pkgs.haskell-ng.compiler.ghc7102;
-  };
+    ghcjsBoot = nixpkgs.fetchgit {
+      url = git://github.com/ghcjs/ghcjs-boot.git;
+      rev = "d435c60b62d24b7a4117493f7aaecbfa09968fe6"; # 7.10 branch
+      sha256 = "4159b20730822ec699b47036791158bc32d5412903005d19c396b120beac701f";
+      fetchSubmodules = true;
+    };
+    shims = nixpkgs.fetchgit {
+      url = git://github.com/ghcjs/shims.git;
+      rev = "0b670ca27fff3f0bad515c37e56ccb8b4d6758fb"; # master branch
+      sha256 = "08c0c3547e06d7716b2feb6ebda02f2ab33c205700848ad8e134152f5c3af8a7";
+    };
+  }) (drv: {
+    src = nixpkgs.fetchgit {
+      url = git://github.com/ghcjs/ghcjs.git;
+      rev = "fb1faa9cb0a11a8b27b0033dfdb07aafb6add35e"; # master branch
+      sha256 = "9069f484da55bf5af8dc65e539f86ca5e1b64ab9ecef65f38006c954400a0eef";
+    };
+  });
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
     ghc = ghcjsCompiler;
     packageSetConfig = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/configuration-ghcjs.nix" { };

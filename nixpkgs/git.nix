@@ -1,5 +1,5 @@
 {
   url = git://github.com/ryantrinkle/nixpkgs;
-  rev = "1ea76c92c0d35fee2fa35e7b992525cd72918aa4";
-  sha256 = "b9a5e6b31daa3c12f9156ba2bd26d6e62eac579f8640d109e53a68d6015b3e46";
+  rev = "60b4d47f90cb872ac4552be049ebdf8dc4791191";
+  sha256 = "b669ea7639ab3c90a8998a5831e778604be0c7afe9a4e2bbd175ef594fb86386";
 }
