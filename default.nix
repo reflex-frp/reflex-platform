@@ -10,14 +10,13 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     inherit (nixpkgs.haskell) lib;
-in with lib;
-let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
+    overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
     hspecGit = nixpkgs.fetchgit {
       url = git://github.com/ryantrinkle/hspec;
       rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
       sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
     };
-    extendHaskellPackages = haskellPackages: haskellPackages.override {
+    extendHaskellPackages = with lib; haskellPackages: haskellPackages.override {
       overrides = self: super: {
         ########################################################################
         # Reflex packages
@@ -330,6 +329,4 @@ in rec {
     if nixpkgs.stdenv.system == "x86_64-linux"
     then [ "x86_64-linux" "i686-linux" ] # On linux, we want to build both 32-bit and 64-bit versions
     else [ nixpkgs.stdenv.system ];
-
-  inherit lib;
 }
