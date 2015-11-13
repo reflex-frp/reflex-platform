@@ -28,7 +28,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Reflex packages
         ########################################################################
         reflex = self.callPackage ./reflex {};
-        reflex-dom = doJailbreak (self.callPackage ./reflex-dom {});
+        reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         ########################################################################
