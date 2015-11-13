@@ -9,7 +9,7 @@ let nixpkgs = nixpkgsFunc ({
     } // (
       if system == null then {} else { inherit system; }
     ));
-    lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
+    inherit (nixpkgs.haskell) lib;
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
     hspecGit = nixpkgs.fetchgit {
