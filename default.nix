@@ -28,7 +28,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Reflex packages
         ########################################################################
         reflex = self.callPackage ./reflex {};
-        reflex-dom = self.callPackage ./reflex-dom {};
+        reflex-dom = doJailbreak (self.callPackage ./reflex-dom {});
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         ########################################################################
@@ -107,6 +107,28 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "01hc71k1z9m0g0dv4zsvq5d2dvbgyc5p01hryw5c53792yi2fm25";
           jailbreak = true;
         });
+
+        ########################################################################
+        # Fixups for older ghcjs
+        ########################################################################
+        webkitgtk3 = overrideCabal super.webkitgtk3 (drv: {
+          version = "0.13.1.3";
+          sha256 = "0gfznb6n46576im72m6k9wrwc2n9f48nk4dsaz2llvzlzlzx4zfk";
+        });
+        gtk3 = overrideCabal super.gtk3 (drv: {
+          version = "0.13.9";
+          sha256 = "1zmcvp295sknc2h529nprclw11lnwp79dniyyg573wc99bdzijvr";
+        });
+        ghcjs-dom = overrideCabal super.ghcjs-dom (drv: {
+          version = "0.1.1.3";
+          sha256 = "0pdxb2s7fflrh8sbqakv0qi13jkn3d0yc32xhg2944yfjg5fvlly";
+        });
+
+        ########################################################################
+        # Fixups for new nixpkgs
+        ########################################################################
+        language-nix = dontCheck super.language-nix;
+        distribution-nixpkgs = dontCheck super.distribution-nixpkgs;
 
         ########################################################################
         # Other packages
@@ -225,9 +247,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7102;
+  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7102;
   ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
-    ghc = nixpkgs.pkgs.haskell-ng.compiler.ghc7102;
+    ghc = nixpkgs.pkgs.haskell.compiler.ghc7102;
     ghcjsBoot = nixpkgs.fetchgit {
       url = git://github.com/ghcjs/ghcjs-boot.git;
       rev = "d435c60b62d24b7a4117493f7aaecbfa09968fe6"; # 7.10 branch
