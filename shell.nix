@@ -12,4 +12,7 @@ in this.nixpkgs.runCommand "shell" {
     this.ghc.ghcid
     this.ghc.cabal2nix
   ] ++ builtins.map reflexEnv this.platforms;
+  shellHook = ''
+    export PS1="\n\[\033[1;32m\][try-reflex:\w]$\[\033[0m\] "
+  '';
 } ""

@@ -22,6 +22,7 @@ displayMessage() {
     cat <<EOF
 If you have any trouble with this script, please submit an
 issue at $REPO/issues
+
 EOF
 }
 
