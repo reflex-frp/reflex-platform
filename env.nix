@@ -114,7 +114,9 @@ let inherit (nixpkgs.haskell) lib;
           version = "0.6.1.0";
         });
         ghcjs-dom = overrideCabal super.ghcjs-dom (drv: {
-          version = "0.2.3.0";
+          version = "0.2.2.0";
+          sha256 = "1r94rj3i6y0zpysa48di4ndmy4whkr73aqa2c50wifmnks03n2gk";
+          doCheck = false;
         });
       };
     };
