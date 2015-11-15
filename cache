@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
 set -eu
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
 
-. "$DIR/common-setup.sh"
+main() {
+    local expr='let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems'
 
-(
-    cd "$DIR"
+    mpush "$DIR"
 
-    for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
-        nix-copy-closure --gzip --to "$1" $(nix-build $NIXOPTS -j 8 --no-out-link --indirect --add-root "$PWD/gc-roots/cache-$x.drv" -E "import ./shell.nix { system = \"$x\"; }")
+    for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E "$expr")"); do
+        nix-copy-closure \
+            --gzip --to "$1" \
+            $(nix-build \
+                  $NIXOPTS -j 8 --no-out-link --indirect \
+                  --add-root "$PWD/gc-roots/cache-$x.drv" \
+                  -E "import ./shell.nix { system = \"$x\"; }")
     done
-)
+
+    mpop
+}
+
+main "$@"
