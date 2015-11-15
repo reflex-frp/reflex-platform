@@ -22,12 +22,17 @@ displayMessage() {
     cat <<EOF
 If you have any trouble with this script, please submit an
 issue at $REPO/issues
+
 EOF
 }
 
+# To avoid the use of `(' & `)', to make the indentation nicer
+mute() { $@ > /dev/null 2>&1; }
+mpush() { mute pushd $@; }
+mpop() { mute popd; }
+
 ensureNix() {
-(
-    cd "$DIR"
+    mpush "$DIR"
 
     if [[ ! -d /nix ]] ; then
         if ! type -P curl >/dev/null ; then
@@ -42,7 +47,8 @@ you do not wish to continue, just hit Ctrl-C at the password prompt.
 EOF
         ./installNix.sh
     fi
-)
+
+    mpop
 }
 
 sourceNixScript() {
@@ -101,18 +107,18 @@ git_thunk() {
 }
 
 git_manifest() {
-    local REPO="$1"
+    local repo="$1"
 
     # Don't use git@github.com origins, since these can't be accessed by nix
-    local URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')"
-    local REV="$(git -C "$REPO" rev-parse HEAD)"
-    local HASH="$($(nix-build -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)"
+    local url="$(git -C "$repo" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')"
+    local rev="$(git -C "$repo" rev-parse HEAD)"
+    local hash="$($(nix-build -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$repo" "$rev" 2>/dev/null | tail -n 1)"
 
     cat <<EOF
 {
-  url = $URL;
-  rev = "$REV";
-  sha256 = "$HASH";
+  url = $url;
+  rev = "$rev";
+  sha256 = "$hash";
 }
 EOF
 }
