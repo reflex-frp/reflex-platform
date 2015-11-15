@@ -1,21 +1,58 @@
 #!/usr/bin/env bash
 set -eu
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
 
-. "$DIR/common-setup.sh"
+HACKAGE_USER=
+PKG=
+RC=
+PKGNAME=
+CREDENTIALS=
 
-HACKAGE_USER="$1"
-PKG="$2"
+checkArgs() {
+    if [[ ! "$#" -lt 2 ]]; then
+        cat <<EOF
+Usage: $0 HACKAGE_USER PKG
+EOF
+        exit 1
+    else
+        HACKAGE_USER="$1"
+        PKG="$2"
+}
 
-#TODO: Check that this build corresponds to the one on hackage
-RC="$(nix-build --no-out-link -A "releaseCandidates.$PKG")"
-PKGNAME="$(cat "$RC/pkgname")"
+setPackageName() {
+    #TODO: Check that this build corresponds to the one on hackage
+    RC="$(nix-build --no-out-link -A "releaseCandidates.$PKG")"
+    PKGNAME="$(cat "$RC/pkgname")"
+}
 
-echo -n "Hackage password: "
-read -s password
-echo
+setCredentials() {
+    echo -n "Hackage password: "
+    read -s password
+    echo
 
-HACKAGE_CREDS="$HACKAGE_USER:$password"
+    CREDENTIALS="$HACKAGE_USER:$password"
+}
 
-curl -X PUT -K <(echo "-u $HACKAGE_CREDS") -H 'Content-Type: application/x-tar' -H 'Content-Encoding: gzip' --data-binary @"$RC/$PKGNAME-docs.tar.gz" "https://hackage.haskell.org/package/$PKGNAME/docs"
+uploadData() {
+    curl -X PUT -K <(echo "-u $CREDENTIALS") \
+         -H 'Content-Type: application/x-tar' \
+         -H 'Content-Encoding: gzip' \
+         --data-binary @"$RC/$PKGNAME-docs.tar.gz" \
+         "https://hackage.haskell.org/package/$PKGNAME/docs"
+}
+
+clearCredentials() {
+    CREDENTIALS=
+}
+
+main() {
+    checkArgs
+    setPackageName
+    setCredentials
+    uploadData
+    clearCredentials
+}
+
+main "$@"

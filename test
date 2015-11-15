@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -eu
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
 
-. "$DIR/common-setup.sh"
-
-nix-shell $NIXOPTS -E "{path}: let this = import path {}; in this.nixpkgs.runCommand \"shell\" { buildInputs = [ (this.ghc.ghcWithPackages (p: with p; [ shelly hspec ])) ]; } \"\"" --argstr path "$DIR/." --show-trace --command "runghc $(printf "%q " "$DIR/test.hs" "$@") ; exit $?"
+nix-shell $NIXOPTS \
+          -E "{path}: let this = import path {}; in this.nixpkgs.runCommand \"shell\" { buildInputs = [ (this.ghc.ghcWithPackages (p: with p; [ shelly hspec ])) ]; } \"\"" \
+          --argstr path "$DIR/." \
+          --show-trace \
+          --command "runghc $(printf "%q " "$DIR/test.hs" "$@") ; exit $?"

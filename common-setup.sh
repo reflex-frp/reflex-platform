@@ -78,14 +78,15 @@ It looks like your version of Nix, $(nix-instantiate --eval --expr "builtins.nix
 is older than the minimum version required by try-reflex,
 \"$MIN_NIX_VERSION\".  You'll need to upgrade Nix to continue.  On
 non-NixOS platforms, that can usually be done like this:
+
 EOF
         if [[ "$NEEDED_TO_SOURCE_NIX_SCRIPT" -ne 0 ]] ; then
-            echo "source $HOME/.nix-profile/etc/profile.d/nix.sh"
+            echo "    source $HOME/.nix-profile/etc/profile.d/nix.sh"
         fi
 
-        echo "    nix-env --upgrade"
-
         cat <<EOF
+    nix-env --upgrade
+
 If you're on NixOS, you may need to upgrade your OS to a later
 version:
 
