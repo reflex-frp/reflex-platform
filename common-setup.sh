@@ -102,11 +102,13 @@ EOF
     fi
 }
 
-git_thunk() {
-    echo "import ((import <nixpkgs> {}).fetchgit (import ./git.nix))"
+gitThunk() {
+    cat <<EOF
+import ((import <nixpkgs> {}).fetchgit (import ./git.nix))
+EOF
 }
 
-git_manifest() {
+gitManifest() {
     local repo="$1"
 
     # Don't use git@github.com origins, since these can't be accessed by nix

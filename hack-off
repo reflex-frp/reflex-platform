@@ -16,7 +16,6 @@ checkRepo() {
         exit 1
     fi
 }
-checkRepo
 
 getStatus() {
     DIFF="$(git -C "$REPO" diff HEAD)"
@@ -24,45 +23,66 @@ getStatus() {
     STATUS="$(git -C "$REPO" status --porcelain --ignored)"
     STATUS_ERR=$?
 }
-getStatus
 
-if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
-    >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
-    exit 1
-elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
-    >&2 echo "$DIFF"
-    >&2 echo "$STATUS"
-    >&2 echo "Error: $REPO contains unsaved modifications"
-    exit 1
-fi
+checkStatus() {
+    if [[ "$DIFF_ERR" -ne 0 || "$STATUS_ERR" -ne 0 ]]; then
+        >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
+        exit 1
+    elif [[ -n "$DIFF" || -n "$STATUS" ]] ; then
+        >&2 echo "$DIFF"
+        >&2 echo "$STATUS"
+        >&2 echo "Error: $REPO contains unsaved modifications"
+        exit 1
+    fi
+}
 
-git -C "$REPO" fetch --all
+fetchAll() {
+    git -C "$REPO" fetch --all
+}
 
-for b in $(git -C "$REPO" for-each-ref --format='%(refname:short)' refs/heads/) ; do
-    LOCAL_REV="$(git -C "$REPO" rev-parse "$b")"
-    [ $? -eq 0 ] || exit 1
-    for r in $(git -C "$REPO" remote) ; do
-        REMOTE_MERGE_REV="$(git -C "$REPO" merge-base "$LOCAL_REV" "remotes/$r/$b")"
-        if [ $? -ne 0 ] ; then
-            >&2 echo "Error: problem retrieving branch \"$r\" from remote \"$r\""
-            exit 1
-        elif [ "$REMOTE_MERGE_REV" != "$LOCAL_REV" ] ; then
-            >&2 echo "Error: branch \"$b\" has not been pushed to remote \"$r\""
-            exit 1
-        fi
+checkRevs() {
+    local local_rev=
+    local remote_rev=
+
+    for branch in $(git -C "$REPO" for-each-ref --format='%(refname:short)' refs/heads/); do
+        local_rev=$(git -C "$REPO" rev-parse "$branch")
+
+        [[ $? -eq 0 ]] || exit 1
+
+        for remote in $(git -C "$REPO" remote); do
+            remote_rev=$(git -C "$REPO" merge-base "$local_rev" "remotes/$remote/$branch")
+
+            if [[ $? -ne 0 ]]; then
+                >&2 echo "Error: problem retrieving branch \"$remote\" from remote \"$remote\""
+                exit 1
+            elif [[ "$local_rev" != "$remote_rev" ]]; then
+                >&2 echo "Error: branch \"$branch\" has not been pushed to remote \"$remote\""
+                exit 1
+            fi
+        done
     done
-done
+}
 
-# If we've gotten here, we're pretty sure this is safe
-GIT_MANIFEST="$(git_manifest "$REPO")"
-rm -rf "$REPO"
-mkdir "$REPO"
-git_thunk >"$REPO/default.nix"
-echo "$GIT_MANIFEST" >"$REPO/git.nix"
+removeRepo() {
+    rm -rf "$REPO"
+    mkdir "$REPO"
+}
 
-# main() {
-#     checkRepo
-#     getStatus
-# }
+writeNixFiles() {
+    gitThunk > "$REPO/default.nix"
+    gitManifest "$REPO" > "$REPO/git.nix"
+}
 
-# main "$@"
+main() {
+    checkRepo
+    getStatus
+    checkStatus
+    fetchAll
+    checkRevs
+
+    # If we've gotten here, we're pretty sure this is safe
+    removeRepo
+    writeNixFiles
+}
+
+main "$@"
