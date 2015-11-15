@@ -1,22 +1,40 @@
 #!/usr/bin/env bash
 set -eu
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-
-. "$DIR/common-setup.sh"
+DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
 
 REPO="$1"
+DIFF=
+DIFF_ERR=
 
-DIFF="$(git -C "$REPO/.." diff --cached -- "$REPO/git.nix")"
-DIFF_ERR=$?
+getStatus() {
+    DIFF="$(git -C "$REPO/.." diff --cached -- "$REPO/git.nix")"
+    DIFF_ERR=$?
+}
 
-if [ "$DIFF_ERR" -ne 0 ] ; then
-    >&2 echo "Error: could not determine whether $REPO/git.nix already has pending modifications"
-    exit 1
-elif [ -n "$DIFF" ] ; then
-    >&2 echo -n "$DIFF"
-    >&2 echo "Error: $REPO/git.nix has pending modifications"
-    exit 1
-fi
+checkStatus() {
+    if [[ "$DIFF_ERR" -ne 0 ]]; then
+        >&2 echo "Error: could not determine whether $REPO/git.nix already has pending modifications"
+        exit 1
+    elif [[ -n "$DIFF" ]]; then
+        >&2 echo -n "$DIFF"
+        >&2 echo "Error: $REPO/git.nix has pending modifications"
+        exit 1
+    fi
+}
 
-diff -u --label "a/$REPO/git.nix" --label "b/$REPO/git.nix" <(git -C "$REPO/.." show "HEAD:$REPO/git.nix") <(git_manifest "$REPO") | git apply --cached
+applyPatch() {
+    diff -u --label "a/$REPO/git.nix" --label "b/$REPO/git.nix" \
+         <(git -C "$REPO/.." show "HEAD:$REPO/git.nix") \
+         <(git_manifest "$REPO") \
+        | git apply --cached
+}
+
+main() {
+    getStatus
+    checkStatus
+    applyPatch
+}
+
+main "$@"
