@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+curl -o install-nix https://nixos.org/nix/install
