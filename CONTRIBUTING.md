@@ -2,13 +2,15 @@
 
 Fork, then clone the repo:
 
-    git clone git@github.com:your-username/reflex.git
+    git clone git@github.com:your-username/try-reflex.git
 
 Make sure the tests pass:
 
     ./test
 
-Make your change. Don't forget to add tests and documentation for your change! Stage or commit your changes locally, and make sure the tests pass:
+Make your changes. Don't forget to add tests and documentation for
+your changes! Stage or commit your changes locally, and make sure the
+tests pass:
 
     ./test-staged
 
