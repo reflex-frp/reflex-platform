@@ -35,8 +35,7 @@ getInvocation() {
     local platform="$1"
     local package="$2"
 
-    # if grep -q / "$package"; then
-    if echo "$package" | grep -q /; then
+    if grep -q / "$package"; then
         echo "(this.$platform.callPackage $package {})"
     else
         echo "this.$platform.$package"
