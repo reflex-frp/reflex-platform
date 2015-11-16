@@ -7,10 +7,10 @@
 REPO="https://github.com/ryantrinkle/try-reflex"
 
 # These are options passed to nix-instantiate and nix-shell.
-NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
+readonly NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
 
 # The minimum required version of Nix to run this script.
-MIN_NIX_VERSION="1.8"
+readonly MIN_NIX_VERSION="1.8"
 
 # Whether the nix script needed to be sourced - i.e. nix commands are
 # not available without doing so, from the user's basic prompt.
@@ -26,29 +26,24 @@ issue at $REPO/issues
 EOF
 }
 
-# To avoid the use of `(' & `)', to make the indentation nicer
-mute() { $@ > /dev/null 2>&1; }
-mpush() { mute pushd $@; }
-mpop() { mute popd; }
-
 ensureNix() {
-    mpush "$DIR"
-
-    if [[ ! -d /nix ]] ; then
+    if [[ ! -d /nix ]]; then
         if ! type -P curl >/dev/null ; then
-            echo "Please make sure that 'curl' is installed and can be run from this shell"
+            cat <<EOF
+Please make sure that 'curl' is installed and can be run from this
+shell.
+EOF
             exit 1
         fi
 
         cat <<EOF
-In order to continue, $0 must install the Nix package manager.  This
-requires root access, so you will be prompted for your password.  If
-you do not wish to continue, just hit Ctrl-C at the password prompt.
+In order to continue, $0 must install the Nix package manager. This
+requires root access (via sudo), so you will be prompted for your
+password. If you do not wish to continue, just hit Ctrl-C at the
+password prompt.
 EOF
-        ./install-nix
+        "$DIR/install-nix"
     fi
-
-    mpop
 }
 
 sourceNixScript() {
@@ -72,9 +67,9 @@ EOF
 }
 
 checkNixVersion() {
-    if [[ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVersion \"$MIN_NIX_VERSION\" >= 0")" != "true" ]] ; then
+    if [[ "$(nix-instantiate --eval -E "builtins.compareVersions builtins.nixVersion \"$MIN_NIX_VERSION\" >= 0")" != "true" ]]; then
         cat <<EOF
-It looks like your version of Nix, $(nix-instantiate --eval --expr "builtins.nixVersion"),
+It looks like your version of Nix, $(nix-instantiate --eval -E builtins.nixVersion),
 is older than the minimum version required by try-reflex,
 \"$MIN_NIX_VERSION\".  You'll need to upgrade Nix to continue.  On
 non-NixOS platforms, that can usually be done like this:

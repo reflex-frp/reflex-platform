@@ -86,7 +86,7 @@ setGhcjsMessage() {
     GHCJS_MESSAGE="$(cat <<EOF2
 $(echo -e "\e[35m\e[1mTo create a simple web GUI:\e[0m")
 
-$ cat >hello.hs <<EOF
+$ cat > hello.hs <<EOF
 import Reflex.Dom
 main = mainWidget $ text \"Hello, world!\"
 EOF
