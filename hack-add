@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -eu
+set -o pipefail
 
 DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 source "$DIR/common-setup.sh"
