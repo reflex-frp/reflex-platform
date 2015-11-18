@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -eu
+set -o pipefail
+
+readonly DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
+
+USER=
+PKG=
+RC=
+PKGNAME=
+CREDENTIALS=
+
+checkArgs() {
+    if [[ ! "$#" -lt 2 ]]; then
+        cat <<EOF
+Usage: $0 HACKAGE_USER PACKAGE
+EOF
+        exit 1
+    else
+        USER="$1"
+        PKG="$2"
+}
+
+setPackageName() {
+    RC="$(nix-build --no-out-link -A "releaseCandidates.$PKG")"
+    PKGNAME="$(cat "$RC/pkgname")"
+}
+
+setCredentials() {
+    echo -n "Hackage password: "
+    read -s PASSWORD
+    echo
+
+    CREDENTIALS="$USER:$PASSWORD"
+
+    unset PASSWORD
+}
+
+uploadData() {
+    curl -K <(echo "-u $CREDENTIALS") \
+         -F package=@"$RC/$PKGNAME.tar.gz" \
+         "https://hackage.haskell.org/packages/candidates/"
+    curl -X PUT -K <(echo "-u $CREDENTIALS") \
+         -H 'Content-Type: application/x-tar' \
+         -H 'Content-Encoding: gzip' \
+         --data-binary @"$RC/$PKGNAME-docs.tar.gz" \
+         "https://hackage.haskell.org/package/$PKGNAME/candidate/docs"
+
+    echo "Candidate uploaded to https://hackage.haskell.org/package/$PKGNAME/candidate"
+}
+
+main() {
+    checkArgs "$@"
+    setPackageName
+    setCredentials
+    uploadData
+}
+
+main "$@"

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eu
+set -o pipefail
+
+readonly DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
+
+curl -o "$DIR/install.nix" https://nixos.org/nix/install

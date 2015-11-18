@@ -1,51 +1,103 @@
 #!/usr/bin/env bash
 set -eu
+set -o pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-
-. "$DIR/common-setup.sh"
+readonly DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
 
 REPO="$1"
+DIFF=
+DIFF_ERR=
+STATUS=
+STATUS_ERR=
+URL=
+REV=
+REMOTE_URL=
+FIXED_REMOTE_URL=
 
-if [ ! -d "$REPO" ] ; then
-    echo "Error: no such directory: $REPO"
-    exit 1
-fi
+checkRepo() {
+    if [[ ! -d "$REPO" ]] ; then
+        echo "Error: no such directory: $REPO"
+        exit 1
+    fi
+}
 
-DIFF="$(git -C "$REPO/.." diff HEAD -- "$REPO")"
-DIFF_ERR=$?
-STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$REPO")"
-STATUS_ERR=$?
+getStatus() {
+    DIFF="$(git -C "$REPO/.." diff HEAD -- "$REPO")"
+    DIFF_ERR=$?
+    STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$REPO")"
+    STATUS_ERR=$?
+}
 
-if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
-    >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
-    exit 1
-elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
-    >&2 echo "$DIFF"
-    >&2 echo "$STATUS"
-    >&2 echo "Error: $REPO contains unsaved modifications"
-    exit 1
-fi
+checkStatus() {
+    if [[ "$DIFF_ERR" -ne 0 || "$STATUS_ERR" -ne 0 ]] ; then
+        >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
+        exit 1
+    elif [[ -n "$DIFF" || -n "$STATUS" ]] ; then
+        >&2 echo "$DIFF"
+        >&2 echo "$STATUS"
+        >&2 echo "Error: $REPO contains unsaved modifications"
+        exit 1
+    fi
+}
 
-URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).url")")"
-REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).rev")")"
+getUrl() {
+    URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).url")")"
+}
 
-echo "Checking out $URL at revision $REV"
+getRev() {
+    REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).rev")")"
+}
 
-rm "$REPO/default.nix"
-rm "$REPO/git.nix"
-rmdir "$REPO"
+displayMessage() {
+    echo "Checking out $URL at revision $REV..."
+}
 
-git clone -n "$URL" "$REPO"
-REMOTE_URL="$(git -C "$REPO" config --get remote.origin.url)"
-FIXED_REMOTE_URL="$(echo "$REMOTE_URL" | sed 's_^git://github.com/_git@github.com:_')"
-if [ "$REMOTE_URL" != "$FIXED_REMOTE_URL" ] ; then
-    echo "Changing remote URL from $REMOTE_URL to $FIXED_REMOTE_URL"
-    git -C "$REPO" remote set-url origin "$FIXED_REMOTE_URL"
-fi
-git -C "$REPO" checkout "$REV"
+cleanUp() {
+    rm "$REPO/default.nix"
+    rm "$REPO/git.nix"
+    rmdir "$REPO"
+}
 
-echo
-echo "The following remote branches contain this commit:"
-git -C "$REPO" branch -r --contains HEAD | sed -n s_origin/__p
-echo "You should probably 'git checkout' one of them to get started.  Happy hacking!"
+cloneRepo() {
+    git clone -n "$URL" "$REPO"
+}
+
+getUrls() {
+    REMOTE_URL="$(git -C "$REPO" config --get remote.origin.url)"
+    FIXED_REMOTE_URL="$(echo "$REMOTE_URL" | sed 's_^git://github.com/_git@github.com:_')"
+}
+
+setRemote() {
+    if [[ "$REMOTE_URL" != "$FIXED_REMOTE_URL" ]] ; then
+        echo "Changing remote URL from $REMOTE_URL to $FIXED_REMOTE_URL"
+        git -C "$REPO" remote set-url origin "$FIXED_REMOTE_URL"
+    fi
+}
+
+checkoutRev() {
+    git -C "$REPO" checkout "$REV"
+}
+
+displayWelcome() {
+    echo "\nThe following remote branches contain this commit:"
+    git -C "$REPO" branch -r --contains HEAD | sed -n s_origin/__p
+    echo "You should probably 'git checkout' one of them to get started. Happy hacking!"
+}
+
+main() {
+    checkRepo
+    getStatus
+    checkStatus
+    getUrl
+    getRev
+    displayMessage
+    cleanUp
+    cloneRepo
+    getUrls
+    setRemote
+    checkoutRev
+    displayWelcome
+}
+
+main "$@"
