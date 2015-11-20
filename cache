@@ -4,21 +4,22 @@ set -eu
 DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 source "$DIR/common-setup.sh"
 
-main() {
+copyClosure() {
     local expr='let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems'
+    local systems=$(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E "$expr")")
 
-    mpush "$DIR"
-
-    for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E "$expr")"); do
+    for system in $systems; do
         nix-copy-closure \
             --gzip --to "$1" \
             $(nix-build \
                   $NIXOPTS -j 8 --no-out-link --indirect \
-                  --add-root "$PWD/gc-roots/cache-$x.drv" \
-                  -E "import ./shell.nix { system = \"$x\"; }")
+                  --add-root "$PWD/gc-roots/cache-${system}.drv" \
+                  -E "import ./shell.nix { system = \"$system\"; }")
     done
+}
 
-    mpop
+main() {
+    copyClosure "$@"
 }
 
 main "$@"
