@@ -377,7 +377,7 @@ in rec {
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   workOn = package: (overrideCabal package (drv: {
-    buildDepends = drv.buildDepends ++ [ ghc.cabal-install ghc.ghcid ];
+    buildDepends = (drv.buildDepends or []) ++ [ ghc.cabal-install ghc.ghcid ];
   })).env;
 
   # The systems that we want to build for on the current system
