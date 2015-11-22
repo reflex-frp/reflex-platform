@@ -61,20 +61,20 @@ EOF
 }
 
 displayInitialMessage() {
-    echo -e "\e[34m\e[1mEntering the Reflex sandbox...\e[0m"
+    printf "\e[34m\e[1mEntering the Reflex sandbox...\e[0m"
 }
 
 setGhcMessage() {
     # TODO: Use a better check that actually checks for each platform's availability
     if [[ ! "$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.isDarwin')" = "true" ]]; then
         GHC_MESSAGE="$(cat <<EOF
-$(echo -e "\e[35m\e[1mTo run a simple GUI as a native binary:\e[0m")
+$(printf "\e[35m\e[1mTo run a simple GUI as a native binary:\e[0m")
 
 $ ghc -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
 
 To see a more complex GUI example (based on https://github.com/ryantrinkle/reflex-todomvc/blob/master/src/Main.hs), navigate your browser to:
 
-    $(echo -e "\e[1mfile://$(nix-build $NIXOPTS --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html\e[0m")
+    $(printf "\e[1mfile://$(nix-build $NIXOPTS --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html\e[0m")
 EOF
 )"
     else
@@ -84,7 +84,7 @@ EOF
 
 setGhcjsMessage() {
     GHCJS_MESSAGE="$(cat <<EOF2
-$(echo -e "\e[35m\e[1mTo create a simple web GUI:\e[0m")
+$(printf "\e[35m\e[1mTo create a simple web GUI:\e[0m")
 
 $ cat > hello.hs <<EOF
 import Reflex.Dom
@@ -94,7 +94,7 @@ $ ghcjs hello.hs
 
 Then navigate your browser to:
 
-    $(echo -e "\e[1mfile://$(pwd)/hello.jsexe/index.html\e[0m")
+    $(printf "\e[1mfile://$PWD/hello.jsexe/index.html\e[0m")
 EOF2
 )"
 }
