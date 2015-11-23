@@ -1,25 +1,28 @@
-{ nixpkgsFunc ? import ./nixpkgs
+{ pkgs ? import ./nixpkgs
 , system ? null
 , config ? null
 }:
-let nixpkgs = nixpkgsFunc ({
-      config = {
-        allowUnfree = true;
-      } // (if config == null then {} else config);
-    } // (
-      if system == null then {} else { inherit system; }
-    ));
+
+let nixpkgs = pkgs ({
+      config = { allowUnfree = true; } //
+      (if config == null then {} else config); } //
+      (if system == null then {} else { inherit system; }));
     pkgSets = import ./env.nix { inherit nixpkgs; };
 in with pkgSets; pkgSets // rec {
   inherit nixpkgs;
 
   platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
 
-  attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
+  attrsToList = s: map (name: {
+    inherit name;
+    value = builtins.getAttr name s;
+  }) (builtins.attrNames s);
+
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
     inherit name;
     value = f value;
   }) (attrsToList s));
+
   mkSdist = pkg: pkg.override {
     mkDerivation = drv: ghc.mkDerivation (drv // {
       postConfigure = ''
@@ -30,7 +33,9 @@ in with pkgSets; pkgSets // rec {
       '';
     });
   };
+
   sdists = mapSet mkSdist ghc;
+
   mkHackageDocs = pkg: pkg.override {
     mkDerivation = drv: ghc.mkDerivation (drv // {
       postConfigure = ''
@@ -43,7 +48,9 @@ in with pkgSets; pkgSets // rec {
       '';
     });
   };
+
   hackageDocs = mapSet mkHackageDocs ghc;
+
   mkReleaseCandidate = pkg: nixpkgs.stdenv.mkDerivation (rec {
     name = pkg.name + "-rc";
     sdist = mkSdist pkg + "/${pkg.pname}-${pkg.version}.tar.gz";
@@ -63,6 +70,7 @@ in with pkgSets; pkgSets // rec {
       src = sdist;
     });
   });
+
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   workOn = package: (overrideCabal package (drv: {
