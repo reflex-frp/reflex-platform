@@ -61,7 +61,7 @@ EOF
 }
 
 displayInitialMessage() {
-    printf "\e[34m\e[1mEntering the Reflex sandbox...\e[0m"
+    printf "\e[34m\e[1mEntering the Reflex sandbox...\e[0m\n"
 }
 
 setGhcMessage() {
@@ -118,10 +118,12 @@ EOF
 }
 
 runReflex() {
+    local root="$DIR/gc-roots/shell.drv"
+
     nix-instantiate "$DIR/shell.nix" $NIXOPTS \
-                    --indirect --add-root "$DIR/gc-roots/shell.drv" \
+                    --indirect --add-root $root \
                     > /dev/null
-    nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS \
+    nix-shell $root $NIXOPTS \
               --command "echo \"$INFO_MESSAGE\"; return" "$@"
 }
 
