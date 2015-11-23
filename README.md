@@ -18,22 +18,22 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
 
 1. Clone the try-reflex repo:
 
-```bash
-git clone https://github.com/ryantrinkle/try-reflex
-```
+    ```bash
+    git clone https://github.com/ryantrinkle/try-reflex
+    ```
 
 2. Navigate into the `try-reflex` folder and run the try-reflex bootstrapping command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
-
-```bash
-cd try-reflex
-./try-reflex
-```
+    
+    ```bash
+    cd try-reflex
+    ./try-reflex
+    ```
 
 3. From this nix-shell, you can compile your haskell source using ghcjs:
 
-```bash
-ghcjs --make source.hs
-```
+    ```bash
+    ghcjs --make source.hs
+    ```
     This should look fairly familiar to anyone who has compiled with ghc.
 
 4. Compilation will produce a `source.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
