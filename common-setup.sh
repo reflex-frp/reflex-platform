@@ -27,7 +27,9 @@ EOF
 }
 
 ensureNix() {
-    if [[ ! -d /nix ]]; then
+    if type nixos-version > /dev/null 2>&1; then
+        return 0
+    elif [[ ! -d /nix ]]; then
         if ! type -P curl >/dev/null ; then
             cat <<EOF
 Please make sure that 'curl' is installed and can be run from this
