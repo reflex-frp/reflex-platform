@@ -133,7 +133,7 @@ main() {
     displayInitialMessage
     setCompilerMessages
     setInfoMessage
-    runReflex
+    runReflex "$@"
 }
 
 main "$@"
