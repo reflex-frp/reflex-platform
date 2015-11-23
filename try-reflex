@@ -123,6 +123,7 @@ runReflex() {
     nix-instantiate "$DIR/shell.nix" $NIXOPTS \
                     --indirect --add-root $root \
                     > /dev/null
+
     nix-shell $root $NIXOPTS \
               --command "echo \"$INFO_MESSAGE\"; return" "$@"
 }
