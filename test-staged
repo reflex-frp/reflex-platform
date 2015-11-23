@@ -1,23 +1,47 @@
 #!/usr/bin/env bash
 set -eu
+set -o pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+readonly DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+source "$DIR/common-setup.sh"
 
-. "$DIR/common-setup.sh"
+# This crazy workaround ensures that it will work on both Mac OS and
+# Linux; see
+# https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
+readonly CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean')
+readonly DIFF=$(mktemp 2>/dev/null || mktemp -t 'diff')
 
-(
-CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean') # This crazy workaround ensures that it will work on both Mac OS and Linux; see https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
-DIFF=$(mktemp 2>/dev/null || mktemp -t 'diff')
-trap "rm \"$DIFF\" ; rm -rf \"$CLEAN\"" EXIT
+trap "rm \"$DIFF\"; rm -rf \"$CLEAN\"" EXIT
 
-git clone -n "$DIR" "$CLEAN"
-git -C "$CLEAN" checkout "$(git -C "$DIR" rev-parse HEAD)"
-git -C "$DIR" diff --cached >"$DIFF"
-if [ -s "$DIFF" ] ; then
-    git -C "$CLEAN" apply --index <"$DIFF"
-fi
+cloneRepo() {
+    git clone -n "$DIR" "$CLEAN"
+}
 
-cd $CLEAN
+checkoutHEAD() {
+    git -C "$CLEAN" checkout "$(git -C "$DIR" rev-parse HEAD)"
+}
 
-nice ./test "$@"
-)
+saveDiff() {
+    git -C "$DIR" diff --cached > "$DIFF"
+}
+
+applyDiff() {
+    if [[ -s "$DIFF" ]]; then
+        git -C "$CLEAN" apply --index < "$DIFF"
+    fi
+}
+
+runTests() {
+    cd $CLEAN
+    nice ./test "$@"
+}
+
+main() {
+    cloneRepo
+    checkoutHEAD
+    saveDiff
+    applyDiff
+    runTests "$@"
+}
+
+main "$@"
