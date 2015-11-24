@@ -68,6 +68,10 @@ EOF
     fi
 }
 
+getMinNixVersion() {
+    nix-instantiate --eval -E 'import <nixpkgs> { minver = true; }'
+}
+
 checkNixVersion() {
     if [[ "$(nix-instantiate --eval -E "builtins.compareVersions builtins.nixVersion \"$MIN_NIX_VERSION\" >= 0")" != "true" ]]; then
         cat <<EOF
