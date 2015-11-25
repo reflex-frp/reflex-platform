@@ -10,7 +10,7 @@ REPO="https://github.com/ryantrinkle/try-reflex"
 readonly NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
 
 # The minimum required version of Nix to run this script.
-readonly MIN_NIX_VERSION="1.8"
+readonly MIN_NIX_VERSION="1.10"
 
 # Whether the nix script needed to be sourced - i.e. nix commands are
 # not available without doing so, from the user's basic prompt.
