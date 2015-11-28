@@ -339,5 +339,22 @@ in rec {
     then [ "x86_64-linux" "i686-linux" ] # On linux, we want to build both 32-bit and 64-bit versions
     else [ nixpkgs.stdenv.system ];
 
+  isSuffixOf = suffix: s:
+    let suffixLen = builtins.stringLength suffix;
+    in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
+
+  cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
+    buildCommand = ''
+      cabal2nix file://"${builtins.filterSource (path: type: isSuffixOf ".cabal" path) src}" >"$out"
+    '';
+    buildInputs = with nixpkgs; [
+      cabal2nix
+    ];
+
+    # Support unicode characters in cabal files
+    ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
+    ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
+  } "";
+
   inherit lib;
 }
