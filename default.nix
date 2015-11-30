@@ -54,6 +54,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           version = "1.2.0.4";
           sha256 = "07nm40r9yw2p9qsfp3pjbsmyn4dabrxw34p48171zmccdd5hv0v3";
         });
+        dependent-map = overrideCabal super.dependent-map (drv: {
+          version = "0.2.0.1";
+          sha256 = "0l4gpc3y4yydmq6hz63ym3yq9gin6wccmpr6x0z3kdjwkm8mqp34";
+        });
+        dependent-sum = overrideCabal super.dependent-sum (drv: {
+          version = "0.3.2.1";
+          sha256 = "0bx4nqlh89k0ylvcaq885gqpysjb4bf65y9y9h8pg2cbs74kh4xr";
+        });
         dlist = overrideCabal super.dlist (drv: {
           version = "0.7.1.1";
           sha256 = "1zayvxvkan2s2ixajdr3f5rn1gzhprzv6cww4cbpwjhzw0l7zc08";
@@ -202,10 +210,22 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "0yn2nj6irmj24j1djvnnq26i2lbf9g9x1wdhmcrk519glcn5k64j";
           buildDepends = [ self.semigroups ] ++ drv.buildDepends; # For some reason, without the spurious import of self.semigroups, HaskellForMaths will fail to build the environment for HaskellForMaths on ghcjs (it works on ghc)
         });
-        dependent-sum-template = overrideCabal super.dependent-sum-template (drv: {
-          version = "0.0.0.4";
-          sha256 = "103jxzzw3drg7pkgmh39s7258zcwr8ixg8mijm6p33b87a8wdpwr";
-        });
+        dependent-sum-template = self.callPackage (
+          { mkDerivation, base, dependent-sum, stdenv, template-haskell
+          , th-extras
+          }:
+          mkDerivation {
+            pname = "dependent-sum-template";
+            version = "0.0.0.4";
+            sha256 = "103jxzzw3drg7pkgmh39s7258zcwr8ixg8mijm6p33b87a8wdpwr";
+            libraryHaskellDepends = [
+              base dependent-sum template-haskell th-extras
+            ];
+            homepage = "/dev/null";
+            description = "Template Haskell code to generate instances of classes in dependent-sum package";
+            license = stdenv.lib.licenses.publicDomain;
+          }
+        ) {};
         ChasingBottoms = overrideCabal super.ChasingBottoms (drv: {
           version = "1.3.0.13";
           sha256 = "1fb86jd6cdz4rx3fj3r9n8d60kx824ywwy7dw4qnrdran46ja3pl";
