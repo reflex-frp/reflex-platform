@@ -345,7 +345,7 @@ in rec {
 
   cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
     buildCommand = ''
-      cabal2nix file://"${builtins.filterSource (path: type: isSuffixOf ".cabal" path) src}" >"$out"
+      cabal2nix file://"${src}" >"$out"
     '';
     buildInputs = with nixpkgs; [
       cabal2nix
