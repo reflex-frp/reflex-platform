@@ -14,7 +14,7 @@ copyClosure() {
             --gzip --to "$1" \
             --include-outputs \
             $(nix-build \
-                  $NIXOPTS --no-out-link --indirect \
+                  $NIXOPTS -Q --no-out-link --indirect \
                   --add-root "$PWD/gc-roots/cache-${system}.drv" \
                   -E "import ./shell.nix { system = \"$system\"; }")
     done
