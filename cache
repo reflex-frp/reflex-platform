@@ -5,13 +5,38 @@ set -o pipefail
 DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 source "$DIR/common-setup.sh"
 
+HOST=
+SYSTEM=
+
+displayUsage() {
+    cat <<EOF
+$(basename $0:) [-s SYSTEM] HOST
+EOF
+}
+
+checkArgs() {
+    if [[ $# -lt 1 ]]; then
+        displayUsage $@
+        exit 1
+    else
+        HOST=$1
+    fi
+}
+
 copyClosure() {
+    local systems=
+
     local expr='let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems'
-    local systems=$(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E "$expr")")
+
+    if [[ -z "$SYSTEM" ]]; then
+        systems=$(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E "$expr")")
+    else
+        systems=$SYSTEM
+    fi
 
     for system in $systems; do
         nix-copy-closure \
-            --gzip --to "$1" \
+            --gzip --to "$HOST" \
             --include-outputs \
             $(nix-build \
                   $NIXOPTS -Q --no-out-link --indirect \
@@ -21,6 +46,17 @@ copyClosure() {
 }
 
 main() {
+    checkArgs "$@"
+
+    while getopts ":s:" opt; do
+        case $opt in
+            s) SYSTEM=${OPTARG} ;;
+            *) return 1 ;;
+        esac
+    done
+
+    shift $((OPTIND-1))
+
     copyClosure "$@"
 }
 
