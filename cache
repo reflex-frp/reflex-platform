@@ -5,7 +5,6 @@ set -o pipefail
 DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 source "$DIR/common-setup.sh"
 
-HOST=
 SYSTEM=
 
 displayUsage() {
@@ -18,13 +17,12 @@ checkArgs() {
     if [[ $# -lt 1 ]]; then
         displayUsage $@
         exit 1
-    else
-        HOST=$1
     fi
 }
 
 copyClosure() {
     local systems=
+    local hosts=$@
 
     local expr='let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems'
 
@@ -34,14 +32,16 @@ copyClosure() {
         systems=$SYSTEM
     fi
 
-    for system in $systems; do
-        nix-copy-closure \
-            --gzip --to "$HOST" \
-            --include-outputs \
-            $(nix-build \
-                  $NIXOPTS -Q --no-out-link --indirect \
-                  --add-root "$PWD/gc-roots/cache-${system}.drv" \
-                  -E "import ./shell.nix { system = \"$system\"; }")
+    for host in $hosts; do
+        for system in $systems; do
+            nix-copy-closure \
+                --gzip --to "$host" \
+                --include-outputs \
+                $(nix-build \
+                      $NIXOPTS -Q --no-out-link --indirect \
+                      --add-root "$PWD/gc-roots/cache-${system}.drv" \
+                      -E "import ./shell.nix { system = \"$system\"; }")
+        done
     done
 }
 
