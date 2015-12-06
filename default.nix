@@ -213,6 +213,25 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "0xl570ay5bw1rpd1aw59c092rnwjbp9qykh2rhpxyvl333p8mg00";
           editedCabalFile = "592ab6d62eca8a0b43930f15c8fb653c54d60983bd232ecc505bd5a5aebe6f7f";
         });
+        lens = overrideCabal super.lens (drv: {
+          version = "4.12.3";
+          sha256 = "48fa9d46b37ff4f650204f82df7d40f7ae78418badf40d9d3fc7eba479f82821";
+          revision = "1";
+          editedCabalFile = "25acec37a9866c00c8a5cae15827616f8ac3f07717a8db23000708d5bf20b21a";
+        });
+        reflection = overrideCabal super.reflection (drv: {
+          version = "2";
+          sha256 = "ee199e899e3810c3c8fd27dbda5cc3d1730f69e4a75f7494482863cf4d9499c2";
+        });
+        semigroups = overrideCabal super.semigroups (drv: {
+          version = "0.16.2.2";
+          sha256 = "d17e3e42c8e2457286d5c583dad5d0df57678ce4dcf12acc8a7667e80bd8ed57";
+        });
+        th-orphans = overrideCabal super.th-orphans (drv: {
+          version = "0.12.2";
+          sha256 = "0435l20vzsr6p4app6riyf242hcqizbypf4f5v17wjy3ihw0jddb";
+          buildDepends = (drv.buildDepends or []) ++ [self.nats];
+        });
         haskell-src-meta = overrideCabal super.haskell-src-meta (drv: {
           version = "0.6.0.10";
           sha256 = "0flcyimibz4flq66isshn2zsmzlly6sja6gfb0a0xn4ns4xpwpy1";

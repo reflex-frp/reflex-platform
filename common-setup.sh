@@ -9,9 +9,6 @@ REPO="https://github.com/ryantrinkle/try-reflex"
 # These are options passed to nix-instantiate and nix-shell.
 readonly NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
 
-# The minimum required version of Nix to run this script.
-readonly MIN_NIX_VERSION="1.10"
-
 # Whether the nix script needed to be sourced - i.e. nix commands are
 # not available without doing so, from the user's basic prompt.
 NEEDED_TO_SOURCE_NIX_SCRIPT=0
@@ -68,16 +65,14 @@ EOF
     fi
 }
 
-getMinNixVersion() {
-    nix-instantiate --eval -E 'import <nixpkgs> { minver = true; }'
-}
-
 checkNixVersion() {
-    if [[ "$(nix-instantiate --eval -E "builtins.compareVersions builtins.nixVersion \"$MIN_NIX_VERSION\" >= 0")" != "true" ]]; then
+    local minver=$(nix-instantiate --eval -E 'import <nixpkgs/lib/minver.nix>')
+
+    if [[ "$(nix-instantiate --eval -E "builtins.compareVersions builtins.nixVersion $minver >= 0")" != "true" ]]; then
         cat <<EOF
 It looks like your version of Nix, $(nix-instantiate --eval -E builtins.nixVersion),
 is older than the minimum version required by try-reflex,
-\"$MIN_NIX_VERSION\".  You'll need to upgrade Nix to continue.  On
+$minver.  You'll need to upgrade Nix to continue.  On
 non-NixOS platforms, that can usually be done like this:
 
 EOF
