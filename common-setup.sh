@@ -4,7 +4,7 @@
 # script
 
 # The primary source repository of try-reflex
-REPO="https://github.com/ryantrinkle/try-reflex"
+readonly REPO_HOME="https://github.com/ryantrinkle/try-reflex"
 
 # These are options passed to nix-instantiate and nix-shell.
 readonly NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
@@ -13,12 +13,12 @@ readonly NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 
 # not available without doing so, from the user's basic prompt.
 NEEDED_TO_SOURCE_NIX_SCRIPT=0
 
-trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues'; exit 1" ERR
+trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO_HOME/issues'; exit 1" ERR
 
 displayMessage() {
     cat <<EOF
 If you have any trouble with this script, please submit an
-issue at $REPO/issues
+issue at $REPO_HOME/issues
 
 EOF
 }
@@ -58,7 +58,7 @@ checkNixShell() {
             cat <<EOF
 It looks like Nix isn't working.  Please make sure you can run
 nix-shell, then retry the $0, or submit an issue at
-$REPO/issues"
+$REPO_HOME/issues"
 EOF
             exit 1
         fi
