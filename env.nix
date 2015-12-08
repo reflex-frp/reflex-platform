@@ -4,10 +4,11 @@ with nixpkgs;
 let inherit (haskell) lib;
     overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
 
-    hspecGit = fetchgit {
-      url = git://github.com/ryantrinkle/hspec;
+    hspecGit = fetchFromGitHub {
+      owner = "ryantrinkle";
+      repo = "hspec";
       rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
-      sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
+      sha256 = "1b17d3fwps2632qr72xm7pyf5qrn4s0s7ng57w330ylxkddvgncq";
     };
 
     extendHaskellPackages = with lib; haskellPackages: haskellPackages.override {
@@ -316,16 +317,18 @@ in rec {
       fetchSubmodules = true;
     };
 
-    shims = fetchgit {
-      url = git://github.com/ghcjs/shims.git;
+    shims = fetchFromGitHub {
+      owner = "ghcjs";
+      repo = "shims";
       rev = "0b670ca27fff3f0bad515c37e56ccb8b4d6758fb"; # master branch
-      sha256 = "08c0c3547e06d7716b2feb6ebda02f2ab33c205700848ad8e134152f5c3af8a7";
+      sha256 = "19zq79f2y59lw7c8m100awh3rcra5yhbsvpb5xmp3mq6grac7h08";
     };
   }) (drv: {
-    src = fetchgit {
-      url = git://github.com/ghcjs/ghcjs.git;
-      rev = "fb1faa9cb0a11a8b27b0033dfdb07aafb6add35e"; # master branch
-      sha256 = "9069f484da55bf5af8dc65e539f86ca5e1b64ab9ecef65f38006c954400a0eef";
+    src = fetchFromGitHub {
+      owner = "ghcjs";
+      repo = "ghcjs";
+      rev = "fb1faa9cb0a11a8b27b0033dfdb07aafb6add35e";
+      sha256 = "161dr92wyfpl45nvcp6x4hdrf8plamqxwc903rjn6la5ybq9hyvl";
     };
   });
 
