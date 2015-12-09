@@ -6,20 +6,16 @@ readonly DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$DIR/common-setup.sh"
 
 REPO="$1"
-DIFF=
-DIFF_ERR=
-
-getStatus() {
-    DIFF="$(git -C "$REPO/.." diff --cached -- "$REPO/git.nix")"
-    DIFF_ERR=$?
-}
 
 checkStatus() {
-    if [[ "$DIFF_ERR" -ne 0 ]]; then
+    local diff=$(git -C "$REPO/.." diff --cached -- "$REPO/git.nix")
+    local diff_exit=$?
+
+    if [[ "$diff_exit" -ne 0 ]]; then
         >&2 echo "Error: could not determine whether $REPO/git.nix already has pending modifications"
         exit 1
-    elif [[ -n "$DIFF" ]]; then
-        >&2 echo -n "$DIFF"
+    elif [[ -n "$diff" ]]; then
+        >&2 echo -n "$diff"
         >&2 echo "Error: $REPO/git.nix has pending modifications"
         exit 1
     fi
@@ -33,7 +29,6 @@ applyPatch() {
 }
 
 main() {
-    getStatus
     checkStatus
     applyPatch
 }
