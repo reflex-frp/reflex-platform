@@ -2,7 +2,7 @@
 set -eu
 set -o pipefail
 
-readonly DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+readonly DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$DIR/common-setup.sh"
 
 # This crazy workaround ensures that it will work on both Mac OS and

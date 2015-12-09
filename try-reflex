@@ -8,11 +8,11 @@
 set -eu
 set -o pipefail
 
-readonly DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+readonly DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$DIR/common-setup.sh"
 
-GHC_MESSAGE=
-GHCJS_MESSAGE=
+GHC_SUGGESTION=
+GHCJS_SUGGESTION=
 INFO_MESSAGE=
 
 rootFix() {
@@ -64,10 +64,10 @@ displayInitialMessage() {
     printf "\e[34m\e[1mEntering the Reflex sandbox...\e[0m\n"
 }
 
-setGhcMessage() {
+setGhcSuggestion() {
     # TODO: Use a better check that actually checks for each platform's availability
     if [[ ! "$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.isDarwin')" = "true" ]]; then
-        GHC_MESSAGE="$(cat <<EOF
+        GHC_SUGGESTION="$(cat <<EOF
 $(printf "\e[35m\e[1mTo run a simple GUI as a native binary:\e[0m")
 
 $ ghc -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
@@ -78,12 +78,12 @@ To see a more complex GUI example (based on https://github.com/ryantrinkle/refle
 EOF
 )"
     else
-        GHC_MESSAGE=
+        GHC_SUGGESTION=
     fi
 }
 
-setGhcjsMessage() {
-    GHCJS_MESSAGE="$(cat <<EOF2
+setGhcjsSuggestion() {
+    GHCJS_SUGGESTION="$(cat <<EOF2
 $(printf "\e[35m\e[1mTo create a simple web GUI:\e[0m")
 
 $ cat > hello.hs <<EOF
@@ -100,8 +100,8 @@ EOF2
 }
 
 setCompilerMessages() {
-    setGhcMessage
-    setGhcjsMessage
+    setGhcSuggestion
+    setGhcjsSuggestion
 }
 
 setInfoMessage() {
@@ -110,9 +110,9 @@ setInfoMessage() {
 You are now in a shell with access to the Reflex Functional Reactive
 Programming (FRP) engine.
 
-$GHC_MESSAGE
+$GHC_SUGGESTION
 
-$GHCJS_MESSAGE
+$GHCJS_SUGGESTION
 EOF
 )"
 }
