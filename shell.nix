@@ -19,6 +19,6 @@ in with this; nixpkgs.runCommand "shell" {
   ] ++ builtins.map reflexEnv platforms;
 
   shellHook = ''
-    export PS1="\n\[\033[1;32m\][try-reflex:\w]\n$\[\033[0m\] "
+    export PS1="\n\[\033[1;32m\][try-reflex:\w]$\[\033[0m\] "
   '';
 } ""
