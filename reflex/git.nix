@@ -1,5 +1,5 @@
 {
   url = git://github.com/ryantrinkle/reflex;
-  rev = "1db982f69c9a068de3fddc205c87a4f86231c235";
-  sha256 = "b20371d8dae19eb28cc9dc06f29f7f5b678b06080afc430f81946874d61eeb85";
+  rev = "4b928220e3f226e0cdbc666a020ba63bddc151dc";
+  sha256 = "e36d4ce9ba9b329f2bc782d087196f4132b3b87de0803441400995c6ac966c64";
 }

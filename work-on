@@ -20,13 +20,17 @@ shift
 PACKAGE="$1"
 shift
 
-PACKAGE_INVOCATION=$(
-    if echo "$PACKAGE" | grep -q / ; then
-        # Package name includes a slash
-        echo "(this.$PLATFORM.callPackage $PACKAGE {})"
+if echo "$PACKAGE" | grep -q / ; then
+    # Package name includes a slash
+    if ( echo "$PACKAGE" | grep -q '\.nix$' && [ -f "$PACKAGE" ] ) || [ -f "$PACKAGE/default.nix" ] ; then
+        PACKAGE_INVOCATION="(this.$PLATFORM.callPackage $PACKAGE {})"
+    elif test -n "$(shopt -s nullglob ; echo "$PACKAGE"/*.cabal)" ; then
+        PACKAGE_INVOCATION="(this.$PLATFORM.callPackage (this.cabal2nixResult $PACKAGE) {})"
     else
-        echo "this.$PLATFORM.$PACKAGE"
+        user_error 1 "Error: The given path must be a nix expression, a directory with a default.nix, or a directory with a cabal file"
     fi
-)
+else
+    PACKAGE_INVOCATION="this.$PLATFORM.$PACKAGE"
+fi
 
 nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $PACKAGE_INVOCATION" "$@"

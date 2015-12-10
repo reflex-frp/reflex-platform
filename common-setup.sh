@@ -7,6 +7,13 @@ NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
 
 trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues'; exit 1" ERR
 
+# Exit because the user caused an error, with the given error code and message
+user_error() {
+    >&2 echo "$2"
+    trap - ERR
+    exit "$1"
+}
+
 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
 
 (

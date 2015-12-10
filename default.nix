@@ -1,5 +1,8 @@
-{ system ? null, config ? null }:
-let nixpkgs = import ./nixpkgs ({
+{ nixpkgsFunc ? import ./nixpkgs
+, system ? null
+, config ? null
+}:
+let nixpkgs = nixpkgsFunc ({
       config = {
         allowUnfree = true;
       } // (if config == null then {} else config);
@@ -82,7 +85,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         primitive = overrideCabal super.primitive (drv: {
           version = "0.5.4.0";
           sha256 = "05gdgj383xdrdkhxh26imlvs8ji0z28ny38ms9snpvv5i8l2lg10";
-        });
+          revision = "1";
+          editedCabalFile = "df0a129c168c61a06a02123898de081b1d0b254cce6d7ab24b8f43ec37baef9e";
+          });
         scientific = overrideCabal super.scientific (drv: {
           version = "0.3.3.3";
           sha256 = "1hngkmd1kggc84sz4mddc0yj2vyzc87dz5dkkywjgxczys51mhqn";
@@ -105,6 +110,28 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "01hc71k1z9m0g0dv4zsvq5d2dvbgyc5p01hryw5c53792yi2fm25";
           jailbreak = true;
         });
+
+        ########################################################################
+        # Fixups for older ghcjs
+        ########################################################################
+        webkitgtk3 = overrideCabal super.webkitgtk3 (drv: {
+          version = "0.13.1.3";
+          sha256 = "0gfznb6n46576im72m6k9wrwc2n9f48nk4dsaz2llvzlzlzx4zfk";
+        });
+        gtk3 = overrideCabal super.gtk3 (drv: {
+          version = "0.13.9";
+          sha256 = "1zmcvp295sknc2h529nprclw11lnwp79dniyyg573wc99bdzijvr";
+        });
+        ghcjs-dom = overrideCabal super.ghcjs-dom (drv: {
+          version = "0.1.1.3";
+          sha256 = "0pdxb2s7fflrh8sbqakv0qi13jkn3d0yc32xhg2944yfjg5fvlly";
+        });
+
+        ########################################################################
+        # Fixups for new nixpkgs
+        ########################################################################
+        language-nix = dontCheck super.language-nix;
+        distribution-nixpkgs = dontCheck super.distribution-nixpkgs;
 
         ########################################################################
         # Other packages
@@ -223,10 +250,27 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell-ng.packages.ghc7102;
-  ghcjsCompiler = ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
-    ghc = nixpkgs.pkgs.haskell-ng.compiler.ghc7102;
-  };
+  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7102;
+  ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
+    ghc = nixpkgs.pkgs.haskell.compiler.ghc7102;
+    ghcjsBoot = nixpkgs.fetchgit {
+      url = git://github.com/ghcjs/ghcjs-boot.git;
+      rev = "d435c60b62d24b7a4117493f7aaecbfa09968fe6"; # 7.10 branch
+      sha256 = "4159b20730822ec699b47036791158bc32d5412903005d19c396b120beac701f";
+      fetchSubmodules = true;
+    };
+    shims = nixpkgs.fetchgit {
+      url = git://github.com/ghcjs/shims.git;
+      rev = "0b670ca27fff3f0bad515c37e56ccb8b4d6758fb"; # master branch
+      sha256 = "08c0c3547e06d7716b2feb6ebda02f2ab33c205700848ad8e134152f5c3af8a7";
+    };
+  }) (drv: {
+    src = nixpkgs.fetchgit {
+      url = git://github.com/ghcjs/ghcjs.git;
+      rev = "fb1faa9cb0a11a8b27b0033dfdb07aafb6add35e"; # master branch
+      sha256 = "9069f484da55bf5af8dc65e539f86ca5e1b64ab9ecef65f38006c954400a0eef";
+    };
+  });
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
     ghc = ghcjsCompiler;
     packageSetConfig = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/configuration-ghcjs.nix" { };
@@ -286,7 +330,7 @@ in rec {
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   workOn = package: (overrideCabal package (drv: {
-    buildDepends = drv.buildDepends ++ [ ghc.cabal-install ghc.ghcid ];
+    buildDepends = (drv.buildDepends or []) ++ [ ghc.cabal-install ghc.ghcid ];
   })).env;
 
   # The systems that we want to build for on the current system
@@ -294,6 +338,23 @@ in rec {
     if nixpkgs.stdenv.system == "x86_64-linux"
     then [ "x86_64-linux" "i686-linux" ] # On linux, we want to build both 32-bit and 64-bit versions
     else [ nixpkgs.stdenv.system ];
+
+  isSuffixOf = suffix: s:
+    let suffixLen = builtins.stringLength suffix;
+    in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
+
+  cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
+    buildCommand = ''
+      cabal2nix file://"${src}" >"$out"
+    '';
+    buildInputs = with nixpkgs; [
+      cabal2nix
+    ];
+
+    # Support unicode characters in cabal files
+    ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
+    ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
+  } "";
 
   inherit lib;
 }
