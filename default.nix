@@ -260,9 +260,9 @@ in rec {
       fetchSubmodules = true;
     };
     shims = nixpkgs.fetchgit {
-      url = git://github.com/ghcjs/shims.git;
-      rev = "0b670ca27fff3f0bad515c37e56ccb8b4d6758fb"; # master branch
-      sha256 = "08c0c3547e06d7716b2feb6ebda02f2ab33c205700848ad8e134152f5c3af8a7";
+      url = git://github.com/ryantrinkle/shims.git;
+      rev = "18e4fc7a0217feee1275a74ed40f4a925263b9a3";
+      sha256 = "e65f136e964c367b683e9dfda1be70e9997932d78531c52f7f243643e0c8faf3";
     };
   }) (drv: {
     src = nixpkgs.fetchgit {
