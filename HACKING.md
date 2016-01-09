@@ -4,12 +4,14 @@ Hacking on Try Reflex
 To work on a particular package, use the work-on script **instead of** try-reflex:
 
 ```
-./work-on ghcjs reflex-dom
+~/try-reflex/work-on ghcjs ./your-project
 ```
+
+This will use your package's cabal file to determine dependencies.  If you have a default.nix, it will use that instead.  Note that your project's path must include at least one slash ('/') so that work-on can detect that it is a path, rather than a package name.
 
 This will give you the exact environment needed to work with the given package and platform, rather than the general-purpose environment provided by try-reflex.
 
-You can replace `ghcjs` with `ghc` to hack on the native GHC version of the package (including with GHCi if you want), and you can replace `reflex-dom` with another package name to work on a different package.  You can also use a path to a nix script instead of a package name, as long as the path includes a slash ('/') character (use './' if you want to refer to a script in your current directory).
+You can replace `ghcjs` with `ghc` to hack on the native GHC version of the package (including with GHCi if you want).  You can also use a package name instead of a path, which will drop you into the standard build environment of that package; this works even if you don't yet have the source for that package.
 
 Once inside the shell, you'll have access to the environment in which the package is built with a few more tools (such as cabal-install) added.
 
