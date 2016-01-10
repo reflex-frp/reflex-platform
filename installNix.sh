@@ -27,7 +27,7 @@ case "$(uname -s).$(uname -m)" in
     *) oops "sorry, there is no binary distribution of Nix for your platform";;
 esac
 
-url="https://nixos.org/releases/nix/nix-1.10/nix-1.10-$system.tar.bz2"
+url="http://nixos.org/releases/nix/nix-1.10/nix-1.10-$system.tar.bz2"
 
 require_util curl "download the binary tarball"
 require_util bzcat "decompress the binary tarball"
