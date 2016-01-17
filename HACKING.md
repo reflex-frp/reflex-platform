@@ -16,7 +16,7 @@ You can replace `ghcjs` with `ghc` to hack on the native GHC version of the pack
 Instead of specifying `ghcjs` or `ghc` for the platform, you can also specify a path to a nix expression file whose value represents a Haskell environment, for example:
 
 ```
-{}: (import ./try-reflex {}).ghcjs.override {
+{ try-reflex, ... }: try-reflex.ghcjs.override {
   overrides = self: super: {
     some-package = self.callPackage ./some-package {};
   };
