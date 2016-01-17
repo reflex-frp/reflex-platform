@@ -20,6 +20,14 @@ shift
 PACKAGE="$1"
 shift
 
+if echo "$PLATFORM" | grep -q '^(.*)$' ; then
+    EFFECTIVE_PLATFORM="$PLATFORM"
+elif echo "$PLATFORM" | grep -q / ; then
+    EFFECTIVE_PLATFORM="(import $PLATFORM { try-reflex = this; })"
+else
+    EFFECTIVE_PLATFORM="this.$PLATFORM"
+fi
+
 if echo "$PACKAGE" | grep -q / ; then
     # Package name includes a slash
     if ( echo "$PACKAGE" | grep -q '\.nix$' && [ -f "$PACKAGE" ] ) || [ -f "$PACKAGE/default.nix" ] ; then
