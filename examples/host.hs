@@ -23,6 +23,7 @@ import Reflex.Host.Class (newEventWithTriggerRef, runHostFrame, fireEvents)
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
 import Control.Monad.Fix (MonadFix)
+import Control.Monad.Identity (Identity(..))
 import Control.Monad.IO.Class (liftIO)
 import Data.IORef (readIORef)
 import Data.Dependent.Sum (DSum ((:=>)))
@@ -103,7 +104,7 @@ host myGuest = do
           -- the same event cannot be firing multiple times simultaneously;
           -- system behavior is undefined if the same trigger is provided more
           -- than once.
-          fireEvents [eTrigger :=> input]
+          fireEvents [eTrigger :=> Identity input]
 
       -- Retrieve the current output of the user's program and display it.
       output <- runHostFrame $ sample b
