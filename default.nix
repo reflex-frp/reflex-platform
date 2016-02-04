@@ -83,6 +83,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             license = stdenv.lib.licenses.publicDomain;
           }
         ) {};
+
+        # For compatibility with the above
+        derive = overrideCabal super.derive (drv: {
+          version = "2.5.22";
+          sha256 = "0g2grz9y23n8g4wwjinx5cc70aawswl84i3njgj6l1fl29fk1yf2";
+        });
         /*
         these = overrideCabal super.these (drv: { 
           version = "0.5.0.0";
