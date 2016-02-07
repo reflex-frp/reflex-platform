@@ -23,6 +23,7 @@ shift
 if echo "$PLATFORM" | grep -q '^(.*)$' ; then
     EFFECTIVE_PLATFORM="$PLATFORM"
 elif echo "$PLATFORM" | grep -q / ; then
+    PLATFORM_PATH="$(cleanup_nix_path "$PLATFORM")"
     EFFECTIVE_PLATFORM="(import $PLATFORM { try-reflex = this; })"
 else
     EFFECTIVE_PLATFORM="this.$PLATFORM"
@@ -30,10 +31,11 @@ fi
 
 if echo "$PACKAGE" | grep -q / ; then
     # Package name includes a slash
-    if ( echo "$PACKAGE" | grep -q '\.nix$' && [ -f "$PACKAGE" ] ) || [ -f "$PACKAGE/default.nix" ] ; then
-        PACKAGE_INVOCATION="($EFFECTIVE_PLATFORM.callPackage $PACKAGE {})"
-    elif test -n "$(shopt -s nullglob ; echo "$PACKAGE"/*.cabal)" ; then
-        PACKAGE_INVOCATION="($EFFECTIVE_PLATFORM.callPackage (this.cabal2nixResult $PACKAGE) {})"
+    PACKAGE_PATH="$(cleanup_nix_path "$PACKAGE")"
+    if ( echo "$PACKAGE_PATH" | grep -q '\.nix$' && [ -f "$PACKAGE_PATH" ] ) || [ -f "$PACKAGE_PATH/default.nix" ] ; then
+        PACKAGE_INVOCATION="($EFFECTIVE_PLATFORM.callPackage $PACKAGE_PATH {})"
+    elif test -n "$(shopt -s nullglob ; echo "$PACKAGE_PATH"/*.cabal)" ; then
+        PACKAGE_INVOCATION="($EFFECTIVE_PLATFORM.callPackage (this.cabal2nixResult $PACKAGE_PATH) {})"
     else
         user_error 1 "Error: The given path must be a nix expression, a directory with a default.nix, or a directory with a cabal file"
     fi

@@ -79,3 +79,8 @@ git_manifest() {
 }
 EOF
 }
+
+# Clean up a path so it can be injected into a nix expression
+cleanup_nix_path() {
+    echo "$1" | sed 's@/*$@@'
+}
