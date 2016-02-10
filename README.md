@@ -1,5 +1,9 @@
-Try Reflex
-==========
+Reflex Platform
+===============
+
+The Reflex Platform is a collection of libraries and tools that are useful for developing and deploying [Reflex](https://github.com/reflex-frp/reflex)-based applications.
+
+To get started with Reflex development, follow the instructions below.
 
 Try Reflex lets you set up an environment from which you can use [Reflex](https://github.com/ryantrinkle/reflex) with [GHCJS](https://github.com/ghcjs/ghcjs).
 
@@ -16,16 +20,16 @@ Setup
 -----
 This process will install the [Nix package manager](https://nixos.org/nix/). If you prefer to install Nix yourself, you may do so any time prior to step 2.
 
-1. Clone the try-reflex repo:
+1. Clone this repository:
 
     ```bash
-    git clone https://github.com/ryantrinkle/try-reflex
+    git clone https://github.com/reflex-frp/reflex-platform
     ```
 
-2. Navigate into the `try-reflex` folder and run the try-reflex bootstrapping command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
+2. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
     
     ```bash
-    cd try-reflex
+    cd reflex-platform
     ./try-reflex
     ```
 
@@ -38,7 +42,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
 
 4. Compilation will produce a `source.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
 
-5. If you need to add any additional dependencies, edit `packages.nix`, then exit and re-enter the try-reflex shell.  **Don't use Cabal** to install libraries while inside the nix shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
+5. If you need to add any additional dependencies, edit `packages.nix`, then exit and re-enter the try-reflex shell.  **Don't use** `cabal install` to install libraries while inside the try-reflex shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
 
 Tutorial
 --------

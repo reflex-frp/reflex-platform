@@ -1,7 +1,7 @@
-# This file should not be run directly; it exists to share setup code between the various scripts in try-reflex
+# This file should not be run directly; it exists to share setup code between the various scripts in this repository
 # Before running this script, DIR should be defined equal to the directory containing this script
 
-REPO="https://github.com/ryantrinkle/try-reflex"
+REPO="https://github.com/reflex-frp/reflex-platform"
 
 NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
 
@@ -51,7 +51,7 @@ fi
 MIN_REQUIRED_NIX_VERSION="1.8"
 
 if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVersion \"$MIN_REQUIRED_NIX_VERSION\" >= 0")" != "true" ] ; then
-  echo "It looks like your version of Nix, $(nix-instantiate --eval --expr "builtins.nixVersion"), is older than the minimum version required by try-reflex, \"$MIN_REQUIRED_NIX_VERSION\".  You'll need to upgrade Nix to continue.  On non-NixOS platforms, that can usually be done like this:"
+  echo "It looks like your version of Nix, $(nix-instantiate --eval --expr "builtins.nixVersion"), is older than the minimum version required by the Reflex Platform, \"$MIN_REQUIRED_NIX_VERSION\".  You'll need to upgrade Nix to continue.  On non-NixOS platforms, that can usually be done like this:"
   if [ "$NEEDED_TO_SOURCE_NIX_SCRIPT" -ne 0 ] ; then
     echo "$SOURCE_NIX_SCRIPT"
   fi

@@ -1,22 +1,22 @@
-Hacking on Try Reflex
-=====================
+Hacking on the Reflex Platform
+==============================
 
-To work on a particular package, use the work-on script **instead of** try-reflex:
+To work on a particular package, use the work-on script **instead of** `./try-reflex`:
 
 ```
-~/try-reflex/work-on ghcjs ./your-project
+~/reflex-platform/work-on ghcjs ./your-project
 ```
 
 This will use your package's cabal file to determine dependencies.  If you have a default.nix, it will use that instead.  Note that your project's path must include at least one slash ('/') so that work-on can detect that it is a path, rather than a package name.
 
-This will give you the exact environment needed to work with the given package and platform, rather than the general-purpose environment provided by try-reflex.
+This will give you the exact environment needed to work with the given package and platform, rather than the general-purpose environment provided by the Reflex Platform.
 
 You can replace `ghcjs` with `ghc` to hack on the native GHC version of the package (including with GHCi if you want).  You can also use a package name instead of a path, which will drop you into the standard build environment of that package; this works even if you don't yet have the source for that package.
 
 Instead of specifying `ghcjs` or `ghc` for the platform, you can also specify a path to a nix expression file whose value represents a Haskell environment, for example:
 
 ```
-{ try-reflex, ... }: try-reflex.ghcjs.override {
+{ reflex-platform, ... }: reflex-platform.ghcjs.override {
   overrides = self: super: {
     some-package = self.callPackage ./some-package {};
   };
@@ -36,17 +36,17 @@ The `hack-on` script is provided for conveniently checking out a sub-repository.
 ./hack-on reflex
 ```
 
-This will check out the same version of `reflex` currently being used by `try-reflex`.  Note that `reflex`, here, is a path relative to the current directory, so you must be in the try-reflex folder when you execute this.
+This will check out the same version of `reflex` currently being used by the Reflex Platform.  Note that `reflex`, here, is a path relative to the current directory, so you must be in this folder when you execute this.
 
-Once the repository is checked out, you can make modifications to it, which will be used the next time you enter a `try-reflex` shell.  Existing `try-reflex` sessions will not be affected.
+Once the repository is checked out, you can make modifications to it, which will be used the next time you enter a try-reflex or work-on shell.  Existing sessions will not be affected—exit and re-enter your shell to use the changes.
 
-When you have completed some work hacking on the sub-repository, you can use the `hack-add` script to check your changes into try-reflex without needing to delete the repository, like so:
+When you have completed some work hacking on the sub-repository, you can use the `hack-add` script to check your changes into this repository without needing to delete the repository, like so:
 
 ```
 ./hack-add reflex
 ```
 
-You can then commit and push try-reflex without needing to delete the sub-repository.
+You can then commit and push reflex-platform without needing to delete the sub-repository.
 
 When you are completely done with a sub-repository, you can remove it using `hack-off`:
 

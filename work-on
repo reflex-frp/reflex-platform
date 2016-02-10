@@ -24,7 +24,7 @@ if echo "$PLATFORM" | grep -q '^(.*)$' ; then
     EFFECTIVE_PLATFORM="$PLATFORM"
 elif echo "$PLATFORM" | grep -q / ; then
     PLATFORM_PATH="$(cleanup_nix_path "$PLATFORM")"
-    EFFECTIVE_PLATFORM="(import $PLATFORM { try-reflex = this; })"
+    EFFECTIVE_PLATFORM="(import $PLATFORM { reflex-platform = this; try-reflex = builtins.trace \"WARNING: the try-reflex parameter is deprecated; please update your script to refer to reflex-platform instead\" this; })"
 else
     EFFECTIVE_PLATFORM="this.$PLATFORM"
 fi
