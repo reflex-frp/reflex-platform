@@ -27,11 +27,12 @@ case "$(uname -s).$(uname -m)" in
     *) oops "sorry, there is no binary distribution of Nix for your platform";;
 esac
 
-url="https://nixos.org/releases/nix/nix-1.10/nix-1.10-$system.tar.bz2"
+url="https://nixos.org/releases/nix/nix-1.11.1/nix-1.11.1-$system.tar.bz2"
 
 require_util curl "download the binary tarball"
 require_util bzcat "decompress the binary tarball"
 require_util tar "unpack the binary tarball"
+require_util bash "run the installation script from the binary tarball"
 
 echo "unpacking Nix binary tarball for $system from \`$url'..."
 mkdir "$unpack" || oops "failed to create \`$unpack' directory"
