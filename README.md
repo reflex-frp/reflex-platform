@@ -33,14 +33,14 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
     ./try-reflex
     ```
 
-3. From this nix-shell, you can compile your haskell source using ghcjs:
+3. From this nix-shell, you can compile any haskell source files you like using ghcjs:
 
     ```bash
-    ghcjs --make source.hs
+    ghcjs --make your-source-file.hs
     ```
-    This should look fairly familiar to anyone who has compiled with ghc.
+    Replace `your-source-file.hs` with the name of the file you'd like to compile.  For the most part, ghcjs supports the same options as ghc.
 
-4. Compilation will produce a `source.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
+4. Compilation will produce a `your-source-file.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
 
 5. If you need to add any additional dependencies, edit `packages.nix`, then exit and re-enter the try-reflex shell.  **Don't use** `cabal install` to install libraries while inside the try-reflex shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
 
