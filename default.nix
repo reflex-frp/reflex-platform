@@ -1,7 +1,6 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? null
 , config ? null
-, enableLibraryProfiling ? true
 }:
 let nixpkgs = nixpkgsFunc ({
       config = {
@@ -342,13 +341,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "0w9nd8llzcjb91x1d3mh5482pavbx1jpn8w2ahm6ydjwvijjd9r5";
         });
         */
-      } // (if enableLibraryProfiling 
-            then {
-             mkDerivation = expr: super.mkDerivation (
-             expr // { enableLibraryProfiling = true; }
-             );
-            }
-            else {});
+      };
     };
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
