@@ -54,6 +54,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           version = "1.9.22";
           sha256 = "1xqrbk6ia488992jj8ms1p2xcs7fpyladh9q7gl8g6w971r3fvjz";
         });
+        transformers-compat = overrideCabal super.transformers-compat (drv: {
+          version = "0.4.0.4";
+          sha256 = "0lmg8ry6bgigb0v2lg0n74lxi8z5m85qq0qi4h1k9llyjb4in8ym";
+        });
+        bifunctors = overrideCabal super.bifunctors (drv: {
+          version = "5.2";
+          sha256 = "056y923znv08zxqyabaas91yg56ysbmb2jml0j27nfl6qpd77qa6";
+        });
         optparse-applicative = overrideCabal super.optparse-applicative (drv: {
           version = "0.11.0.2";
           sha256 = "0ni52ii9555jngljvzxn1ngicr6i2w647ww3rzhdrmng04y95iii";
@@ -345,10 +353,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7102;
+  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103;
   ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
-    ghc = nixpkgs.pkgs.haskell.compiler.ghc7102;
-    ghcjsBoot = nixpkgs.fetchgit {
+    bootPkgs = ghc;
+    ghcjsBootSrc = nixpkgs.fetchgit {
       url = git://github.com/ghcjs/ghcjs-boot.git;
       rev = "97dea5c4145bf80a1e7cffeb1ecd4d0ecacd5a2f";
       sha256 = "1295429501c0c1a7504b0b0215f12928dc35c4f673fd159de94dd0924afdf2b1";

@@ -1,5 +1,5 @@
 {
   url = git://github.com/NixOS/nixpkgs;
-  rev = "011c149ed5e5a336c3039f0b9d4303020cff1d86";
-  sha256 = "c8de821d548443779bc9cfe1df4d3a5c76e010b3b1b59c08a6779be1d25031ee";
+  rev = "d2e0b6cf6f13691e95b94c2ef0c777c6dde1da6b";
+  sha256 = "5c5240f00384b0abb8a5fa218fd869b92883fcf1ef544e6ff06a03d38ae2c4f5";
 }
