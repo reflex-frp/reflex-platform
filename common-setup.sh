@@ -5,22 +5,7 @@ REPO="https://github.com/reflex-frp/reflex-platform"
 
 NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
 
-LOGFILE="$0.log"
-
-trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues - include $'; exit 1" ERR
-
-echo "Command: " "$0" "$@" >"$LOGFILE"
-exec 3>&1
-exec 4>&2
-exec > >(tee -ia "$LOGFILE")
-exec 2> >(tee -ia "$LOGFILE" >&2)
-
-terminate_logging() {
-exec 1>&3
-exec 2>&4
-exec 3>&-
-exec 4>&-
-}
+trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues'; exit 1" ERR
 
 # Exit because the user caused an error, with the given error code and message
 user_error() {
