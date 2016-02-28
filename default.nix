@@ -364,14 +364,14 @@ in rec {
     };
     shims = nixpkgs.fetchgit {
       url = git://github.com/ghcjs/shims.git;
-      rev = "45f44f5f027ec03264b61b8049951e765cc0b23a";
-      sha256 = "777aef1d61c530c26185093d1072fdf9e07c9871b0ffb5b6929951fe33f91724";
+      rev = "4df1808d03117ddcd45f276f0ddd85c73e59506a";
+      sha256 = "aa3515cc0f52ed0e9a14310ac66e8b80a024ce88099c21fedd18fb81eb255e59";
     };
   }) (drv: {
     src = nixpkgs.fetchgit {
       url = git://github.com/ghcjs/ghcjs.git;
-      rev = "561365ba1667053b5dc5846e2a8edb33eaa3f6dd";
-      sha256 = "72ffb8d4919a310129152724d7ab2fd9d699c5b3a6224632c32b4aa66d0a8370";
+      rev = "13a99c6da40e3700e070e430d4c0f2ea96217b24";
+      sha256 = "6e6c34f98092032203ff775b108594bee68fa73510872824daeaa1d71a738a83";
     };
   });
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
