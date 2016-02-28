@@ -3,7 +3,7 @@
 
 REPO="https://github.com/reflex-frp/reflex-platform"
 
-NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
+NIXOPTS="--option extra-binary-caches https://nixcache.reflex-frp.org/ -j 8"
 
 trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues'; exit 1" ERR
 
