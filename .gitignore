@@ -16,3 +16,4 @@ cabal.config
 tags
 TAGS
 result
+*.log
