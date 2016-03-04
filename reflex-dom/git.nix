@@ -1,5 +1,5 @@
 {
   url = git://github.com/reflex-frp/reflex-dom;
-  rev = "18d3ce29e51700d4a0ad1bdfda4bb516d73e98c4";
-  sha256 = "f8e8b392b299c3ad2e750191db14e0d99e38258f72f2db85ab1332766b03c25e";
+  rev = "c335f83f8e9982988a276f70af1db0b0ed248d38";
+  sha256 = "c1ab505a52319246a75bb477ba8d666633c03cfd4fe8925d8fff3dcdd2db747c";
 }
