@@ -448,7 +448,7 @@ in rec {
 
   workOnMulti = env: packageNames: nixpkgs.runCommand "shell" {
     buildInputs = [
-      (env.ghc.withPackages (p: builtins.concatLists (map (n: p.${n}.override { mkDerivation = x: (x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []); }) packageNames)))
+      (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: packageEnv.${n}.override { mkDerivation = x: builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) (x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []); }) packageNames)))
     ] ++ generalDevTools;
   } "";
 
