@@ -97,6 +97,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           version = "2.5.22";
           sha256 = "0g2grz9y23n8g4wwjinx5cc70aawswl84i3njgj6l1fl29fk1yf2";
         });
+
+        # The lens tests take WAY too long to run
+	lens = dontCheck super.lens;
+
         /*
         these = overrideCabal super.these (drv: { 
           version = "0.5.0.0";
