@@ -3,6 +3,10 @@
 
 REPO="https://github.com/reflex-frp/reflex-platform"
 
+if grep 'ryantrinkle\.com:' /etc/nix/nix.conf ; then
+  >&2 echo "Warning: The reflex-platform cache server has moved from https://ryantrinkle.com:5443 to https://nixcache.reflex-frp.org.  Please update your /etc/nixos/configuration/nix or /etc/nix/nix.conf accordingly"
+fi
+
 NIXOPTS="--option extra-binary-caches https://nixcache.reflex-frp.org/ -j 8"
 
 LOGFILE="$0.log"
