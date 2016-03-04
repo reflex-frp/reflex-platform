@@ -424,9 +424,21 @@ in rec {
   });
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
+  # Tools that are useful for development under both ghc and ghcjs
+  generalDevTools = [
+    ghc.cabal-install
+    ghc.ghcid
+  ];
+
   workOn = package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ [ ghc.cabal-install ghc.ghcid ];
+    buildDepends = (drv.buildDepends or []) ++ generalDevTools;
   })).env;
+
+  workOnMulti = env: packageNames: nixpkgs.runCommand "shell" {
+    buildInputs = [
+      (env.ghc.withPackages (p: builtins.concatLists (map (n: p.${n}.override { mkDerivation = x: (x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []); }) packageNames)))
+    ] ++ generalDevTools;
+  } "";
 
   # The systems that we want to build for on the current system
   cacheTargetSystems =
