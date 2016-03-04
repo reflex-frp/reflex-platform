@@ -7,7 +7,7 @@ NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
 
 LOGFILE="$0.log"
 
-trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues - include $'; exit 1" ERR
+trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues - include $LOGFILE to provide more information'; exit 1" ERR
 
 echo "Command: " "$0" "$@" >"$LOGFILE"
 exec 3>&1
