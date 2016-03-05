@@ -20,5 +20,7 @@ trap "rm -rf \"$TMPDIR\"" EXIT
         nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-$x.drv" --indirect -E "import ./shell.nix { system = \"$x\"; }")"
     done
 
+    sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"* # Get rid of these, because they can vary in apparently-meaningless between systems
+
     nix-shell $NIXOPTS -E 'with import <nixpkgs> {}; runCommand "shell" { buildInputs = [ s3cmd ]; shellHook = "export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"; } ""' --run "s3cmd --config=$CONFIG_DIR/s3cfg sync '$TMPDIR/' s3://nixcache.reflex-frp.org/"
 )
