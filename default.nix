@@ -18,8 +18,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
       sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
     };
-    extendHaskellPackages = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
+    overrides = self: super: {
         ########################################################################
         # Reflex packages
         ########################################################################
@@ -345,11 +344,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "0w9nd8llzcjb91x1d3mh5482pavbx1jpn8w2ahm6ydjwvijjd9r5";
         });
         */
-      };
     };
 in rec {
-  inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103;
+  inherit nixpkgs overrideCabal overrides;
+  ghc = nixpkgs.pkgs.haskell.packages.ghc7103.override {
+    inherit overrides;
+  };
   ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc;
     ghcjsBootSrc = nixpkgs.fetchgit {
@@ -370,12 +370,11 @@ in rec {
       sha256 = "6e6c34f98092032203ff775b108594bee68fa73510872824daeaa1d71a738a83";
     };
   });
-  ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
+  ghcjs = nixpkgs.pkgs.haskell.packages.ghcjs.override {
     ghc = ghcjsCompiler;
-    packageSetConfig = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/configuration-ghcjs.nix" { };
+    inherit overrides;
   };
 
-  ghcjs = extendHaskellPackages ghcjsPackages;
   platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
