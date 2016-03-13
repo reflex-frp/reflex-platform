@@ -1,7 +1,7 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? null
 , config ? null
-, enableLibraryProfiling ? true
+, enableLibraryProfiling ? false
 }:
 let nixpkgs = nixpkgsFunc ({
       config = {
