@@ -17,3 +17,17 @@ tags
 TAGS
 result
 *.log
+
+# Hide any files in hack-on/off quasi-submodules
+nixpkgs/*
+!nixpkgs/default.nix
+!nixpkgs/git.nix
+reflex/*
+!reflex/default.nix
+!reflex/git.nix
+reflex-dom/*
+!reflex-dom/default.nix
+!reflex-dom/git.nix
+reflex-todomvc/*
+!reflex-todomvc/default.nix
+!reflex-todomvc/git.nix
