@@ -1,1 +1,1 @@
-import ((import <nixpkgs> {}).fetchgit (import ./git.nix))
+import ((import <nixpkgs> {}).fetchFromGitHub (import ./git.nix))
