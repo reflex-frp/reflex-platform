@@ -367,23 +367,10 @@ in rec {
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103;
   ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc;
-    ghcjsBootSrc = nixpkgs.fetchgit {
-      url = git://github.com/ghcjs/ghcjs-boot.git;
-      rev = "97dea5c4145bf80a1e7cffeb1ecd4d0ecacd5a2f";
-      sha256 = "1295429501c0c1a7504b0b0215f12928dc35c4f673fd159de94dd0924afdf2b1";
-      fetchSubmodules = true;
-    };
-    shims = nixpkgs.fetchgit {
-      url = git://github.com/ghcjs/shims.git;
-      rev = "4df1808d03117ddcd45f276f0ddd85c73e59506a";
-      sha256 = "aa3515cc0f52ed0e9a14310ac66e8b80a024ce88099c21fedd18fb81eb255e59";
-    };
+    ghcjsBootSrc = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json));
+    shims = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./shims/git.json));
   }) (drv: {
-    src = nixpkgs.fetchgit {
-      url = git://github.com/ghcjs/ghcjs.git;
-      rev = "13a99c6da40e3700e070e430d4c0f2ea96217b24";
-      sha256 = "6e6c34f98092032203ff775b108594bee68fa73510872824daeaa1d71a738a83";
-    };
+    src = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs/git.json));
   });
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
     ghc = ghcjsCompiler;
