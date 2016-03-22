@@ -13,11 +13,19 @@ trap "rm -rf \"$TMPDIR\"" EXIT
 (
     cd "$DIR"
 
+    JOBS=()
+
     for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
-	nix-push --dest "$TMPDIR" --key-file "$CONFIG_DIR/ryantrinkle.com-1" "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-nixpkgs.drv" --indirect -E "(import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./$x/git.json))")"
+        ( nix-push --dest "$TMPDIR" --key-file "$CONFIG_DIR/ryantrinkle.com-1" "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-nixpkgs.drv" --indirect -E "(import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./$x/git.json))")" ) &
+        JOBS+=($!)
     done
     for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
-        nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-$x.drv" --indirect -E "import ./shell.nix { system = \"$x\"; }")"
+        ( nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-$x.drv" --indirect -E "import ./shell.nix { system = \"$x\"; }")" ) &
+        JOBS+=($!)
+    done
+
+    for j in "${JOBS[@]}" ; do
+        wait "$j"
     done
 
     sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"* # Get rid of these, because they can vary in apparently-meaningless between systems
