@@ -22,5 +22,5 @@ trap "rm -rf \"$TMPDIR\"" EXIT
 
     sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"* # Get rid of these, because they can vary in apparently-meaningless between systems
 
-    nix-shell $NIXOPTS -E 'with import <nixpkgs> {}; runCommand "shell" { buildInputs = [ s3cmd ]; shellHook = "export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"; } ""' --run "s3cmd --config=$CONFIG_DIR/s3cfg sync '$TMPDIR/' s3://nixcache.reflex-frp.org/"
+    nix-shell $NIXOPTS -E 'with import <nixpkgs> {}; runCommand "shell" { buildInputs = [ s3cmd ]; shellHook = "export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"; } ""' --run "s3cmd --config=$CONFIG_DIR/s3cfg sync --no-delete-removed '$TMPDIR/' s3://nixcache.reflex-frp.org/"
 )
