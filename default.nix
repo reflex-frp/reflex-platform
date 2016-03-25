@@ -27,6 +27,18 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     makeRecursivelyOverridable = x: old: x.override old // {
       override = new: makeRecursivelyOverridable x (combineOverrides old new);
     };
+    cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
+      buildCommand = ''
+        cabal2nix file://"${src}" >"$out"
+      '';
+      buildInputs = with nixpkgs; [
+        cabal2nix
+      ];
+
+      # Support unicode characters in cabal files
+      ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
+      ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
+    } "";
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super: {
         ########################################################################
@@ -453,18 +465,5 @@ in rec {
     let suffixLen = builtins.stringLength suffix;
     in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
 
-  cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
-    buildCommand = ''
-      cabal2nix file://"${src}" >"$out"
-    '';
-    buildInputs = with nixpkgs; [
-      cabal2nix
-    ];
-
-    # Support unicode characters in cabal files
-    ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
-    ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
-  } "";
-
-  inherit lib;
+  inherit lib cabal2nixResult;
 }
