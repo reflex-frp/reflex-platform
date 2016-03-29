@@ -390,7 +390,7 @@ in rec {
   };
 
   ghcjs = extendHaskellPackages ghcjsPackages;
-  platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
+  platforms = [ "ghcjs" "ghc" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {

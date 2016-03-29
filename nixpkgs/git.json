@@ -1,5 +1,5 @@
 {
-  "url": "git://github.com/NixOS/nixpkgs-channels",
-  "rev": "5bb0aa3bacb39ed910d6b8c7b86672d851662361",
-  "sha256": "11iw6lbdp6idqwm34ai689q8x98yz9ricyiygq53c0nmfcrncza0"
+  "url": "git://github.com/ryantrinkle/nixpkgs",
+  "rev": "8920a2fb1647d7b69a17ec362c993eaa40501c50",
+  "sha256": "15y8432cis58h3869cm4dyl733v58f0ldfdv8bdgxbvz5p8f91lf"
 }
