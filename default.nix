@@ -1,7 +1,7 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? null
 , config ? null
-, enableLibraryProfiling ? true
+, enableLibraryProfiling ? false
 }:
 let nixpkgs = nixpkgsFunc ({
       config = {
@@ -27,6 +27,18 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     makeRecursivelyOverridable = x: old: x.override old // {
       override = new: makeRecursivelyOverridable x (combineOverrides old new);
     };
+    cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
+      buildCommand = ''
+        cabal2nix file://"${src}" >"$out"
+      '';
+      buildInputs = with nixpkgs; [
+        cabal2nix
+      ];
+
+      # Support unicode characters in cabal files
+      ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
+      ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
+    } "";
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super: {
         ########################################################################
@@ -58,6 +70,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         hlint = overrideCabal super.hlint (drv: {
           version = "1.9.22";
           sha256 = "1xqrbk6ia488992jj8ms1p2xcs7fpyladh9q7gl8g6w971r3fvjz";
+        });
+        transformers-compat = overrideCabal super.transformers-compat (drv: {
+          version = "0.4.0.4";
+          sha256 = "0lmg8ry6bgigb0v2lg0n74lxi8z5m85qq0qi4h1k9llyjb4in8ym";
+        });
+        bifunctors = overrideCabal super.bifunctors (drv: {
+          version = "5.2";
+          sha256 = "056y923znv08zxqyabaas91yg56ysbmb2jml0j27nfl6qpd77qa6";
         });
         optparse-applicative = overrideCabal super.optparse-applicative (drv: {
           version = "0.11.0.2";
@@ -94,6 +114,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           version = "2.5.22";
           sha256 = "0g2grz9y23n8g4wwjinx5cc70aawswl84i3njgj6l1fl29fk1yf2";
         });
+
+        # The lens tests take WAY too long to run
+	lens = dontCheck super.lens;
+
         /*
         these = overrideCabal super.these (drv: { 
           version = "0.5.0.0";
@@ -356,26 +380,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7102;
+  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103;
   ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
-    ghc = nixpkgs.pkgs.haskell.compiler.ghc7102;
-    ghcjsBoot = nixpkgs.fetchgit {
-      url = git://github.com/ghcjs/ghcjs-boot.git;
-      rev = "97dea5c4145bf80a1e7cffeb1ecd4d0ecacd5a2f";
-      sha256 = "1295429501c0c1a7504b0b0215f12928dc35c4f673fd159de94dd0924afdf2b1";
-      fetchSubmodules = true;
-    };
-    shims = nixpkgs.fetchgit {
-      url = git://github.com/ghcjs/shims.git;
-      rev = "45f44f5f027ec03264b61b8049951e765cc0b23a";
-      sha256 = "777aef1d61c530c26185093d1072fdf9e07c9871b0ffb5b6929951fe33f91724";
-    };
+    bootPkgs = ghc;
+    ghcjsBootSrc = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json));
+    shims = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./shims/git.json));
   }) (drv: {
-    src = nixpkgs.fetchgit {
-      url = git://github.com/ghcjs/ghcjs.git;
-      rev = "561365ba1667053b5dc5846e2a8edb33eaa3f6dd";
-      sha256 = "72ffb8d4919a310129152724d7ab2fd9d699c5b3a6224632c32b4aa66d0a8370";
-    };
+    src = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs/git.json));
   });
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
     ghc = ghcjsCompiler;
@@ -435,32 +446,28 @@ in rec {
   });
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
+  # Tools that are useful for development under both ghc and ghcjs
+  generalDevTools = [
+    ghc.cabal-install
+    ghc.ghcid
+  ];
+
   workOn = package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ [ ghc.cabal-install ghc.ghcid ];
+    buildDepends = (drv.buildDepends or []) ++ generalDevTools;
   })).env;
 
+  workOnMulti = env: packageNames: nixpkgs.runCommand "shell" {
+    buildInputs = [
+      (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: packageEnv.${n}.override { mkDerivation = x: builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) (x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []); }) packageNames)))
+    ] ++ generalDevTools;
+  } "";
+
   # The systems that we want to build for on the current system
-  cacheTargetSystems =
-    if nixpkgs.stdenv.system == "x86_64-linux"
-    then [ "x86_64-linux" "i686-linux" ] # On linux, we want to build both 32-bit and 64-bit versions
-    else [ nixpkgs.stdenv.system ];
+  cacheTargetSystems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" ];
 
   isSuffixOf = suffix: s:
     let suffixLen = builtins.stringLength suffix;
     in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
 
-  cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
-    buildCommand = ''
-      cabal2nix file://"${src}" >"$out"
-    '';
-    buildInputs = with nixpkgs; [
-      cabal2nix
-    ];
-
-    # Support unicode characters in cabal files
-    ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
-    ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
-  } "";
-
-  inherit lib;
+  inherit lib cabal2nixResult;
 }

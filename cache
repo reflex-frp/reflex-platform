@@ -5,10 +5,22 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 . "$DIR/common-setup.sh"
 
+CONFIG_DIR="$HOME/.reflex-platform"
+
+TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'cache')
+trap "rm -rf \"$TMPDIR\"" EXIT
+
 (
     cd "$DIR"
 
-    for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
-        nix-copy-closure --gzip --to "$1" $(nix-build $NIXOPTS -j 8 --no-out-link --indirect --add-root "$PWD/gc-roots/cache-$x.drv" -E "import ./shell.nix { system = \"$x\"; }")
+    for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
+	nix-push --dest "$TMPDIR" --key-file "$CONFIG_DIR/ryantrinkle.com-1" "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-nixpkgs.drv" --indirect -E "(import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./$x/git.json))")"
     done
+    for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
+        nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-$x.drv" --indirect -E "import ./shell.nix { system = \"$x\"; }")"
+    done
+
+    sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"* # Get rid of these, because they can vary in apparently-meaningless between systems
+
+    nix-shell $NIXOPTS -E 'with import <nixpkgs> {}; runCommand "shell" { buildInputs = [ s3cmd ]; shellHook = "export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"; } ""' --run "s3cmd --config=$CONFIG_DIR/s3cfg sync --no-delete-removed '$TMPDIR/' s3://nixcache.reflex-frp.org/"
 )

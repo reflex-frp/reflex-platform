@@ -1,1 +1,1 @@
-import ((import <nixpkgs> {}).fetchgit (import ./git.nix))
+import ((import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./git.json)))

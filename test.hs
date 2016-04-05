@@ -32,7 +32,7 @@ main = hspec $ parallel $ do
           it ("can build " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
             shelly $ silently $ do
               d <- pwd
-              srcDir <- liftM (fromText . T.filter (/= '\n')) $ run "nix-build" ["-E", "(import ./nixpkgs {}).fetchgit (import ./" <> fromString package <> "/git.nix)"]
+              srcDir <- liftM (fromText . T.filter (/= '\n')) $ run "nix-build" ["-E", "(import ./nixpkgs {}).fetchgit (builtins.fromJSON (builtins.readFile ./" <> fromString package <> "/git.json))"]
               withTmpDir $ \tmp -> do
                 cp_r srcDir $ tmp </> package
                 cd $ tmp </> package
@@ -42,9 +42,9 @@ main = hspec $ parallel $ do
             return () :: IO ()
   let checkThatRepoIsNotAlreadyBeingHackedOn repo = shelly $ silently $ do
         d <- pwd
-        gitNixExists <- test_e $ d </> repo </> ("git.nix" :: String)
+        gitNixExists <- test_e $ d </> repo </> ("git.json" :: String)
         let instructions = "; to test hack-on, please ensure that " <> show repo <> " is in a clean, not-being-hacked-on state"
-        when (not gitNixExists) $ fail $ show (repo </> ("git.nix" :: String)) <> " does not exist" <> instructions
+        when (not gitNixExists) $ fail $ show (repo </> ("git.json" :: String)) <> " does not exist" <> instructions
         dotGitExists <- test_d $ d </> repo </> (".git" :: String)
         when dotGitExists $ fail $ show (repo </> (".git" :: String)) <> " exists" <> instructions
         return ()
@@ -74,7 +74,7 @@ main = hspec $ parallel $ do
         it ("won't trample new files in " <> repo) $ writefileTest "test" -- test is a non-existing file
         it ("can checkout " <> repo) $ withSetup $ \d tmp -> do
           run (d </> ("hack-on" :: String)) [fromString repo]
-          False <- test_e $ tmp </> repo </> ("git.nix" :: String)
+          False <- test_e $ tmp </> repo </> ("git.json" :: String)
           True <- test_d $ tmp </> repo </> (".git" :: String)
           return ()
   describe "hack-off" $ do

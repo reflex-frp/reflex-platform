@@ -54,4 +54,4 @@ When you are completely done with a sub-repository, you can remove it using `hac
 ./hack-off reflex
 ```
 
-This will remove the repository and replace the `default.nix` and `git.nix` files that were pointing to it before running `hack-on`.
+This will remove the repository and replace the `default.nix` and `git.json` files that were pointing to it before running `hack-on`.

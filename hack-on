@@ -27,13 +27,13 @@ elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
     exit 1
 fi
 
-URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).url")")"
-REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(import $REPO/git.nix).rev")")"
+URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).url")")"
+REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).rev")")"
 
 echo "Checking out $URL at revision $REV"
 
 rm "$REPO/default.nix"
-rm "$REPO/git.nix"
+rm "$REPO/git.json"
 rmdir "$REPO"
 
 git clone -n "$URL" "$REPO"

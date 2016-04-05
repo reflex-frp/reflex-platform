@@ -3,9 +3,33 @@
 
 REPO="https://github.com/reflex-frp/reflex-platform"
 
-NIXOPTS="--option extra-binary-caches https://ryantrinkle.com:5443/ -j 8"
+NIXOPTS="--option extra-binary-caches https://nixcache.reflex-frp.org -j 8"
 
-trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues'; exit 1" ERR
+NIX_CONF="/etc/nix/nix.conf"
+
+if [ -e "$NIX_CONF" ] && grep -q 'https://ryantrinkle\.com:5443' "$NIX_CONF" ; then
+    >&2 echo "Warning: The reflex-platform cache server has moved from https://ryantrinkle.com:5443 to https://nixcache.reflex-frp.org.  Please update your /etc/nixos/configuration/nix or /etc/nix/nix.conf accordingly"
+    if ! grep -q 'https://nixcache\.reflex-frp\.org' ; then
+        NIXOPTS+=" --option extra-binary-caches https://ryantrinkle.com:5443"
+    fi
+fi
+
+LOGFILE="$0.log"
+
+trap "echo 'It looks like a problem occurred.  Please submit an issue at $REPO/issues - include $LOGFILE to provide more information'; exit 1" ERR
+
+echo "Command: " "$0" "$@" >"$LOGFILE"
+exec 3>&1
+exec 4>&2
+exec > >(tee -ia "$LOGFILE")
+exec 2> >(tee -ia "$LOGFILE" >&2)
+
+terminate_logging() {
+exec 1>&3
+exec 2>&4
+exec 3>&-
+exec 4>&-
+}
 
 # Exit because the user caused an error, with the given error code and message
 user_error() {
@@ -61,7 +85,7 @@ if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVers
 fi
 
 git_thunk() {
-    echo "import ((import <nixpkgs> {}).fetchgit (import ./git.nix))"
+    echo "import ((import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./git.json)))"
 }
 
 git_manifest() {
@@ -69,15 +93,8 @@ git_manifest() {
 
     local URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')" # Don't use git@github.com origins, since these can't be accessed by nix
     local REV="$(git -C "$REPO" rev-parse HEAD)"
-    local HASH="$($(nix-build --no-out-link -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)"
-
-    cat <<EOF
-{
-  url = $URL;
-  rev = "$REV";
-  sha256 = "$HASH";
-}
-EOF
+    $(nix-build --no-out-link -E "(import ./nixpkgs {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | sed "s|$(echo "$PWD/$REPO" | sed 's/|/\\|/g')|$(echo "$URL" | sed 's/|/\\|/g')|" 2>/dev/null
+#    local HASH="$(nix-instantiate --eval -E '{x}: builtins.fromJSON x' --argstr x "$($(nix-build --no-out-link -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)" | sed -e 's/[{;]/\0\n /g' -e 's/  }/}/')"
 }
 
 # Clean up a path so it can be injected into a nix expression
