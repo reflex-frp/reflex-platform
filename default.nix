@@ -39,6 +39,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # ghcjs-boot packages
         ########################################################################
+        ghcjs-dom = overrideCabal super.ghcjs-dom (drv: {
+          version = "0.2.3.0";
+          sha256 = "0liwz60dc7x5i56jls6q87va58j70lrcdzzjvpxsb5ji4pwkpz4z";
+        });
         aeson = overrideCabal super.aeson (drv: {
           version = "0.9.0.1";
           sha256 = "1g7qdq7zpyvqwmh4sfhizqpb51cg24lrcj9vq5msz8k896y7vfcj";
