@@ -448,8 +448,12 @@ in rec {
 
   # Tools that are useful for development under both ghc and ghcjs
   generalDevTools = [
+    nixpkgs.nodejs
+    nixpkgs.curl
     ghc.cabal-install
     ghc.ghcid
+    ghc.cabal2nix
+    ghcjs.ghc."socket.io"
   ];
 
   workOn = package: (overrideCabal package (drv: {

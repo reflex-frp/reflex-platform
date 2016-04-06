@@ -5,11 +5,5 @@ in this.nixpkgs.runCommand "shell" {
   buildCommand = ''
     echo "$propagatedBuildInputs $buildInputs $nativeBuildInputs $propagatedNativeBuildInputs" > $out
   '';
-  buildInputs = [
-    this.nixpkgs.nodejs
-    this.nixpkgs.curl
-    this.ghc.cabal-install
-    this.ghc.ghcid
-    this.ghc.cabal2nix
-  ] ++ builtins.map reflexEnv this.platforms;
+  buildInputs = this.generalDevTools ++ builtins.map reflexEnv this.platforms;
 } ""
