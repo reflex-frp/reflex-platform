@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+. "$DIR/common-setup.sh"
+
+nix-prefetch-git git://github.com/ghcjs/shims > shims/git.json
+nix-prefetch-git git://github.com/ghcjs/ghcjs > ghcjs/git.json
+nix-prefetch-git --fetch-submodules git://github.com/ghcjs/ghcjs-boot > ghcjs-boot/git.json
+
+./test
