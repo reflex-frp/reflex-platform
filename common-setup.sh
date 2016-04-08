@@ -93,7 +93,7 @@ git_manifest() {
 
     local URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')" # Don't use git@github.com origins, since these can't be accessed by nix
     local REV="$(git -C "$REPO" rev-parse HEAD)"
-    $(nix-build --no-out-link -E "(import ./nixpkgs {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | sed "s|$(echo "$PWD/$REPO" | sed 's/|/\\|/g')|$(echo "$URL" | sed 's/|/\\|/g')|" 2>/dev/null
+    $(nix-build --no-out-link -E "(import \"$DIR/nixpkgs\" {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | sed "s|$(echo "$PWD/$REPO" | sed 's/|/\\|/g')|$(echo "$URL" | sed 's/|/\\|/g')|" 2>/dev/null
 #    local HASH="$(nix-instantiate --eval -E '{x}: builtins.fromJSON x' --argstr x "$($(nix-build --no-out-link -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)" | sed -e 's/[{;]/\0\n /g' -e 's/  }/}/')"
 }
 
