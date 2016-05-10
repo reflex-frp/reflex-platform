@@ -44,4 +44,4 @@ else
 fi
 
 terminate_logging
-nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $PACKAGE_INVOCATION" "$@"
+nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $EFFECTIVE_PLATFORM $PACKAGE_INVOCATION" "$@"

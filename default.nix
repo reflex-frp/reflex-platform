@@ -48,13 +48,135 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
+/*
+        # GHC 8.0 stuff
+        statistics = dontHaddock super.statistics;
+        ref-tf = doJailbreak super.ref-tf;
+        ed25519 = dontCheck super.ed25519;
+        hackage-security = dontCheck super.hackage-security;
+        Cabal = self.callPackage ({ mkDerivation, array, base, binary, bytestring, containers
+          , deepseq, directory, exceptions, filepath, old-time, pretty
+          , process, QuickCheck, regex-posix, stdenv, tagged, tasty
+          , tasty-hunit, tasty-quickcheck, time, transformers, unix
+          }:
+          mkDerivation {
+            pname = "Cabal";
+            version = "1.24.1.0";
+            src = ./cabal/Cabal;
+            doCheck = false;
+            libraryHaskellDepends = [
+              array base binary bytestring containers deepseq directory filepath
+              pretty process time unix
+            ];
+            testHaskellDepends = [
+              base bytestring containers directory exceptions filepath old-time
+              pretty process QuickCheck regex-posix tagged tasty tasty-hunit
+              tasty-quickcheck transformers unix
+            ];
+            homepage = "http://www.haskell.org/cabal/";
+            description = "A framework for packaging Haskell software";
+            license = stdenv.lib.licenses.bsd3;
+          }) {};
+        cabal-install = self.callPackage ({ mkDerivation, array, async, base, base16-bytestring, binary
+          , bytestring, Cabal, containers, cryptohash-sha256, directory
+          , filepath, hackage-security, hashable, HTTP, mtl, network
+          , network-uri, pretty, process, QuickCheck, random, regex-posix
+          , stdenv, stm, tagged, tar, tasty, tasty-hunit, tasty-quickcheck
+          , time, unix, zlib
+          }:
+          mkDerivation {
+            pname = "cabal-install";
+            version = "1.24.0.0";
+            src = ./cabal/cabal-install;
+            isLibrary = false;
+            isExecutable = true;
+            doCheck = false;
+            executableHaskellDepends = [
+              array async base base16-bytestring binary bytestring Cabal
+              containers cryptohash-sha256 directory filepath hackage-security
+              hashable HTTP mtl network network-uri pretty process random stm tar
+              time unix zlib
+            ];
+            testHaskellDepends = [
+              array async base binary bytestring Cabal containers directory
+              filepath hackage-security hashable HTTP mtl network network-uri
+              pretty process QuickCheck random regex-posix stm tagged tar tasty
+              tasty-hunit tasty-quickcheck time unix zlib
+            ];
+            postInstall = ''
+              mkdir $out/etc
+              mv bash-completion $out/etc/bash_completion.d
+            '';
+            homepage = "http://www.haskell.org/cabal/";
+            description = "The command-line interface for Cabal and Hackage";
+            license = stdenv.lib.licenses.bsd3;
+          }) {};
+        th-extras = overrideCabal super.th-extras (drv: {
+          src = ./th-extras;
+          sha256 = null;
+          revision = null;
+          editedCabalFile = null;
+        });
+        gtk2hs-buildtools = overrideCabal super.gtk2hs-buildtools (drv: {
+          src = ./gtk2hs/tools;
+          sha256 = null;
+        });
+        glib = overrideCabal super.glib (drv: {
+          src = ./gtk2hs/glib;
+          sha256 = null;
+        });
+        gio = overrideCabal super.gio (drv: {
+          src = ./gtk2hs/gio;
+          sha256 = null;
+        });
+        gtk3 = overrideCabal super.gtk3 (drv: {
+          src = ./gtk2hs/gtk;
+          sha256 = null;
+        });
+        cairo = overrideCabal super.cairo (drv: {
+          src = ./gtk2hs/cairo;
+          sha256 = null;
+        });
+        pango = overrideCabal super.pango (drv: {
+          src = ./gtk2hs/pango;
+          sha256 = null;
+        });
+        haskell-src-meta = overrideCabal super.haskell-src-meta (drv: {
+          src = ./haskell-src-meta;
+          sha256 = null;
+        });
+        dependent-sum = overrideCabal super.dependent-sum (drv: {
+          src = ./dependent-sum;
+          sha256 = null;
+        });
+        dependent-sum-template = self.callPackage (cabal2nixResult ./dependent-sum-template) {};
+        MemoTrie = dontHaddock super.MemoTrie;
+        deepseq-generics = doJailbreak super.deepseq-generics;
+        ghcjs-dom = self.callPackage (cabal2nixResult ./ghcjs-dom) {};
+        webkitgtk3 = self.callPackage (cabal2nixResult ./webkit) { webkit = nixpkgs.webkitgtk24x; };
+        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult ./webkit-javascriptcore) { webkit = nixpkgs.webkitgtk24x; };
+        gtk = error "gtk";
+        ghcjs-prim = self.callPackage ({ mkDerivation, fetchgit, primitive }: mkDerivation {
+          pname = "ghcjs-prim";
+          version = "0.1.0.0";
+          jailbreak = true;
+          doHaddock = false;
+          src = ./ghcjs-prim;
+          buildDepends = [ primitive ];
+          license = pkgs.stdenv.lib.licenses.bsd3;
+        }) {};
+*/
+
+        ########################################################################
+        # Fixups for new nixpkgs
+        ########################################################################
+        language-nix = dontCheck super.language-nix;
+        distribution-nixpkgs = dontCheck super.distribution-nixpkgs;
+
         ########################################################################
         # ghcjs-boot packages
         ########################################################################
-        ghcjs-dom = overrideCabal super.ghcjs-dom (drv: {
-          version = "0.2.3.0";
-          sha256 = "0liwz60dc7x5i56jls6q87va58j70lrcdzzjvpxsb5ji4pwkpz4z";
-        });
+/*
         aeson = overrideCabal super.aeson (drv: {
           version = "0.9.0.1";
           sha256 = "1g7qdq7zpyvqwmh4sfhizqpb51cg24lrcj9vq5msz8k896y7vfcj";
@@ -114,9 +236,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           version = "2.5.22";
           sha256 = "0g2grz9y23n8g4wwjinx5cc70aawswl84i3njgj6l1fl29fk1yf2";
         });
-
+*/
         # The lens tests take WAY too long to run
-	lens = dontCheck super.lens;
+        lens = dontCheck super.lens;
 
         /*
         these = overrideCabal super.these (drv: { 
@@ -228,11 +350,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             sha256 = "04f12913d7d4a9818f3fe0c27dd57489a41adf59d8fffdf9eaced084feb34d05";
           };
         });
-        ########################################################################
-        # Fixups for new nixpkgs
-        ########################################################################
-        language-nix = dontCheck super.language-nix;
-        distribution-nixpkgs = dontCheck super.distribution-nixpkgs;
 
         ########################################################################
         # Other packages
@@ -453,10 +570,10 @@ in rec {
     ghc.cabal-install
     ghc.ghcid
     ghc.cabal2nix
-    ghcjs.ghc."socket.io"
+#    ghcjs.ghc."socket.io"
   ];
 
-  workOn = package: (overrideCabal package (drv: {
+  workOn = haskellPackages: package: (overrideCabal package (drv: {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools;
   })).env;
 
