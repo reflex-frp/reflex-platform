@@ -32,7 +32,9 @@ REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (buil
 
 echo "Checking out $URL at revision $REV"
 
-rm "$REPO/default.nix"
+if [ -f "$REPO/default.nix" ] ; then
+    rm "$REPO/default.nix"
+fi
 rm "$REPO/git.json"
 rmdir "$REPO"
 

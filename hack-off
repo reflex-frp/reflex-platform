@@ -46,7 +46,10 @@ done
 
 # If we've gotten here, we're pretty sure this is safe
 GIT_MANIFEST="$(git_manifest "$REPO")"
+NEEDS_DEFAULT_NIX="$(if [ -f "$REPO/default.nix" ] ; then echo 1 ; fi)"
 rm -rf "$REPO"
 mkdir "$REPO"
-git_thunk >"$REPO/default.nix"
+if [ -n "$NEEDS_DEFAULT_NIX" ] ; then
+    git_thunk >"$REPO/default.nix"
+fi
 echo "$GIT_MANIFEST" >"$REPO/git.json"
