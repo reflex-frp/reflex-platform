@@ -12,8 +12,19 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
+    gtk2hsSrc = nixpkgs.fetchgit {
+      url = "git://github.com/gtk2hs/gtk2hs";
+      rev = "eee61d84edf1dd44f8d380d7d7cae2405de50124";
+      sha256 = "00j8ssgdbins0kprq1mnfvr18nly50h10da7sw9h4nxdb58z968n";
+    };
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
+    replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
+      inherit src version;
+      sha256 = null;
+      revision = null;
+      editedCabalFile = null;
+    });
     hspecGit = nixpkgs.fetchgit {
       url = git://github.com/ryantrinkle/hspec;
       rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
@@ -48,124 +59,49 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
-/*
         # GHC 8.0 stuff
         statistics = dontHaddock super.statistics;
         ref-tf = doJailbreak super.ref-tf;
         ed25519 = dontCheck super.ed25519;
-        hackage-security = dontCheck super.hackage-security;
-        Cabal = self.callPackage ({ mkDerivation, array, base, binary, bytestring, containers
-          , deepseq, directory, exceptions, filepath, old-time, pretty
-          , process, QuickCheck, regex-posix, stdenv, tagged, tasty
-          , tasty-hunit, tasty-quickcheck, time, transformers, unix
-          }:
-          mkDerivation {
-            pname = "Cabal";
-            version = "1.24.1.0";
-            src = ./cabal/Cabal;
-            doCheck = false;
-            libraryHaskellDepends = [
-              array base binary bytestring containers deepseq directory filepath
-              pretty process time unix
-            ];
-            testHaskellDepends = [
-              base bytestring containers directory exceptions filepath old-time
-              pretty process QuickCheck regex-posix tagged tasty tasty-hunit
-              tasty-quickcheck transformers unix
-            ];
-            homepage = "http://www.haskell.org/cabal/";
-            description = "A framework for packaging Haskell software";
-            license = stdenv.lib.licenses.bsd3;
-          }) {};
-        cabal-install = self.callPackage ({ mkDerivation, array, async, base, base16-bytestring, binary
-          , bytestring, Cabal, containers, cryptohash-sha256, directory
-          , filepath, hackage-security, hashable, HTTP, mtl, network
-          , network-uri, pretty, process, QuickCheck, random, regex-posix
-          , stdenv, stm, tagged, tar, tasty, tasty-hunit, tasty-quickcheck
-          , time, unix, zlib
-          }:
-          mkDerivation {
-            pname = "cabal-install";
-            version = "1.24.0.0";
-            src = ./cabal/cabal-install;
-            isLibrary = false;
-            isExecutable = true;
-            doCheck = false;
-            executableHaskellDepends = [
-              array async base base16-bytestring binary bytestring Cabal
-              containers cryptohash-sha256 directory filepath hackage-security
-              hashable HTTP mtl network network-uri pretty process random stm tar
-              time unix zlib
-            ];
-            testHaskellDepends = [
-              array async base binary bytestring Cabal containers directory
-              filepath hackage-security hashable HTTP mtl network network-uri
-              pretty process QuickCheck random regex-posix stm tagged tar tasty
-              tasty-hunit tasty-quickcheck time unix zlib
-            ];
-            postInstall = ''
-              mkdir $out/etc
-              mv bash-completion $out/etc/bash_completion.d
-            '';
-            homepage = "http://www.haskell.org/cabal/";
-            description = "The command-line interface for Cabal and Hackage";
-            license = stdenv.lib.licenses.bsd3;
-          }) {};
-        th-extras = overrideCabal super.th-extras (drv: {
-          src = ./th-extras;
-          sha256 = null;
-          revision = null;
-          editedCabalFile = null;
-        });
-        gtk2hs-buildtools = overrideCabal super.gtk2hs-buildtools (drv: {
-          src = ./gtk2hs/tools;
-          sha256 = null;
-        });
-        glib = overrideCabal super.glib (drv: {
-          src = ./gtk2hs/glib;
-          sha256 = null;
-        });
-        gio = overrideCabal super.gio (drv: {
-          src = ./gtk2hs/gio;
-          sha256 = null;
-        });
-        gtk3 = overrideCabal super.gtk3 (drv: {
-          src = ./gtk2hs/gtk;
-          sha256 = null;
-        });
-        cairo = overrideCabal super.cairo (drv: {
-          src = ./gtk2hs/cairo;
-          sha256 = null;
-        });
-        pango = overrideCabal super.pango (drv: {
-          src = ./gtk2hs/pango;
-          sha256 = null;
-        });
-        haskell-src-meta = overrideCabal super.haskell-src-meta (drv: {
-          src = ./haskell-src-meta;
-          sha256 = null;
-        });
-        dependent-sum = overrideCabal super.dependent-sum (drv: {
-          src = ./dependent-sum;
-          sha256 = null;
-        });
-        dependent-sum-template = self.callPackage (cabal2nixResult ./dependent-sum-template) {};
+        hackage-security = dontHaddock (dontCheck super.hackage-security);
+        th-extras = replaceSrc super.th-extras (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/th-extras",
+          "rev": "a20dd7d5ea72a821df09ac834bddeeb7df85056f",
+          "sha256": "19zimnsgksq3fz6c33mpx7hyxp1l74pw18g6cq2cxfksr3lgdf03"
+        }'')) "0.0.0.4";
+        gtk2hs-buildtools = replaceSrc super.gtk2hs-buildtools "${gtk2hsSrc}/tools" "0.13.0.5";
+        glib = replaceSrc super.glib "${gtk2hsSrc}/glib" "0.13.2.2";
+        gio = replaceSrc super.gio "${gtk2hsSrc}/gio" "0.13.1.1";
+        gtk3 = replaceSrc super.gtk3 "${gtk2hsSrc}/gtk" "0.14.2";
+        cairo = replaceSrc super.cairo "${gtk2hsSrc}/cairo" "0.13.1.1";
+        pango = replaceSrc super.pango "${gtk2hsSrc}/pango" "0.13.1.1";
+        dependent-sum = replaceSrc super.dependent-sum (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/dependent-sum",
+          "rev": "db0322e0e0727b40da1c7ac299bb8ef09a7c5b0c",
+          "sha256": "1k8bd6a883wr44p970hl2kycwx7ivww98ks58qqflk94j80sjajq"
+        }'')) "0.3.2.2";
+        dependent-sum-template = self.callPackage (cabal2nixResult (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/dependent-sum-template",
+          "rev": "a6b4f84bc5b5ba186d8828401517feef7707ca20",
+          "sha256": "0if567cj28rd3qhiixfxgzjzijxs7hmivgq3zsaxn3jnjr9c557w"
+        }''))) {};
         MemoTrie = dontHaddock super.MemoTrie;
         deepseq-generics = doJailbreak super.deepseq-generics;
-        ghcjs-dom = self.callPackage (cabal2nixResult ./ghcjs-dom) {};
-        webkitgtk3 = self.callPackage (cabal2nixResult ./webkit) { webkit = nixpkgs.webkitgtk24x; };
-        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult ./webkit-javascriptcore) { webkit = nixpkgs.webkitgtk24x; };
-        gtk = error "gtk";
-        ghcjs-prim = self.callPackage ({ mkDerivation, fetchgit, primitive }: mkDerivation {
-          pname = "ghcjs-prim";
-          version = "0.1.0.0";
-          jailbreak = true;
-          doHaddock = false;
-          src = ./ghcjs-prim;
-          buildDepends = [ primitive ];
-          license = pkgs.stdenv.lib.licenses.bsd3;
-        }) {};
-*/
+        ghcjs-dom = replaceSrc super.ghcjs-dom (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/ghcjs-dom",
+          "rev": "8a53f7c2510fd15e61e419dea45bc644c7c05e51",
+          "sha256": "1kh53p4d8qnlwn6wfajvd6k9jrv0snjzwwflhrxgyv8nfhb7jr1c"
+        }'')) "0.2.3.1";
+        webkitgtk3 = self.callPackage (cabal2nixResult (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/webkit",
+          "rev": "be8046844e8108f88407a2e5548d0c19911cb012",
+          "sha256": "1hahvjazfh620liicz046196k4gv7fx28vmc9pa3ys4z5szlzdm4"
+        }''))) { webkit = nixpkgs.webkitgtk24x; };
+        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/webkit-javascriptcore",
+          "rev": "f3f4a05754ee0d76511ab7aaa6d080b4212d80e8",
+          "sha256": "02nfzvkahikkj1ji2idviwj07zzw4cpvysp2341p2zd764kz9p55"
+        }''))) { webkit = nixpkgs.webkitgtk24x; };
 
         ########################################################################
         # Fixups for new nixpkgs
@@ -495,15 +431,27 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             }
             else {});
     };
+    cabalSrc = nixpkgs.fetchgit (builtins.fromJSON ''{
+      "url": "git://github.com/haskell/cabal",
+      "rev": "1ce7f185c1108eab9b8cebf704751154e8a4dcdc",
+      "sha256": "103n9q43rl2n3vga18f60q3wiibnjsf02fnm1hbn4p365yqfyy3v"
+    }'');
+    overrideForGhc8 = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        Cabal = dontCheck (self.callPackage (cabal2nixResult "${cabalSrc}/Cabal") {});
+        cabal-install = dontCheck (self.callPackage (cabal2nixResult "${cabalSrc}/cabal-install") {});
+      };
+    };
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103;
-  ghcjsCompiler = overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
-    bootPkgs = ghc;
+  ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
+  ghc7 = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103;
+  ghcjsCompiler = overrideCabal (ghc7.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
+    bootPkgs = ghc7;
     ghcjsBootSrc = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json));
     shims = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./shims/git.json));
   }) (drv: {
-    src = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs/git.json));
+    src = if builtins.pathExists ./ghcjs/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs/git.json)) else ./ghcjs;
   });
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
     ghc = ghcjsCompiler;
