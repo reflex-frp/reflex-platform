@@ -103,6 +103,23 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           "sha256": "02nfzvkahikkj1ji2idviwj07zzw4cpvysp2341p2zd764kz9p55"
         }''))) { webkit = nixpkgs.webkitgtk24x; };
 
+        timezone-series = replaceSrc super.timezone-series (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/timezone-series",
+          "rev": "f8dece8c016db6476e2bb0d4f972769a76f6ff40",
+          "sha256": "1x7qdjmaahs8hg1azki34aq5h971gqnv2hlyb1y8a1s0ff9ri122"
+        }'')) "0.1.5.2";
+        MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
+        blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
+        diagrams-lib = dontHaddock (appendConfigureFlag super.diagrams-lib "--ghc-option=-XConstrainedClassMethods");
+        diagrams-contrib = doJailbreak super.diagrams-contrib;
+        diagrams-svg = doJailbreak super.diagrams-svg;
+        either = overrideCabal super.either (drv: {
+          version = "4.4.1.1";
+          sha256 = "1lrlwqqnm6ibfcydlv5qvvssw7bm0c6yypy0rayjzv1znq7wp1xh";
+          revision = null;
+          editedCabalFile = null;
+        });
+
         ########################################################################
         # Fixups for new nixpkgs
         ########################################################################
