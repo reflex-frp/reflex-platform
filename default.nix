@@ -75,6 +75,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         gtk3 = replaceSrc super.gtk3 "${gtk2hsSrc}/gtk" "0.14.2";
         cairo = replaceSrc super.cairo "${gtk2hsSrc}/cairo" "0.13.1.1";
         pango = replaceSrc super.pango "${gtk2hsSrc}/pango" "0.13.1.1";
+        dependent-map = overrideCabal super.dependent-map (drv: {
+          version = "0.2.2.0";
+          sha256 = "07w74ybmbxs8j7560idj7wwddlgv1g5a5x9rackdx155y8997mzl";
+          revision = null;
+          editedCabalFile = null;
+        });
         dependent-sum = replaceSrc super.dependent-sum (nixpkgs.fetchgit (builtins.fromJSON ''{
           "url": "git://github.com/ryantrinkle/dependent-sum",
           "rev": "db0322e0e0727b40da1c7ac299bb8ef09a7c5b0c",
