@@ -1,5 +1,5 @@
 {
-  "url": "ryantrinkle.com:reflex.git",
-  "rev": "86a769695de1bb20f64258b1bb435d7d9cc13b0b",
-  "sha256": "1l7ghjkj9fh1jbcs8ij2y0sgqg74krmknhhw28vf3nvn15q1yard"
+  "url": "git://github.com/reflex-frp/reflex",
+  "rev": "d20ce36a57d964d24d3079ad8a13196985b0ad5d",
+  "sha256": "1frdf444ycpxz8nq5jzwix0dn6yr7kcp2i0v1w06fk5j7k41255x"
 }
