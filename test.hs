@@ -21,7 +21,7 @@ main = hspec $ parallel $ do
           withTmpDir $ \tmp -> do
             cd tmp
             let helloFilename = "hello.hs"
-            writefile (fromText helloFilename) "import Reflex.Dom\nmain = mainWidget $ text \"Hello, world!\""
+            writefile (fromText helloFilename) "{-# LANGUAGE OverloadedStrings #-}\nimport Reflex.Dom\nmain = mainWidget $ text \"Hello, world!\""
             run (d </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> " " <> helloFilename <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
         return () :: IO ()
   describe "work-on" $ do
