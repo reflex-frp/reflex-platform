@@ -21,7 +21,7 @@ result
 # Hide any files in hack-on/off quasi-submodules
 nixpkgs/*
 !nixpkgs/default.nix
-!nixpkgs/git.json
+!nixpkgs/github.json
 reflex/*
 !reflex/default.nix
 !reflex/git.json
