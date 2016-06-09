@@ -85,16 +85,39 @@ if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVers
 fi
 
 git_thunk() {
-    echo "import ((import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./git.json)))"
+    case "$1" in
+        git) echo "import ((import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./git.json)))" ;;
+        github) echo "import ((import <nixpkgs> {}).fetchFromGitHub (builtins.fromJSON (builtins.readFile ./github.json)))" ;;
+    esac
 }
 
-git_manifest() {
-    local REPO="$1"
+# NOTE: Returns the manifest type in OUTPUT_GIT_MANIFEST_TYPE and the manifest contents in OUTPUT_GIT_MANIFEST
+get_git_manifest() {
+    local REPO="$(echo "$1" | sed 's/\.git$//')"
 
     local URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')" # Don't use git@github.com origins, since these can't be accessed by nix
     local REV="$(git -C "$REPO" rev-parse HEAD)"
-    $(nix-build --no-out-link -E "(import \"$DIR/nixpkgs\" {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | sed "s|$(echo "$PWD/$REPO" | sed 's/|/\\|/g')|$(echo "$URL" | sed 's/|/\\|/g')|" 2>/dev/null
-#    local HASH="$(nix-instantiate --eval -E '{x}: builtins.fromJSON x' --argstr x "$($(nix-build --no-out-link -E "(import <nixpkgs> {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | tail -n 1)" | sed -e 's/[{;]/\0\n /g' -e 's/  }/}/')"
+
+    local GITHUB_PATTERN="^git://github.com/\([^/]*\)/\([^/]*\)$"
+    local GITHUB_ARCHIVE_URL="$(echo "$URL" | sed -n "s_${GITHUB_PATTERN}_https://github.com/\1/\2/archive/$REV.tar.gz_p")"
+    if [ -n "$GITHUB_ARCHIVE_URL" ] ; then
+        OUTPUT_GIT_MANIFEST_TYPE=github
+        local GITHUB_OWNER="$(echo "$URL" | sed "s_${GITHUB_PATTERN}_\1_")"
+        local GITHUB_REPO="$(echo "$URL" | sed "s_${GITHUB_PATTERN}_\2_")"
+        local SHA256="$(nix-prefetch-zip --hash-type sha256 "$GITHUB_ARCHIVE_URL")"
+        OUTPUT_GIT_MANIFEST="$(cat <<EOF
+{
+  "owner": "$GITHUB_OWNER",
+  "repo": "$GITHUB_REPO",
+  "rev": "$REV",
+  "sha256": "$SHA256"
+}
+EOF
+)"
+    else
+        OUTPUT_GIT_MANIFEST_TYPE=git
+        OUTPUT_GIT_MANIFEST="$($(nix-build --no-out-link -E "(import \"$DIR/nixpkgs\" {}).nix-prefetch-scripts")/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | sed "s|$(echo "$PWD/$REPO" | sed 's/|/\\|/g')|$(echo "$URL" | sed 's/|/\\|/g')|" 2>/dev/null)"
+    fi
 }
 
 # Clean up a path so it can be injected into a nix expression

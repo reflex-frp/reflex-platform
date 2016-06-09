@@ -27,15 +27,24 @@ elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
     exit 1
 fi
 
-URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).url")")"
-REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).rev")")"
+if [ -e "$REPO/git.json" ] ; then
+    JSON_FILE="$REPO/git.json"
+    URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).url")")"
+    REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).rev")")"
+elif [ -e "$REPO/github.json" ] ; then
+    JSON_FILE="$REPO/github.json"
+    GITHUB_OWNER="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).owner")")"
+    GITHUB_REPO="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).repo")")"
+    URL="git://github.com/$GITHUB_OWNER/$GITHUB_REPO"
+    REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).rev")")"
+fi
 
 echo "Checking out $URL at revision $REV"
 
 if [ -f "$REPO/default.nix" ] ; then
     rm "$REPO/default.nix"
 fi
-rm "$REPO/git.json"
+rm "$JSON_FILE"
 rmdir "$REPO"
 
 git clone -n "$URL" "$REPO"

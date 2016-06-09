@@ -24,10 +24,10 @@ nixpkgs/*
 !nixpkgs/github.json
 reflex/*
 !reflex/default.nix
-!reflex/git.json
+!reflex/github.json
 reflex-dom/*
 !reflex-dom/default.nix
-!reflex-dom/git.json
+!reflex-dom/github.json
 reflex-todomvc/*
 !reflex-todomvc/default.nix
-!reflex-todomvc/git.json
+!reflex-todomvc/github.json

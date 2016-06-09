@@ -1,5 +1,6 @@
 {
-  "url": "git://github.com/reflex-frp/reflex-todomvc",
+  "owner": "reflex-frp",
+  "repo": "reflex-todomvc",
   "rev": "d48456bcc8f0467ce1e6c2fdf0db2e3008b44962",
   "sha256": "1rm2dh4g90a3cszvp26h1lzw5cxsz3x59xghzw835b3m8jn6airm"
 }

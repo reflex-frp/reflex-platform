@@ -14,12 +14,8 @@ trap "rm -rf \"$TMPDIR\"" EXIT
     cd "$DIR"
 
     # Fetch things from GitHub
-    for x in nixpkgs ; do
+    for x in nixpkgs reflex reflex-dom reflex-todomvc ; do
 	nix-push --dest "$TMPDIR" --key-file "$CONFIG_DIR/ryantrinkle.com-1" "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-nixpkgs.drv" --indirect -E "(import <nixpkgs> {}).fetchFromGitHub (builtins.fromJSON (builtins.readFile ./$x/github.json))")"
-    done
-    # Fetch things from other git repositories
-    for x in reflex reflex-dom reflex-todomvc ; do
-	nix-push --dest "$TMPDIR" --key-file "$CONFIG_DIR/ryantrinkle.com-1" "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-nixpkgs.drv" --indirect -E "(import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./$x/git.json))")"
     done
     for x in $(eval "echo $(nix-instantiate $NIXOPTS --eval --read-write-mode -E 'let this = (import ./. {}); in this.nixpkgs.stdenv.lib.concatStringsSep " " this.cacheTargetSystems')") ; do
         nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache-$x.drv" --indirect -E "import ./shell.nix { system = \"$x\"; }")"

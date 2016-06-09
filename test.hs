@@ -32,19 +32,24 @@ main = hspec $ parallel $ do
           it ("can build " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
             shelly $ silently $ do
               d <- pwd
-              srcDir <- liftM (fromText . T.filter (/= '\n')) $ run "nix-build" ["-E", "(import ./nixpkgs {}).fetchgit (builtins.fromJSON (builtins.readFile ./" <> fromString package <> "/git.json))"]
               withTmpDir $ \tmp -> do
-                cp_r srcDir $ tmp </> package
-                cd $ tmp </> package
+                cp_r (d </> package) $ tmp </> package
+                cd tmp
                 run "chmod" ["-R", "u+w", "."]
+                run "git" ["init"]
+                run "git" ["add", "-A"]
+                run "git" ["commit", "-m", "Initial commit"]
+                run (d </> ("hack-on" :: String)) [T.pack package]
+                cd $ fromString package
                 let packageSpec = if workOnPath then "./." else fromString package
                 run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
             return () :: IO ()
   let checkThatRepoIsNotAlreadyBeingHackedOn repo = shelly $ silently $ do
         d <- pwd
         gitNixExists <- test_e $ d </> repo </> ("git.json" :: String)
+        githubNixExists <- test_e $ d </> repo </> ("github.json" :: String)
         let instructions = "; to test hack-on, please ensure that " <> show repo <> " is in a clean, not-being-hacked-on state"
-        when (not gitNixExists) $ fail $ show (repo </> ("git.json" :: String)) <> " does not exist" <> instructions
+        when (not $ or [gitNixExists, githubNixExists]) $ fail $ show (repo </> ("{git,github}.json" :: String)) <> " does not exist" <> instructions
         dotGitExists <- test_d $ d </> repo </> (".git" :: String)
         when dotGitExists $ fail $ show (repo </> (".git" :: String)) <> " exists" <> instructions
         return ()
@@ -74,7 +79,10 @@ main = hspec $ parallel $ do
         it ("won't trample new files in " <> repo) $ writefileTest "test" -- test is a non-existing file
         it ("can checkout " <> repo) $ withSetup $ \d tmp -> do
           run (d </> ("hack-on" :: String)) [fromString repo]
-          False <- test_e $ tmp </> repo </> ("git.json" :: String)
+          False <- or <$> sequence
+            [ test_e $ tmp </> repo </> ("git.json" :: String)
+            , test_e $ tmp </> repo </> ("github.json" :: String)
+            ]
           True <- test_d $ tmp </> repo </> (".git" :: String)
           return ()
   describe "hack-off" $ do
