@@ -23,4 +23,4 @@ get_git_manifest "$REPO"
 GIT_MANIFEST="$OUTPUT_GIT_MANIFEST"
 GIT_MANIFEST_TYPE="$OUTPUT_GIT_MANIFEST_TYPE"
 
-diff -u --label "a/$REPO/$GIT_MANIFEST_TYPE.json" --label "b/$REPO/GIT_MANIFEST_TYPE.json" <(git -C "$REPO/.." show "HEAD:$REPO/$GIT_MANIFEST_TYPE.json") <(echo "$GIT_MANIFEST") | git apply --cached
+diff -u --label "a/$REPO/$GIT_MANIFEST_TYPE.json" --label "b/$REPO/$GIT_MANIFEST_TYPE.json" <(git -C "$REPO/.." show "HEAD:$REPO/$GIT_MANIFEST_TYPE.json") <(echo "$GIT_MANIFEST") | git apply --cached
