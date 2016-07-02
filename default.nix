@@ -84,7 +84,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           src = nixpkgs.fetchgit (builtins.fromJSON ''{
             "url": "git://github.com/ryantrinkle/ghcjs-dom",
             "rev": "8a53f7c2510fd15e61e419dea45bc644c7c05e51",
-            "sha256": "1kh53p4d8qnlwn6wfajvd6k9jrv0snjzwwflhrxgyv8nfhb7jr1c"
+            "sha256": "0fw8zgr31ckjwfsbqkcxv70vvxp8qqpc8jxvg5s522zizmjkkkgh"
           }'');
           libraryHaskellDepends = [
             base text transformers
