@@ -7,6 +7,12 @@ let nixpkgs = nixpkgsFunc ({
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
+        packageOverrides = pkgs: rec {
+          mercurial = pkgs.mercurial.override {
+            hg-git = "";
+            dulwich = "";
+          };
+        };
       } // (if config == null then {} else config);
     } // (
       if system == null then {} else { inherit system; }
