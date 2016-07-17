@@ -267,6 +267,8 @@ in rec {
     nixpkgs.curl
     ghc.cabal-install
     ghc.ghcid
+    ghc.hlint
+    ghc.stylish-haskell
     ghc.cabal2nix
   ];
 
