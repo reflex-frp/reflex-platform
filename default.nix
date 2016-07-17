@@ -12,10 +12,11 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
-    gtk2hsSrc = nixpkgs.fetchgit {
-      url = "git://github.com/gtk2hs/gtk2hs";
+    gtk2hsSrc = nixpkgs.fetchFromGitHub {
+      owner = "gtk2hs";
+      repo = "gtk2hs";
       rev = "eee61d84edf1dd44f8d380d7d7cae2405de50124";
-      sha256 = "00j8ssgdbins0kprq1mnfvr18nly50h10da7sw9h4nxdb58z968n";
+      sha256 = "12i53grimni0dyjqjydl120z5amcn668w4pfhl8dxscjh4a0l5nb";
     };
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
@@ -25,11 +26,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       revision = null;
       editedCabalFile = null;
     });
-    hspecGit = nixpkgs.fetchgit {
-      url = git://github.com/ryantrinkle/hspec;
-      rev = "937c0ae61d70dcd71c35a170b800c30f14a5bc9c";
-      sha256 = "1819d5b3f973b432339256ba783b33ada691a785d059e83009e5e2edc6178f6d";
-    };
     combineOverrides = old: new: (old // new) // {
       overrides = self: super:
         let oldOverrides = old.overrides self super;
@@ -55,7 +51,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = doCheck (self.callPackage ./reflex {});
+        reflex = self.callPackage ./reflex {};
         reflex-dom = self.callPackage ./reflex-dom {};
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
@@ -66,26 +62,24 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         gtk3 = replaceSrc super.gtk3 "${gtk2hsSrc}/gtk" "0.14.2";
         cairo = replaceSrc super.cairo "${gtk2hsSrc}/cairo" "0.13.1.1";
         pango = replaceSrc super.pango "${gtk2hsSrc}/pango" "0.13.1.1";
-        webkitgtk3 = self.callPackage (cabal2nixResult (nixpkgs.fetchgit (builtins.fromJSON ''{
-          "url": "git://github.com/ryantrinkle/webkit",
-          "rev": "be8046844e8108f88407a2e5548d0c19911cb012",
-          "sha256": "1hahvjazfh620liicz046196k4gv7fx28vmc9pa3ys4z5szlzdm4"
-        }''))) { webkit = nixpkgs.webkitgtk24x; };
-        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult (nixpkgs.fetchgit (builtins.fromJSON ''{
-          "url": "git://github.com/ryantrinkle/webkit-javascriptcore",
-          "rev": "f3f4a05754ee0d76511ab7aaa6d080b4212d80e8",
-          "sha256": "02nfzvkahikkj1ji2idviwj07zzw4cpvysp2341p2zd764kz9p55"
-        }''))) { webkit = nixpkgs.webkitgtk24x; };
+        webkitgtk3 = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
+          owner = "ryantrinkle";
+          repo = "webkit";
+          rev = "be8046844e8108f88407a2e5548d0c19911cb012";
+          sha256 = "1wdkl55m4l9crkbsw8azl4jwqd8rjjkzlrvj8pmb9b48jxcpq7ml";
+        })) { webkit = nixpkgs.webkitgtk24x; };
+        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
+          owner = "ryantrinkle";
+          repo = "webkit-javascriptcore";
+          rev = "f3f4a05754ee0d76511ab7aaa6d080b4212d80e8";
+          sha256 = "17xj6nbny9zbqgym5jmx47xzb96g4wsavr5brq03vh4lk3kx3jvc";
+        })) { webkit = nixpkgs.webkitgtk24x; };
 
         # Stick with pre-jsaddle ghcjs-dom for now
-        ghcjs-dom = self.callPackage ({ mkDerivation, base, glib, gtk3, stdenv, text, transformers, webkitgtk3}: mkDerivation {
+        ghcjs-dom = self.callPackage ({ mkDerivation, base, glib, gtk3, stdenv, text, transformers, webkitgtk3 }: mkDerivation {
           pname = "ghcjs-dom";
           version = "0.2.3.1";
-          src = nixpkgs.fetchgit (builtins.fromJSON ''{
-            "url": "git://github.com/ryantrinkle/ghcjs-dom",
-            "rev": "8a53f7c2510fd15e61e419dea45bc644c7c05e51",
-            "sha256": "1kh53p4d8qnlwn6wfajvd6k9jrv0snjzwwflhrxgyv8nfhb7jr1c"
-          }'');
+          sha256 = "0fgfmhzlz960vvm2l8a441yv9nv95h6wz32815x71mbaskff7pnz";
           libraryHaskellDepends = [
             base text transformers
           ] ++ (if self.ghc.isGhcjs or false then with self; [
@@ -93,22 +87,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           ] else [
             glib gtk3 webkitgtk3
           ]);
+          preConfigure = ''
+            sed -i 's/\(transformers .*\)<0.5/\1<0.6/' *.cabal
+          '';
           description = "DOM library that supports both GHCJS and WebKitGTK";
           license = stdenv.lib.licenses.mit;
         }) {};
-
-        # https://github.com/ygale/timezone-series/pull/1
-        timezone-series = replaceSrc super.timezone-series (nixpkgs.fetchgit (builtins.fromJSON ''{
-          "url": "git://github.com/ryantrinkle/timezone-series",
-          "rev": "f8dece8c016db6476e2bb0d4f972769a76f6ff40",
-          "sha256": "1x7qdjmaahs8hg1azki34aq5h971gqnv2hlyb1y8a1s0ff9ri122"
-        }'')) "0.1.5.2";
-
-        # https://github.com/haskell-crypto/cryptonite/issues/88
-        cryptonite = overrideCabal super.cryptonite (drv: {
-          version = "0.15";
-          sha256 = "00y4ga8rbmvlv6m9k4fkjndmb70nhngif9vahghhaxxqpg1gmn5f";
-        });
 
         #TODO: Check this: GHCJS only works with these older versions of haddock
         haddock = overrideCabal super.haddock (drv: {
@@ -129,6 +113,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         diagrams-contrib = doJailbreak super.diagrams-contrib;
+
+        Glob = overrideCabal super.Glob (drv: {
+          libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.semigroups ];
+        });
 
         # Failing tests
         ed25519 = dontCheck super.ed25519;
@@ -157,24 +145,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # The lens tests take WAY too long to run
         lens = dontCheck super.lens;
 
-      } // (if enableLibraryProfiling 
-            then {
-             mkDerivation = expr: super.mkDerivation (
-             expr // { enableLibraryProfiling = true; }
-             );
-            }
-            else {});
-    };
-    cabalSrc = nixpkgs.fetchgit (builtins.fromJSON ''{
-      "url": "git://github.com/haskell/cabal",
-      "rev": "1ce7f185c1108eab9b8cebf704751154e8a4dcdc",
-      "sha256": "103n9q43rl2n3vga18f60q3wiibnjsf02fnm1hbn4p365yqfyy3v"
-    }'');
-    overrideForGhc8 = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        Cabal = null;
-        Cabal_1_24_0_0 = null;
-      };
+      } // (if enableLibraryProfiling then {
+        mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
+      } else {});
     };
     overrideForGhc7 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
@@ -194,14 +167,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
 in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
+  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801;
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghcjsCompiler = overrideCabal (ghc7.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc7;
     ghcjsBootSrc = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json));
-    shims = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./shims/git.json));
+    shims = nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json));
   }) (drv: {
-    src = if builtins.pathExists ./ghcjs/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs/git.json)) else ./ghcjs;
+    src = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else ./ghcjs;
   });
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
     ghc = ghcjsCompiler;
@@ -209,7 +182,7 @@ in rec {
   };
 
   ghcjs = extendHaskellPackages ghcjsPackages;
-  platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
+  platforms = [ "ghcjs" "ghc" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
