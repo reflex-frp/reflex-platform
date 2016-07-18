@@ -120,6 +120,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         diagrams-contrib = doJailbreak super.diagrams-contrib;
 
+        vector-algorithms = overrideCabal super.vector-algorithms (drv: {
+          libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.mtl self.mwc-random ];
+        });
+
         Glob = overrideCabal super.Glob (drv: {
           libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.semigroups ];
         });
