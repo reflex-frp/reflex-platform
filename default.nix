@@ -113,7 +113,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
 
         # Jailbreaks
-        statistics = dontHaddock super.statistics;
         ref-tf = doJailbreak super.ref-tf;
         deepseq-generics = doJailbreak super.deepseq-generics;
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
@@ -133,9 +132,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         git = dontCheck super.git;
 
         # Failing haddocks
-        hackage-security = dontHaddock (dontCheck super.hackage-security);
         MemoTrie = dontHaddock super.MemoTrie;
         diagrams-lib = dontHaddock (appendConfigureFlag super.diagrams-lib "--ghc-option=-XConstrainedClassMethods");
+        hackage-security = dontHaddock (dontCheck super.hackage-security);
+        statistics = dontHaddock super.statistics;
 
         # Miscellaneous fixes
         diagrams-svg = addBuildDepend (doJailbreak super.diagrams-svg) self.lucid-svg;
@@ -177,6 +177,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             self.semigroups
           ];
         });
+        bifunctors = dontHaddock super.bifunctors;
       };
     };
 in rec {
@@ -256,8 +257,9 @@ in rec {
     haskellPackages.cabal-install
     haskellPackages.ghcid
     haskellPackages.hlint
-  ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
+  ] ++ (if builtins.compareVersions haskellPackages.ghc.version "8" >= 0 then [
     haskellPackages.cabal2nix
+  ] else []) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     haskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
   ] else []);
 
@@ -277,7 +279,7 @@ in rec {
   } "";
 
   # The systems that we want to build for on the current system
-  cacheTargetSystems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" ];
+  cacheTargetSystems = [ "x86_64-linux" "i686-linux" /* "x86_64-darwin" */ ];
 
   isSuffixOf = suffix: s:
     let suffixLen = builtins.stringLength suffix;
