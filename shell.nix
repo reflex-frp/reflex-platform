@@ -5,5 +5,5 @@ in this.nixpkgs.runCommand "shell" {
   buildCommand = ''
     echo "$propagatedBuildInputs $buildInputs $nativeBuildInputs $propagatedNativeBuildInputs" > $out
   '';
-  buildInputs = this.generalDevTools ++ builtins.map reflexEnv this.platforms;
+  buildInputs = this.generalDevTools this.ghc ++ builtins.map reflexEnv this.platforms;
 } ""
