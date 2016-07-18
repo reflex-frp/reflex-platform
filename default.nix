@@ -161,17 +161,21 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhc7 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
-        cabal-install = overrideCabal super.cabal-install (drv: {
-          version = "1.22.9.0";
-          sha256 = "0h29x4049h7b1678437ajbd0dz5zxxqg4nd4g8y6aqq2fgjkah47";
-          revision = null;
-          editedCabalFile = null;
-        });
-        Cabal = overrideCabal super.Cabal (drv: {
-          version = "1.22.8.0";
-          sha256 = "0km3h156fy2wd5pv23cgvvgp7ifwh6pkfarsxn3hyidnxkfs4hia";
-          revision = null;
-          editedCabalFile = null;
+        cabal-install = self.cabal-install_1_22_9_0;
+        Cabal = self.Cabal_1_22_8_0;
+      };
+    };
+    overrideForGhc7_8 = haskellPackages: (overrideForGhc7 haskellPackages).override {
+      overrides = self: super: {
+        MemoTrie = addBuildDepend super.MemoTrie self.void;
+        generic-deriving = dontHaddock super.generic-deriving;
+        aeson = overrideCabal super.aeson (drv: {
+          revision = "1";
+          editedCabalFile = "680affa9ec12880014875ce8281efb2407efde69c30e9a82654e973e5dc2c8a1";
+          buildDepends = (drv.buildDepends or []) ++ [
+            self.nats
+            self.semigroups
+          ];
         });
       };
     };
@@ -179,6 +183,7 @@ in rec {
   inherit nixpkgs overrideCabal extendHaskellPackages;
   ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801;
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
+  ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   ghcjsCompiler = overrideCabal (ghc7.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc7;
     ghcjsBootSrc = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json));
@@ -245,16 +250,24 @@ in rec {
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   # Tools that are useful for development under both ghc and ghcjs
-  generalDevTools = [
+  generalDevTools = haskellPackages: [
     nixpkgs.nodejs
     nixpkgs.curl
-    ghc.cabal-install
-    ghc.ghcid
-    ghc.cabal2nix
-  ];
+    haskellPackages.cabal-install
+    haskellPackages.ghcid
+    haskellPackages.hlint
+  ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
+    haskellPackages.cabal2nix
+    haskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
+  ] else []);
+
+  nativeHaskellPackages = haskellPackages:
+    if haskellPackages.isGhcjs or false
+    then haskellPackages.ghc
+    else haskellPackages;
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ generalDevTools;
+    buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
   workOnMulti = env: packageNames: nixpkgs.runCommand "shell" {
