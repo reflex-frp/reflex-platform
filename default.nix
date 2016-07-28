@@ -26,6 +26,7 @@ let nixpkgs = nixpkgsFunc ({
     };
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
+    filterGit = builtins.filterSource (name: type: name != ".git");
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
       sha256 = null;
@@ -100,16 +101,17 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           license = stdenv.lib.licenses.mit;
         }) {};
 
-        #TODO: Check this: GHCJS only works with these older versions of haddock
-        haddock = overrideCabal super.haddock (drv: {
-          version = "2.16.1";
-          sha256 = "1mnnvc5jqp6n6rj7xw8wdm0z2xp9fndkz11c8p3vbljsrcqd3v26";
-          doCheck = false;
-        });
-        haddock-api = overrideCabal super.haddock-api (drv: {
-          version = "2.16.1";
-          sha256 = "1spd5axg1pdjv4dkdb5gcwjsc8gg37qi4mr2k2db6ayywdkis1p2";
-          doCheck = false;
+        # https://github.com/ygale/timezone-series/pull/1
+        timezone-series = replaceSrc super.timezone-series (nixpkgs.fetchgit (builtins.fromJSON ''{
+          "url": "git://github.com/ryantrinkle/timezone-series",
+          "rev": "f8dece8c016db6476e2bb0d4f972769a76f6ff40",
+          "sha256": "1x7qdjmaahs8hg1azki34aq5h971gqnv2hlyb1y8a1s0ff9ri122"
+        }'')) "0.1.5.2";
+
+        # https://github.com/haskell-crypto/cryptonite/issues/88
+        cryptonite = overrideCabal super.cryptonite (drv: {
+          version = "0.15";
+          sha256 = "00y4ga8rbmvlv6m9k4fkjndmb70nhngif9vahghhaxxqpg1gmn5f";
         });
 
         # Jailbreaks
@@ -159,46 +161,79 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
     };
-    overrideForGhc7 = haskellPackages: haskellPackages.override {
+    overrideForGhc8 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
-        cabal-install = self.cabal-install_1_22_9_0;
-        Cabal = self.Cabal_1_22_8_0;
+        Cabal = null;
+        Cabal_1_24_0_0 = null;
+        ghcjs-prim = null;
       };
     };
-    overrideForGhc7_8 = haskellPackages: (overrideForGhc7 haskellPackages).override {
-      overrides = self: super: {
-        MemoTrie = addBuildDepend super.MemoTrie self.void;
-        generic-deriving = dontHaddock super.generic-deriving;
-        aeson = overrideCabal super.aeson (drv: {
-          revision = "1";
-          editedCabalFile = "680affa9ec12880014875ce8281efb2407efde69c30e9a82654e973e5dc2c8a1";
-          buildDepends = (drv.buildDepends or []) ++ [
-            self.nats
-            self.semigroups
-          ];
-        });
-        bifunctors = dontHaddock super.bifunctors;
-      };
+    ghcjsBootSrc = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
+      name = "ghcjs-boot";
+      outPath = filterGit ./ghcjs-boot;
     };
 in rec {
+  overrideForGhcjs = haskellPackages: haskellPackages.override {
+    overrides = self: super: {
+      mkDerivation = drv: super.mkDerivation.override {
+        hscolour = ghc.hscolour;
+      } (drv // {
+        doHaddock = false;
+      });
+    };
+  };
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801;
-  ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
-  ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
-  ghcjsCompiler = overrideCabal (ghc7.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
-    bootPkgs = ghc7;
-    ghcjsBootSrc = nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json));
-    shims = nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json));
+  ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
+  ghcjsCompiler = (overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
+    bootPkgs = ghc;
+    inherit ghcjsBootSrc;
+    shims = if builtins.pathExists ./shims/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
   }) (drv: {
-    src = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else ./ghcjs;
-  });
+    src = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
+  })) // {
+    mkStage2 = import (nixpkgs.runCommand "stage2.nix" {
+      buildCommand = ''
+        ${nixpkgs.path}/pkgs/development/compilers/ghcjs/gen-stage2.rb "${ghcjsBootSrc}" >"$out"
+      '';
+      buildInputs = with nixpkgs; [
+        ruby cabal2nix
+      ];
+    } "") {
+      ghcjsBoot = ghcjsBootSrc;
+    };
+    stage1Packages = [
+      "array"
+      "base"
+      "binary"
+      "bytestring"
+      "containers"
+      "deepseq"
+      "directory"
+      "filepath"
+      "ghc-boot"
+      "ghc-boot-th"
+      "ghc-prim"
+      "ghci"
+      "ghcjs-prim"
+      "ghcjs-th"
+      "integer-gmp"
+      "pretty"
+      "primitive"
+      "process"
+      "rts"
+      "template-haskell"
+      "time"
+      "transformers"
+      "unix"
+    ];
+  };
   ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
     ghc = ghcjsCompiler;
     packageSetConfig = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/configuration-ghcjs.nix" { };
   };
 
-  ghcjs = extendHaskellPackages ghcjsPackages;
-  platforms = [ "ghcjs" "ghc" ];
+  ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
+  platforms = [ "ghcjs" ] ++ (if !nixpkgs.stdenv.isDarwin then [ "ghc" ] else []);
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
@@ -251,16 +286,18 @@ in rec {
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   # Tools that are useful for development under both ghc and ghcjs
-  generalDevTools = haskellPackages: [
+  generalDevTools = haskellPackages:
+    let nativeHaskellPackages = if haskellPackages.ghc.isGhcjs or false then ghc else haskellPackages;
+    in [
     nixpkgs.nodejs
     nixpkgs.curl
-    haskellPackages.cabal-install
-    haskellPackages.ghcid
-    haskellPackages.hlint
+    nativeHaskellPackages.cabal-install
+    nativeHaskellPackages.ghcid
+    nativeHaskellPackages.hlint
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "8" >= 0 then [
-    haskellPackages.cabal2nix
+    nativeHaskellPackages.cabal2nix
   ] else []) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
-    haskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
+    nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
   ] else []);
 
   nativeHaskellPackages = haskellPackages:
