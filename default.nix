@@ -102,17 +102,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) {};
 
         # https://github.com/ygale/timezone-series/pull/1
-        timezone-series = replaceSrc super.timezone-series (nixpkgs.fetchgit (builtins.fromJSON ''{
-          "url": "git://github.com/ryantrinkle/timezone-series",
-          "rev": "f8dece8c016db6476e2bb0d4f972769a76f6ff40",
-          "sha256": "1x7qdjmaahs8hg1azki34aq5h971gqnv2hlyb1y8a1s0ff9ri122"
-        }'')) "0.1.5.2";
-
-        # https://github.com/haskell-crypto/cryptonite/issues/88
-        cryptonite = overrideCabal super.cryptonite (drv: {
-          version = "0.15";
-          sha256 = "00y4ga8rbmvlv6m9k4fkjndmb70nhngif9vahghhaxxqpg1gmn5f";
-        });
+        timezone-series = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
+          owner = "ryantrinkle";
+          repo = "timezone-series";
+          rev = "f8dece8c016db6476e2bb0d4f972769a76f6ff40";
+          sha256 = "0j2bxzi102ay4s0vc39vi9xlny7fgsjv379pibdcfzsd6k540517";
+        })) {};
 
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
