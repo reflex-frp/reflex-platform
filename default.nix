@@ -163,6 +163,32 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ghcjs-prim = null;
       };
     };
+    overrideForGhc7 = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        cabal-install = self.cabal-install_1_22_9_0;
+        Cabal = self.Cabal_1_22_8_0;
+        cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
+      };
+    };
+    overrideForGhc7_8 = haskellPackages: (overrideForGhc7 haskellPackages).override {
+      overrides = self: super: {
+        mkDerivation = drv: super.mkDerivation (drv // {
+          enableSplitObjs = false; # Split objects with template haskell doesn't work on ghc 7.8
+        });
+        MemoTrie = addBuildDepend super.MemoTrie self.void;
+        generic-deriving = dontHaddock super.generic-deriving;
+        aeson = overrideCabal super.aeson (drv: {
+          revision = "1";
+          editedCabalFile = "680affa9ec12880014875ce8281efb2407efde69c30e9a82654e973e5dc2c8a1";
+          buildDepends = (drv.buildDepends or []) ++ [
+            self.nats
+            self.semigroups
+          ];
+        });
+        bifunctors = dontHaddock super.bifunctors;
+        cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
+      };
+    };
     ghcjsBootSrc = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
       name = "ghcjs-boot";
       outPath = filterGit ./ghcjs-boot;
@@ -179,6 +205,8 @@ in rec {
   };
   inherit nixpkgs overrideCabal extendHaskellPackages;
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
+  ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
+  ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   ghcjsCompiler = (overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc;
     inherit ghcjsBootSrc;
