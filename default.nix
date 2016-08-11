@@ -137,6 +137,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Miscellaneous fixes
         diagrams-svg = addBuildDepend (doJailbreak super.diagrams-svg) self.lucid-svg;
         cereal = addBuildDepend super.cereal self.fail;
+
+        #Temporarily depend on Cocoa when building fsnotify on mac. TODO drop this
+        # after updating nixpkgs-channel to one that includes the
+        # patch at https://github.com/NixOS/nixpkgs/pull/17564/files
+        fsnotify = if nixpkgs.stdenv.isDarwin
+          then addBuildDepend (dontCheck super.fsnotify) nixpkgs.darwin.apple_sdk.frameworks.Cocoa
+          else dontCheck super.fsnotify;
+
         semigroups = addBuildDepends super.semigroups (with self; [
           hashable
           unordered-containers
