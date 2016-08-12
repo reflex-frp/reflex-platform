@@ -339,7 +339,7 @@ in rec {
   } "";
 
   # The systems that we want to build for on the current system
-  cacheTargetSystems = [ "x86_64-linux" "i686-linux" /* "x86_64-darwin" */ ];
+  cacheTargetSystems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" ];
 
   isSuffixOf = suffix: s:
     let suffixLen = builtins.stringLength suffix;
