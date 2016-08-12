@@ -314,12 +314,12 @@ in rec {
     in [
     nixpkgs.nodejs
     nixpkgs.curl
+    nixpkgs.cabal2nix
+    nixpkgs.nix-prefetch-scripts
     nativeHaskellPackages.cabal-install
     nativeHaskellPackages.ghcid
     nativeHaskellPackages.hlint
-  ] ++ (if builtins.compareVersions haskellPackages.ghc.version "8" >= 0 then [
-    nativeHaskellPackages.cabal2nix
-  ] else []) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
+  ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
   ] else []);
 
