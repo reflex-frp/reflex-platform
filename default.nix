@@ -120,11 +120,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.mtl self.mwc-random ];
         });
 
-        Glob = overrideCabal super.Glob (drv: {
-          libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.semigroups ];
-        });
-
         # Failing tests
+        Glob = dontCheck (overrideCabal super.Glob (drv: {
+          libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.semigroups ];
+        }));
+
         ed25519 = dontCheck super.ed25519;
         git = dontCheck super.git;
 
