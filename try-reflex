@@ -41,6 +41,7 @@ fi
 SUGGESTION_GHCJS=$(cat <<EOF2
 To create a simple web GUI:
 $ cat >hello.hs <<EOF
+{-# LANGUAGE OverloadedStrings #-}
 import Reflex.Dom
 main = mainWidget $ text \"Hello, world!\"
 EOF
