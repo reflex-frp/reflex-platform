@@ -119,7 +119,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) {};
 
         # https://github.com/ygale/timezone-series/pull/1
-        timezone-series = self.callPackage (cabal2nixResult timezone-series) {};
+        timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
 
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
