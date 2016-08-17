@@ -18,15 +18,42 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
-    gtk2hsSrc = nixpkgs.fetchFromGitHub {
-      owner = "gtk2hs";
-      repo = "gtk2hs";
-      rev = "eee61d84edf1dd44f8d380d7d7cae2405de50124";
-      sha256 = "12i53grimni0dyjqjydl120z5amcn668w4pfhl8dxscjh4a0l5nb";
+    filterGit = builtins.filterSource (name: type: name != ".git");
+    # All imports of sources need to go here, so that they can be explicitly cached
+    sources = {
+      gtk2hs = nixpkgs.fetchFromGitHub {
+        owner = "gtk2hs";
+        repo = "gtk2hs";
+        rev = "eee61d84edf1dd44f8d380d7d7cae2405de50124";
+        sha256 = "12i53grimni0dyjqjydl120z5amcn668w4pfhl8dxscjh4a0l5nb";
+      };
+      webkitgtk3 = nixpkgs.fetchFromGitHub {
+        owner = "ryantrinkle";
+        repo = "webkit";
+        rev = "be8046844e8108f88407a2e5548d0c19911cb012";
+        sha256 = "1wdkl55m4l9crkbsw8azl4jwqd8rjjkzlrvj8pmb9b48jxcpq7ml";
+      };
+      webkitgtk3-javascriptcore = nixpkgs.fetchFromGitHub {
+        owner = "ryantrinkle";
+        repo = "webkit-javascriptcore";
+        rev = "f3f4a05754ee0d76511ab7aaa6d080b4212d80e8";
+        sha256 = "17xj6nbny9zbqgym5jmx47xzb96g4wsavr5brq03vh4lk3kx3jvc";
+      };
+      timezone-series = nixpkgs.fetchFromGitHub {
+        owner = "ryantrinkle";
+        repo = "timezone-series";
+        rev = "f8dece8c016db6476e2bb0d4f972769a76f6ff40";
+        sha256 = "0j2bxzi102ay4s0vc39vi9xlny7fgsjv379pibdcfzsd6k540517";
+      };
+      ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
+        name = "ghcjs-boot";
+        outPath = filterGit ./ghcjs-boot;
+      };
+      shims = if builtins.pathExists ./shims/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
+      ghcjs = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
-    filterGit = builtins.filterSource (name: type: name != ".git");
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
       sha256 = null;
@@ -63,24 +90,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         # Stick with the pre-gi gtk2hs for now
-        gtk2hs-buildtools = self.callPackage (cabal2nixResult "${gtk2hsSrc}/tools") {};
-        glib = replaceSrc super.glib "${gtk2hsSrc}/glib" "0.13.2.2";
-        gio = replaceSrc super.gio "${gtk2hsSrc}/gio" "0.13.1.1";
-        gtk3 = replaceSrc super.gtk3 "${gtk2hsSrc}/gtk" "0.14.2";
-        cairo = replaceSrc super.cairo "${gtk2hsSrc}/cairo" "0.13.1.1";
-        pango = replaceSrc super.pango "${gtk2hsSrc}/pango" "0.13.1.1";
-        webkitgtk3 = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
-          owner = "ryantrinkle";
-          repo = "webkit";
-          rev = "be8046844e8108f88407a2e5548d0c19911cb012";
-          sha256 = "1wdkl55m4l9crkbsw8azl4jwqd8rjjkzlrvj8pmb9b48jxcpq7ml";
-        })) { webkit = nixpkgs.webkitgtk24x; };
-        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
-          owner = "ryantrinkle";
-          repo = "webkit-javascriptcore";
-          rev = "f3f4a05754ee0d76511ab7aaa6d080b4212d80e8";
-          sha256 = "17xj6nbny9zbqgym5jmx47xzb96g4wsavr5brq03vh4lk3kx3jvc";
-        })) { webkit = nixpkgs.webkitgtk24x; };
+        gtk2hs-buildtools = self.callPackage (cabal2nixResult "${sources.gtk2hs}/tools") {};
+        glib = replaceSrc super.glib "${sources.gtk2hs}/glib" "0.13.2.2";
+        gio = replaceSrc super.gio "${sources.gtk2hs}/gio" "0.13.1.1";
+        gtk3 = replaceSrc super.gtk3 "${sources.gtk2hs}/gtk" "0.14.2";
+        cairo = replaceSrc super.cairo "${sources.gtk2hs}/cairo" "0.13.1.1";
+        pango = replaceSrc super.pango "${sources.gtk2hs}/pango" "0.13.1.1";
+        webkitgtk3 = self.callPackage (cabal2nixResult sources.webkitgtk3) { webkit = nixpkgs.webkitgtk24x; };
+        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult sources.webkitgtk3-javascriptcore) { webkit = nixpkgs.webkitgtk24x; };
 
         # Stick with pre-jsaddle ghcjs-dom for now
         ghcjs-dom = self.callPackage ({ mkDerivation, base, glib, gtk3, stdenv, text, transformers, webkitgtk3 }: mkDerivation {
@@ -102,12 +119,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) {};
 
         # https://github.com/ygale/timezone-series/pull/1
-        timezone-series = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
-          owner = "ryantrinkle";
-          repo = "timezone-series";
-          rev = "f8dece8c016db6476e2bb0d4f972769a76f6ff40";
-          sha256 = "0j2bxzi102ay4s0vc39vi9xlny7fgsjv379pibdcfzsd6k540517";
-        })) {};
+        timezone-series = self.callPackage (cabal2nixResult timezone-series) {};
 
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
@@ -189,10 +201,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
-    ghcjsBootSrc = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
-      name = "ghcjs-boot";
-      outPath = filterGit ./ghcjs-boot;
-    };
 in rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
@@ -207,22 +215,23 @@ in rec {
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
+  stage2Script = nixpkgs.runCommand "stage2.nix" {
+    buildCommand = ''
+      ${nixpkgs.path}/pkgs/development/compilers/ghcjs/gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
+    '';
+    buildInputs = with nixpkgs; [
+      ruby cabal2nix
+    ];
+  } "";
   ghcjsCompiler = (overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc;
-    inherit ghcjsBootSrc;
-    shims = if builtins.pathExists ./shims/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
+    ghcjsBootSrc = sources.ghcjs-boot;
+    shims = sources.shims;
   }) (drv: {
-    src = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
+    src = sources.ghcjs;
   })) // {
-    mkStage2 = import (nixpkgs.runCommand "stage2.nix" {
-      buildCommand = ''
-        ${nixpkgs.path}/pkgs/development/compilers/ghcjs/gen-stage2.rb "${ghcjsBootSrc}" >"$out"
-      '';
-      buildInputs = with nixpkgs; [
-        ruby cabal2nix
-      ];
-    } "") {
-      ghcjsBoot = ghcjsBootSrc;
+    mkStage2 = import stage2Script {
+      ghcjsBoot = sources.ghcjs-boot;
     };
     stage1Packages = [
       "array"
@@ -338,12 +347,25 @@ in rec {
     ] ++ generalDevTools env;
   } "";
 
+  # A simple derivation that just creates a file with the names of all of its inputs.  If built, it will have a runtime dependency on all of the given build inputs.
+  pinBuildInputs = drvName: buildInputs: otherDeps: nixpkgs.runCommand drvName {
+    buildCommand = ''
+      mkdir "$out"
+      echo "$propagatedBuildInputs $buildInputs $nativeBuildInputs $propagatedNativeBuildInputs $otherDeps" > "$out/deps"
+    '';
+    inherit buildInputs otherDeps;
+  } "";
+
   # The systems that we want to build for on the current system
-  cacheTargetSystems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" ];
+  cacheTargetSystems = [
+    "x86_64-linux"
+    "i686-linux"
+    "x86_64-darwin"
+  ];
 
   isSuffixOf = suffix: s:
     let suffixLen = builtins.stringLength suffix;
     in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
 
-  inherit lib cabal2nixResult;
+  inherit lib cabal2nixResult sources;
 }
