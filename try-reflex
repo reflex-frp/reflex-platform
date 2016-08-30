@@ -28,7 +28,7 @@ echo "Entering the reflex sandbox..."
 if [ ! "$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.isDarwin')" = "true" ] ; then
 SUGGESTION_GHC=$(cat <<EOF
 To run a simple GUI as a native binary:
-$ ghc -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
+$ ghc -XOverloadedStrings -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
 
 Or to see a more complex native binary GUI example (based on the source at https://github.com/reflex-frp/reflex-todomvc/blob/master/src/Main.hs):
 $ reflex-todomvc
@@ -41,6 +41,7 @@ fi
 SUGGESTION_GHCJS=$(cat <<EOF2
 To create a simple web GUI:
 $ cat >hello.hs <<EOF
+{-# LANGUAGE OverloadedStrings #-}
 import Reflex.Dom
 main = mainWidget $ text \"Hello, world!\"
 EOF
