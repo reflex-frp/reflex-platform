@@ -178,7 +178,7 @@ Let's do more than just take the input value and print it out. First, let's make
 import Reflex
 import Reflex.Dom
 import qualified Data.Map as Map
-import Safe (readMay)
+import Text.Read (readMaybe)
 
 main = mainWidget $ el "div" $ do
   x <- numberInput
@@ -189,10 +189,10 @@ numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
   n <- textInput $ def & textInputConfig_inputType .~ "number"
                        & textInputConfig_initialValue .~ "0"
-  mapDyn readMay $ _textInput_value n
+  mapDyn readMaybe $ _textInput_value n
 ```
 
-We've defined a function `numberInput` that both handles the creation of the `TextInput` and reads its value. Recall that `_textInput_value` gives us a `Dynamic String`. The final line of code in `numberInput` uses `mapDyn` to apply the function `readMay` to the `Dynamic` value of the `TextInput`. This produces a `Dynamic (Maybe Double)`. Our `main` function uses `mapDyn` to map over the `Dynamic (Maybe Double)` produced by `numberInput` and `show` the value it contains. We store the new `Dynamic String` in `numberString` and feed that into `dynText` to actually display the `String`
+We've defined a function `numberInput` that both handles the creation of the `TextInput` and reads its value. Recall that `_textInput_value` gives us a `Dynamic String`. The final line of code in `numberInput` uses `mapDyn` to apply the function `readMaybe` to the `Dynamic` value of the `TextInput`. This produces a `Dynamic (Maybe Double)`. Our `main` function uses `mapDyn` to map over the `Dynamic (Maybe Double)` produced by `numberInput` and `show` the value it contains. We store the new `Dynamic String` in `numberString` and feed that into `dynText` to actually display the `String`
 
 Running the app at this point should produce an input and some text showing the `Maybe Double`. Typing in a number should produce output like `Just 12.0` and typing in other text should produce the output `Nothing`.
 
@@ -203,7 +203,7 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 import Reflex
 import Reflex.Dom
 import qualified Data.Map as Map
-import Safe (readMay)
+import Text.Read (readMaybe)
 import Control.Applicative ((<*>), (<$>))
 
 main = mainWidget $ el "div" $ do
@@ -219,7 +219,7 @@ numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
   n <- textInput $ def & textInputConfig_inputType .~ "number"
                        & textInputConfig_initialValue .~ "0"
-  mapDyn readMay $ _textInput_value n
+  mapDyn readMaybe $ _textInput_value n
 ```
 
 `numberInput` hasn't changed here. Our `main` function now creates two inputs. `combineDyn` is used to produce the actual sum of the values of the inputs. The type signature of `combineDyn` is:
@@ -246,13 +246,15 @@ The first argument is the initial value of the `Dropdown`. The second argument i
 Our supported operations will be:
 
 ```haskell
-ops = Map.fromList [("+", "+"), ("-", "-"), ("*", "*"), ("/", "/")]
+data Op = Plus | Minus | Times | Divide deriving (Eq, Ord)
+
+ops = Map.fromList [(Plus, "+"), (Minus, "-"), (Times, "*"), (Divide, "/")]
 ```
 
 We'll use this as an argument to `dropdown`:
 
 ```haskell
-d <- dropdown "*" (constDyn ops) def
+d <- dropdown Times (constDyn ops) def
 ```
 
 We are using `constDyn` again here to turn our `Map` of operations into a `Dynamic`. Using `def`, we provide the default `DropdownConfig`. The result, `d`, will be a `Dropdown`. We can retrieve the `Dynamic` selection of a `Dropdown` by using `_dropdown_value`.
@@ -261,15 +263,15 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 import Reflex
 import Reflex.Dom
 import qualified Data.Map as Map
-import Safe (readMay)
+import Text.Read (readMaybe)
 import Control.Applicative ((<*>), (<$>))
 
 main = mainWidget $ el "div" $ do
   nx <- numberInput
-  d <- dropdown "*" (constDyn ops) def
+  d <- dropdown Times (constDyn ops) def
   ny <- numberInput
   values <- combineDyn (,) nx ny
-  result <- combineDyn (\o (x,y) -> stringToOp o <$> x <*> y) (_dropdown_value d) values
+  result <- combineDyn (\o (x,y) -> runOp o <$> x <*> y) (_dropdown_value d) values
   resultString <- mapDyn show result
   text " = "
   dynText resultString
@@ -278,22 +280,30 @@ numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
   n <- textInput $ def & textInputConfig_inputType .~ "number"
                        & textInputConfig_initialValue .~ "0"
-  mapDyn readMay $ _textInput_value n
+  mapDyn readMaybe $ _textInput_value n
 
-ops = Map.fromList [("+", "+"), ("-", "-"), ("*", "*"), ("/", "/")]
+data Op = Plus | Minus | Times | Divide deriving (Eq, Ord)
 
-stringToOp s = case s of
-                    "-" -> (-)
-                    "*" -> (*)
-                    "/" -> (/)
-                    _ -> (+)
+ops :: Map Op String
+ops = Map.fromList [(Plus, "+"), (Minus, "-"), (Times, "*"), (Divide, "/")]
+
+runOp :: Fractional a => Op -> a -> a -> a
+runOp s = case s of
+            Plus -> (+)
+            Minus -> (-)
+            Times -> (*)
+            Divide -> (/)
 ```
 
-This is our complete program. We've added an uninteresting function `stringToOp` that takes a `String` and returns an operation. The keys of the `Map` we used to create the `Dropdown` had the type `String`. When we retrieve the value of `Dropdown`, we'll use `stringToOp` to turn the `Dropdown` selection into the function we need to apply to our numbers.
+This is our complete program. We've added an uninteresting function `runOp`
+that takes an `Op` and returns an operation. The keys of the `Map` we used
+to create the `Dropdown` had the type `Op`. When we retrieve the value of
+`Dropdown`, we'll use `runOp` to turn the `Dropdown` selection into the
+function we need to apply to our numbers.
 
 After creating the two `numberInput`s, we combine them using `combineDyn` applying `(,)`, making a tuple of type `Dynamic (Maybe Double, Maybe Double)` and binding it to `values`.
 
-Next, we call `combineDyn` again, combining the `_dropdown_value` and `values`. Now, instead of applying `(+)` to our `Double` values, we use `stringToOp` to select an operation based on the `Dynamic` value of our `Dropdown`.
+Next, we call `combineDyn` again, combining the `_dropdown_value` and `values`. Now, instead of applying `(+)` to our `Double` values, we use `runOp` to select an operation based on the `Dynamic` value of our `Dropdown`.
 
 Running the app at this point will give us our two number inputs with a dropdown of operations sandwiched between them. Multiplication should be pre-selected when the page loads.
 
@@ -305,7 +315,7 @@ numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
   n <- textInput $ def & textInputConfig_inputType .~ "number"
                        & textInputConfig_initialValue .~ "0"
-  mapDyn readMay $ _textInput_value n
+  mapDyn readMaybe $ _textInput_value n
 ```
 
 Let's give it some html attributes to work with:
@@ -317,7 +327,7 @@ numberInput = do
   n <- textInput $ def & textInputConfig_inputType .~ "number"
                        & textInputConfig_initialValue .~ "0"
                        & textInputConfig_attributes .~ attrs
-  mapDyn readMay $ _textInput_value n
+  mapDyn readMaybe $ _textInput_value n
 
 ```
 
@@ -335,7 +345,7 @@ numberInput = do
   rec n <- textInput $ def & textInputConfig_inputType .~ "number"
                            & textInputConfig_initialValue .~ "0"
                            & textInputConfig_attributes .~ attrs
-      result <- mapDyn readMay $ _textInput_value n
+      result <- mapDyn readMaybe $ _textInput_value n
       attrs <- mapDyn (\r -> case r of
                                   Just _ -> validState
                                   Nothing -> errorState) result
@@ -355,7 +365,7 @@ The complete program now looks like this:
 import Reflex
 import Reflex.Dom
 import qualified Data.Map as Map
-import Safe (readMay)
+import Text.Read (readMaybe)
 import Control.Applicative ((<*>), (<$>))
 
 main = mainWidget $ el "div" $ do
@@ -363,7 +373,7 @@ main = mainWidget $ el "div" $ do
   d <- dropdown "*" (constDyn ops) def
   ny <- numberInput
   values <- combineDyn (,) nx ny
-  result <- combineDyn (\o (x,y) -> stringToOp o <$> x <*> y) (_dropdown_value d) values
+  result <- combineDyn (\o (x,y) -> runOp o <$> x <*> y) (_dropdown_value d) values
   resultString <- mapDyn show result
   text " = "
   dynText resultString
@@ -375,19 +385,23 @@ numberInput = do
   rec n <- textInput $ def & textInputConfig_inputType .~ "number"
                        & textInputConfig_initialValue .~ "0"
                        & textInputConfig_attributes .~ attrs
-      result <- mapDyn readMay $ _textInput_value n
+      result <- mapDyn readMaybe $ _textInput_value n
       attrs <- mapDyn (\r -> case r of
                                   Just _ -> validState
                                   Nothing -> errorState) result
   return result
 
-stringToOp s = case s of
-                      "-" -> (-)
-                      "*" -> (*)
-                      "/" -> (/)
-                      _ -> (+)
+data Op = Plus | Minus | Times | Divide deriving (Eq, Ord)
 
-ops = Map.fromList [("+", "+"), ("-", "-"), ("*", "*"), ("/", "/")]
+ops :: Map Op String
+ops = Map.fromList [(Plus, "+"), (Minus, "-"), (Times, "*"), (Divide, "/")]
+
+runOp :: Fractional a => Op -> a -> a -> a
+runOp s = case s of
+            Plus -> (+)
+            Minus -> (-)
+            Times -> (*)
+            Divide -> (/)
 ```
 
 The input border colors will now change depending on their value.
