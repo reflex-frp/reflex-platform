@@ -65,10 +65,10 @@ Most Reflex apps will start the same way: a call to `mainWidget` with a starting
 `el` has the type signature:
 
 ```haskell
-el :: MonadWidget t m => String -> m a -> m a
+el :: MonadWidget t m => Text -> m a -> m a
 ```
 
-The first argument to `el` is a `String`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced.
+The first argument to `el` is a `Text`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced.
 
 > #### Sidebar: Interpreting the MonadWidget type
 > FRP-enabled datatypes in Reflex take an argument `t`, which identifies the FRP subsystem being used.  This ensures that wires don't get crossed if a single program uses Reflex in multiple different contexts.  You can think of `t` as identifying a particular "timeline" of the FRP system.
@@ -79,10 +79,10 @@ In our example, `el "div" $ text "Welcome to Reflex"`, the first argument to `el
 The second argument to `el` was `text "Welcome to Reflex"`. The type signature of `text` is:
 
 ```haskell
-text :: MonadWidget t m => String -> m ()
+text :: MonadWidget t m => Text -> m ()
 ```
 
-`text` takes a `String` and produces a `Widget`. The `String` becomes a text DOM node in the parent element of the `text`. Of course, instead of a `String`, we could have used `el` here as well to continue building arbitrarily complex DOM. For instance, if we wanted to make a unordered list:
+`text` takes a `Text` and produces a `Widget`. The `Text` becomes a text DOM node in the parent element of the `text`. Of course, instead of a `String`, we could have used `el` here as well to continue building arbitrarily complex DOM. For instance, if we wanted to make a unordered list:
 
 ```haskell
 import Reflex.Dom
@@ -118,7 +118,7 @@ It takes a `TextInputConfig` (given a default value in our example), and produce
 
 ```haskell
 data TextInput t
-   = TextInput { _textInput_value :: Dynamic t String
+   = TextInput { _textInput_value :: Dynamic t Text
                , _textInput_keypress :: Event t Int
                , _textInput_keydown :: Event t Int
                , _textInput_keyup :: Event t Int
@@ -127,23 +127,24 @@ data TextInput t
                }
 ```
 
-Here we are using `_textInput_value` to access the `Dynamic String` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic String` and displays it. It is the dynamic version of `text`.
+Here we are using `_textInput_value` to access the `Dynamic Text` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
 
 We can also access `Event`s related to the `TextInput`. For example, consider the following code:
 
 ```haskell
 import Reflex
 import Reflex.Dom
+import qualified Data.Text as Text
 
 main = mainWidget $ el "div" $ do
   t <- textInput def
   text "Last key pressed: "
-  let keypressEvent = fmap show $ _textInput_keypress t
+  let keypressEvent = fmap (Text.pack . show) $ _textInput_keypress t
   keypressDyn <- holdDyn "None" keypressEvent
   dynText keypressDyn
 ```
 
-Here, we are creating a `TextInput` as we were before. The function `_textInput_keypress` gives us an `Event Int` representing the key code of the pressed key. We are using `fmap` here to apply `show` to the `Int`, so the type of `keypressEvent` is `Event String`. Whenever a key is pressed inside the `TextInput`, the `keypressEvent` will fire.
+Here, we are creating a `TextInput` as we were before. The function `_textInput_keypress` gives us an `Event Int` representing the key code of the pressed key. We are using `fmap` here to apply `Text.pack . show` to the `Int`, so the type of `keypressEvent` is `Event Text`. Whenever a key is pressed inside the `TextInput`, the `keypressEvent` will fire.
 `holdDyn` allows us to take create a `Dynamic` out of an `Event`. We must provide an initial value for the `Dynamic`. This will be the value of the `Dynamic` until the associated `Event` fires. The type of `holdDyn` is:
 
 ```haskell
