@@ -144,7 +144,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         MemoTrie = dontHaddock super.MemoTrie;
         diagrams-lib = dontHaddock (appendConfigureFlag super.diagrams-lib "--ghc-option=-XConstrainedClassMethods");
         hackage-security = dontHaddock (dontCheck super.hackage-security);
-        statistics = dontHaddock super.statistics;
+        # statistics = dontHaddock super.statistics;
 
         # Miscellaneous fixes
         diagrams-svg = addBuildDepend (doJailbreak super.diagrams-svg) self.lucid-svg;
@@ -208,6 +208,54 @@ in rec {
         hscolour = ghc.hscolour;
       } (drv // {
         doHaddock = false;
+      });
+      text = overrideCabal super.text (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "text";
+          rev = "c79eced7a21ced2c7c89d77a61e419aeb4994395";
+          sha256 = "1psasdy3zvmh0c0zc7pcc4wkgczzxh5p7s3g5qb89n4syc3ggjhi";
+        };
+        buildDepends = (drv.buildDepends or []) ++ [
+          self.ghcjs-base
+        ];
+      });
+      ghcjs-base = overrideCabal super.ghcjs-base (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "ghcjs-base";
+          rev = "019a8ddd5960f827b7a145ae8666061b8b5d4e9d";
+          sha256 = "1s47q7xxgi3l50h3j6vr9hy6w2sb47s315656zspsvshpggg538q";
+        };
+        libraryHaskellDepends = with self; [
+          base bytestring containers deepseq dlist ghc-prim
+          ghcjs-prim integer-gmp primitive time
+          transformers vector
+        ];
+      });
+      attoparsec = overrideCabal super.attoparsec (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "attoparsec";
+          rev = "e766a754811042f061b6b4498137d2ad28e207a8";
+          sha256 = "106fn187hw9z3bidbkp7r4wafmhk7g2iv2k0hybirv63f8727x3x";
+        };
+      });
+      hashable = overrideCabal super.hashable (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "hashable";
+          rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
+          sha256 = "1rl55p5y0mm8a7hxlfzhhgnnciw2h63ilxdaag3h7ypdx4bfd6rs";
+        };
+      });
+      conduit-extra = overrideCabal super.conduit-extra (drv: {
+        src = "${nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "conduit";
+          rev = "aeb20e4eb7f7bfc07ec401c82821cbb04018b571";
+          sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
+        }}/conduit-extra";
       });
     };
   };
