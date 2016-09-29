@@ -264,7 +264,7 @@ in rec {
     packageSetConfig = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/configuration-ghcjs.nix" { };
   };
 
-  ghcjs = extendHaskellPackages (overrideForGhcjs ghcjsPackages);
+  ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
   platforms = [ "ghcjs" "ghc" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
