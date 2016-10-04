@@ -213,8 +213,8 @@ in rec {
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
           repo = "text";
-          rev = "c79eced7a21ced2c7c89d77a61e419aeb4994395";
-          sha256 = "1psasdy3zvmh0c0zc7pcc4wkgczzxh5p7s3g5qb89n4syc3ggjhi";
+          rev = "ced5579e278bfaeaf7fd6a5470767fdf9c4dbd4e";
+          sha256 = "116i3sbahgxlvhz0kl5xvkhj2708xvpkb32b8xbgwslwc6ip5jly";
         };
         buildDepends = (drv.buildDepends or []) ++ [
           self.ghcjs-base
@@ -224,8 +224,8 @@ in rec {
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
           repo = "ghcjs-base";
-          rev = "019a8ddd5960f827b7a145ae8666061b8b5d4e9d";
-          sha256 = "1s47q7xxgi3l50h3j6vr9hy6w2sb47s315656zspsvshpggg538q";
+          rev = "52605ea803ec2427b81b8c6e372ea268adc2a209";
+          sha256 = "1dmr881fygf4a0368cz20kdm0ng1kkw749awp3jakvlg0zmbzdbb";
         };
         libraryHaskellDepends = with self; [
           base bytestring containers deepseq dlist ghc-prim
