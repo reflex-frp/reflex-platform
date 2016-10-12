@@ -173,6 +173,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         Cabal = null;
         Cabal_1_24_0_0 = null;
         ghcjs-prim = null;
+        ghcjs-json = null;
       };
     };
     overrideForGhc7 = haskellPackages: haskellPackages.override {
@@ -213,19 +214,25 @@ in rec {
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
           repo = "text";
-          rev = "ced5579e278bfaeaf7fd6a5470767fdf9c4dbd4e";
-          sha256 = "116i3sbahgxlvhz0kl5xvkhj2708xvpkb32b8xbgwslwc6ip5jly";
+          rev = "503c3960edfb13e0cfc4ed62534a9a5e2f186290";
+          sha256 = "1faf00nddwzvv4a00kh9z2bg5vn4kn81fg88wlrlnmndhfvb6h25";
         };
         buildDepends = (drv.buildDepends or []) ++ [
           self.ghcjs-base
         ];
       });
+      ghcjs-json = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
+        owner = "luigy";
+        repo = "ghcjs-json";
+        rev = "8a7be85c5684752bad13bebc1528498a7a74c9c7";
+        sha256 = "0spawx4fs7f9giicx7b2nm8csaphg2ip89gfqm9njkqlxzhw5zlw";
+      })) {};
       ghcjs-base = overrideCabal super.ghcjs-base (drv: {
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
           repo = "ghcjs-base";
-          rev = "52605ea803ec2427b81b8c6e372ea268adc2a209";
-          sha256 = "1dmr881fygf4a0368cz20kdm0ng1kkw749awp3jakvlg0zmbzdbb";
+          rev = "8569f5d541aa846f2130ff789d19bcd55ea41d2a";
+          sha256 = "1b1fyqgn7jxh4rawgxidacafg6jwfdfcidyh93z6a6lhmm5qaq3n";
         };
         libraryHaskellDepends = with self; [
           base bytestring containers deepseq dlist ghc-prim
