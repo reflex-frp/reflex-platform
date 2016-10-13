@@ -2,6 +2,7 @@
 , system ? null
 , config ? null
 , enableLibraryProfiling ? false
+, enableProfiling ? enableLibraryProfiling
 }:
 let nixpkgs = nixpkgsFunc ({
       config = {
@@ -164,8 +165,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # The lens tests take WAY too long to run
         lens = dontCheck super.lens;
 
-      } // (if enableLibraryProfiling then {
-        mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
+      } // (if enableProfiling then {
+        mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; enableExecutableProfiling = true; });
       } else {});
     };
     overrideForGhc8 = haskellPackages: haskellPackages.override {
