@@ -164,7 +164,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # The lens tests take WAY too long to run
         lens = dontCheck super.lens;
 
-      } // (if enableLibraryProfiling then {
+      } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
     };
