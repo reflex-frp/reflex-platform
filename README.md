@@ -53,6 +53,9 @@ In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite
 Reflex's companion library, Reflex-DOM, contains a number of functions used to build and interact with the Document Object Model. Let's start by getting a basic app up and running.
 
 ```haskell
+{-# LANGUAGE OverloadedStrings #-}
+module Main where
+
 import Reflex.Dom
 
 main = mainWidget $ el "div" $ text "Welcome to Reflex"
