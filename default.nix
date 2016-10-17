@@ -140,6 +140,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Failing tests
         ed25519 = dontCheck super.ed25519;
         git = dontCheck super.git;
+        th-expand-syns = dontCheck super.th-expand-syns;
+        th-lift = dontCheck super.th-lift;
+        bimap = dontCheck super.bimap;
+        aeson-qq = dontCheck super.aeson-qq;
 
         # Failing haddocks
         MemoTrie = dontHaddock super.MemoTrie;
