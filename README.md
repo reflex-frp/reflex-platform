@@ -376,9 +376,7 @@ numberInput = do
                        & textInputConfig_initialValue .~ "0"
                        & textInputConfig_attributes .~ attrs
       result <- mapDyn readMay $ _textInput_value n
-      attrs <- mapDyn (\r -> case r of
-                                  Just _ -> validState
-                                  Nothing -> errorState) result
+      attrs <- mapDyn (maybe errorState $ const validState) result
   return result
 
 stringToOp s = case s of
