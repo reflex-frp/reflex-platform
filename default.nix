@@ -209,6 +209,10 @@ in rec {
       } (drv // {
         doHaddock = false;
       });
+
+      reflex = super.reflex.override {
+        ghc_reflex = ghc.ghcWithPackages (p: [ p.reflex ]);
+      };
     };
   };
   inherit nixpkgs overrideCabal extendHaskellPackages;
