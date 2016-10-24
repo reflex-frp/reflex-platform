@@ -18,7 +18,7 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
-    filterGit = builtins.filterSource (path: type: baseNameOf path != ".git");
+    filterGit = builtins.filterSource (path: type: builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]);
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
       gtk2hs = nixpkgs.fetchFromGitHub {
@@ -210,9 +210,23 @@ in rec {
         doHaddock = false;
       });
 
-      reflex = super.reflex.override {
-        ghc_reflex = ghc.ghcWithPackages (p: [ p.reflex ]);
+      ghcWithPackages = selectFrom: self.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/with-packages-wrapper.nix" {
+        inherit (self) llvmPackages;
+        haskellPackages = self;
+        packages = selectFrom self;
+        #ghcLibdir = let x = "${self.ghc.ghcPackages.ghcWithPackages selectFrom}/lib/${self.ghc.ghcPackages.ghc.name}"; in builtins.trace x x;
+        ghcLibdir = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
       };
+
+      ghc = super.ghc // {
+        withPackages = self.ghcWithPackages;
+      };
+
+      reflex = overrideCabal super.reflex (drv: {
+        configureFlags = [
+          "--ghcjs-option=-dynamic-too"
+        ];
+      });
     };
   };
   inherit nixpkgs overrideCabal extendHaskellPackages;
@@ -227,10 +241,30 @@ in rec {
       ruby cabal2nix
     ];
   } "";
+  setGhcLibdir = ghcLibdir: inputGhcjs:
+    let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
+        ghcLibdirLink = nixpkgs.stdenv.mkDerivation {
+          name = "ghc_libdir";
+          inherit ghcLibdir;
+          buildCommand = ''
+            mkdir -p ${libDir}
+            echo "$ghcLibdir" > ${libDir}/ghc_libdir_override
+          '';
+        };
+    in inputGhcjs // {
+    outPath = nixpkgs.buildEnv {
+      inherit (inputGhcjs) name;
+      paths = [ inputGhcjs ghcLibdirLink ];
+      postBuild = ''
+        mv ${libDir}/ghc_libdir_override ${libDir}/ghc_libdir
+      '';
+    };
+  };
   ghcjsCompiler = (overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc;
     ghcjsBootSrc = sources.ghcjs-boot;
     shims = sources.shims;
+    ghcLibdir = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
   }) (drv: {
     src = sources.ghcjs;
   })) // {
