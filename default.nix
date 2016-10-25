@@ -164,6 +164,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # The lens tests take WAY too long to run
         lens = dontCheck super.lens;
 
+        liquid-fixpoint = dontCheck super.liquid-fixpoint;
       } // (if enableLibraryProfiling then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
@@ -201,7 +202,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
-in rec {
+in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
       mkDerivation = drv: super.mkDerivation.override {
@@ -367,5 +368,19 @@ in rec {
     let suffixLen = builtins.stringLength suffix;
     in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
 
+  reflexEnv = platform: (builtins.getAttr platform this).ghcWithPackages (p: import ./packages.nix { haskellPackages = p; inherit platform; });
+
+  tryReflexPackages = generalDevTools ghc ++ builtins.map reflexEnv platforms;
+
+  demoVM = (import "${nixpkgs.path}/nixos" {
+    configuration = {
+      imports = [
+        "${nixpkgs.path}/nixos/modules/virtualisation/virtualbox-image.nix"
+        "${nixpkgs.path}/nixos/modules/profiles/demo.nix"
+      ];
+      environment.systemPackages = tryReflexPackages;
+    };
+  }).config.system.build.virtualBoxOVA;
+
   inherit lib cabal2nixResult sources;
-}
+}; in this
