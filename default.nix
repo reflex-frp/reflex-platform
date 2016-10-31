@@ -223,11 +223,6 @@ in rec {
         withPackages = self.ghcWithPackages;
       };
 
-      reflex = overrideCabal super.reflex (drv: {
-        configureFlags = [
-          "--ghcjs-option=-dynamic-too"
-        ];
-      });
       text = overrideCabal super.text (drv: {
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
@@ -319,7 +314,7 @@ in rec {
     bootPkgs = ghc;
     ghcjsBootSrc = sources.ghcjs-boot;
     shims = sources.shims;
-    ghcLibdir = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
+#    ghcLibdir = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
   }) (drv: {
     src = sources.ghcjs;
   })) // {
@@ -452,8 +447,8 @@ in rec {
   # The systems that we want to build for on the current system
   cacheTargetSystems = [
     "x86_64-linux"
-    "i686-linux"
-    "x86_64-darwin"
+#    "i686-linux"
+#    "x86_64-darwin"
   ];
 
   isSuffixOf = suffix: s:
