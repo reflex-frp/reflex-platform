@@ -18,7 +18,7 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
-    filterGit = builtins.filterSource (path: type: baseNameOf path != ".git");
+    filterGit = builtins.filterSource (path: type: builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]);
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
       gtk2hs = nixpkgs.fetchFromGitHub {
@@ -144,7 +144,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         MemoTrie = dontHaddock super.MemoTrie;
         diagrams-lib = dontHaddock (appendConfigureFlag super.diagrams-lib "--ghc-option=-XConstrainedClassMethods");
         hackage-security = dontHaddock (dontCheck super.hackage-security);
-        statistics = dontHaddock super.statistics;
+        # statistics = dontHaddock super.statistics;
 
         # Miscellaneous fixes
         diagrams-svg = addBuildDepend (doJailbreak super.diagrams-svg) self.lucid-svg;
@@ -164,7 +164,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # The lens tests take WAY too long to run
         lens = dontCheck super.lens;
 
-      } // (if enableLibraryProfiling then {
+      } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
     };
@@ -173,6 +173,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         Cabal = null;
         Cabal_1_24_0_0 = null;
         ghcjs-prim = null;
+        ghcjs-json = null;
       };
     };
     overrideForGhc7 = haskellPackages: haskellPackages.override {
@@ -209,6 +210,72 @@ in rec {
       } (drv // {
         doHaddock = false;
       });
+
+      ghcWithPackages = selectFrom: self.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/with-packages-wrapper.nix" {
+        inherit (self) llvmPackages;
+        haskellPackages = self;
+        packages = selectFrom self;
+        ghcLibdir = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
+      };
+
+      ghc = super.ghc // {
+        withPackages = self.ghcWithPackages;
+      };
+
+      text = overrideCabal super.text (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "text";
+          rev = "503c3960edfb13e0cfc4ed62534a9a5e2f186290";
+          sha256 = "1faf00nddwzvv4a00kh9z2bg5vn4kn81fg88wlrlnmndhfvb6h25";
+        };
+        buildDepends = (drv.buildDepends or []) ++ [
+          self.ghcjs-base
+        ];
+      });
+      ghcjs-json = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
+        owner = "luigy";
+        repo = "ghcjs-json";
+        rev = "8a7be85c5684752bad13bebc1528498a7a74c9c7";
+        sha256 = "0spawx4fs7f9giicx7b2nm8csaphg2ip89gfqm9njkqlxzhw5zlw";
+      })) {};
+      ghcjs-base = overrideCabal super.ghcjs-base (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "ghcjs-base";
+          rev = "8569f5d541aa846f2130ff789d19bcd55ea41d2a";
+          sha256 = "1b1fyqgn7jxh4rawgxidacafg6jwfdfcidyh93z6a6lhmm5qaq3n";
+        };
+        libraryHaskellDepends = with self; [
+          base bytestring containers deepseq dlist ghc-prim
+          ghcjs-prim integer-gmp primitive time
+          transformers vector
+        ];
+      });
+      attoparsec = overrideCabal super.attoparsec (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "attoparsec";
+          rev = "e766a754811042f061b6b4498137d2ad28e207a8";
+          sha256 = "106fn187hw9z3bidbkp7r4wafmhk7g2iv2k0hybirv63f8727x3x";
+        };
+      });
+      hashable = overrideCabal super.hashable (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "hashable";
+          rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
+          sha256 = "1rl55p5y0mm8a7hxlfzhhgnnciw2h63ilxdaag3h7ypdx4bfd6rs";
+        };
+      });
+      conduit-extra = overrideCabal super.conduit-extra (drv: {
+        src = "${nixpkgs.fetchFromGitHub {
+          owner = "luigy";
+          repo = "conduit";
+          rev = "aeb20e4eb7f7bfc07ec401c82821cbb04018b571";
+          sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
+        }}/conduit-extra";
+      });
     };
   };
   inherit nixpkgs overrideCabal extendHaskellPackages;
@@ -223,6 +290,25 @@ in rec {
       ruby cabal2nix
     ];
   } "";
+  setGhcLibdir = ghcLibdir: inputGhcjs:
+    let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
+        ghcLibdirLink = nixpkgs.stdenv.mkDerivation {
+          name = "ghc_libdir";
+          inherit ghcLibdir;
+          buildCommand = ''
+            mkdir -p ${libDir}
+            echo "$ghcLibdir" > ${libDir}/ghc_libdir_override
+          '';
+        };
+    in inputGhcjs // {
+    outPath = nixpkgs.buildEnv {
+      inherit (inputGhcjs) name;
+      paths = [ inputGhcjs ghcLibdirLink ];
+      postBuild = ''
+        mv ${libDir}/ghc_libdir_override ${libDir}/ghc_libdir
+      '';
+    };
+  };
   ghcjsCompiler = (overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
     bootPkgs = ghc;
     ghcjsBootSrc = sources.ghcjs-boot;
@@ -359,8 +445,8 @@ in rec {
   # The systems that we want to build for on the current system
   cacheTargetSystems = [
     "x86_64-linux"
-    "i686-linux"
-    "x86_64-darwin"
+#    "i686-linux"
+#    "x86_64-darwin"
   ];
 
   isSuffixOf = suffix: s:
