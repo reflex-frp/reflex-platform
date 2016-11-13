@@ -21,6 +21,12 @@ let nixpkgs = nixpkgsFunc ({
     filterGit = builtins.filterSource (path: type: builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]);
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
+      intero = nixpkgs.fetchFromGitHub {
+        owner = "commercialhaskell";
+        repo = "intero";
+        rev = "5378bb637c76c48eca64ccda0c855f7557aecb60";
+        sha256 = "1vgmbs790l8z90bk8sib3xvli06p1nkrjnnvlnhsjzkkpxynf2nf";
+      };
       gtk2hs = nixpkgs.fetchFromGitHub {
         owner = "gtk2hs";
         repo = "gtk2hs";
@@ -98,6 +104,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         pango = replaceSrc super.pango "${sources.gtk2hs}/pango" "0.13.1.1";
         webkitgtk3 = self.callPackage (cabal2nixResult sources.webkitgtk3) { webkit = nixpkgs.webkitgtk24x; };
         webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult sources.webkitgtk3-javascriptcore) { webkit = nixpkgs.webkitgtk24x; };
+
+        intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
 
         # Stick with pre-jsaddle ghcjs-dom for now
         ghcjs-dom = self.callPackage ({ mkDerivation, base, glib, gtk3, stdenv, text, transformers, webkitgtk3 }: mkDerivation {
