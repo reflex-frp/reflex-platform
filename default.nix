@@ -144,6 +144,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.semigroups ];
         });
 
+        # keycode-0.2 has a bug on firefox
+        keycode = overrideCabal super.keycode (drv: {
+          version = "0.2.2";
+          sha256 = "046k8d1h5wwadf5z4pppjkc3g7v2zxlzb06s1xgixc42y5y41yan";
+          revision = null;
+          editedCabalFile = null;
+        });
+
         # Failing tests
         ed25519 = dontCheck super.ed25519;
         git = dontCheck super.git;
