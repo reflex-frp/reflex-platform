@@ -2,6 +2,7 @@
 , system ? null
 , config ? null
 , enableLibraryProfiling ? false
+, useReflexOptimizer ? false
 }:
 let nixpkgs = nixpkgsFunc ({
       config = {
@@ -86,13 +87,16 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
       ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
     } "";
+    addReflexOptimizerFlag = if useReflexOptimizer
+      then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
+      else drv: drv;
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super: {
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = self.callPackage ./reflex {};
-        reflex-dom = self.callPackage ./reflex-dom {};
+        reflex = addReflexOptimizerFlag (self.callPackage ./reflex {});
+        reflex-dom = addReflexOptimizerFlag (self.callPackage ./reflex-dom {});
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         # Stick with the pre-gi gtk2hs for now
@@ -231,7 +235,7 @@ in let this = rec {
         inherit (self) llvmPackages;
         haskellPackages = self;
         packages = selectFrom self;
-        ghcLibdir = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
+        ${if useReflexOptimizer then "ghcLibdir" else null} = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
       };
 
       ghc = super.ghc // {
