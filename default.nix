@@ -3,6 +3,7 @@
 , config ? null
 , enableLibraryProfiling ? false
 , useReflexOptimizer ? false
+, useTextJSString ? true
 }:
 let nixpkgs = nixpkgsFunc ({
       config = {
@@ -222,26 +223,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
-in let this = rec {
-  overrideForGhcjs = haskellPackages: haskellPackages.override {
-    overrides = self: super: {
-      mkDerivation = drv: super.mkDerivation.override {
-        hscolour = ghc.hscolour;
-      } (drv // {
-        doHaddock = false;
-      });
-
-      ghcWithPackages = selectFrom: self.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/with-packages-wrapper.nix" {
-        inherit (self) llvmPackages;
-        haskellPackages = self;
-        packages = selectFrom self;
-        ${if useReflexOptimizer then "ghcLibdir" else null} = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
-      };
-
-      ghc = super.ghc // {
-        withPackages = self.ghcWithPackages;
-      };
-
+    overridesForTextJSString = self: super: {
       text = overrideCabal super.text (drv: {
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
@@ -297,6 +279,27 @@ in let this = rec {
         }}/conduit-extra";
       });
     };
+in let this = rec {
+  overrideForGhcjs = haskellPackages: haskellPackages.override {
+    overrides = self: super: {
+      mkDerivation = drv: super.mkDerivation.override {
+        hscolour = ghc.hscolour;
+      } (drv // {
+        doHaddock = false;
+      });
+
+      ghcWithPackages = selectFrom: self.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/with-packages-wrapper.nix" {
+        inherit (self) llvmPackages;
+        haskellPackages = self;
+        packages = selectFrom self;
+        ${if useReflexOptimizer then "ghcLibdir" else null} = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
+      };
+
+      ghc = super.ghc // {
+        withPackages = self.ghcWithPackages;
+      };
+
+    } // (if useTextJSString then overridesForTextJSString self super else {});
   };
   inherit nixpkgs overrideCabal extendHaskellPackages;
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
