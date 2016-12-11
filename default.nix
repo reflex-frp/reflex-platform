@@ -20,7 +20,7 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
-    filterGit = builtins.filterSource (path: type: builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]);
+    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]));
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
       intero = nixpkgs.fetchFromGitHub {
@@ -228,8 +228,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
           repo = "text";
-          rev = "503c3960edfb13e0cfc4ed62534a9a5e2f186290";
-          sha256 = "1faf00nddwzvv4a00kh9z2bg5vn4kn81fg88wlrlnmndhfvb6h25";
+          rev = "90d36ec1a0be48c25ffc15ddf66c83971e519f34";
+          sha256 = "0d0dlp06pdww1wc9a04nfzfs578ag81knlkpmksc3pz5h2364nak";
         };
         buildDepends = (drv.buildDepends or []) ++ [
           self.ghcjs-base
