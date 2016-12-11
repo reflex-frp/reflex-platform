@@ -20,7 +20,7 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
-    filterGit = builtins.filterSource (path: type: builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]);
+    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]));
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
       intero = nixpkgs.fetchFromGitHub {
