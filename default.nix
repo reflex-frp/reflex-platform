@@ -131,6 +131,15 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           license = stdenv.lib.licenses.mit;
         }) {};
 
+        dependent-map = overrideCabal super.dependent-map (drv: {
+          src = nixpkgs.fetchFromGitHub {
+            owner = "obsidiansystems";
+            repo = "dependent-map";
+            rev = "fb16bb3a2564c22ab41ac4b439eae5e57e46b022";
+            sha256 = "0fnh5288kw9swhblrbpwxwl9a76jgri25jp1mcxhz7z9fclhf2al";
+          };
+        });
+
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
 
