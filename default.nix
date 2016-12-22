@@ -316,7 +316,7 @@ in let this = rec {
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     buildCommand = ''
-      ${nixpkgs.path}/pkgs/development/compilers/ghcjs/gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
+      ruby ${nixpkgs.path}/pkgs/development/compilers/ghcjs/gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
     '';
     buildInputs = with nixpkgs; [
       ruby cabal2nix
