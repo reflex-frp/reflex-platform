@@ -9,12 +9,6 @@ let nixpkgs = nixpkgsFunc ({
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
-        packageOverrides = pkgs: rec {
-          mercurial = pkgs.mercurial.override {
-            hg-git = "";
-            dulwich = "";
-          };
-        };
       } // (if config == null then {} else config);
     } // (
       if system == null then {} else { inherit system; }
@@ -28,24 +22,6 @@ let nixpkgs = nixpkgsFunc ({
         repo = "intero";
         rev = "5378bb637c76c48eca64ccda0c855f7557aecb60";
         sha256 = "1vgmbs790l8z90bk8sib3xvli06p1nkrjnnvlnhsjzkkpxynf2nf";
-      };
-      gtk2hs = nixpkgs.fetchFromGitHub {
-        owner = "gtk2hs";
-        repo = "gtk2hs";
-        rev = "eee61d84edf1dd44f8d380d7d7cae2405de50124";
-        sha256 = "12i53grimni0dyjqjydl120z5amcn668w4pfhl8dxscjh4a0l5nb";
-      };
-      webkitgtk3 = nixpkgs.fetchFromGitHub {
-        owner = "ryantrinkle";
-        repo = "webkit";
-        rev = "be8046844e8108f88407a2e5548d0c19911cb012";
-        sha256 = "1wdkl55m4l9crkbsw8azl4jwqd8rjjkzlrvj8pmb9b48jxcpq7ml";
-      };
-      webkitgtk3-javascriptcore = nixpkgs.fetchFromGitHub {
-        owner = "ryantrinkle";
-        repo = "webkit-javascriptcore";
-        rev = "f3f4a05754ee0d76511ab7aaa6d080b4212d80e8";
-        sha256 = "17xj6nbny9zbqgym5jmx47xzb96g4wsavr5brq03vh4lk3kx3jvc";
       };
       timezone-series = nixpkgs.fetchFromGitHub {
         owner = "ryantrinkle";
@@ -92,48 +68,43 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
       else drv: drv;
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
-      overrides = self: super: {
+      overrides = self: super:
+        let reflexDom = import ./reflex-dom self;
+        in {
         ########################################################################
         # Reflex packages
         ########################################################################
         reflex = addReflexOptimizerFlag (self.callPackage ./reflex {});
-        reflex-dom = addReflexOptimizerFlag (self.callPackage ./reflex-dom {});
+        reflex-dom = addReflexOptimizerFlag (reflexDom.reflex-dom);
+        reflex-dom-core = addReflexOptimizerFlag (reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
-        # Stick with the pre-gi gtk2hs for now
-        gtk2hs-buildtools = self.callPackage (cabal2nixResult "${sources.gtk2hs}/tools") {};
-        glib = replaceSrc super.glib "${sources.gtk2hs}/glib" "0.13.2.2";
-        gio = replaceSrc super.gio "${sources.gtk2hs}/gio" "0.13.1.1";
-        gtk3 = replaceSrc super.gtk3 "${sources.gtk2hs}/gtk" "0.14.2";
-        cairo = replaceSrc super.cairo "${sources.gtk2hs}/cairo" "0.13.1.1";
-        pango = replaceSrc super.pango "${sources.gtk2hs}/pango" "0.13.1.1";
-        webkitgtk3 = self.callPackage (cabal2nixResult sources.webkitgtk3) { webkit = nixpkgs.webkitgtk24x; };
-        webkitgtk3-javascriptcore = self.callPackage (cabal2nixResult sources.webkitgtk3-javascriptcore) { webkit = nixpkgs.webkitgtk24x; };
+        gi-atk = super.gi-atk_2_0_9;
+        gi-cairo = super.gi-cairo_1_0_9;
+        gi-gdk = super.gi-gdk_3_0_9;
+        gi-gdkpixbuf = super.gi-gdkpixbuf_2_0_9;
+        gi-gio = super.gi-gio_2_0_9;
+        gi-glib = super.gi-glib_2_0_9;
+        gi-gobject = super.gi-gobject_2_0_9;
+        gi-gtk = super.gi-gtk_3_0_9;
+        gi-javascriptcore = super.gi-javascriptcore_4_0_9;
+        gi-pango = super.gi-pango_1_0_9;
+        gi-soup = super.gi-soup_2_4_9;
+        gi-webkit = super.gi-webkit_3_0_9;
+        haskell-gi = super.haskell-gi_0_20;
+        haskell-gi-base = super.haskell-gi-base_0_20;
+        webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override { webkit2gtk = nixpkgs.webkitgtk; };
 
         intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
-
-        # Stick with pre-jsaddle ghcjs-dom for now
-        ghcjs-dom = self.callPackage ({ mkDerivation, base, glib, gtk3, stdenv, text, transformers, webkitgtk3 }: mkDerivation {
-          pname = "ghcjs-dom";
-          version = "0.2.3.1";
-          sha256 = "0fgfmhzlz960vvm2l8a441yv9nv95h6wz32815x71mbaskff7pnz";
-          libraryHaskellDepends = [
-            base text transformers
-          ] ++ (if self.ghc.isGhcjs or false then with self; [
-            ghcjs-prim ghc-prim ghcjs-base
-          ] else [
-            glib gtk3 webkitgtk3
-          ]);
-          preConfigure = ''
-            sed -i 's/\(transformers .*\)<0.5/\1<0.6/' *.cabal
-          '';
-          description = "DOM library that supports both GHCJS and WebKitGTK";
-          license = stdenv.lib.licenses.mit;
-        }) {};
 
         dependent-map = overrideCabal super.dependent-map (drv: {
           version = "0.2.4.0";
           sha256 = "0il2naf6gdkvkhscvqd8kg9v911vdhqp9h10z5546mninnyrdcsx";
+        });
+
+        jsaddle-dom = overrideCabal super.jsaddle-dom (drv: {
+          version = "0.7.1.0";
+          sha256 = "0fnm0s7kh3bbsy2rpkphxfncfw8c9dkvcbqnd8i419lsrpfafgp9";
         });
 
         # https://github.com/ygale/timezone-series/pull/1
@@ -240,11 +211,19 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           self.ghcjs-base
         ];
       });
+      jsaddle = overrideCabal super.jsaddle (drv: {
+        patches = (drv.patches or []) ++ [
+          ./jsaddle-text-jsstring.patch
+        ];
+        buildDepends = (drv.buildDepends or []) ++ [
+          self.ghcjs-json
+        ];
+      });
       ghcjs-json = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
-        owner = "luigy";
+        owner = "obsidiansystems";
         repo = "ghcjs-json";
-        rev = "8a7be85c5684752bad13bebc1528498a7a74c9c7";
-        sha256 = "0spawx4fs7f9giicx7b2nm8csaphg2ip89gfqm9njkqlxzhw5zlw";
+        rev = "3a6e1e949aced800d32e0683a107f5387295f3a6";
+        sha256 = "1pjsvyvy6ac3358db19iwgbmsmm0si2hzh2ja1hclq43q6d80yij";
       })) {};
       ghcjs-base = overrideCabal super.ghcjs-base (drv: {
         src = nixpkgs.fetchFromGitHub {
@@ -340,7 +319,7 @@ in let this = rec {
       '';
     };
   };
-  ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs") {
+  ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
     bootPkgs = ghc;
     ghcjsBootSrc = sources.ghcjs-boot;
     shims = sources.shims;
