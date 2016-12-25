@@ -132,12 +132,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) {};
 
         dependent-map = overrideCabal super.dependent-map (drv: {
-          src = nixpkgs.fetchFromGitHub {
-            owner = "obsidiansystems";
-            repo = "dependent-map";
-            rev = "fb16bb3a2564c22ab41ac4b439eae5e57e46b022";
-            sha256 = "0fnh5288kw9swhblrbpwxwl9a76jgri25jp1mcxhz7z9fclhf2al";
-          };
+          version = "0.2.4.0";
+          sha256 = "0il2naf6gdkvkhscvqd8kg9v911vdhqp9h10z5546mninnyrdcsx";
         });
 
         # https://github.com/ygale/timezone-series/pull/1
@@ -204,14 +200,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         Cabal_1_24_0_0 = null;
         ghcjs-prim = null;
         ghcjs-json = null;
-        dependent-map = overrideCabal super.dependent-map (drv: {
-          src = nixpkgs.fetchFromGitHub {
-            owner = "obsidiansystems";
-            repo = "dependent-map";
-            rev = "fb16bb3a2564c22ab41ac4b439eae5e57e46b022";
-            sha256 = "0fnh5288kw9swhblrbpwxwl9a76jgri25jp1mcxhz7z9fclhf2al";
-          };
-        });
       };
     };
     overrideForGhc7 = haskellPackages: haskellPackages.override {
@@ -352,7 +340,7 @@ in let this = rec {
       '';
     };
   };
-  ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
+  ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs") {
     bootPkgs = ghc;
     ghcjsBootSrc = sources.ghcjs-boot;
     shims = sources.shims;
