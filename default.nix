@@ -9,6 +9,9 @@ let nixpkgs = nixpkgsFunc ({
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
+        packageOverrides = pkgs: {
+          webkitgtk = pkgs.webkitgtk214x;
+        };
       } // (if config == null then {} else config);
     } // (
       if system == null then {} else { inherit system; }
@@ -79,6 +82,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom-core = addReflexOptimizerFlag (reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
+        Cabal = self.Cabal_1_24_2_0;
+
         gi-atk = super.gi-atk_2_0_9;
         gi-cairo = super.gi-cairo_1_0_9;
         gi-gdk = super.gi-gdk_3_0_9;
@@ -91,9 +96,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         gi-pango = super.gi-pango_1_0_9;
         gi-soup = super.gi-soup_2_4_9;
         gi-webkit = super.gi-webkit_3_0_9;
+        gi-webkit2 = super.gi-webkit2.override {
+          webkit2gtk = nixpkgs.webkitgtk214x;
+        };
         haskell-gi = super.haskell-gi_0_20;
         haskell-gi-base = super.haskell-gi-base_0_20;
-        webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override { webkit2gtk = nixpkgs.webkitgtk; };
+        webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
+          webkit2gtk = nixpkgs.webkitgtk214x;
+        };
 
         intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
 
@@ -116,6 +126,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         diagrams-contrib = doJailbreak super.diagrams-contrib;
+        cases = doJailbreak super.cases; # The test suite's bounds on HTF are too strict
 
         vector-algorithms = overrideCabal super.vector-algorithms (drv: {
           libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.mtl self.mwc-random ];
@@ -151,6 +162,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           unordered-containers
           tagged
         ]);
+        packunused = replaceSrc super.packunused (nixpkgs.fetchFromGitHub {
+          owner = "hvr";
+          repo = "packunused";
+          rev = "60b305a3e8f838aa92cff6265979108405bfa347";
+          sha256 = "0qb96kkc4v2wg7jy7iyc7v1b1lxzk7xvkgjrw3s81gbx9b3slllb";
+        }) "0.1.1.4";
 
         ########################################################################
         # Fixups for new nixpkgs
@@ -167,8 +184,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhc8 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
-        Cabal = null;
-        Cabal_1_24_0_0 = null;
         ghcjs-prim = null;
         ghcjs-json = null;
       };
@@ -417,13 +432,16 @@ in let this = rec {
   generalDevTools = haskellPackages:
     let nativeHaskellPackages = if haskellPackages.ghc.isGhcjs or false then ghc else haskellPackages;
     in [
-    nixpkgs.nodejs
-    nixpkgs.curl
-    nixpkgs.cabal2nix
-    nixpkgs.nix-prefetch-scripts
+    nativeHaskellPackages.Cabal
     nativeHaskellPackages.cabal-install
     nativeHaskellPackages.ghcid
     nativeHaskellPackages.hlint
+    nativeHaskellPackages.packunused
+    nixpkgs.cabal2nix
+    nixpkgs.curl
+    nixpkgs.nix-prefetch-scripts
+    nixpkgs.nodejs
+    nixpkgs.pkgconfig
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
   ] else []);
