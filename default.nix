@@ -19,7 +19,7 @@ let nixpkgs = nixpkgsFunc ({
     } // (
       if system == null then {} else { inherit system; }
     ));
-    lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
+    lib = import (nixpkgs.path + "/pkgs/development/haskell-modules/lib.nix") { pkgs = nixpkgs; };
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]));
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
@@ -132,12 +132,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) {};
 
         dependent-map = overrideCabal super.dependent-map (drv: {
-          src = nixpkgs.fetchFromGitHub {
-            owner = "obsidiansystems";
-            repo = "dependent-map";
-            rev = "fb16bb3a2564c22ab41ac4b439eae5e57e46b022";
-            sha256 = "0fnh5288kw9swhblrbpwxwl9a76jgri25jp1mcxhz7z9fclhf2al";
-          };
+          version = "0.2.4.0";
+          sha256 = "0il2naf6gdkvkhscvqd8kg9v911vdhqp9h10z5546mninnyrdcsx";
         });
 
         # https://github.com/ygale/timezone-series/pull/1
@@ -297,7 +293,7 @@ in let this = rec {
         doHaddock = false;
       });
 
-      ghcWithPackages = selectFrom: self.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/with-packages-wrapper.nix" {
+      ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
         inherit (self) llvmPackages;
         haskellPackages = self;
         packages = selectFrom self;
@@ -315,8 +311,11 @@ in let this = rec {
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   stage2Script = nixpkgs.runCommand "stage2.nix" {
+    GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
-      ${nixpkgs.path}/pkgs/development/compilers/ghcjs/gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
+      echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
+      patchShebangs .
+      ./gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
     '';
     buildInputs = with nixpkgs; [
       ruby cabal2nix
@@ -341,7 +340,7 @@ in let this = rec {
       '';
     };
   };
-  ghcjsCompiler = (overrideCabal (ghc.callPackage "${nixpkgs.path}/pkgs/development/compilers/ghcjs" {
+  ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs") {
     bootPkgs = ghc;
     ghcjsBootSrc = sources.ghcjs-boot;
     shims = sources.shims;
@@ -377,9 +376,9 @@ in let this = rec {
       "unix"
     ];
   };
-  ghcjsPackages = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules" {
+  ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
     ghc = ghcjsCompiler;
-    packageSetConfig = nixpkgs.callPackage "${nixpkgs.path}/pkgs/development/haskell-modules/configuration-ghcjs.nix" { };
+    packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { };
   };
 
   ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
