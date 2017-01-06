@@ -82,20 +82,20 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom-core = addReflexOptimizerFlag (reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
-        Cabal = self.Cabal_1_24_2_0;
+#        Cabal = self.Cabal_1_24_2_0;
 
-        gi-atk = super.gi-atk_2_0_9;
-        gi-cairo = super.gi-cairo_1_0_9;
-        gi-gdk = super.gi-gdk_3_0_9;
-        gi-gdkpixbuf = super.gi-gdkpixbuf_2_0_9;
-        gi-gio = super.gi-gio_2_0_9;
-        gi-glib = super.gi-glib_2_0_9;
-        gi-gobject = super.gi-gobject_2_0_9;
-        gi-gtk = super.gi-gtk_3_0_9;
-        gi-javascriptcore = super.gi-javascriptcore_4_0_9;
-        gi-pango = super.gi-pango_1_0_9;
-        gi-soup = super.gi-soup_2_4_9;
-        gi-webkit = super.gi-webkit_3_0_9;
+        gi-atk = super.gi-atk_2_0_11;
+        gi-cairo = super.gi-cairo_1_0_11;
+        gi-gdk = super.gi-gdk_3_0_11;
+        gi-gdkpixbuf = super.gi-gdkpixbuf_2_0_11;
+        gi-gio = super.gi-gio_2_0_11;
+        gi-glib = super.gi-glib_2_0_11;
+        gi-gobject = super.gi-gobject_2_0_11;
+        gi-gtk = super.gi-gtk_3_0_11;
+        gi-javascriptcore = super.gi-javascriptcore_4_0_11;
+        gi-pango = super.gi-pango_1_0_11;
+        gi-soup = super.gi-soup_2_4_11;
+        gi-webkit = super.gi-webkit_3_0_11;
         gi-webkit2 = super.gi-webkit2.override {
           webkit2gtk = nixpkgs.webkitgtk214x;
         };
@@ -104,6 +104,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
           webkit2gtk = nixpkgs.webkitgtk214x;
         };
+        gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
+        shelly = overrideCabal (doJailbreak super.shelly) (drv: {
+          preConfigure = (drv.preConfigure or "") + ''
+            sed -i 's/base .*<.*4\.9\.1/base/' *.cabal
+            sed -i 's/\(default (T.Text)\)/-- \1/' src/Shelly/Pipe.hs
+          '';
+        });
 
         intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
 
@@ -111,10 +118,20 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           version = "0.2.4.0";
           sha256 = "0il2naf6gdkvkhscvqd8kg9v911vdhqp9h10z5546mninnyrdcsx";
         });
+        dependent-sum = overrideCabal super.dependent-sum (drv: {
+          version = "0.4";
+          sha256 = "07hs9s78wiybwjwkal2yq65hdavq0gg1h2ld7wbph61s2nsfrpm8";
+        });
+        dependent-sum-template = doJailbreak super.dependent-sum-template;
 
         jsaddle-dom = overrideCabal super.jsaddle-dom (drv: {
           version = "0.7.1.0";
           sha256 = "0fnm0s7kh3bbsy2rpkphxfncfw8c9dkvcbqnd8i419lsrpfafgp9";
+        });
+        jsaddle-webkit2gtk = overrideCabal super.jsaddle-webkit2gtk (drv: {
+          preConfigure = (drv.preConfigure or "") + ''
+            sed -i 's/directory .*<.*1.3/directory/' *.cabal
+          '';
         });
 
         # https://github.com/ygale/timezone-series/pull/1
@@ -162,12 +179,20 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           unordered-containers
           tagged
         ]);
-        packunused = replaceSrc super.packunused (nixpkgs.fetchFromGitHub {
+        packunused = doJailbreak (replaceSrc super.packunused (nixpkgs.fetchFromGitHub {
           owner = "hvr";
           repo = "packunused";
           rev = "60b305a3e8f838aa92cff6265979108405bfa347";
           sha256 = "0qb96kkc4v2wg7jy7iyc7v1b1lxzk7xvkgjrw3s81gbx9b3slllb";
-        }) "0.1.1.4";
+        }) "0.1.1.4");
+        stylish-haskell = doJailbreak super.stylish-haskell;
+
+        haddock-api = replaceSrc super.haddock-api ((nixpkgs.fetchFromGitHub {
+          owner = "haskell";
+          repo = "haddock";
+          rev = "240bc38b94ed2d0af27333b23392d03eeb615e82";
+          sha256 = "198va5xq6prp626prfxf1qlmw4pahzkqgr8dbxmpa323vdq8zlix";
+        }) + "/haddock-api") "2.17.3";
 
         ########################################################################
         # Fixups for new nixpkgs
@@ -301,7 +326,7 @@ in let this = rec {
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
   inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
+  ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   stage2Script = nixpkgs.runCommand "stage2.nix" {
