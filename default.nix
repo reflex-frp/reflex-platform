@@ -11,6 +11,34 @@ let nixpkgs = nixpkgsFunc ({
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
         packageOverrides = pkgs: {
           webkitgtk = pkgs.webkitgtk214x;
+          osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
+            let version = "10.11";
+	    in stdenv.mkDerivation rec {
+	    name = "MacOSX10.11.sdk";
+
+	    src = fetchzip {
+	      url = "https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz";
+	      sha256 = "132vz288l6pk7ci49fcvkkmci47w451ggidh3sarm1f9m7sg7b1k";
+	    };
+
+	    unpackPhase    = "true";
+	    configurePhase = "true";
+	    buildPhase     = "true";
+	    setupHook = ./setup-hook.sh;
+
+	    installPhase = ''
+	      mkdir -p $out/Developer/SDKs/
+	      echo "Source is: $src"
+	      cp -r $src/* $out/Developer/SDKs/
+	    '';
+
+	    meta = with stdenv.lib; {
+	      description = "The Mac OS ${version} SDK";
+	      maintainers = with maintainers; [ copumpkin ];
+	      platforms   = platforms.darwin;
+	      license     = licenses.unfree;
+	    };
+	  }) {};
         };
       } // (if config == null then {} else config);
     } // (
@@ -78,8 +106,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Reflex packages
         ########################################################################
         reflex = addReflexOptimizerFlag (self.callPackage ./reflex {});
-        reflex-dom = addReflexOptimizerFlag (reflexDom.reflex-dom);
-        reflex-dom-core = addReflexOptimizerFlag (reflexDom.reflex-dom-core);
+        reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
+        reflex-dom-core = addReflexOptimizerFlag reflexDom.reflex-dom-core;
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
 #        Cabal = self.Cabal_1_24_2_0;
@@ -110,6 +138,18 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             sed -i 's/base .*<.*4\.9\.1/base/' *.cabal
             sed -i 's/\(default (T.Text)\)/-- \1/' src/Shelly/Pipe.hs
           '';
+        });
+        jsaddle-wkwebview = overrideCabal super.jsaddle-wkwebview (drv: {
+          version = "0.8.2.0";
+          sha256 = "1dnzs94s2kw997rw4bwkmlpbsbwlgqhznarg91k73vb8kc8nhyda";
+	  preBuild = ''
+            sed -i 's/\(windowStyleMask =\).*;/\1 0;/g' cbits-cocoa/AppDelegate.m
+          '';
+          libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+            nixpkgs.osx_sdk
+            nixpkgs.darwin.libobjc
+            nixpkgs.darwin.apple_sdk.libs.xpc
+          ];
         });
 
         intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
