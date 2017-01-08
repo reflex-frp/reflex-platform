@@ -538,7 +538,7 @@ in let this = rec {
   # The systems that we want to build for on the current system
   cacheTargetSystems = [
     "x86_64-linux"
-    "i686-linux"
+    # "i686-linux" Broken on ghc 8.0.2-rc2
     "x86_64-darwin"
   ];
 
