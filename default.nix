@@ -143,7 +143,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           version = "0.8.2.0";
           sha256 = "1dnzs94s2kw997rw4bwkmlpbsbwlgqhznarg91k73vb8kc8nhyda";
 	  preBuild = ''
-            sed -i 's/\(windowStyleMask =\).*;/\1 0;/g' cbits-cocoa/AppDelegate.m
+            sed -i 's/\(windowStyleMask =\).*;/\1 0xf;/g' cbits-cocoa/AppDelegate.m
           '';
           libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
             nixpkgs.osx_sdk
