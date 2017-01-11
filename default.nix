@@ -449,7 +449,7 @@ in let this = rec {
   };
 
   ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
-  platforms = [ "ghc" ];
+  platforms = [ "ghcjs" "ghc" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
