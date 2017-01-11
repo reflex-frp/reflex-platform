@@ -151,6 +151,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             nixpkgs.darwin.apple_sdk.libs.xpc
           ];
         });
+        cabal-macosx = overrideCabal super.cabal-macosx (drv: {
+          src = nixpkgs.fetchFromGitHub {
+            owner = "hamishmack";
+            repo = "cabal-macosx";
+            rev = "901a76e59fddb83b3bb38d44374528d24c4f0785";
+            sha256 = "0azj9rrmc3k0s5347faizfmxfsqyp0pxnr9gxp7z38jg9y8ddhh1";
+          };
+        });
 
         intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
 
@@ -441,7 +449,7 @@ in let this = rec {
   };
 
   ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
-  platforms = [ "ghcjs" "ghc" ];
+  platforms = [ "ghc" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
