@@ -283,6 +283,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
         }}/conduit-extra";
       });
+      double-conversion = overrideCabal super.double-conversion (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "obsidiansystems";
+          repo = "double-conversion";
+          rev = "0f9ddde468687d25fa6c4c9accb02a034bc2f9c3";
+          sha256 = "0sjljf1sbwalw1zycpjf6bqhljag9i1k77b18b0fd1pzrc29wnks";
+        };
+      });
     };
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
