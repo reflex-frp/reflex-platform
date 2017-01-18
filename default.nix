@@ -131,6 +131,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
         let reflexDom = import ./reflex-dom self;
+            jsaddlePkgs = import ./jsaddle self;
         in {
         ########################################################################
         # Reflex packages
@@ -139,6 +140,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
         reflex-dom-core = addReflexOptimizerFlag reflexDom.reflex-dom-core;
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
+
+        jsaddle = jsaddlePkgs.jsaddle;
+        jsaddle-warp = overrideCabal jsaddlePkgs.jsaddle-warp (dev: { doCheck = false; });
+        jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview;
+        jsaddle-webkit2gtk = jsaddlePkgs.jsaddle-webkit2gtk;
+        jsaddle-webkitgtk = jsaddlePkgs.jsaddle-webkitgtk;
 
 #        Cabal = self.Cabal_1_24_2_0;
 
@@ -169,18 +176,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             sed -i 's/\(default (T.Text)\)/-- \1/' src/Shelly/Pipe.hs
           '';
         });
-        jsaddle-wkwebview = overrideCabal super.jsaddle-wkwebview (drv: {
-          version = "0.8.2.0";
-          sha256 = "1dnzs94s2kw997rw4bwkmlpbsbwlgqhznarg91k73vb8kc8nhyda";
-	  preBuild = ''
-            sed -i 's/\(windowStyleMask =\).*;/\1 0xf;/g' cbits-cocoa/AppDelegate.m
-          '';
-          libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
-            nixpkgs.osx_sdk
-            nixpkgs.darwin.libobjc
-            nixpkgs.darwin.apple_sdk.libs.xpc
-          ];
-        });
         cabal-macosx = overrideCabal super.cabal-macosx (drv: {
           src = nixpkgs.fetchFromGitHub {
             owner = "hamishmack";
@@ -205,11 +200,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle-dom = overrideCabal super.jsaddle-dom (drv: {
           version = "0.7.1.0";
           sha256 = "0fnm0s7kh3bbsy2rpkphxfncfw8c9dkvcbqnd8i419lsrpfafgp9";
-        });
-        jsaddle-webkit2gtk = overrideCabal super.jsaddle-webkit2gtk (drv: {
-          preConfigure = (drv.preConfigure or "") + ''
-            sed -i 's/directory .*<.*1.3/directory/' *.cabal
-          '';
         });
 
         # https://github.com/ygale/timezone-series/pull/1

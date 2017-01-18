@@ -25,6 +25,9 @@ nixpkgs/*
 reflex/*
 !reflex/default.nix
 !reflex/github.json
+jsaddle/*
+!jsaddle/default.nix
+!jsaddle/github.json
 reflex-dom/*
 !reflex-dom/default.nix
 !reflex-dom/github.json
