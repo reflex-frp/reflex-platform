@@ -132,6 +132,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       overrides = self: super:
         let reflexDom = import ./reflex-dom self;
             jsaddlePkgs = import ./jsaddle self;
+            ghcjsDom = import ./ghcjs-dom self;
         in {
         ########################################################################
         # Reflex packages
@@ -142,10 +143,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         jsaddle = jsaddlePkgs.jsaddle;
-        jsaddle-warp = overrideCabal jsaddlePkgs.jsaddle-warp (dev: { doCheck = false; });
+        jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
         jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview;
         jsaddle-webkit2gtk = jsaddlePkgs.jsaddle-webkit2gtk;
         jsaddle-webkitgtk = jsaddlePkgs.jsaddle-webkitgtk;
+        jsaddle-dom = self.callPackage ./jsaddle-dom {};
+        ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
+        ghcjs-dom-jsffi = ghcjsDom.ghcjs-dom-jsffi;
+        ghcjs-dom = dontCheck (dontHaddock ghcjsDom.ghcjs-dom);
 
 #        Cabal = self.Cabal_1_24_2_0;
 
@@ -196,11 +201,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "07hs9s78wiybwjwkal2yq65hdavq0gg1h2ld7wbph61s2nsfrpm8";
         });
         dependent-sum-template = doJailbreak super.dependent-sum-template;
-
-        jsaddle-dom = overrideCabal super.jsaddle-dom (drv: {
-          version = "0.7.1.0";
-          sha256 = "0fnm0s7kh3bbsy2rpkphxfncfw8c9dkvcbqnd8i419lsrpfafgp9";
-        });
 
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
