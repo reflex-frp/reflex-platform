@@ -1,65 +1,118 @@
 #!/usr/bin/env bash
+
+# This script creates a sandboxed environment containing the Reflex
+# Functional Reactive Programming (FRP) engine. This lets you test out
+# try-reflex without installing it in your system. For more
+# information, go to https://github.com/ryantrinkle/try-reflex
+
 set -eu
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+ROOT_FIX_MESSAGE="please use your operating system's \"repair permissions\" feature, if it has one, or manually remove write permissions for your user from the '/' directory."
 
-. "$DIR/common-setup.sh"
+GHC_MESSAGE=
+GHCJS_MESSAGE=
+INFO_MESSAGE=
 
-ROOT_PERMISSION_FIX_SUGGESTION="please use your operating system's \"repair permissions\" feature, if it has one, or manually remove write permissions for your user from the '/' directory."
+sourceSetup() {
+    source "$DIR/common-setup.sh"
+}
 
-if [ -e /homeless-shelter ] ; then
-  echo "It looks like your system has a directory or file at '/homeless-shelter'.  This will cause the try-reflex build to fail, because the Nix package manager assumes that /homeless-shelter does not exist and cannot be created."
-  echo
-  echo "If you intentionally created /homeless-shelter, please submit an issue at $REPO/issues, and we will try to find a workaround for this situation.  However, usually, this directory is created by accident when a Nix script is run by a user who has write permissions to the root directory."
-  echo
-  echo "If this is the case, please remove the /homeless-shelter directory, then ensure that your root directory is not writable by the current user.  To do this, $ROOT_PERMISSION_FIX_SUGGESTION"
-  exit 1
-elif mkdir /homeless-shelter 2>/dev/null ; then
-  rmdir /homeless-shelter
-  echo "It looks like your filesystem's root directory is writable by the current user.  This will cause nix to fail building try-reflex, and may also indicate a security vulnerability.  Note that you should not run try-reflex as root."
-  echo
-  echo "To fix this problem, $ROOT_PERMISSION_FIX_SUGGESTION"
-  exit 1
-fi
+checkHome () {
+    local path="/homeless-shelter"
 
-echo "Entering the reflex sandbox..."
+    if [[ -e "$path" ]] ; then
+        cat <<EOF
+It looks like your system has a directory or file at "$path".  This will cause the try-reflex build to fail, because the Nix package manager assumes that "$path" does not exist and cannot be created.
 
-# TODO: Use a better check that actually checks for each platform's availability
-if [ ! "$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.isDarwin')" = "true" ] ; then
-SUGGESTION_GHC=$(cat <<EOF
-To run a simple GUI as a native binary:
+If you intentionally created "$path", please submit an issue at $REPO/issues, and we will try to find a workaround for this situation.  However, usually, this directory is created by accident when a Nix script is run by a user who has write permissions to the root directory.
+
+If this is the case, please remove the "$path" directory, then ensure that your root directory is not writable by the current user. To do this, $ROOT_FIX_MESSAGE
+EOF
+        exit 1
+    elif mkdir "$path" 2>/dev/null ; then
+        rmdir "$path"
+        cat <<EOF
+It looks like your filesystem's root directory is writable by the current user.  This will cause nix to fail building try-reflex, and may also indicate a security vulnerability.  Note that you should not run try-reflex as root.
+
+To fix this problem, $ROOT_FIX_MESSAGE
+EOF
+        exit 1
+    fi
+}
+
+displayInitialMessage() {
+    echo -e "\e[34m\e[1mEntering the Reflex sandbox...\e[0m"
+}
+
+setGhcMessage() {
+    # TODO: Use a better check that actually checks for each platform's availability
+    if [[ ! "$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.isDarwin')" = "true" ]]; then
+        GHC_MESSAGE="$(cat <<EOF
+$(echo -e "\e[35m\e[1mTo run a simple GUI as a native binary:\e[0m")
+
 $ ghc -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
 
-Or to see a more complex native binary GUI example (based on the source at https://github.com/ryantrinkle/reflex-todomvc/blob/master/src/Main.hs):
-$ reflex-todomvc
-EOF
-)
-else
-SUGGESTION_GHC=""
-fi
+To see a more complex GUI example (based on https://github.com/ryantrinkle/reflex-todomvc/blob/master/src/Main.hs), navigate your browser to:
 
-SUGGESTION_GHCJS=$(cat <<EOF2
-To create a simple web GUI:
+    $(echo -e "\e[1mfile://$(nix-build $NIXOPTS --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html\e[0m")
+EOF
+)"
+    else
+        GHC_MESSAGE=
+    fi
+}
+
+setGhcjsMessage() {
+    GHCJS_MESSAGE="$(cat <<EOF2
+$(echo -e "\e[35m\e[1mTo create a simple web GUI:\e[0m")
+
 $ cat >hello.hs <<EOF
 import Reflex.Dom
 main = mainWidget $ text \"Hello, world!\"
 EOF
 $ ghcjs hello.hs
-Then navigate your browser to file://$(pwd)/hello.jsexe/index.html
 
-Or to see a more complex GUI example (based on the source at https://github.com/ryantrinkle/reflex-todomvc/blob/master/src/Main.hs), navigate your browser to file://$(nix-build $NIXOPTS --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
+Then navigate your browser to:
+
+    $(echo -e "\e[1mfile://$(pwd)/hello.jsexe/index.html\e[0m")
 EOF2
-)
+)"
+}
 
-INFO=$(cat <<EOF
+setCompilerMessages() {
+    setGhcMessage
+    setGhcjsMessage
+}
 
-You are now in a shell with access to the Reflex functional reactive programming engine.
+setInfoMessage() {
+    INFO_MESSAGE="$(cat <<EOF
 
-$SUGGESTION_GHC
+You are now in a shell with access to the Reflex Functional Reactive
+Programming (FRP) engine.
 
-$SUGGESTION_GHCJS
+$GHC_MESSAGE
+
+$GHCJS_MESSAGE
 EOF
-)
+)"
+}
 
-nix-instantiate "$DIR/shell.nix" $NIXOPTS --indirect --add-root "$DIR/gc-roots/shell.drv" >/dev/null
-nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS --command "echo \"$INFO\" ; return" "$@"
+runReflex() {
+    nix-instantiate "$DIR/shell.nix" $NIXOPTS \
+                    --indirect --add-root "$DIR/gc-roots/shell.drv" \
+                    > /dev/null
+    nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS \
+              --command "echo \"$INFO_MESSAGE\"; return" "$@"
+}
+
+main() {
+    sourceSetup
+    checkHome
+    displayInitialMessage
+    setCompilerMessages
+    setInfoMessage
+    runReflex
+}
+
+main "$@"
