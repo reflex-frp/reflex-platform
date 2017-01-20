@@ -1,0 +1,6 @@
+version: "2"
+
+services:
+    reflexplatform:
+        build: .
+        command: ./try-reflex
