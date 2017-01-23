@@ -148,6 +148,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle-webkit2gtk = jsaddlePkgs.jsaddle-webkit2gtk;
         jsaddle-webkitgtk = jsaddlePkgs.jsaddle-webkitgtk;
         jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
+          # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
           preBuild = ''./setup build || true'';
         });
         ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
