@@ -211,7 +211,48 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) "3.2.1.0";
         old-time = doJailbreak super.old-time;
         split = doJailbreak super.split;
-        distributive = replaceSrc super.distributive ./distributive "0.5.2";
+        distributive = overrideCabal super.distributive (drv: {
+          preCompileBuildDriver = ''
+            rm Setup.lhs
+          '';
+        });
+        comonad = overrideCabal super.comonad (drv: {
+          preCompileBuildDriver = ''
+            rm Setup.lhs
+          '';
+        });
+        scientific = doJailbreak super.scientific;
+        profunctors = overrideCabal super.profunctors (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
+          '';
+        });
+        semigroupoids = overrideCabal super.semigroupoids (drv: {
+          preCompileBuildDriver = ''
+            rm Setup.lhs
+          '';
+        });
+        lens = overrideCabal super.lens (drv: {
+          version = "4.15.1";
+          sha256 = null;
+          src = nixpkgs.fetchFromGitHub {
+            owner = "hamishmack";
+            repo = "lens";
+            rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
+            sha256 = "0nxcki1w8qxk4q7hjxpaqzyfjyib52al7jzagf8f3b0v2m3kk1a3";
+          };
+          revision = "4";
+          editedCabalFile = "e055de1a2d30bf9122947afbc5e342b06a0f4a512fece45f5b9132f7beb11539";
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
+          '';
+          preCompileBuildDriver = ''
+            rm Setup.lhs
+          '';
+          doCheck = false;
+          jailbreak = true;
+        });
+        these = doJailbreak super.these;
 
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
@@ -279,8 +320,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         language-nix = dontCheck super.language-nix;
         distribution-nixpkgs = dontCheck super.distribution-nixpkgs;
 
-        # The lens tests take WAY too long to run
-        lens = dontCheck super.lens;
+#        # The lens tests take WAY too long to run
+#        lens = dontCheck super.lens;
 
       } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
@@ -327,10 +368,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         #hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
         semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
-        reflex = appendConfigureFlag super.reflex "-f-use-template-haskell";
+        reflex = super.reflex.override {
+          useTemplateHaskell = false;
+        };
         reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
         happy = self.ghc.bootPkgs.happy;
-        Cabal = self.Cabal_1_24_2_0;
+        #Cabal = self.Cabal_1_24_2_0;
       };
     };
     overridesForTextJSString = self: super: {
