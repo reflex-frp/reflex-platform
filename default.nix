@@ -44,6 +44,36 @@ let nixpkgs = nixpkgsFunc ({
     } // (
       if system == null then {} else { inherit system; }
     ));
+    nixpkgsCross = {
+      ios = {
+        simulator64 = nixpkgsFunc {
+          crossSystem = 
+            let cfg = {
+  	      # You can change config/arch/isiPhoneSimulator depending on your target:
+  	      # aarch64-apple-darwin14 | arm64  | false
+  	      # arm-apple-darwin10     | armv7  | false
+  	      # i386-apple-darwin11    | i386   | true
+  	      # x86_64-apple-darwin14  | x86_64 | true
+  	      config = "x86_64-apple-darwin14";
+  	      arch = "x86_64";
+  	      isiPhoneSimulator = true;
+            }; in {
+    	    inherit (cfg) config arch isiPhoneSimulator;
+    	    useiOSCross = true;
+    	    libc = "libSystem";
+    	  };
+
+    	  config.packageOverrides = p: {
+    	    darwin = p.darwin // {
+    	      ios-cross = p.darwin.ios-cross.override {
+    	        # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
+    	        inherit (p.llvmPackages_39) llvm clang;
+    	      };
+    	    };
+    	  };
+        };
+      };
+    };
     lib = import (nixpkgs.path + "/pkgs/development/haskell-modules/lib.nix") { pkgs = nixpkgs; };
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]));
     # All imports of sources need to go here, so that they can be explicitly cached
@@ -377,6 +407,7 @@ in let this = rec {
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
+  ghcIosSimulator64 = overrideForGhc8 (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
