@@ -307,6 +307,19 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
+    overrideForGhcIOS = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        ghcjs-prim = null;
+        ghcjs-json = null;
+        text = appendConfigureFlag super.text "-finteger-simple";
+        scientific = appendConfigureFlag super.scientific "-finteger-simple";
+        hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
+        semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
+        wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
+        reflex = appendConfigureFlag super.reflex "-f-use-template-haskell";
+        reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
+      };
+    };
     overridesForTextJSString = self: super: {
       text = overrideCabal super.text (drv: {
         src = nixpkgs.fetchFromGitHub {
@@ -397,7 +410,7 @@ in let this = rec {
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
-  ghcIosSimulator64 = overrideForGhc8 (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
+  ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
