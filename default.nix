@@ -202,6 +202,15 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
         dependent-sum-template = doJailbreak super.dependent-sum-template;
 
+	# Update for ghc 8.0.2
+        parallel = replaceSrc super.parallel (nixpkgs.fetchFromGitHub {
+          owner = "haskell";
+          repo = "parallel";
+          rev = "040c4f0226a5a9a1e720d89a9e1239028d9f62d9";
+          sha256 = "0s0012jk68vk8rinfd899yxyyh4rk0as5pac2r3b6flkqrfiksa8";
+        }) "3.2.1.0";
+        old-time = doJailbreak super.old-time;
+
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
 
@@ -311,9 +320,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       overrides = self: super: {
         ghcjs-prim = null;
         ghcjs-json = null;
-        text = appendConfigureFlag super.text "-finteger-simple";
-        scientific = appendConfigureFlag super.scientific "-finteger-simple";
-        hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
+        #text = appendConfigureFlag super.text "-finteger-simple";
+        #scientific = appendConfigureFlag super.scientific "-finteger-simple";
+        #hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
         semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
         reflex = appendConfigureFlag super.reflex "-f-use-template-haskell";
