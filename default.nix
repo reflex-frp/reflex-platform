@@ -147,7 +147,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview;
         jsaddle-webkit2gtk = jsaddlePkgs.jsaddle-webkit2gtk;
         jsaddle-webkitgtk = jsaddlePkgs.jsaddle-webkitgtk;
-        jsaddle-dom = self.callPackage ./jsaddle-dom {};
+        jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
+          preBuild = ''./setup build || true'';
+        });
         ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
         ghcjs-dom-jsffi = ghcjsDom.ghcjs-dom-jsffi;
         ghcjs-dom = dontCheck (dontHaddock ghcjsDom.ghcjs-dom);
@@ -253,6 +255,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           jailbreak = true;
         });
         these = doJailbreak super.these;
+        case-insensitive = doJailbreak super.case-insensitive;
 
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
