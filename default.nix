@@ -210,6 +210,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "0s0012jk68vk8rinfd899yxyyh4rk0as5pac2r3b6flkqrfiksa8";
         }) "3.2.1.0";
         old-time = doJailbreak super.old-time;
+        split = doJailbreak super.split;
+        distributive = replaceSrc super.distributive ./distributive "0.5.2";
 
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
@@ -327,6 +329,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
         reflex = appendConfigureFlag super.reflex "-f-use-template-haskell";
         reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
+        happy = self.ghc.bootPkgs.happy;
+        Cabal = self.Cabal_1_24_2_0;
       };
     };
     overridesForTextJSString = self: super: {
@@ -393,6 +397,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }}/conduit-extra";
       });
     };
+  ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
+  ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
+  ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
+  ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
@@ -415,11 +423,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs overrideCabal extendHaskellPackages;
-  ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
-  ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
-  ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
-  ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
+  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
