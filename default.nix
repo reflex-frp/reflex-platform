@@ -164,8 +164,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Reflex packages
         ########################################################################
         reflex = addReflexOptimizerFlag (self.callPackage ./reflex {});
-        reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
-        reflex-dom-core = addReflexOptimizerFlag reflexDom.reflex-dom-core;
+        reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
+        reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         jsaddle = jsaddlePkgs.jsaddle;
@@ -259,6 +259,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
           '';
         });
+        fgl = overrideCabal super.fgl (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find Data -name '*.hs')
+          '';
+        });
         semigroupoids = overrideCabal super.semigroupoids (drv: {
           doCheck = false;
           preCompileBuildDriver = ''
@@ -298,6 +303,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         diagrams-contrib = doJailbreak super.diagrams-contrib;
         cases = doJailbreak super.cases; # The test suite's bounds on HTF are too strict
+        async = doJailbreak super.async;
 
         vector-algorithms = overrideCabal super.vector-algorithms (drv: {
           libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.mtl self.mwc-random ];
@@ -308,11 +314,16 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
 
         # keycode-0.2 has a bug on firefox
-        keycode = overrideCabal super.keycode (drv: {
+        keycode = overrideCabal (doJailbreak super.keycode) (drv: {
           version = "0.2.2";
           sha256 = "046k8d1h5wwadf5z4pppjkc3g7v2zxlzb06s1xgixc42y5y41yan";
           revision = null;
           editedCabalFile = null;
+          # Jailbreak is not enought as template-haskell build dependency is
+          # in a cabal conditional
+          preConfigure = ''
+            sed -i 's/^\( *template-haskell\) *.*$/\1/' keycode.cabal
+          '';
         });
 
         # Failing tests
@@ -402,11 +413,19 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         #hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
         semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
+        cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
         reflex = super.reflex.override {
           useTemplateHaskell = false;
         };
         reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
         happy = self.ghc.bootPkgs.happy;
+        # Disabled until we can figure out how to build reflex-todomvc setup with host GHC
+        cabal-macosx = null;
+        # Disabled for now (jsaddle-wkwebview will probably be better on iOS)
+        jsaddle-warp = null;
+        # Disable these because these on iOS
+        jsaddle-webkitgtk = null;
+        jsaddle-webkit2gtk = null;
         #Cabal = self.Cabal_1_24_2_0;
       };
     };
