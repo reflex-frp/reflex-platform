@@ -13,32 +13,32 @@ let nixpkgs = nixpkgsFunc ({
           webkitgtk = pkgs.webkitgtk214x;
           osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
             let version = "10.11";
-	    in stdenv.mkDerivation rec {
-	    name = "MacOSX10.11.sdk";
+            in stdenv.mkDerivation rec {
+            name = "MacOSX10.11.sdk";
 
-	    src = fetchzip {
-	      url = "https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz";
-	      sha256 = "132vz288l6pk7ci49fcvkkmci47w451ggidh3sarm1f9m7sg7b1k";
-	    };
+            src = fetchzip {
+              url = "https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz";
+              sha256 = "132vz288l6pk7ci49fcvkkmci47w451ggidh3sarm1f9m7sg7b1k";
+            };
 
-	    unpackPhase    = "true";
-	    configurePhase = "true";
-	    buildPhase     = "true";
-	    setupHook = ./setup-hook.sh;
+            unpackPhase    = "true";
+            configurePhase = "true";
+            buildPhase     = "true";
+            setupHook = ./setup-hook.sh;
 
-	    installPhase = ''
-	      mkdir -p $out/Developer/SDKs/
-	      echo "Source is: $src"
-	      cp -r $src/* $out/Developer/SDKs/
-	    '';
+            installPhase = ''
+              mkdir -p $out/Developer/SDKs/
+              echo "Source is: $src"
+              cp -r $src/* $out/Developer/SDKs/
+            '';
 
-	    meta = with stdenv.lib; {
-	      description = "The Mac OS ${version} SDK";
-	      maintainers = with maintainers; [ copumpkin ];
-	      platforms   = platforms.darwin;
-	      license     = licenses.unfree;
-	    };
-	  }) {};
+            meta = with stdenv.lib; {
+              description = "The Mac OS ${version} SDK";
+              maintainers = with maintainers; [ copumpkin ];
+              platforms   = platforms.darwin;
+              license     = licenses.unfree;
+            };
+          }) {};
         };
       } // (if config == null then {} else config);
     } // (
@@ -49,28 +49,54 @@ let nixpkgs = nixpkgsFunc ({
         simulator64 = nixpkgsFunc {
           crossSystem = 
             let cfg = {
-  	      # You can change config/arch/isiPhoneSimulator depending on your target:
-  	      # aarch64-apple-darwin14 | arm64  | false
-  	      # arm-apple-darwin10     | armv7  | false
-  	      # i386-apple-darwin11    | i386   | true
-  	      # x86_64-apple-darwin14  | x86_64 | true
-  	      config = "x86_64-apple-darwin14";
-  	      arch = "x86_64";
-  	      isiPhoneSimulator = true;
+              # You can change config/arch/isiPhoneSimulator depending on your target:
+              # aarch64-apple-darwin14 | arm64  | false
+              # arm-apple-darwin10     | armv7  | false
+              # i386-apple-darwin11    | i386   | true
+              # x86_64-apple-darwin14  | x86_64 | true
+              config = "x86_64-apple-darwin14";
+              arch = "x86_64";
+              isiPhoneSimulator = true;
             }; in {
-    	    inherit (cfg) config arch isiPhoneSimulator;
-    	    useiOSCross = true;
-    	    libc = "libSystem";
-    	  };
+            inherit (cfg) config arch isiPhoneSimulator;
+            useiOSCross = true;
+            libc = "libSystem";
+          };
 
-    	  config.packageOverrides = p: {
-    	    darwin = p.darwin // {
-    	      ios-cross = p.darwin.ios-cross.override {
-    	        # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
-    	        inherit (p.llvmPackages_39) llvm clang;
-    	      };
-    	    };
-    	  };
+          config.allowUnfree = true;
+          config.packageOverrides = p: {
+            darwin = p.darwin // {
+              ios-cross = p.darwin.ios-cross.override {
+                # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
+                inherit (p.llvmPackages_39) llvm clang;
+              };
+            };
+            osx_sdk = p.callPackage ({ stdenv }:
+              let version = "10";
+              in stdenv.mkDerivation rec {
+              name = "iOS.sdk";
+
+              src = stdenv.ccCross.sdk;
+
+              unpackPhase    = "true";
+              configurePhase = "true";
+              buildPhase     = "true";
+              setupHook = ./setup-hook-ios.sh;
+
+              installPhase = ''
+                mkdir -p $out/Developer/SDKs/
+                echo "Source is: $src"
+                cp -r $src/* $out/Developer/SDKs/
+              '';
+
+              meta = with stdenv.lib; {
+                description = "The IOS OS ${version} SDK";
+                maintainers = with maintainers; [ copumpkin ];
+                platforms   = platforms.darwin;
+                license     = licenses.unfree;
+              };
+            }) {};
+          };
         };
       };
     };
@@ -144,7 +170,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         jsaddle = jsaddlePkgs.jsaddle;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
-        jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview;
+        jsaddle-wkwebview = overrideCabal jsaddlePkgs.jsaddle-wkwebview (drv: {
+        });
         jsaddle-webkit2gtk = jsaddlePkgs.jsaddle-webkit2gtk;
         jsaddle-webkitgtk = jsaddlePkgs.jsaddle-webkitgtk;
         jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
@@ -215,11 +242,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         old-time = doJailbreak super.old-time;
         split = doJailbreak super.split;
         distributive = overrideCabal super.distributive (drv: {
+          doCheck = false;
           preCompileBuildDriver = ''
             rm Setup.lhs
           '';
         });
         comonad = overrideCabal super.comonad (drv: {
+          doCheck = false;
           preCompileBuildDriver = ''
             rm Setup.lhs
           '';
@@ -231,6 +260,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           '';
         });
         semigroupoids = overrideCabal super.semigroupoids (drv: {
+          doCheck = false;
           preCompileBuildDriver = ''
             rm Setup.lhs
           '';
