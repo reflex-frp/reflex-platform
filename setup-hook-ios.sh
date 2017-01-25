@@ -1,5 +1,5 @@
 prependSearchPath() {
-  NIX_CFLAGS_COMPILE="-F@out@/Developer/SDKs/System/Library/Frameworks -I@out@/Developer/SDKs/usr/include ${NIX_CFLAGS_COMPILE}"
+  NIX_CFLAGS_COMPILE="-F@out@/System/Library/Frameworks -F@out@/System/Library/PrivateFrameworks -I@out@/usr/include ${NIX_CFLAGS_COMPILE}"
 }
 
 preConfigureHooks+=(prependSearchPath)

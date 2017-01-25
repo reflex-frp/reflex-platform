@@ -84,9 +84,9 @@ let nixpkgs = nixpkgsFunc ({
               setupHook = ./setup-hook-ios.sh;
 
               installPhase = ''
-                mkdir -p $out/Developer/SDKs/
+                mkdir -p $out/
                 echo "Source is: $src"
-                cp -r $src/* $out/Developer/SDKs/
+                cp -r $src/* $out/
               '';
 
               meta = with stdenv.lib; {
