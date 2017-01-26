@@ -232,7 +232,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
         dependent-sum-template = doJailbreak super.dependent-sum-template;
 
-	# Update for ghc 8.0.2
+        # Update for ghc 8.0.2
         parallel = replaceSrc super.parallel (nixpkgs.fetchFromGitHub {
           owner = "haskell";
           repo = "parallel";
@@ -253,46 +253,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             rm Setup.lhs
           '';
         });
-        scientific = doJailbreak super.scientific;
-        profunctors = overrideCabal super.profunctors (drv: {
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
-          '';
-        });
-        fgl = overrideCabal super.fgl (drv: {
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' $(find Data -name '*.hs')
-          '';
-        });
         semigroupoids = overrideCabal super.semigroupoids (drv: {
           doCheck = false;
           preCompileBuildDriver = ''
             rm Setup.lhs
           '';
         });
-        lens = overrideCabal super.lens (drv: {
-          version = "4.15.1";
-          sha256 = null;
-          src = nixpkgs.fetchFromGitHub {
-            owner = "hamishmack";
-            repo = "lens";
-            rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
-            sha256 = "0nxcki1w8qxk4q7hjxpaqzyfjyib52al7jzagf8f3b0v2m3kk1a3";
-          };
-          revision = "4";
-          editedCabalFile = "e055de1a2d30bf9122947afbc5e342b06a0f4a512fece45f5b9132f7beb11539";
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
-          '';
-          preCompileBuildDriver = ''
-            rm Setup.lhs
-          '';
-          doCheck = false;
-          jailbreak = true;
-        });
-        these = doJailbreak super.these;
-        case-insensitive = doJailbreak super.case-insensitive;
-
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
 
@@ -304,6 +270,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         diagrams-contrib = doJailbreak super.diagrams-contrib;
         cases = doJailbreak super.cases; # The test suite's bounds on HTF are too strict
         async = doJailbreak super.async;
+        scientific = doJailbreak super.scientific;
+        these = doJailbreak super.these;
+        case-insensitive = doJailbreak super.case-insensitive;
 
         vector-algorithms = overrideCabal super.vector-algorithms (drv: {
           libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.mtl self.mwc-random ];
@@ -414,6 +383,36 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
         cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
+        profunctors = overrideCabal super.profunctors (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
+          '';
+        });
+        fgl = overrideCabal super.fgl (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find Data -name '*.hs')
+          '';
+        });
+        lens = overrideCabal super.lens (drv: {
+          version = "4.15.1";
+          sha256 = null;
+          src = nixpkgs.fetchFromGitHub {
+            owner = "hamishmack";
+            repo = "lens";
+            rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
+            sha256 = "0nxcki1w8qxk4q7hjxpaqzyfjyib52al7jzagf8f3b0v2m3kk1a3";
+          };
+          revision = "4";
+          editedCabalFile = "e055de1a2d30bf9122947afbc5e342b06a0f4a512fece45f5b9132f7beb11539";
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
+          '';
+          preCompileBuildDriver = ''
+            rm Setup.lhs
+          '';
+          doCheck = false;
+          jailbreak = true;
+        });
         reflex = super.reflex.override {
           useTemplateHaskell = false;
         };
