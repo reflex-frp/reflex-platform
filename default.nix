@@ -2,6 +2,7 @@
 , system ? null
 , config ? null
 , enableLibraryProfiling ? false
+, enableExposeAllUnfoldings ? false
 , useReflexOptimizer ? false
 , useTextJSString ? true
 }:
@@ -91,13 +92,16 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     addReflexOptimizerFlag = if useReflexOptimizer
       then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
       else drv: drv;
+    addExposeAllUnfoldingsFlag = if enableExposeAllUnfoldings
+      then drv: appendConfigureFlag drv "-fexpose-all-unfoldings"
+      else drv: drv;
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super: {
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addReflexOptimizerFlag (self.callPackage ./reflex {});
-        reflex-dom = addReflexOptimizerFlag (self.callPackage ./reflex-dom {});
+        reflex = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {}));
+        reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex-dom {}));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         # Stick with the pre-gi gtk2hs for now
