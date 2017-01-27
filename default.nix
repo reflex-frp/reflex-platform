@@ -417,6 +417,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           useTemplateHaskell = false;
         };
         reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
+        reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
+            postFixup = ''
+                mkdir $out/reflex-todomvc.app
+                cp reflex-todomvc.app/* $out/reflex-todomvc.app/
+                cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/'';
+        });
         happy = self.ghc.bootPkgs.happy;
         # Disabled until we can figure out how to build reflex-todomvc setup with host GHC
         cabal-macosx = null;
