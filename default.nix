@@ -3,6 +3,7 @@
 , config ? null
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? false
+, enableTraceReflexEvents ? false
 , useReflexOptimizer ? false
 , useTextJSString ? true
 }:
@@ -89,6 +90,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
       ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
     } "";
+    addReflexTraceEventsFlag = if enableTraceReflexEvents
+      then drv: appendConfigureFlag drv "-fdebug-trace-events"
+      else drv: drv;
     addReflexOptimizerFlag = if useReflexOptimizer
       then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
       else drv: drv;
@@ -100,7 +104,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {}));
+        reflex = addReflexTraceEventsFlag (addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
         reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex-dom {}));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
