@@ -45,7 +45,44 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     nixpkgsCross = {
-      ios = {
+      ios = 
+        let config = {
+              allowUnfree = true;
+              packageOverrides = p: {
+            	darwin = p.darwin // {
+            	  ios-cross = p.darwin.ios-cross.override {
+            	    # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
+            	    inherit (p.llvmPackages_39) llvm clang;
+            	  };
+            	};
+            	osx_sdk = p.callPackage ({ stdenv }:
+            	  let version = "10";
+            	  in stdenv.mkDerivation rec {
+            	  name = "iOS.sdk";
+
+            	  src = stdenv.ccCross.sdk;
+
+            	  unpackPhase    = "true";
+            	  configurePhase = "true";
+            	  buildPhase     = "true";
+            	  setupHook = ./setup-hook-ios.sh;
+
+            	  installPhase = ''
+            	    mkdir -p $out/
+            	    echo "Source is: $src"
+            	    cp -r $src/* $out/
+            	  '';
+
+            	  meta = with stdenv.lib; {
+            	    description = "The IOS OS ${version} SDK";
+            	    maintainers = with maintainers; [ copumpkin ];
+            	    platforms   = platforms.darwin;
+            	    license     = licenses.unfree;
+            	  };
+            	}) {};
+              };
+            };
+        in {
         simulator64 = nixpkgsFunc {
           crossSystem = 
             let cfg = {
@@ -62,41 +99,25 @@ let nixpkgs = nixpkgsFunc ({
             useiOSCross = true;
             libc = "libSystem";
           };
-
-          config.allowUnfree = true;
-          config.packageOverrides = p: {
-            darwin = p.darwin // {
-              ios-cross = p.darwin.ios-cross.override {
-                # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
-                inherit (p.llvmPackages_39) llvm clang;
-              };
-            };
-            osx_sdk = p.callPackage ({ stdenv }:
-              let version = "10";
-              in stdenv.mkDerivation rec {
-              name = "iOS.sdk";
-
-              src = stdenv.ccCross.sdk;
-
-              unpackPhase    = "true";
-              configurePhase = "true";
-              buildPhase     = "true";
-              setupHook = ./setup-hook-ios.sh;
-
-              installPhase = ''
-                mkdir -p $out/
-                echo "Source is: $src"
-                cp -r $src/* $out/
-              '';
-
-              meta = with stdenv.lib; {
-                description = "The IOS OS ${version} SDK";
-                maintainers = with maintainers; [ copumpkin ];
-                platforms   = platforms.darwin;
-                license     = licenses.unfree;
-              };
-            }) {};
+          inherit config;
+        };
+        arm64 = nixpkgsFunc {
+          crossSystem = 
+            let cfg = {
+              # You can change config/arch/isiPhoneSimulator depending on your target:
+              # aarch64-apple-darwin14 | arm64  | false
+              # arm-apple-darwin10     | armv7  | false
+              # i386-apple-darwin11    | i386   | true
+              # x86_64-apple-darwin14  | x86_64 | true
+              config = "aarch64-apple-darwin14";
+              arch = "arm64";
+              isiPhoneSimulator = false;
+            }; in {
+            inherit (cfg) config arch isiPhoneSimulator;
+            useiOSCross = true;
+            libc = "libSystem";
           };
+          inherit config;
         };
       };
     };
@@ -502,6 +523,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
+  ghcIosArm64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcCross);
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
@@ -524,7 +546,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64;
+  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
