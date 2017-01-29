@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
 function cleanup {
-  if [ -n "$tmpdir" -a -d "$tmpdir" ]; then
-    echo "Cleaning up tmpdir" >&2
-    rm -fR $tmpdir
-  fi
   if [ -n "$uuid" ]; then
     echo "Cleaning up simulator" >&2
     xcrun simctl shutdown $uuid 2>/dev/null
