@@ -2,6 +2,8 @@
 , system ? null
 , config ? null
 , enableLibraryProfiling ? false
+, enableExposeAllUnfoldings ? false
+, enableTraceReflexEvents ? false
 , useReflexOptimizer ? false
 , useTextJSString ? true
 }:
@@ -172,8 +174,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
       ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
     } "";
+    addReflexTraceEventsFlag = if enableTraceReflexEvents
+      then drv: appendConfigureFlag drv "-fdebug-trace-events"
+      else drv: drv;
     addReflexOptimizerFlag = if useReflexOptimizer
       then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
+      else drv: drv;
+    addExposeAllUnfoldingsFlag = if enableExposeAllUnfoldings
+      then drv: appendConfigureFlag drv "-fexpose-all-unfoldings"
       else drv: drv;
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
@@ -184,9 +192,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addReflexOptimizerFlag (self.callPackage ./reflex {});
-        reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
-        reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
+        reflex = addReflexTraceEventsFlag (addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
+        reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom));
+        reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         jsaddle = jsaddlePkgs.jsaddle;
@@ -517,6 +525,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           rev = "aeb20e4eb7f7bfc07ec401c82821cbb04018b571";
           sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
         }}/conduit-extra";
+      });
+      double-conversion = overrideCabal super.double-conversion (drv: {
+        src = nixpkgs.fetchFromGitHub {
+          owner = "obsidiansystems";
+          repo = "double-conversion";
+          rev = "0f9ddde468687d25fa6c4c9accb02a034bc2f9c3";
+          sha256 = "0sjljf1sbwalw1zycpjf6bqhljag9i1k77b18b0fd1pzrc29wnks";
+        };
       });
     };
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
