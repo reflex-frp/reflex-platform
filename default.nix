@@ -51,37 +51,37 @@ let nixpkgs = nixpkgsFunc ({
         let config = {
               allowUnfree = true;
               packageOverrides = p: {
-            	darwin = p.darwin // {
-            	  ios-cross = p.darwin.ios-cross.override {
-            	    # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
-            	    inherit (p.llvmPackages_39) llvm clang;
-            	  };
-            	};
-            	osx_sdk = p.callPackage ({ stdenv }:
-            	  let version = "10";
-            	  in stdenv.mkDerivation rec {
-            	  name = "iOS.sdk";
+                darwin = p.darwin // {
+                  ios-cross = p.darwin.ios-cross.override {
+                    # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
+                    inherit (p.llvmPackages_39) llvm clang;
+                  };
+                };
+                osx_sdk = p.callPackage ({ stdenv }:
+                  let version = "10";
+                  in stdenv.mkDerivation rec {
+                  name = "iOS.sdk";
 
-            	  src = stdenv.ccCross.sdk;
+                  src = stdenv.ccCross.sdk;
 
-            	  unpackPhase    = "true";
-            	  configurePhase = "true";
-            	  buildPhase     = "true";
-            	  setupHook = ./setup-hook-ios.sh;
+                  unpackPhase    = "true";
+                  configurePhase = "true";
+                  buildPhase     = "true";
+                  setupHook = ./setup-hook-ios.sh;
 
-            	  installPhase = ''
-            	    mkdir -p $out/
-            	    echo "Source is: $src"
-            	    cp -r $src/* $out/
-            	  '';
+                  installPhase = ''
+                    mkdir -p $out/
+                    echo "Source is: $src"
+                    cp -r $src/* $out/
+                  '';
 
-            	  meta = with stdenv.lib; {
-            	    description = "The IOS OS ${version} SDK";
-            	    maintainers = with maintainers; [ copumpkin ];
-            	    platforms   = platforms.darwin;
-            	    license     = licenses.unfree;
-            	  };
-            	}) {};
+                  meta = with stdenv.lib; {
+                    description = "The IOS OS ${version} SDK";
+                    maintainers = with maintainers; [ copumpkin ];
+                    platforms   = platforms.darwin;
+                    license     = licenses.unfree;
+                  };
+                }) {};
               };
             };
         in {
@@ -290,6 +290,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
         # https://github.com/ygale/timezone-series/pull/1
         timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
+        constraints = overrideCabal super.constraints (drv: {
+          version = "0.9";
+          sha256 = "17fjr30ig7v1g7w3bkhn1rnhdfqvq9y2g0xx3clqvlfdx9f17d5p";
+        });
 
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
