@@ -21,7 +21,14 @@ fi
 
 tmpdir=$(mktemp -d)
 # Find the signer given the ou
-signer=`security find-certificate -c "iPhone Developer" -a | grep '^    "alis"<blob>="' | sed 's|    "alis"<blob>="\(.*\)"$|\1|' | while read c; do security find-certificate -c "$c" -p | openssl x509 -subject -noout; done | grep "$1" | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' | head -n 1`
+signer=`security find-certificate -c "iPhone Developer" -a \
+  | grep '^    "alis"<blob>="' \
+  | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
+  | while read c; do security find-certificate -c "$c" -p \
+  | openssl x509 -subject -noout; done \
+  | grep "$1" \
+  | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
+  | head -n 1`
 
 if [ -z "$signer" ]; then
   echo "Error: No iPhone Developer certificate found for team id $1" >&2
