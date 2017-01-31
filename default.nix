@@ -303,6 +303,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         diagrams-contrib = doJailbreak super.diagrams-contrib;
         cases = doJailbreak super.cases; # The test suite's bounds on HTF are too strict
         async = doJailbreak super.async;
+        lifted-async = overrideCabal (doJailbreak super.lifted-async) (drv: {
+          preConfigure = (drv.preConfigure or "") + ''
+            sed -i 's/\( monad-control \)[0-9\.><= *&|]*/\1/' *.cabal
+            sed -i 's/\( constraints \)[0-9\.><= *&|]*/\1/' *.cabal
+          '';
+        });
         scientific = doJailbreak super.scientific;
         these = doJailbreak super.these;
         case-insensitive = doJailbreak super.case-insensitive;
