@@ -177,9 +177,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     addReflexTraceEventsFlag = if enableTraceReflexEvents
       then drv: appendConfigureFlag drv "-fdebug-trace-events"
       else drv: drv;
-    addReflexOptimizerFlag = if useReflexOptimizer
-      then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
-      else drv: drv;
     addExposeAllUnfoldingsFlag = if enableExposeAllUnfoldings
       then drv: appendConfigureFlag drv "-fexpose-all-unfoldings"
       else drv: drv;
@@ -188,6 +185,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         let reflexDom = import ./reflex-dom self;
             jsaddlePkgs = import ./jsaddle self;
             ghcjsDom = import ./ghcjs-dom self;
+            addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
+              then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
+              else drv: drv;
         in {
         ########################################################################
         # Reflex packages
@@ -289,11 +289,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           '';
         });
         # https://github.com/ygale/timezone-series/pull/1
-        timezone-series = self.callPackage (cabal2nixResult sources.timezone-series) {};
+        timezone-series = doJailbreak (self.callPackage (cabal2nixResult sources.timezone-series) {});
         constraints = overrideCabal super.constraints (drv: {
           version = "0.9";
           sha256 = "17fjr30ig7v1g7w3bkhn1rnhdfqvq9y2g0xx3clqvlfdx9f17d5p";
         });
+        aeson-compat = doJailbreak super.aeson-compat;
 
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
