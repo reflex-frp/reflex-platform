@@ -295,6 +295,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "17fjr30ig7v1g7w3bkhn1rnhdfqvq9y2g0xx3clqvlfdx9f17d5p";
         });
         aeson-compat = doJailbreak super.aeson-compat;
+        x509 = dontHaddock super.x509;
+        x509-validation = dontHaddock super.x509-validation;
 
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
@@ -313,6 +315,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         scientific = doJailbreak super.scientific;
         these = doJailbreak super.these;
         case-insensitive = doJailbreak super.case-insensitive;
+        uniplate = doJailbreak super.uniplate;
+        th-lift = overrideCabal (doJailbreak super.th-lift) (drv: {
+          preConfigure = ''
+            sed -i 's/^\( *template-haskell\) *.*$/\1/' th-lift.cabal
+          '';
+        });
+        timezone-olson = dontHaddock (doJailbreak super.timezone-olson);
 
         vector-algorithms = overrideCabal super.vector-algorithms (drv: {
           libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.mtl self.mwc-random ];
