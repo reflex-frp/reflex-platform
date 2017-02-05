@@ -121,6 +121,24 @@ let nixpkgs = nixpkgsFunc ({
           };
           inherit config;
         };
+        armv7 = nixpkgsFunc {
+          crossSystem = 
+            let cfg = {
+              # You can change config/arch/isiPhoneSimulator depending on your target:
+              # aarch64-apple-darwin14 | arm64  | false
+              # arm-apple-darwin10     | armv7  | false
+              # i386-apple-darwin11    | i386   | true
+              # x86_64-apple-darwin14  | x86_64 | true
+              config = "arm-apple-darwin10";
+              arch = "armv7";
+              isiPhoneSimulator = false;
+            }; in {
+            inherit (cfg) config arch isiPhoneSimulator;
+            useiOSCross = true;
+            libc = "libSystem";
+          };
+          inherit config;
+        };
       };
     };
     lib = import (nixpkgs.path + "/pkgs/development/haskell-modules/lib.nix") { pkgs = nixpkgs; };
@@ -470,7 +488,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             postFixup = ''
                 mkdir $out/reflex-todomvc.app
                 cp reflex-todomvc.app/* $out/reflex-todomvc.app/
-                cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/'';
+                cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
+            '';
         });
         happy = self.ghc.bootPkgs.happy;
         # Disabled until we can figure out how to build reflex-todomvc setup with host GHC
@@ -560,6 +579,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
   ghcIosArm64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcCross);
+  ghcIosArmv7 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcCross);
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
@@ -582,7 +602,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64;
+  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
