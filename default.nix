@@ -47,7 +47,23 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     nixpkgsCross = {
-      ios = 
+      android = {
+        arm64 = nixpkgsFunc {
+          crossSystem =
+            let cfg = {
+              config = "aarch64-linux-android";
+              arch = "arm64";
+            }; in {
+            inherit (cfg) config arch;
+            libc = "glibc";
+            withTLS = true;
+            openssl.system = "linux-generic64";
+            platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
+          };
+          config.allowUnfree = true;
+        };
+      };
+      ios =
         let config = {
               allowUnfree = true;
               packageOverrides = p: {
@@ -86,7 +102,7 @@ let nixpkgs = nixpkgsFunc ({
             };
         in {
         simulator64 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -104,7 +120,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         arm64 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -122,7 +138,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         armv7 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -440,6 +456,15 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
+    overrideForGhcAndroid = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        ghcjs-prim = null;
+        ghcjs-json = null;
+        mkDerivation = drv: super.mkDerivation.override { hscolour = ghc.hscolour; }
+          (drv // { doHaddock = false;
+          });
+      };
+    };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
       overrides = self: super: {
         ghcjs-prim = null;
@@ -578,6 +603,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
+  ghcAndroidArm64 = overrideForGhcAndroid (extendHaskellPackages nixpkgsCross.android.arm64.pkgs.haskell.packages.ghc802);
   ghcIosArm64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcCross);
   ghcIosArmv7 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcCross);
 in let this = rec {
@@ -602,7 +628,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7;
+  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 nixpkgsCross ghcAndroidArm64;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
