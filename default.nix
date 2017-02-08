@@ -51,7 +51,7 @@ let nixpkgs = nixpkgsFunc ({
         arm64 = nixpkgsFunc {
           crossSystem =
             let cfg = {
-              config = "aarch64-linux-android";
+              config = "aarch64-unknown-linux-gnu";
               arch = "arm64";
             }; in {
             inherit (cfg) config arch;
