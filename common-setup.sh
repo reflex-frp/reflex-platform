@@ -38,7 +38,7 @@ user_error() {
     exit "$1"
 }
 
-echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
+>&2 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
 
 (
 
