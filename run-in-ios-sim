@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+uuid="$(xcrun simctl create reflex-todomvc com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-10-2)"
+
+function cleanup {
+  if [ -n "$uuid" ]; then
+    echo "Cleaning up simulator" >&2
+    xcrun simctl shutdown "$uuid" 2>/dev/null
+    xcrun simctl delete "$uuid"
+  fi
+}
+trap cleanup EXIT
+
+name="${1##*/}"
+name="${name%.app}"
+
+open -a Simulator --args -CurrentDeviceUDID "$uuid"
+sleep 5
+xcrun simctl install "$uuid" "$1"
+xcrun simctl launch --console "$uuid" "$name"
