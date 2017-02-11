@@ -428,14 +428,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
         MemoTrie = addBuildDepend super.MemoTrie self.void;
         generic-deriving = dontHaddock super.generic-deriving;
-        aeson = overrideCabal super.aeson (drv: {
-          revision = "1";
-          editedCabalFile = "680affa9ec12880014875ce8281efb2407efde69c30e9a82654e973e5dc2c8a1";
-          buildDepends = (drv.buildDepends or []) ++ [
-            self.nats
-            self.semigroups
-          ];
-        });
         bifunctors = dontHaddock super.bifunctors;
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
@@ -444,6 +436,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       overrides = self: super: {
         ghcjs-prim = null;
         ghcjs-json = null;
+        derive = null;
+        focus-http-th = null;
+        th-lift-instances = null;
+
         #text = appendConfigureFlag super.text "-finteger-simple";
         #scientific = appendConfigureFlag super.scientific "-finteger-simple";
         #hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
