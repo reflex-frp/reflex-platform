@@ -247,21 +247,24 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
 #        Cabal = self.Cabal_1_24_2_0;
 
-        gi-atk = super.gi-atk_2_0_11;
-        gi-cairo = super.gi-cairo_1_0_11;
-        gi-gdk = super.gi-gdk_3_0_11;
-        gi-gdkpixbuf = super.gi-gdkpixbuf_2_0_11;
-        gi-gio = super.gi-gio_2_0_11;
-        gi-glib = super.gi-glib_2_0_11;
-        gi-gobject = super.gi-gobject_2_0_11;
-        gi-gtk = super.gi-gtk_3_0_11;
-        gi-javascriptcore = super.gi-javascriptcore_4_0_11;
-        gi-pango = super.gi-pango_1_0_11;
-        gi-soup = super.gi-soup_2_4_11;
-        gi-webkit = super.gi-webkit_3_0_11;
-        gi-webkit2 = super.gi-webkit2.override {
-          webkit2gtk = nixpkgs.webkitgtk214x;
-        };
+        gi-atk = appendConfigureFlag super.gi-atk_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-cairo = appendConfigureFlag super.gi-cairo_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gdk = appendConfigureFlag super.gi-gdk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gdkpixbuf = appendConfigureFlag super.gi-gdkpixbuf_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gio = appendConfigureFlag super.gi-gio_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-glib = appendConfigureFlag super.gi-glib_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gobject = appendConfigureFlag super.gi-gobject_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gtk = appendConfigureFlag super.gi-gtk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-javascriptcore = appendConfigureFlag super.gi-javascriptcore_4_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-pango = appendConfigureFlag super.gi-pango_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-soup = appendConfigureFlag super.gi-soup_2_4_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-webkit = appendConfigureFlag super.gi-webkit_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-webkit2 = appendConfigureFlag (super.gi-webkit2.override {
+          webkit2gtk = self.webkitgtk214x;
+        }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gtksource = appendConfigureFlag (super.gi-gtksource.override {
+          inherit (nixpkgs.gnome3) gtksourceview;
+        }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         haskell-gi = super.haskell-gi_0_20;
         haskell-gi-base = super.haskell-gi-base_0_20;
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
@@ -444,14 +447,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
         MemoTrie = addBuildDepend super.MemoTrie self.void;
         generic-deriving = dontHaddock super.generic-deriving;
-        aeson = overrideCabal super.aeson (drv: {
-          revision = "1";
-          editedCabalFile = "680affa9ec12880014875ce8281efb2407efde69c30e9a82654e973e5dc2c8a1";
-          buildDepends = (drv.buildDepends or []) ++ [
-            self.nats
-            self.semigroups
-          ];
-        });
         bifunctors = dontHaddock super.bifunctors;
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
@@ -481,6 +476,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       overrides = self: super: {
         ghcjs-prim = null;
         ghcjs-json = null;
+        derive = null;
+        focus-http-th = null;
+        th-lift-instances = null;
+        websockets = null;
+        wai = null;
+        warp = null;
+        wai-app-static = null;
+
         #text = appendConfigureFlag super.text "-finteger-simple";
         #scientific = appendConfigureFlag super.scientific "-finteger-simple";
         #hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
@@ -640,7 +643,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 nixpkgsCross ghcAndroidArm64;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
