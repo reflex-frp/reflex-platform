@@ -458,6 +458,18 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhcAndroid = haskellPackages: haskellPackages.override {
       overrides = self: super: {
+        ghc = super.ghc // {
+          bootPkgs = super.ghc.bootPkgs.override {
+            overrides = self: super: {
+              Cabal = self.callPackage "${nixpkgs.fetchFromGitHub {
+                owner = "obsidiansystems";
+                repo = "cabal";
+                rev = "34292fadaf90571dba15e84ee66eb601ab8b317f";
+                sha256 = "06rsgrlz0wf88qqjrkj9lyy45h7ijvza04awnbc9ci7igr1syn1c";
+              }}/Cabal" {};
+            };
+          };
+        };
         ghcjs-prim = null;
         ghcjs-json = null;
         mkDerivation = drv: super.mkDerivation.override { hscolour = ghc.hscolour; }
