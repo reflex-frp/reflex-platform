@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 function cleanup {
   if [ -n "$tmpdir" -a -d "$tmpdir" ]; then
     echo "Cleaning up tmpdir" >&2
     rm -fR $tmpdir
-  fi
-  if [ -n "$uuid" ]; then
-    echo "Cleaning up simulator" >&2
-    xcrun simctl shutdown $uuid 2>/dev/null
-    xcrun simctl delete $uuid
   fi
 }
 
@@ -20,7 +16,7 @@ if [ -z "$1" ]; then
 fi
 
 tmpdir=$(mktemp -d)
-# Find the signer given the ou
+# Find the signer given the OU
 signer=$(security find-certificate -c "iPhone Developer" -a \
   | grep '^    "alis"<blob>="' \
   | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
@@ -35,10 +31,8 @@ if [ -z "$signer" ]; then
   exit 1
 fi
 
-nix-build -A ghcIosArm64.reflex-todomvc
 mkdir -p $tmpdir/reflex-todomvc.app
-cp -r `nix-build -A ghcIosArm64.reflex-todomvc`/reflex-todomvc.app/* $tmpdir/reflex-todomvc.app
-sed "s|<team-id/>|$1|" < reflex-todomvc/reflex-todomvc.app.xcent > $tmpdir/reflex-todomvc.app.xcent
+cp -r `nix-build --no-out-link -A ghcIosArm64.reflex-todomvc`/reflex-todomvc.app/* $tmpdir/reflex-todomvc.app
+sed "s|<team-id/>|$1|" < "$(eval "echo $(nix-instantiate --eval -E '(import ./. {}).ghcIosArm64.reflex-todomvc.src')")/reflex-todomvc.app.xcent" > $tmpdir/reflex-todomvc.app.xcent
 /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/reflex-todomvc.app.xcent --timestamp=none $tmpdir/reflex-todomvc.app
-ios-deploy -b $tmpdir/reflex-todomvc.app
-
+"$(nix-build --no-out-link -A nixpkgs.nodePackages.ios-deploy)/bin/ios-deploy" -b $tmpdir/reflex-todomvc.app
