@@ -1,4 +1,4 @@
-{ nixpkgsFunc ? import ./nixpkgs
+{ nixpkgsFunc ? args: import ./nixpkgs ((if system == null then {} else { inherit system; }) // args)
 , system ? null
 , config ? null
 , enableLibraryProfiling ? false
@@ -43,9 +43,7 @@ let nixpkgs = nixpkgsFunc ({
           }) {};
         };
       } // (if config == null then {} else config);
-    } // (
-      if system == null then {} else { inherit system; }
-    ));
+    });
     nixpkgsCross = {
       android = {
         arm64 = nixpkgsFunc {
