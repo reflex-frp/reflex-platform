@@ -716,7 +716,7 @@ in let this = rec {
   };
 
   ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
-  platforms = [ "ghcjs" "ghc" "ghcIosSimulator64" ];
+  platforms = [ "ghcjs" "ghc" "ghcIosSimulator64" "ghcAndroidArm64" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
