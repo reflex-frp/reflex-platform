@@ -196,6 +196,16 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     makeRecursivelyOverridable = x: old: x.override old // {
       override = new: makeRecursivelyOverridable x (combineOverrides old new);
     };
+    foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
+      postInstall = ''
+        cd dist/build/${pkg.pname}/${pkg.pname}-tmp
+        for header in $(find . | grep '\.h''$'); do
+          local dest_dir=$out/include/$(dirname "$header")
+          mkdir -p "$dest_dir"
+          cp "$header" "$dest_dir"
+        done
+      '';
+    });
     cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
       buildCommand = ''
         cabal2nix file://"${src}" >"$out"
@@ -643,7 +653,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
