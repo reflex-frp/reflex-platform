@@ -242,6 +242,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         jsaddle = jsaddlePkgs.jsaddle;
+        jsaddle-clib = jsaddlePkgs.jsaddle-clib;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
         jsaddle-wkwebview = overrideCabal jsaddlePkgs.jsaddle-wkwebview (drv: {
         });
@@ -477,9 +478,72 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         };
         ghcjs-prim = null;
         ghcjs-json = null;
+        derive = null;
+        focus-http-th = null;
+        th-lift-instances = null;
+        websockets = null;
+        wai = null;
+        warp = null;
+        wai-app-static = null;
+
+        semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
+        wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
+        cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
+        profunctors = overrideCabal super.profunctors (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
+          '';
+        });
+        fgl = overrideCabal super.fgl (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find Data -name '*.hs')
+          '';
+        });
+        lens = overrideCabal super.lens (drv: {
+          version = "4.15.1";
+          sha256 = null;
+          src = nixpkgs.fetchFromGitHub {
+            owner = "hamishmack";
+            repo = "lens";
+            rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
+            sha256 = "0nxcki1w8qxk4q7hjxpaqzyfjyib52al7jzagf8f3b0v2m3kk1a3";
+          };
+          revision = "4";
+          editedCabalFile = "e055de1a2d30bf9122947afbc5e342b06a0f4a512fece45f5b9132f7beb11539";
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
+          '';
+          preCompileBuildDriver = ''
+            rm Setup.lhs
+          '';
+          doCheck = false;
+          jailbreak = true;
+        });
+
+
+        reflex = super.reflex.override {
+          useTemplateHaskell = false;
+        };
+        reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
+        reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
+            postFixup = ''
+                mkdir $out/reflex-todomvc.app
+                cp reflex-todomvc.app/* $out/reflex-todomvc.app/
+                cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
+            '';
+        });
+        happy = self.ghc.bootPkgs.happy;
+
+        # Disabled for now (jsaddle-wkwebview will probably be better on iOS)
+        jsaddle-warp = null;
+        # Disable these because these on iOS
+        jsaddle-webkitgtk = null;
+        jsaddle-webkit2gtk = null;
+
         mkDerivation = drv: super.mkDerivation.override { hscolour = ghc.hscolour; }
           (drv // { doHaddock = false;
           });
+
       };
     };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
