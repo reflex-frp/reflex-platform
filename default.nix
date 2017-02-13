@@ -356,6 +356,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         aeson = overrideCabal super.aeson (drv: {
           version = "0.11.2.1";
+          sha256 = "0k5p06pik7iyjm1jjkjbpqqn0mqps6b8mz9p9sp9hmganl4cffyc";
           revision = "1";
           editedCabalFile = "04sydhx056gpakm39xk7s849qjr218ai1sjj2zr7n0yxxm1sqzz9";
           # Export all modules
