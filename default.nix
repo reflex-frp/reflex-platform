@@ -186,7 +186,7 @@ let nixpkgs = nixpkgsFunc ({
     };
     sedAesonCabal = ''
       sed -i '/^library/,/^test-suite/ s/other-modules://' *.cabal
-      sed -i '/^module Data.Aeson.TH/,/) where/ { /^module/b; /) where/ { s/)/, LookupField (..), parseTypeMismatch, valueConName)/; b }; }' Data/Aeson/TH.hs
+      sed -i "/^module Data.Aeson.TH/,/) where/ { /^module/b; /) where/ { s/)/, LookupField (..), parseTypeMismatch, parseTypeMismatch', valueConName)/; b }; }" Data/Aeson/TH.hs
     '';
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
