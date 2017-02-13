@@ -171,13 +171,23 @@ let nixpkgs = nixpkgsFunc ({
         rev = "f8dece8c016db6476e2bb0d4f972769a76f6ff40";
         sha256 = "0j2bxzi102ay4s0vc39vi9xlny7fgsjv379pibdcfzsd6k540517";
       };
-      ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
-        name = "ghcjs-boot";
-        outPath = filterGit ./ghcjs-boot;
-      };
+      ghcjs-boot = nixpkgs.runCommand "ghcjs-boot" {
+        orig = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
+          name = "ghcjs-boot";
+          outPath = filterGit ./ghcjs-boot;
+        };
+      } ''
+        cp -r --no-preserve=mode "$orig" "$out"
+        cd "$out/boot/aeson"
+        ${sedAesonCabal}
+      '';
       shims = if builtins.pathExists ./shims/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
       ghcjs = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
+    sedAesonCabal = ''
+      sed -i '/^library/,/^test-suite/ s/other-modules://' *.cabal
+      sed -i '/^module Data.Aeson.TH/,/) where/ { /^module/b; /) where/ { s/)/)/; b }; }' Data/Aeson/TH.hs
+    '';
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
@@ -344,6 +354,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         x509 = dontHaddock super.x509;
         x509-validation = dontHaddock super.x509-validation;
 
+        aeson = overrideCabal super.aeson (drv: {
+          version = "0.11.2.1";
+          revision = "1";
+          editedCabalFile = "04sydhx056gpakm39xk7s849qjr218ai1sjj2zr7n0yxxm1sqzz9";
+          # Export all modules
+          preConfigure = sedAesonCabal;
+        });
+
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
         deepseq-generics = doJailbreak super.deepseq-generics;
@@ -483,6 +501,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         wai = null;
         warp = null;
         wai-app-static = null;
+        jsaddle-wkwebview = null;
 
         semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
