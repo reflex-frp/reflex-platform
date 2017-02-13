@@ -254,7 +254,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         gi-soup = appendConfigureFlag super.gi-soup_2_4_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         gi-webkit = appendConfigureFlag super.gi-webkit_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         gi-webkit2 = appendConfigureFlag (super.gi-webkit2.override {
-          webkit2gtk = self.webkitgtk214x;
+          webkit2gtk = nixpkgs.webkitgtk214x;
         }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         gi-gtksource = appendConfigureFlag (super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
