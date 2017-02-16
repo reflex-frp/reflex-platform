@@ -60,6 +60,20 @@ let nixpkgs = nixpkgsFunc ({
           };
           config.allowUnfree = true;
         };
+        armv7a = nixpkgsFunc {
+          crossSystem =
+            let cfg = {
+              config = "arm-unknown-linux-androideabi";
+              arch = "armv7";
+            }; in {
+            inherit (cfg) config arch;
+            libc = "glibc";
+            withTLS = true;
+            openssl.system = "linux-generic32";
+            platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
+          };
+          config.allowUnfree = true;
+        };
       };
       ios =
         let config = {
@@ -711,6 +725,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
   ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcHEAD);
   ghcAndroidArm64 = overrideForGhcAndroid (extendHaskellPackages nixpkgsCross.android.arm64.pkgs.haskell.packages.ghcHEAD);
+  ghcAndroidArmv7a = overrideForGhcAndroid (extendHaskellPackages nixpkgsCross.android.armv7a.pkgs.haskell.packages.ghcHEAD);
   ghcIosArm64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcHEAD);
   ghcIosArmv7 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcHEAD);
 in let this = rec {
@@ -735,7 +750,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
@@ -808,7 +823,7 @@ in let this = rec {
   };
 
   ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
-  platforms = [ "ghcjs" "ghc" "ghcIosSimulator64" "ghcAndroidArm64" ];
+  platforms = [ "ghcjs" "ghc" "ghcIosSimulator64" "ghcAndroidArm64" "ghcAndroidArmv7a" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
