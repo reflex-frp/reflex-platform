@@ -1,6 +1,6 @@
-{ nixpkgsFunc ? args: import ./nixpkgs ((if system == null then {} else { inherit system; }) // args)
-, system ? null
-, config ? null
+{ nixpkgsFunc ? import ./nixpkgs
+, system ? builtins.currentSystem
+, config ? {}
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? false
 , enableTraceReflexEvents ? false
@@ -8,6 +8,7 @@
 , useTextJSString ? true
 }:
 let nixpkgs = nixpkgsFunc ({
+      inherit system;
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
@@ -42,11 +43,11 @@ let nixpkgs = nixpkgsFunc ({
             };
           }) {};
         };
-      } // (if config == null then {} else config);
+      } // config;
     });
     nixpkgsCross = {
-      android = {
-        arm64 = nixpkgsFunc {
+      android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
+        arm64 = {
           crossSystem =
             let cfg = {
               config = "aarch64-unknown-linux-gnu";
@@ -60,7 +61,10 @@ let nixpkgs = nixpkgsFunc ({
           };
           config.allowUnfree = true;
         };
-        armv7a = nixpkgsFunc {
+        arm64Impure = arm64 // {
+          crossSystem = arm64.crossSystem // { useAndroidImpure = true; };
+        };
+        armv7a = {
           crossSystem =
             let cfg = {
               config = "arm-unknown-linux-androideabi";
