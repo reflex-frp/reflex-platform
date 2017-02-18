@@ -78,6 +78,9 @@ let nixpkgs = nixpkgsFunc ({
           };
           config.allowUnfree = true;
         };
+        armv7aImpure = armv7a // {
+          crossSystem = armv7a.crossSystem // { useAndroidImpure = true; };
+        };
       };
       ios =
         let config = {
