@@ -54,7 +54,7 @@ let nixpkgs = nixpkgsFunc ({
               arch = "arm64";
             }; in {
             inherit (cfg) config arch;
-            libc = "glibc";
+            libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic64";
             platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
@@ -71,7 +71,7 @@ let nixpkgs = nixpkgsFunc ({
               arch = "armv7";
             }; in {
             inherit (cfg) config arch;
-            libc = "glibc";
+            libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic32";
             platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
