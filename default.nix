@@ -521,6 +521,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         wai-app-static = null;
         jsaddle-wkwebview = null;
 
+        aeson = exposeAeson super.aeson;
+
         semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
         cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
