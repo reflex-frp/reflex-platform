@@ -192,25 +192,23 @@ let nixpkgs = nixpkgsFunc ({
         rev = "f8dece8c016db6476e2bb0d4f972769a76f6ff40";
         sha256 = "0j2bxzi102ay4s0vc39vi9xlny7fgsjv379pibdcfzsd6k540517";
       };
-      ghcjs-boot = nixpkgs.runCommand "ghcjs-boot" {
-        orig = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
-          name = "ghcjs-boot";
-          outPath = filterGit ./ghcjs-boot;
-        };
-      } ''
-        cp -r --no-preserve=mode "$orig" "$out"
-        cd "$out/boot/aeson"
-        ${sedAesonCabal}
-      '';
+      ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
+        name = "ghcjs-boot";
+        outPath = filterGit ./ghcjs-boot;
+      };
       shims = if builtins.pathExists ./shims/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
       ghcjs = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
-    sedAesonCabal = ''
-      sed -i '/^library/,/^test-suite/ s/other-modules://' *.cabal
-      sed -i "/^module Data.Aeson.TH/,/) where/ { /^module/b; /) where/ { s/) where/, LookupField (..), parseTypeMismatch, parseTypeMismatch', valueConName) where/; b }; }" Data/Aeson/TH.hs
-    '';
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
+    exposeAeson = aeson: overrideCabal aeson (drv: {
+      # Export all modules, and some additional functions
+      preConfigure = ''
+        sed -i '/^library/,/^test-suite/ s/other-modules://' *.cabal
+        sed -i "/^module Data.Aeson.TH/,/) where/ { /^module/b; /) where/ { s/) where/, LookupField (..), parseTypeMismatch, parseTypeMismatch', valueConName) where/; b }; }" Data/Aeson/TH.hs
+        ${drv.preConfigure or ""}
+      '';
+    });
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
       sha256 = null;
@@ -380,8 +378,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "0k5p06pik7iyjm1jjkjbpqqn0mqps6b8mz9p9sp9hmganl4cffyc";
           revision = "1";
           editedCabalFile = "04sydhx056gpakm39xk7s849qjr218ai1sjj2zr7n0yxxm1sqzz9";
-          # Export all modules
-          preConfigure = sedAesonCabal;
         });
 
         # Jailbreaks
@@ -596,6 +592,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         wai = null;
         warp = null;
         wai-app-static = null;
+
+        # IOS doesn't support template haskell yet
+        aeson = exposeAeson super.aeson;
 
         #text = appendConfigureFlag super.text "-finteger-simple";
         #scientific = appendConfigureFlag super.scientific "-finteger-simple";
