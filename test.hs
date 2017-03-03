@@ -111,3 +111,9 @@ main = hspec $ parallel $ do
       shelly $ silently $ do
         run "nix-shell" []
       return () :: IO ()
+
+  describe "Dockerfile" $ do
+    it "is created successfully" $ do
+      shelly $ silently $ do
+        run "docker" ["build", "."]
+      return () :: IO ()
