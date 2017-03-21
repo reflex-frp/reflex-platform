@@ -253,7 +253,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       else drv: drv;
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
-        let reflexDom = import ./reflex-dom self;
+        let reflexDom = import ./reflex-dom self nixpkgs;
             jsaddlePkgs = import ./jsaddle self;
             ghcjsDom = import ./ghcjs-dom self;
             addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
