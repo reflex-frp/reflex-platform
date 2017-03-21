@@ -7,14 +7,24 @@ To get started with Reflex development, follow the instructions below.
 
 Try Reflex lets you set up an environment from which you can use [Reflex](https://github.com/ryantrinkle/reflex) with [GHCJS](https://github.com/ghcjs/ghcjs).
 
+To use Reflex Platform as a build/development system for your own projects, refer to `HACKING.md`.
+
 Important Notes
 ---------------
+
+### OS Compatibility
+
 If you're using one of these platforms, please take a look at notes before you begin:
 
 * [NixOS](notes/NixOS.md)
 * [Linux Mint](notes/LinuxMint.md)
 
 If you encounter any problems that may be specific to your platform, please submit an issue or pull request so that we can add a note for future users.
+
+### Memory Requirements
+
+GHCJS uses a lot of memory during compilation. 16GB of memory is recommended, with 8GB being pretty close to bare minimum.
+
 
 Setup
 -----
@@ -27,7 +37,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
     ```
 
 2. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
-    
+
     ```bash
     cd reflex-platform
     ./try-reflex
@@ -235,7 +245,7 @@ numberInput = do
 `numberInput` hasn't changed here. Our `main` function now creates two inputs. `zipDynWith` is used to produce the actual sum of the values of the inputs. The type signature of `zipDynWith` is:
 
 ```haskell
-    Reflex t => (a -> b -> c) -> Dynamic t a -> Dynamic t b -> Dynamic t c 
+    Reflex t => (a -> b -> c) -> Dynamic t a -> Dynamic t b -> Dynamic t c
 ```
 
 You can see that it takes a function that combines two pure values and produces some other pure value, and two `Dynamic`s, and produces a `Dynamic`.
