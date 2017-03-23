@@ -8,6 +8,7 @@ Contents
 #. Architecture of a reflex application
 #. Reflex basics
 #. Reflex-dom basics
+#. A guide to Event Management
 #. Reflex API reference
 #. Reflex-dom API reference
 
@@ -20,6 +21,8 @@ Architecture of a reflex application
 A typical reflex application consists of widgets which have a Dom view, and
 these widgets can create events, and also respond to events.
 
+(A Widget is some DOM wrapped up for easy use with Reflex)
+
 Widget can be thought as a DOM Structure which has the capability to modify its
 contents in response to events or based on a Dynamic value. It can also contain
 structures like input fields which can generate events. Moreover user
@@ -28,6 +31,12 @@ interaction events can also be generated from the widgets.
 Additionally there can be portions of code (equivalent to a controller) which
 does not have a Dom view, but can process input events, maintain a state and
 generate output events or dynamic values.
+
+These controller can encapsulate the logic behind handling of incoming events, 
+they can transform (using Functor) or filter (using Applicative) these events
+and dynamic values as per the need. This way user has the power to create custom
+event flows which can be either restricted/local to some widgets or span the
+entire app.
 
 Reflex does not enforce a strict separation between these two.
 Sometimes it is a good practice to partition the code in these sub-categories,
@@ -40,6 +49,7 @@ controller.
 
 Example of a simple widget which creates a Click event, and another which
 responds to it. (may be button_and_textvisibility.hs)
+
 
 Another example of a widget which is self-contained ::
 
@@ -64,6 +74,7 @@ Your guide for splitting things will probably be that you want to find pieces th
 loosely connected to everything else in terms of inputs and ouputs and make them their own function.
 
 Finally an example of multiple widgets with circular dependency.
+
 
 Events can be broadly categorized into:-
 
@@ -96,10 +107,36 @@ The three main types to understand in Reflex are Behavior, Event, and Dynamic.
   viewed as a step function over time, with the value changing at every
   occurrence.
 
+The type ``t`` is an abstract type with constraint ``Reflex t``, and this is passed to every FRP-enabled datatypes
+This helps identify the FRP subsystem being used. This ensures that wires don't get crossed if a single
+program uses Reflex in multiple different contexts.
+
+.. Push/Pull APIs?
+
+.. Note from Divam - The ``Reflex`` typeclass provides functions which I think
+  are not important discussing here?
+  Similarly MonadSample, MonadHold are not relevant in introduction
+  They are relevant in QuickRef which lists the API and their constraints
+
+The reflex package provides many APIs to create the control logic of reflex app
+which is independent of the DOM.
+
+A guide to Event management - To clarify how to construct the event graph using
+the APIs listed here
+
+Quick Ref -> <link to QuickRef here>
+Full Documentation -> <link to Reflex full doc>
+.. May be hackage link, etc
 
 Reflex-Dom basics
 -----------------
 
-Type classes information (Reflex, MonadWidget, MonadSample, MonadHold, etc)
+This package provides a lot of helpful APIs to construct DOM widgets, do AJAX /
+websockets or any other arbitrary IO.
 
+Quick Ref -> <link to QuickRef here>
+Full Documentation -> <link to Reflex-Dom full doc>
+.. Need to document the "Dynamic widgets"
+  What do they actually do, and when to use them
 
+Reflex.Dom.WidgetHost, Reflex.Dom.Widget
