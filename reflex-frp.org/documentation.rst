@@ -9,11 +9,53 @@ Contents
 #. Reflex basics
 #. Reflex-dom basics
 #. A guide to Event Management
+   #. Event Creation/ Producers
+   #. Consumers / Sink of Event
+   #. Role of Dynamic
+      #. Event to Dynamic
+      #. Tagging Event
+      #. Sampling Dynamic: Promptly vs delayed?
+
+   #. Creating Event propagation graph
+      #. Simple
+      #. Recursive Do
+      #. Fanning Dynamic/Event
+      #. Merging/Switching
+      #. Nested Dynamic values
+
+   #. Maintaining State via fold
+   #. Some gyan from reflex-dom-contrib
+
+#. A guide to DOM creation
+   #. Static DOM
+   #. Dynamic DOM
+   #. DOM events
+   #. Troubleshooting type-class errors
+
+#. A guide to AJAX
+   #. XHR
+   #. WebSockets
+
+#. Debugging Reflex application
+#. Advanced topics
+   #. Client side routing
+   #. Backend integration
+   #. Designing library/ reusable web snippets
+   #. Libraries - diagrams-reflex, reflex-gloss, etc.
+
 #. Reflex API reference
 #. Reflex-dom API reference
 
+
+.. API reference can be direct haddock documentation
+  But other places need to put references to this.. How to do it?
+
 Installation
 ------------
+
+.. TODO copy from reflex-platform, it has to provide all the possible ways 
+  user might need to install including stack, nix, nixos, ...
+
 
 Architecture of a reflex application
 ------------------------------------
@@ -76,12 +118,6 @@ loosely connected to everything else in terms of inputs and ouputs and make them
 Finally an example of multiple widgets with circular dependency.
 
 
-Events can be broadly categorized into:-
-
-  1. Input fields
-  2. Mouse / keyboard events
-  3. Browser resize, etc.
-
 
 Reflex basics
 -------------
@@ -134,9 +170,22 @@ Reflex-Dom basics
 This package provides a lot of helpful APIs to construct DOM widgets, do AJAX /
 websockets or any other arbitrary IO.
 
+For example how to use this::
+
+  -- Create a dynamically-redefined widget from a Dynamic of widget actions.
+  [W]   dyn        ::        Dynamic (m a) -> m (Event a)
+
+
 Quick Ref -> <link to QuickRef here>
 Full Documentation -> <link to Reflex-Dom full doc>
+
 .. Need to document the "Dynamic widgets"
   What do they actually do, and when to use them
+  
+  briefly explain these clases here?
+  Reflex.Dom.WidgetHost, Reflex.Dom.Widget
 
-Reflex.Dom.WidgetHost, Reflex.Dom.Widget
+Client Side Routing
+-------------------
+..       https://ublubu.tumblr.com/post/144208331227/client-side-routing-in-reflex-dom-notes-1
+       servant-router
