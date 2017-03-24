@@ -47,7 +47,7 @@ let nixpkgs = nixpkgsFunc ({
       if system == null then {} else { inherit system; }
     ));
     nixpkgsCross = {
-      ios = 
+      ios =
         let config = {
               allowUnfree = true;
               packageOverrides = p: {
@@ -86,7 +86,7 @@ let nixpkgs = nixpkgsFunc ({
             };
         in {
         simulator64 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -104,7 +104,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         arm64 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -122,7 +122,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         armv7 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -148,8 +148,8 @@ let nixpkgs = nixpkgsFunc ({
       intero = nixpkgs.fetchFromGitHub {
         owner = "commercialhaskell";
         repo = "intero";
-        rev = "5378bb637c76c48eca64ccda0c855f7557aecb60";
-        sha256 = "1vgmbs790l8z90bk8sib3xvli06p1nkrjnnvlnhsjzkkpxynf2nf";
+        rev = "04265e68647bbf27772df7b71c9927d451e6256f";
+        sha256 = "0zax01dmrk1zbqw8j8css1w6qynbavfdjfgfxs34pb37gp4v8mgg";
       };
       timezone-series = nixpkgs.fetchFromGitHub {
         owner = "ryantrinkle";
@@ -278,7 +278,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           };
         });
 
-        intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
+        intero = dontCheck (self.callPackage (cabal2nixResult sources.intero) {});
 
         dependent-map = overrideCabal super.dependent-map (drv: {
           version = "0.2.4.0";
