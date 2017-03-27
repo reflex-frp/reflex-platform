@@ -1,6 +1,5 @@
 {
-  "owner": "ghcjs",
-  "repo": "ghcjs-dom",
-  "rev": "2b43f7c7259f8d74963b05320ca6f6601292d932",
-  "sha256": "06i024jfh4p1mz35wm7azrrwzrvwvzpday7rvqhg064prmbny0af"
+  "url": "https://github.com/ghcjs/ghcjs-dom.git",
+  "rev": "680e70ebe3f2369b5e7e0d3f1da458557bba74e4",
+  "sha256": "05h0gcp8j2ijlxlx279705nsxp2sbx5844br6sndw4yyc6r2c7xb"
 }

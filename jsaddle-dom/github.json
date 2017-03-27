@@ -1,6 +1,5 @@
 {
-  "owner": "ghcjs",
-  "repo": "jsaddle-dom",
-  "rev": "d0d57909bb492596f9ea938b6edadd5eadfdeeee",
-  "sha256": "1v2fs9cny8dvdfgb06c5xbgqpv7g3bhyc8jyf566iqz9vw5v4ain"
+  "url": "https://github.com/ghcjs/jsaddle-dom.git",
+  "rev": "4ca445075bc03f950d5e387668996c31b51d5496",
+  "sha256": "0xnpny6z688p7bfba607790gfwawhq5fdl1swcdy8vjdxymd5w4v"
 }
