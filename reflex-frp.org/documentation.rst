@@ -8,13 +8,21 @@ Contents
 #. Architecture of a reflex application
 #. Reflex basics
 #. Reflex-dom basics
+#. A guide to DOM creation
+   #. Static DOM
+   #. Dynamic DOM
+      #. Library Widgets with Dynamic input
+      #. Connecting the Dots (Types)
+   #. DOM events
+   #. SVG
+   #. Troubleshooting type-class errors
+
 #. A guide to Event Management
    #. Event Creation/ Producers
    #. Consumers / Sink of Event
-   #. Role of Dynamic
+   #. Dynamic
       #. Event to Dynamic
       #. Tagging Event
-      #. Sampling Dynamic: Promptly vs delayed?
 
    #. Creating Event propagation graph
       #. Simple
@@ -25,15 +33,6 @@ Contents
 
    #. Maintaining State via fold
    #. Some gyan from reflex-dom-contrib
-
-#. A guide to DOM creation
-   #. Static DOM
-   #. Dynamic DOM
-      #. Library Widgets with Dynamic input
-      #. Connecting the Dots (Types)
-   #. DOM events
-   #. SVG
-   #. Troubleshooting type-class errors
 
 #. A guide to AJAX
    #. XHR

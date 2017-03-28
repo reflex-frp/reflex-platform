@@ -50,7 +50,7 @@ Dynamic DOM
 The simplest way to create a dynamic DOM is to use library APIs which take
 Dynamic values as input. The following section covers these APIs.
 Using these APIs you can create bigger widgets which can have multiple Dynamic
-values as input or even better if th
+values as input.
 
 Also you can create dynamic widgets by using static widgets, ie the widget 
 which don't take dynamic values as inputs (like String -> m (Event t a)).
