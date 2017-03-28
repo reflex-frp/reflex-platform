@@ -36,3 +36,73 @@ As you can see i used the function dyn to create a dynamic html table. Unfortuna
 tableDynAttr, listWithKey etc.
 Complete lack of documentation makes it hard for me to comprehend how those functions work.
 It would be great if someone posted simple examples of how to use some of the functions from Reflex.Dom.Widget modules.
+
+DOM creation works in () monand. Since it is monadic, the sequence of widget APIs directly correspond to the sequence of DOM elements.
+
+Static DOM
+----------
+
+``text button el link divClass dtdd blank``
+
+Dynamic DOM
+-----------
+
+The simplest way to create a dynamic DOM is to use library APIs which take
+Dynamic values as input. The following section covers these APIs.
+Using these APIs you can create bigger widgets which can have multiple Dynamic
+values as input or even better if th
+
+Also you can create dynamic widgets by using static widgets, ie the widget 
+which don't take dynamic values as inputs (like String -> m (Event t a)).
+This can be done simply by mapping the Dynamic values over these widgets (with
+mapDyn fmap??) and using ``dyn``.
+
+When you map the Dynamic values over the widgets which take just the 
+
+Library Widgets with Dynamic input
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Change the attributes of a DOM element via Dynamic values. Use 
+``dynText elDynAttr elDynClass``
+``tableDynAttr``
+  A widget to display a table with static columns and dynamic
+rows.
+
+``display``
+``tabDisplay``
+  A widget to construct a tabbed view that shows only one of its child
+  widgets at a time.
+  Creates a header bar containing a <ul> with one <li> per child; clicking
+  a <li> displays
+   the corresponding child and hides all others.
+
+
+Dynamic widgets
+~~~~~~~~~~~~~~~
+
+widgetHold :: m a -> Event t (m a) -> m (Dynamic t a)
+  This is probably the easiest 
+
+
+Dynamic widgets on Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  list
+  simpleList
+
+  -- * Widgets on Collections
+  listWithKey
+  listWithKey'
+  listWithKeyShallowDiff
+  listViewWithKey
+
+  listHoldWithKey
+
+  partitionMapBySetLT??
+
+.. What is Workflow??
+
+Troubleshooting type-class errors
+---------------------------------
+
+.. http://stackoverflow.com/questions/41367144/haskell-how-to-fix-the-type-variable-ambigous-compiler-error

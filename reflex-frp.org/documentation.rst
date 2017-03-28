@@ -29,7 +29,10 @@ Contents
 #. A guide to DOM creation
    #. Static DOM
    #. Dynamic DOM
+      #. Library Widgets with Dynamic input
+      #. Connecting the Dots (Types)
    #. DOM events
+   #. SVG
    #. Troubleshooting type-class errors
 
 #. A guide to AJAX
@@ -42,6 +45,8 @@ Contents
    #. Backend integration
    #. Designing library/ reusable web snippets
    #. Libraries - diagrams-reflex, reflex-gloss, etc.
+   #. FFI
+   #. Integ with JQuery, etc?
 
 #. Reflex API reference
 #. Reflex-dom API reference

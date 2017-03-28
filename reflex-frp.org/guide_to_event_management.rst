@@ -19,4 +19,9 @@ So the takeaway here is that for values to update they need to be reactive type 
 
 
 https://www.reddit.com/r/reflexfrp/comments/4nyteu/joindyn_and_eboth/
+http://anderspapitto.com/posts/2016-11-09-efficient-updates-of-sum-types-in-reflex.html
 
+Creating Event propagation graph
+--------------------------------
+
+mconcatDyn for monoid Dynamic
