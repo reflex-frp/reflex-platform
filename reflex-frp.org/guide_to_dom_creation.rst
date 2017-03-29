@@ -57,27 +57,23 @@ rows.
 DOM Input elements
 ~~~~~~~~~~~~~~~~~~
 
+See input_widgets.hs
 
 
-widgetsWithEvents = do
-  
-  -- get the link click Event
-  ev <- el "div" $ do
 
-    -- A link
-    -- Similar to elAttr "a", but it generates a click Event
-    ev <- link "Click this text"
-
-    return ev
-  
-
-  return ()
-
-Dynamic widgets
+Dynamic widgets based on Events
 ~~~~~~~~~~~~~~~
 
-widgetHold :: m a -> Event t (m a) -> m (Dynamic t a)
-  This is probably the easiest 
+Create a widget which updates whenever en Event occurs.
+
+dyn
+
+If you have a widget which depends on some event (like AJAX response), but you
+need to display something else instead of a blank. ::
+
+  -- widgetHold :: m a -> Event t (m a) -> m (Dynamic t a)
+  
+  widgetHold (text "Loading...") widgetDependentOnSomeEvent
 
 
 Dynamic widgets on Collections

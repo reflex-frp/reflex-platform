@@ -2,7 +2,34 @@ A Guide to Event Management
 ===========================
 
 In order to leverage the full power of reflex, one has to effectively use
-ability to create Event propagation graphs. This guide covers the basics
+ability to create Event propagation graphs. This guide gives an overview of
+various useful techniques.
+
+Overview
+--------
+
+In reactive programming you have various sources of events
+which have to be utilised for providing responses. For example when user clicks a
+button, this event can have various different reponses depending 
+upon the context or more specifically the state of the application.
+
+The response to an event is most cases do some change in DOM, AJAX request or 
+change the internal state of application.
+
+In an FRP architecture (atleast in Reflex) this response can be expressed or implemented by 
+
+1. Firing another Event.
+2. Modification of a Dynamic Value.
+
+Note that there is no explicit callbacks or function calls in response to the
+incoming events. Instead there is generation of new Events and modification of
+Dynamic values. These Event and Dynamic values are then propagated to widgets
+which provide the appropriate response to the event.
+
+Since this propagation of Event/Dynamic values can be cyclic, it can be thought
+as an Event propagation graph.
+
+The following sections covers details of constructing this graph.
 
 Event Creation
 --------------
