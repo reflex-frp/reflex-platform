@@ -2,7 +2,7 @@ A Guide to Event Management
 ===========================
 
 In order to leverage the full power of reflex, one has to effectively use
-ability to create Event propagation graphs. This guide covers the basics and ...
+ability to create Event propagation graphs. This guide covers the basics
 
 Event Creation
 --------------
@@ -60,6 +60,7 @@ In Monadic code - create a cyclic graph of event propagation
 
 
 Problems in cyclic dependency
+
 #. Deadlock - Runtime deadlock due to block on an MVar operation
    This can occur if a widget depends on an Event which is created
    in a ``let`` clause after the widget creation.
@@ -110,6 +111,8 @@ use foldDyn (or foldDynMaybe, foldDynM, foldDynMaybeM).
 The eventHandler can be a pure API.
 
 Even nested state machines can be designed if your have a nested Dynamic value
+by using foldDynM
+
 see nested_dynamic.hs
 
 

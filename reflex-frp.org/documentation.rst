@@ -5,9 +5,15 @@ Contents
 --------
 
 #. Installation
-#. Architecture of a reflex application
-#. Reflex basics
-#. Reflex-dom basics
+#. Architecture of a Reflex Application
+   #. View-Controller Architecture
+   #. Integrated Widget Architecture
+   #. Widgets Interacting Together
+   #. Single Page App vs Other designs
+
+#. Reflex Basics
+#. Reflex-DOM Basics
+
 #. A guide to DOM creation
    #. Static DOM
    #. Dynamic DOM
@@ -64,17 +70,14 @@ Installation
 Architecture of a reflex application
 ------------------------------------
 
-A typical reflex application consists of widgets which have a Dom view, and
-these widgets can create events, and also respond to events.
-
-(A Widget is some DOM wrapped up for easy use with Reflex)
+A typical reflex application consists of widgets, and some glue code to *connect* the widgets together.
 
 Widget can be thought as a DOM Structure which has the capability to modify its
-contents in response to events or based on a Dynamic value. It can also contain
+contents in response to events or based on some dynamic values. It can also contain
 structures like input fields which can generate events. Moreover user
-interaction events can also be generated from the widgets. 
+interaction events like mouse clicks can also be captured from the widgets. 
 
-Additionally there can be portions of code (equivalent to a controller) which
+Additionally there are some pieces of code (equivalent to a controller) which
 does not have a Dom view, but can process input events, maintain a state and
 generate output events or dynamic values.
 
@@ -84,20 +87,29 @@ and dynamic values as per the need. This way user has the power to create custom
 event flows which can be either restricted/local to some widgets or span the
 entire app.
 
-Reflex does not enforce a strict separation between these two.
+Reflex does not enforce a strict separation between these two, and user has the
+complete flexibility to chose a suitable design.
+
 Sometimes it is a good practice to partition the code in these sub-categories,
-like implementing the main business logic in a pure function with a well defined
-state machine.
+like implementing the main business logic in a pure function or a state machine, and the view in a separate module.
 
 But many times it is better to have independent self-contained widgets, thereby
 reducing the complexity of propagating trivial events from view to the
 controller.
 
+View-Controller Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Separate APIs to manage events and to render view.
+
 Example of a simple widget which creates a Click event, and another which
 responds to it. (may be button_and_textvisibility.hs)
 
 
-Another example of a widget which is self-contained ::
+Integrated Widget Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example of a widget which is self-contained ::
 
   editInPlace
       :: MonadWidget t m
@@ -119,17 +131,30 @@ and then you split out whatever widgets it makes sense to split out.
 Your guide for splitting things will probably be that you want to find pieces that are 
 loosely connected to everything else in terms of inputs and ouputs and make them their own function.
 
+Widgets Interacting Together
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Finally an example of multiple widgets with circular dependency.
+
+Single Page App vs Other designs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
 Reflex basics
 -------------
 
-The three main types to understand in Reflex are Behavior, Event, and Dynamic.
+The reflex package provides the foundation for the FRP architecture through the
+type class definitions, and the most important type class in this package is ``Reflex``.
+
+
+The three main types to understand in ``Reflex`` are Behavior, Event, and Dynamic.
 
 #. Behavior
-  ``Behavior t a`` abstracts the idea of a value a at all points in time. It must be
+  A container for a value that can change over time.  'Behavior's can be
+  sampled at will, but it is not possible to be notified when they change
+
+  ``Behavior t a`` abstracts the idea of a value ``a`` at all points in time. It must be
   defined for all points in time and at any point you can look at the behavior and
   sample its value. If you need to represent something that does not have a value
   at all points in time, you should probably use Behavior t (Maybe a).
@@ -147,8 +172,9 @@ The three main types to understand in Reflex are Behavior, Event, and Dynamic.
   viewed as a step function over time, with the value changing at every
   occurrence.
 
-The type ``t`` is an abstract type with constraint ``Reflex t``, and this is passed to every FRP-enabled datatypes
-This helps identify the FRP subsystem being used. This ensures that wires don't get crossed if a single
+The ``t`` type parameter indicates which "timeline" is in use.
+Timelines are fully-independent FRP contexts, and the type of the timeline determines the FRP engine to be used. This is passed to every FRP-enabled datatypes
+and it ensures that wires don't get crossed if a single
 program uses Reflex in multiple different contexts.
 
 .. Push/Pull APIs?
@@ -168,7 +194,7 @@ Quick Ref -> <link to QuickRef here>
 Full Documentation -> <link to Reflex full doc>
 .. May be hackage link, etc
 
-Reflex-Dom basics
+Reflex-DOM basics
 -----------------
 
 This package provides a lot of helpful APIs to construct DOM widgets, do AJAX /
@@ -189,7 +215,13 @@ Full Documentation -> <link to Reflex-Dom full doc>
   briefly explain these clases here?
   Reflex.Dom.WidgetHost, Reflex.Dom.Widget
 
+
+
+Advanced Topics
+---------------
+
 Client Side Routing
--------------------
+~~~~~~~~~~~~~~~~~~~
+
 ..       https://ublubu.tumblr.com/post/144208331227/client-side-routing-in-reflex-dom-notes-1
        servant-router

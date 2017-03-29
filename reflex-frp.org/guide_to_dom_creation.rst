@@ -1,3 +1,107 @@
+A Guide to DOM Creation
+=======================
+
+DOM creation works in () monand. Since it is monadic, the sequence of widget APIs directly correspond to the sequence of DOM elements.
+
+-- Reflex-Dom entry point.  Takes a monadic widget-building action of lengthy
+-- type and turns it into an IO action.
+[I]   mainWidget ::
+          Widget Spider (Gui Spider (WithWebView SpiderHost) (HostFrame Spider)) () -> IO ()
+[I]   mainWidgetWithHead ::
+          Widget Spider (Gui Spider (WithWebView SpiderHost) (HostFrame Spider)) () ->
+          Widget Spider (Gui Spider (WithWebView SpiderHost) (HostFrame Spider)) () -> IO ()
+[I]   mainWidgetWithCss ::
+          ByteString ->
+          Widget Spider (Gui Spider (WithWebView SpiderHost) (HostFrame Spider)) () -> IO ()
+
+
+Static DOM
+----------
+
+simple_dom.hs ``text button el link divClass dtdd blank``
+
+Dynamic DOM
+-----------
+
+The simplest way to create a dynamic DOM is to use library APIs which take
+Dynamic values as input. The following section covers these APIs.
+Using these APIs you can create bigger widgets which can have multiple Dynamic
+values as input.
+
+Also you can create dynamic widgets by using static widgets, ie the widget 
+which don't take dynamic values as inputs (like String -> m (Event t a)).
+This can be done simply by mapping the Dynamic values over these widgets (with
+mapDyn fmap??) and using ``dyn``.
+
+When you map the Dynamic values over the widgets which take just the 
+
+Library Widgets with Dynamic input
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Change the attributes of a DOM element via Dynamic values. Use 
+``dynText elDynAttr elDynClass``
+``tableDynAttr``
+  A widget to display a table with static columns and dynamic
+rows.
+
+``display``
+``tabDisplay``
+  A widget to construct a tabbed view that shows only one of its child
+  widgets at a time.
+  Creates a header bar containing a <ul> with one <li> per child; clicking
+  a <li> displays
+   the corresponding child and hides all others.
+
+
+DOM Input elements
+~~~~~~~~~~~~~~~~~~
+
+
+
+widgetsWithEvents = do
+  
+  -- get the link click Event
+  ev <- el "div" $ do
+
+    -- A link
+    -- Similar to elAttr "a", but it generates a click Event
+    ev <- link "Click this text"
+
+    return ev
+  
+
+  return ()
+
+Dynamic widgets
+~~~~~~~~~~~~~~~
+
+widgetHold :: m a -> Event t (m a) -> m (Dynamic t a)
+  This is probably the easiest 
+
+
+Dynamic widgets on Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  list
+  simpleList
+
+  -- * Widgets on Collections
+  listWithKey
+  listWithKey'
+  listWithKeyShallowDiff
+  listViewWithKey
+
+  listHoldWithKey
+
+  partitionMapBySetLT??
+
+.. What is Workflow??
+
+Troubleshooting type-class errors
+---------------------------------
+
+.. http://stackoverflow.com/questions/41367144/haskell-how-to-fix-the-type-variable-ambigous-compiler-error
+
 
 
 https://www.reddit.com/r/reflexfrp/comments/3h3s72/rendering_dynamic_html_table/
@@ -37,72 +141,3 @@ tableDynAttr, listWithKey etc.
 Complete lack of documentation makes it hard for me to comprehend how those functions work.
 It would be great if someone posted simple examples of how to use some of the functions from Reflex.Dom.Widget modules.
 
-DOM creation works in () monand. Since it is monadic, the sequence of widget APIs directly correspond to the sequence of DOM elements.
-
-Static DOM
-----------
-
-``text button el link divClass dtdd blank``
-
-Dynamic DOM
------------
-
-The simplest way to create a dynamic DOM is to use library APIs which take
-Dynamic values as input. The following section covers these APIs.
-Using these APIs you can create bigger widgets which can have multiple Dynamic
-values as input.
-
-Also you can create dynamic widgets by using static widgets, ie the widget 
-which don't take dynamic values as inputs (like String -> m (Event t a)).
-This can be done simply by mapping the Dynamic values over these widgets (with
-mapDyn fmap??) and using ``dyn``.
-
-When you map the Dynamic values over the widgets which take just the 
-
-Library Widgets with Dynamic input
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Change the attributes of a DOM element via Dynamic values. Use 
-``dynText elDynAttr elDynClass``
-``tableDynAttr``
-  A widget to display a table with static columns and dynamic
-rows.
-
-``display``
-``tabDisplay``
-  A widget to construct a tabbed view that shows only one of its child
-  widgets at a time.
-  Creates a header bar containing a <ul> with one <li> per child; clicking
-  a <li> displays
-   the corresponding child and hides all others.
-
-
-Dynamic widgets
-~~~~~~~~~~~~~~~
-
-widgetHold :: m a -> Event t (m a) -> m (Dynamic t a)
-  This is probably the easiest 
-
-
-Dynamic widgets on Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  list
-  simpleList
-
-  -- * Widgets on Collections
-  listWithKey
-  listWithKey'
-  listWithKeyShallowDiff
-  listViewWithKey
-
-  listHoldWithKey
-
-  partitionMapBySetLT??
-
-.. What is Workflow??
-
-Troubleshooting type-class errors
----------------------------------
-
-.. http://stackoverflow.com/questions/41367144/haskell-how-to-fix-the-type-variable-ambigous-compiler-error
