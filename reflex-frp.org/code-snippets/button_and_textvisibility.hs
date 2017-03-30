@@ -7,12 +7,17 @@ import Reflex.Dom
 -- Simple flow of an event from one widget to another.
 main = mainWidget $ do
 
-  -- This widget is defined in library, it creates a simple button
+  -- View Widget to Generate Events
+  -- button widget is defined in library, it creates a simple button
   evClick <- button "Click Me!"
 
-  -- Toggle visibility, creates a dynamic bool isVisible
+  -- Controller
+  -- Handle events and create a 'Dynamic t Bool' value
+  -- This toggles the visibility when the button is pressed
   isVisible <- foldDyn (\_ b -> not b) False evClick
 
+  -- View
+  -- This is a simple widget that takes a 'Dynamic t Bool' as input
   textWithDynamicVisibility isVisible
 
   return ()
