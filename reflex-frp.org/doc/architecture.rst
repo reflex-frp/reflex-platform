@@ -7,13 +7,13 @@ A typical reflex application consists of widgets, and some glue code to *connect
 Widget can be thought as a DOM Structure which has the capability to modify its
 contents in response to events or based on some dynamic values. It can also contain
 structures like input fields which can generate events. Moreover user
-interaction events like mouse clicks can also be captured from the widgets. 
+interaction events like mouse clicks can also be captured from the widgets.
 
 Additionally there are some pieces of code (equivalent to a controller) which
 does not have a Dom view, but can process input events, maintain a state and
 generate output events or dynamic values.
 
-These controller can encapsulate the logic behind handling of incoming events, 
+These controller can encapsulate the logic behind handling of incoming events,
 they can transform (using Functor) or filter (using Applicative) these events
 and dynamic values as per the need. This way user has the power to create custom
 event flows which can be either restricted/local to some widgets or span the
@@ -32,10 +32,38 @@ controller.
 View-Controller Architecture
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Separate APIs to manage events and to render view.
+Separate APIs to manage events and to render view ::
 
-Example of a simple widget which creates a Click event, and another which
-responds to it. (may be button_and_textvisibility.hs)
+  -- button_and_textvisibility.hs
+  -- This code demonstrates use of an event to create dynamic values
+  -- Simple flow of an event from one widget to another.
+  main = mainWidget $ do
+
+    -- View Widget to Generate Events
+    -- button widget is defined in library, it creates a simple button
+    evClick <- button "Click Me!"
+
+    -- Controller
+    -- Handle events and create a 'Dynamic t Bool' value
+    -- This toggles the visibility when the button is pressed
+    isVisible <- foldDyn (\_ b -> not b) False evClick
+
+    -- View
+    -- This is a simple widget that takes a 'Dynamic t Bool' as input
+    textWithDynamicVisibility isVisible
+
+    return ()
+
+  -- This widget takes the input value of visibility
+  -- and creates a view based on that
+  textWithDynamicVisibility isVisible = do
+    let dynAttr = ffor isVisible
+                   (\case
+                     True -> ("style" =: "")
+                     False -> ("style" =: "display: none;"))
+
+    elDynAttr "div" dynAttr $
+      text "Click the button again to make me disappear!"
 
 
 Integrated Widget Architecture
@@ -52,15 +80,15 @@ Example of a widget which is self-contained ::
       -> m (Event t String)
       -- ^ Event that fires when the text is edited
 
-This defines the entire interface to this widget. What makes this example particularly 
-interesting is that the widget has to maintain some internal state in order to implement 
+This defines the entire interface to this widget. What makes this example particularly
+interesting is that the widget has to maintain some internal state in order to implement
 its functionality. Namely, it has to keep track of the Viewing/Editing state.
-Reflex allows widgets to handle this kind of state internally without needing to 
+Reflex allows widgets to handle this kind of state internally without needing to
 add it to some top-level application-wide state object.
-This hugely improves composability and ultimately allows you to build GUI apps 
-just like you would any other Haskell app--main is your overarching top-level function 
-and then you split out whatever widgets it makes sense to split out. 
-Your guide for splitting things will probably be that you want to find pieces that are 
+This hugely improves composability and ultimately allows you to build GUI apps
+just like you would any other Haskell app--main is your overarching top-level function
+and then you split out whatever widgets it makes sense to split out.
+Your guide for splitting things will probably be that you want to find pieces that are
 loosely connected to everything else in terms of inputs and ouputs and make them their own function.
 
 Widgets Interacting Together
@@ -68,9 +96,13 @@ Widgets Interacting Together
 
 Finally an example of multiple widgets with circular dependency.
 
+
 Single Page App vs Other designs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Reflex is suitable primarily for single-page apps.
+
+.. todo:: Add strategies to build non-single-page apps.
 
 
 Reflex Basics
@@ -143,7 +175,7 @@ Full Documentation -> <link to Reflex-Dom full doc>
 
 .. Need to document the "Dynamic widgets"
   What do they actually do, and when to use them
-  
+
   briefly explain these clases here?
   Reflex.Dom.WidgetHost, Reflex.Dom.Widget
 
