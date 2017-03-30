@@ -1,7 +1,23 @@
+.. _guide_to_dom_creation:
+
 A Guide to DOM Creation
 =======================
 
-DOM creation works in () monand. Since it is monadic, the sequence of widget APIs directly correspond to the sequence of DOM elements.
+The ``reflex-dom`` package provides a lot of helpful APIs to construct DOM widgets, do AJAX /
+websockets or any other arbitrary IO.
+
+See `Quick Ref <https://github.com/reflex-frp/reflex-dom/blob/develop/Quickref.md>`_
+
+.. todo:: Add links to latest haddock
+
+.. Need to document the "Dynamic widgets"
+  What do they actually do, and when to use them
+
+..
+  briefly explain these clases here?
+  Reflex.Dom.WidgetHost, Reflex.Dom.Widget
+
+DOM creation works in ``MonadWidget``. Since it is monadic, the sequence of widget APIs directly correspond to the sequence of DOM elements.
 
 ..
   -- Reflex-Dom entry point.  Takes a monadic widget-building action of lengthy
@@ -19,7 +35,40 @@ DOM creation works in () monand. Since it is monadic, the sequence of widget API
 Static DOM
 ----------
 
-simple_dom.hs ``text button el link divClass dtdd blank``
+Here is a simple example of some of the static-dom widgets::
+
+  -- simple_dom.hs
+  {-# LANGUAGE OverloadedStrings #-}
+
+  import Reflex.Dom
+
+  -- Code to showcase Reflex.Dom's APIs to create simple static DOM
+  main = mainWidget $ do
+    simple
+
+  simple :: (MonadWidget t m) => m ()
+  simple = do
+    el "div" $
+      -- Specify attributes in a (Map Text Text)
+      elAttr "span" ("style" =: "color:blue") $
+        text "Text inside span"
+
+    -- Use CSS style center-align and red-text
+    -- using these specialised APIs
+    divClass "center-align" $
+      elClass "span" "red-text" $
+        text "Div with class center-align and red text"
+
+    el "dl" $ do
+      dtdd "dt dd tags" $
+        text "Here goes the description"
+
+      dtdd "Reflex" $ do
+        text "Haskell + awesome FRP!"
+        -- Should we have a 'textbr' API with line break at the end?
+        el "br" $ blank -- Add line break, blank == return ()
+        -- A simple URL link
+        elAttr "a" ("href" =: "http://reflexfrp.org") (text "Reflex-FRP")
 
 Dynamic DOM
 -----------

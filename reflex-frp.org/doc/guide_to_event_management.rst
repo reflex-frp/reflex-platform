@@ -1,5 +1,12 @@
+.. _guide_to_event_management:
+
 A Guide to Event Management
 ===========================
+
+The reflex package provides many APIs to create the control logic of reflex app
+which is independent of the DOM.
+
+See `Quick Ref <https://github.com/reflex-frp/reflex/blob/develop/Quickref.md>`_
 
 In order to leverage the full power of reflex, one has to effectively use
 ability to create Event propagation graphs. This guide gives an overview of
@@ -10,13 +17,13 @@ Overview
 
 In reactive programming you have various sources of events
 which have to be utilised for providing responses. For example when user clicks a
-button, this event can have various different reponses depending 
+button, this event can have various different reponses depending
 upon the context or more specifically the state of the application.
 
-The response to an event is most cases do some change in DOM, AJAX request or 
+The response to an event is most cases do some change in DOM, AJAX request or
 change the internal state of application.
 
-In an FRP architecture (atleast in Reflex) this response can be expressed or implemented by 
+In an FRP architecture (atleast in Reflex) this response can be expressed or implemented by
 
 1. Firing another Event.
 2. Modification of a Dynamic Value.
@@ -40,7 +47,7 @@ The following are the main source of events
 #. Dynamic - By calling ``updated`` on a Dynamic value one can obtain the event
    when its value changes.
 
-Events can be manipulated using fmap, 
+Events can be manipulated using fmap,
 
 Behavior
 --------
@@ -55,14 +62,14 @@ Dynamic
 Event to Dynamic
 ~~~~~~~~~~~~~~~~
 
-holdDyn - 
+holdDyn -
 
 Tagging Event
 ~~~~~~~~~~~~~
 
 tagPromptlyDyn -
 
-tag - 
+tag -
 
 Sampling Dynamic: Promptly vs delayed?
 
@@ -93,7 +100,7 @@ Problems in cyclic dependency
    in a ``let`` clause after the widget creation.
    To fix this simply move the ``let`` clause before the widget creation
 
-#. Loop - Output of holdDyn feeds back can cause this?? 
+#. Loop - Output of holdDyn feeds back can cause this??
 
 Collections
 ~~~~~~~~~~~
@@ -153,9 +160,9 @@ see nested_dynamic.hs
 
 ..
   Simple Reflex stuff guide, no DOM related stuff here.
-  
+
   https://www.reddit.com/r/reflexfrp/comments/3bocn9/how_to_extract_the_current_value_from_a_text_box/
-  
+
   Event is probably as you understand it, discrete events. Behavior's are values which change over time (but you don't know when they changed)
   and a Dynamic is Event + Behavior, values which change over time, and you're notified when they change, too.
   The problem with your example, is that omg is not an Event, Behavior or Dynamic but just a String (so it will never change).
@@ -169,8 +176,8 @@ see nested_dynamic.hs
     ev <- performRequestAsync $ fmap (\url -> xhrRequest "GET" url def) event
     holdDyn (Just defaultValue) $ fmap _xhrResponse_body ev
   So the takeaway here is that for values to update they need to be reactive type (Event, Behavior, Dynamic), sample is almost never what you want to do.
-  
-  
+
+
   https://www.reddit.com/r/reflexfrp/comments/4nyteu/joindyn_and_eboth/
   http://anderspapitto.com/posts/2016-11-09-efficient-updates-of-sum-types-in-reflex.html
-  
+
