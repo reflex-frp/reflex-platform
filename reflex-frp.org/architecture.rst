@@ -1,73 +1,5 @@
-Documentation
-=============
 
-Contents
---------
-
-#. Installation
-#. Architecture of a Reflex Application
-   #. View-Controller Architecture
-   #. Integrated Widget Architecture
-   #. Widgets Interacting Together
-   #. Single Page App vs Other designs
-
-#. Reflex Basics
-#. Reflex-DOM Basics
-
-#. A guide to DOM creation
-   #. Static DOM
-   #. Dynamic DOM
-      #. Library Widgets with Dynamic input
-      #. Connecting the Dots (Types)
-   #. DOM events
-   #. SVG
-   #. Troubleshooting type-class errors
-
-#. A guide to Event Management
-   #. Event Creation/ Producers
-   #. Consumers / Sink of Event
-   #. Dynamic
-      #. Event to Dynamic
-      #. Tagging Event
-
-   #. Creating Event propagation graph
-      #. Simple
-      #. Recursive Do
-      #. Fanning Dynamic/Event
-      #. Merging/Switching
-      #. Nested Dynamic values
-
-   #. Maintaining State via fold
-   #. Some gyan from reflex-dom-contrib
-
-#. A guide to AJAX
-   #. XHR
-   #. WebSockets
-
-#. Debugging Reflex application
-#. Advanced topics
-   #. Client side routing
-   #. Backend integration
-   #. Designing library/ reusable web snippets
-   #. Libraries - diagrams-reflex, reflex-gloss, etc.
-   #. FFI
-   #. Integ with JQuery, etc?
-
-#. Reflex API reference
-#. Reflex-dom API reference
-
-
-.. API reference can be direct haddock documentation
-  But other places need to put references to this.. How to do it?
-
-Installation
-------------
-
-.. TODO copy from reflex-platform, it has to provide all the possible ways 
-  user might need to install including stack, nix, nixos, ...
-
-
-Architecture of a reflex application
+Architecture of a Reflex Application
 ------------------------------------
 
 A typical reflex application consists of widgets, and some glue code to *connect* the widgets together.
@@ -141,7 +73,7 @@ Single Page App vs Other designs
 
 
 
-Reflex basics
+Reflex Basics
 -------------
 
 The reflex package provides the foundation for the FRP architecture through the
@@ -151,26 +83,26 @@ type class definitions, and the most important type class in this package is ``R
 The three main types to understand in ``Reflex`` are Behavior, Event, and Dynamic.
 
 #. Behavior
-  A container for a value that can change over time.  'Behavior's can be
-  sampled at will, but it is not possible to be notified when they change
+   A container for a value that can change over time.  'Behavior's can be
+   sampled at will, but it is not possible to be notified when they change
 
-  ``Behavior t a`` abstracts the idea of a value ``a`` at all points in time. It must be
-  defined for all points in time and at any point you can look at the behavior and
-  sample its value. If you need to represent something that does not have a value
-  at all points in time, you should probably use Behavior t (Maybe a).
+   ``Behavior t a`` abstracts the idea of a value ``a`` at all points in time. It must be
+   defined for all points in time and at any point you can look at the behavior and
+   sample its value. If you need to represent something that does not have a value
+   at all points in time, you should probably use Behavior t (Maybe a).
 
 #. Event
-  ``Event t a`` abstracts the idea of something that occurs or is updated at discrete
-  points in time. An example might be button clicks which would be Event t (), or
-  key presses which might be Event t Char. Events are push oriented, i.e. they
-  tell you when the value changes.
+   ``Event t a`` abstracts the idea of something that occurs or is updated at discrete
+   points in time. An example might be button clicks which would be Event t (), or
+   key presses which might be Event t Char. Events are push oriented, i.e. they
+   tell you when the value changes.
 
 #. Dynamic
-  ``Dynamic t a`` is an abstraction that has a value at all points in time AND can
-  notify you when its value is updated. They are essentially a tuple of an Event
-  and a Behavior boxed up in a way that keeps everything consistent. They can be
-  viewed as a step function over time, with the value changing at every
-  occurrence.
+   ``Dynamic t a`` is an abstraction that has a value at all points in time AND can
+   notify you when its value is updated. They are essentially a tuple of an Event
+   and a Behavior boxed up in a way that keeps everything consistent. They can be
+   viewed as a step function over time, with the value changing at every
+   occurrence.
 
 The ``t`` type parameter indicates which "timeline" is in use.
 Timelines are fully-independent FRP contexts, and the type of the timeline determines the FRP engine to be used. This is passed to every FRP-enabled datatypes
@@ -194,7 +126,7 @@ Quick Ref -> <link to QuickRef here>
 Full Documentation -> <link to Reflex full doc>
 .. May be hackage link, etc
 
-Reflex-DOM basics
+Reflex-DOM Basics
 -----------------
 
 This package provides a lot of helpful APIs to construct DOM widgets, do AJAX /
@@ -217,11 +149,3 @@ Full Documentation -> <link to Reflex-Dom full doc>
 
 
 
-Advanced Topics
----------------
-
-Client Side Routing
-~~~~~~~~~~~~~~~~~~~
-
-..       https://ublubu.tumblr.com/post/144208331227/client-side-routing-in-reflex-dom-notes-1
-       servant-router

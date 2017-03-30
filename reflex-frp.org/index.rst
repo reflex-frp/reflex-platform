@@ -9,8 +9,23 @@ Welcome to Reflex's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+   
+   installation
+   architecture
+   guide_to_dom_creation
+   guide_to_event_management
+   guide_to_ajax
+   debugging
+   advanced_topics
 
+..
+  #. Reflex API reference
+  #. Reflex-dom API reference
+  
+  
+  .. API reference can be direct haddock documentation
+    But other places need to put references to this.. How to do it?
 
 
 Indices and tables
