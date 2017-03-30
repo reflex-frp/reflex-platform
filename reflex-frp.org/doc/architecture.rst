@@ -35,6 +35,9 @@ View-Controller Architecture
 Separate APIs to manage events and to render view ::
 
   -- button_and_textvisibility.hs
+  {-# LANGUAGE OverloadedStrings #-}
+  {-# LANGUAGE LambdaCase #-}
+
   -- This code demonstrates use of an event to create dynamic values
   -- Simple flow of an event from one widget to another.
   main = mainWidget $ do
@@ -94,8 +97,53 @@ loosely connected to everything else in terms of inputs and ouputs and make them
 Widgets Interacting Together
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally an example of multiple widgets with circular dependency.
+This is a simple example of creating a cicular Event-Dynamic propagation.::
 
+  -- button_and_textvisibility_2.hs
+  {-# LANGUAGE OverloadedStrings #-}
+  {-# LANGUAGE LambdaCase #-}
+  {-# LANGUAGE RecursiveDo #-} -- This is important!
+
+  -- This code demonstrates use of an event to create dynamic values
+  -- Circular flow of Event/Dynamic using Recursive-do syntax
+  main = mainWidget $ do
+
+    rec
+      -- Controller
+      -- Handle events and create a 'Dynamic t Bool' value
+      -- This toggles the visibility when the button is pressed
+      isVisible <- foldDyn (\_ b -> not b) False evClick
+
+      -- View
+      -- This widget creates the button and its click event,
+      -- The click event is propagated to the controller
+      evClick <- textWithDynamicVisibility isVisible
+
+    return ()
+
+  -- This widget takes the input value of visibility
+  -- and creates a view based on that
+  textWithDynamicVisibility isVisible = do
+    -- View Widget to Generate Events
+    -- button widget is defined in library, it creates a simple button
+    evClick <- button "Click Me!"
+
+    let dynAttr = ffor isVisible
+                   (\case
+                     True -> ("style" =: "")
+                     False -> ("style" =: "display: none;"))
+
+    elDynAttr "div" dynAttr $
+      text "Click the button again to make me disappear!"
+
+    return evClick
+
+As you can see this helps in separating the View widget and controller code.
+
+This architecture is also helpful in creating more complex interactions between
+widgets. See examples
+
+.. todo:: (Link to examples here)
 
 Single Page App vs Other designs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
