@@ -76,10 +76,16 @@ need to display something else instead of a blank. ::
   widgetHold (text "Loading...") widgetDependentOnSomeEvent
 
 
-Dynamic widgets on Collections
+Dynamic widgets on Dynamic Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  list
-  simpleList
+
+If you have a collection of Dynamic values, then it is straighforward to use
+them to create a dynamic DOM. But if your collection is itself a Dynamic then
+use these APIs::
+
+  simpleList :: Dynamic t [v] -> (Dynamic t v -> m a) -> m (Dynamic t [a])
+  list :: Dynamic t (Map k v) -> (Dynamic t v -> m a) -> m (Dynamic t (Map k a))
+
 
   -- * Widgets on Collections
   listWithKey

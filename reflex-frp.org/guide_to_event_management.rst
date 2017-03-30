@@ -95,6 +95,13 @@ Problems in cyclic dependency
 
 #. Loop - Output of holdDyn feeds back can cause this?? 
 
+Collections
+~~~~~~~~~~~
+
+Use of Dynamic t [], Dynamic t (Map k v), etc
+
+User data model design : separate guide?
+
 Fanning
 ~~~~~~~
 
