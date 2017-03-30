@@ -20,10 +20,10 @@ which have to be utilised for providing responses. For example when user clicks 
 button, this event can have various different reponses depending
 upon the context or more specifically the state of the application.
 
-The response to an event is most cases do some change in DOM, AJAX request or
+The response to an event in most cases will do some change in DOM, AJAX request or
 change the internal state of application.
 
-In an FRP architecture (atleast in Reflex) this response can be expressed or implemented by
+In Reflex this response can be expressed or implemented by
 
 1. Firing another Event.
 2. Modification of a Dynamic Value.
@@ -38,31 +38,65 @@ as an Event propagation graph.
 
 The following sections covers details of constructing this graph.
 
-Event Creation
---------------
+Event
+-----
 
-The following are the main source of events
+Creation
+~~~~~~~~
 
-#. DOM - See ... for DOM event creation widgets
-#. Dynamic - By calling ``updated`` on a Dynamic value one can obtain the event
+The following are the primary sources of events
+
+#. DOM
+
+   #. Input fields like button, text-box, etc.
+
+      See the type of input fields (``TextInput RangeInput`` etc)
+      to see what events are available.
+
+   #. User interaction events like mouse click, mouse over, etc.
+
+      ``domEvent`` API can be used to create ``Event`` on DOM elements::
+
+        (e,_) <- el' "span" $ text "Click Here"
+
+        clickEv :: Event t ()
+        clickEv <- domEvent Click e
+
+      For a complete list of events accepted by ``domEvent`` see ``EventName``
+
+      .. todo:: Add a link to haddock
+
+#. Response from AJAX request
+   see :ref:`guide_to_ajax`
+
+#. ``Dynamic`` values - By calling ``updated`` on a ``Dynamic`` value one can obtain the event
    when its value changes.
 
-Events can be manipulated using fmap,
+Manipulation
+~~~~~~~~~~~~
 
-Behavior
---------
+Using these primary ``Event``\s you can create secondary / derived events by
 
-The sink of a behavior is ``sample``, so it is only useful when a widget is created
-dynamically by sampling some behavior, but remain static after its creation.
+#. Manipulated the value using fmap::
 
+    -- inputValueEv :: Event t Int
 
-Dynamic
--------
+    doubledInputValueEv = ffor inputValue (* 2)
 
-Event to Dynamic
-~~~~~~~~~~~~~~~~
+#. Filter the value::
 
-holdDyn -
+    -- inputValueEv :: Event t Int
+
+    -- This Event will fire only if input value is even
+    evenOnlyEv = ffilter even inputValueEv
+
+   Use ``fmapMaybe fforMaybe`` for similar filtering
+
+#. Tagging value of ``Dynamic`` or ``Behavior``.
+
+   see :ref:`tagging_event`
+
+.. _tagging_event:
 
 Tagging Event
 ~~~~~~~~~~~~~
@@ -74,6 +108,49 @@ tag -
 Sampling Dynamic: Promptly vs delayed?
 
 attachDyn, tagPromptlyDyn
+
+
+Behavior
+--------
+
+The sink of a behavior is ``sample``, so it is only useful when a widget is created
+dynamically by sampling some behavior, but remain static after its creation.
+
+
+Dynamic
+-------
+
+Creation
+~~~~~~~~
+
+The following are the primary sources of ``Dynamic`` values
+
+#. DOM
+
+   #. Input fields like text-box, range input etc.
+
+      See the type of input fields (``TextInput RangeInput`` etc)
+
+Event to Dynamic
+~~~~~~~~~~~~~~~~
+
+Create a ``Dynamic`` which changes value when ``Event`` occurs::
+
+  holdDyn :: a -> Event t a -> m (Dynamic t a)
+  foldDyn :: (a -> b -> b) -> b -> Event t a -> m (Dynamic t b)
+
+These can be utilised to maintain a state in application.
+For more see :ref:`maintain_state`
+
+Manipulation
+~~~~~~~~~~~~
+
+Using these primary ``Dynamic`` values you can create secondary / derived values by
+
+#. ``fmap``
+
+#. ``zipDyn zipDynWith``
+
 
 Creating Event propagation graph
 --------------------------------
@@ -140,6 +217,8 @@ Higher order FRP
 
 Nested structure and flattening
 
+
+.. _maintain_state:
 
 Maintaining State via fold
 --------------------------
