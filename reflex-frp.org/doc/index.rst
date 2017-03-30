@@ -3,8 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Reflex's documentation!
+Welcome to Reflex-FRP documentation!
 ==================================
+
+This is a work-in progress, so many sections are incomplete or empty...
+
+Please feel free to contribute to this Documentation by opening a pull-request.
 
 Contents:
 
