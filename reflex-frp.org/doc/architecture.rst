@@ -177,16 +177,18 @@ Example of a widget which is self-contained ::
       -> m (Event t String)
       -- ^ Event that fires when the text is edited
 
-This defines the entire interface to this widget. What makes this example particularly
-interesting is that the widget has to maintain some internal state in order to implement
-its functionality. Namely, it has to keep track of the Viewing/Editing state.
-Reflex allows widgets to handle this kind of state internally without needing to
-add it to some top-level application-wide state object.
-This hugely improves composability and ultimately allows you to build GUI apps
-just like you would any other Haskell app--main is your overarching top-level function
-and then you split out whatever widgets it makes sense to split out.
-Your guide for splitting things will probably be that you want to find pieces that are
-loosely connected to everything else in terms of inputs and ouputs and make them their own function.
+Quoting `mightybyte <https://github.com/mightybyte>`_
+
+  This defines the entire interface to this widget. What makes this example particularly
+  interesting is that the widget has to maintain some internal state in order to implement
+  its functionality. Namely, it has to keep track of the Viewing/Editing state.
+  Reflex allows widgets to handle this kind of state internally without needing to
+  add it to some top-level application-wide state object.
+  This hugely improves composability and ultimately allows you to build GUI apps
+  just like you would any other Haskell app--main is your overarching top-level function
+  and then you split out whatever widgets it makes sense to split out.
+  Your guide for splitting things will probably be that you want to find pieces that are
+  loosely connected to everything else in terms of inputs and ouputs and make them their own function.
 
 Single Page App vs Other designs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -194,14 +196,6 @@ Single Page App vs Other designs
 Reflex is suitable primarily for single-page apps.
 
 .. todo:: Add ways to build non-single-page apps.
-
-.. Push/Pull APIs?
-
-.. Note from Divam - The ``Reflex`` typeclass provides functions which I think
-  are not important discussing here?
-  Similarly MonadSample, MonadHold are not relevant in introduction
-  They are relevant in QuickRef which lists the API and their constraints
-
 
 .. See :ref:`guide_to_event_management` for more info on how to construct the event graph using the APIs.
 

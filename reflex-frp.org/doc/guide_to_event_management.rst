@@ -157,6 +157,14 @@ by using foldDynM
 see nested_dynamic.hs
 
 
+.. Push/Pull APIs?
+
+.. Note from Divam - The ``Reflex`` typeclass provides functions which I think
+  are not important discussing here?
+  Similarly MonadSample, MonadHold are not relevant in introduction
+  They are relevant in QuickRef which lists the API and their constraints
+
+
 
 ..
   Simple Reflex stuff guide, no DOM related stuff here.
