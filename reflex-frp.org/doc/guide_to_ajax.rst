@@ -3,15 +3,18 @@
 A Guide to AJAX
 ---------------
 
+.. Not sure whether this section as a whole should be categorised as AJAX
 
 XHR
 ~~~
 
+
 WebSockets
 ~~~~~~~~~~
 
-Use ``webSocket :: Text -> WebSocketConfig t a -> m (WebSocket t)`` API from the
-``Reflex.Dom.WebSocket`` module.::
+Use ``webSocket`` API from the ``Reflex.Dom.WebSocket`` module.::
+
+ webSocket :: Text -> WebSocketConfig t a -> m (WebSocket t)
 
  data WebSocketConfig t a
    = WebSocketConfig {_webSocketConfig_send :: Event t [a],

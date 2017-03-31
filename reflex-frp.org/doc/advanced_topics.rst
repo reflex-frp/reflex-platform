@@ -27,6 +27,7 @@ in order to share code between the two; you have these options:
    dependency of local package either through stack.yaml or in your nix config.
 
    .. todo:: More details on this
+             Is it good to provide a scaffolding for this
 
 .. Integration with Yesod, Servant, Snap, etc.
    Any other thing to mention here
