@@ -25,15 +25,15 @@ change the internal state of application.
 
 In Reflex this response can be expressed or implemented by
 
-1. Firing another Event.
-2. Modification of a Dynamic Value.
+1. Firing another ``Event``.
+2. Modification of a ``Dynamic`` Value.
 
 Note that there is no explicit callbacks or function calls in response to the
 incoming events. Instead there is generation of new Events and modification of
 Dynamic values. These Event and Dynamic values are then propagated to widgets
 which provide the appropriate response to the event.
 
-Since this propagation of Event/Dynamic values can be cyclic, it can be thought
+Since this propagation of ``Event``/``Dynamic`` values can be cyclic, it can be thought
 as an Event propagation graph.
 
 The following sections covers details of constructing this graph.
@@ -66,7 +66,7 @@ The following are the primary sources of events
 
       .. todo:: Add a link to haddock
 
-#. Response from AJAX request
+#. Response from AJAX request or WebSocket connection
    see :ref:`guide_to_ajax`
 
 #. ``Dynamic`` values - By calling ``updated`` on a ``Dynamic`` value one can obtain the event
@@ -105,10 +105,9 @@ tagPromptlyDyn -
 
 tag -
 
-Sampling Dynamic: Promptly vs delayed?
-
 attachDyn, tagPromptlyDyn
 
+.. todo:: Explain the sampling of Dynamic: Promptly vs delayed?
 
 Behavior
 --------
@@ -152,17 +151,17 @@ Using these primary ``Dynamic`` values you can create secondary / derived values
 #. ``zipDyn zipDynWith``
 
 
-Creating Event propagation graph
+Simple Event Propagation Graph
 --------------------------------
+
+.. Its probably better to just give some example here?
 
 Simple
 ~~~~~~
 
-In pure code
 Simply pass the Event/Dynamic to input of function
 
-In monadic code
-Create simple event propagation tree
+In monadic code create simple event propagation tree
 
 Recursive Do
 ~~~~~~~~~~~~
@@ -179,8 +178,50 @@ Problems in cyclic dependency
 
 #. Loop - Output of holdDyn feeds back can cause this??
 
-Collections
-~~~~~~~~~~~
+
+.. _maintain_state:
+
+Maintaining State via fold
+--------------------------
+
+In order to store a state/data for your app (ie create a state machine) simply
+use ``foldDyn``
+
+::
+
+  -- State can be any arbitrary haskell data
+  -- stateDynVal :: Dynamic t MyState
+
+  -- ev can a collection of all events on which the state depends
+  -- For example all input events
+  -- ev :: Event t Inputs
+
+  -- This is a pure API which can process the input events and current state
+  -- to generate a new state.
+  -- eventHandler :: (Inputs -> MyState -> MyState)
+
+  -- foldDyn :: (a -> b -> b) -> b -> Event t a -> Dynamic t b
+  stateDynVal <- foldDyn eventHandler initState ev
+
+Even nested state machines can be designed if your have a state with nested ``Dynamic`` value
+by using ``foldDynM``
+
+see nested_dynamic.hs
+
+Use ``foldDynMaybe``, ``foldDynMaybeM`` in cases where you want to filter input
+events, such that they don't modify the state of application.
+
+For example in a shopping cart if the user has not selected any items, the "add
+to cart" button should do nothing. This kind of behavior can be implemented by
+returning ``Nothing`` from the eventHandler.
+
+
+Using Collections in Event propagation graph
+--------------------------------------------
+
+In order to model complex flows of events or dynamically changing data
+collection, we need to use higher order containers like lists (``[]``) or Maps
+(``Data.Map``)
 
 Use of Dynamic t [], Dynamic t (Map k v), etc
 
@@ -196,44 +237,58 @@ fan? EventSelector?
 Merging/Switching
 ~~~~~~~~~~~~~~~~~
 
-Dynamic values can be merged simply by ``zipDyn``, mconcat, etc.
+``Dynamic`` values can be merged simply by ``zipDyn``, ``mconcat``, etc.
 
-Events
+``Events``
 
-Given some events you can choose either to keep them all by using ``align``
-align - If two events can possibly happen together (because of a common driver
-perhaps), then use this to capture them in a single event.
+  Given some events you can choose either to keep them all by using ``align``
+  align - If two events can possibly happen together (because of a common driver
+  perhaps), then use this to capture them in a single event.
 
-or select just one from the list using ``leftmost``
+  or select just one from the list using ``leftmost``
 
-or use one of these to merge
-mergewith, mergeList - returns a NonEmpty list
+  or use one of these to merge
+  mergewith, mergeList - returns a NonEmpty list
 
-
-mconcatDyn for monoid Dynamic
 
 Higher order FRP
-~~~~~~~~~~~~~~~~
+----------------
 
-Nested structure and flattening
+Nested Values and flattening
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+When you model real world ``Dynamic`` values many times you end up with nested
+structures.
 
-.. _maintain_state:
+For example, if the value of items in a shopping cart depends on the shipping
+method chosen, then you can end up with a value ``total' :: Dynamic t [Dynamic t Int]``::
 
-Maintaining State via fold
---------------------------
+  selectedItems :: Dynamic t [Item]
+  isExpeditedShipping :: Dynamic t Bool
 
-In order to store a state/data for your app (ie create a state machine) simply
-use foldDyn (or foldDynMaybe, foldDynM, foldDynMaybeM).
+  total' = Dynamic t [Dynamic t Int]
+  total' = ffor selectedItems
+            (map getItemPrice)
 
-  stateDynVal <- foldDyn eventhandler initState event
+  getItemPrice :: Item -> Dynamic t Int
+  getItemPrice itm = ffor isExpeditedShipping
+                      (\case
+                        True -> (itemPrice itm) + (shippingCharges itm)
+                        False -> itemPrice itm)
 
-The eventHandler can be a pure API.
+In such cases in order to get a total value ``Dynamic t Int``, you need to use
+flattening APIs. In case of ``Dynamic`` it is simply ``join`` from
+``Control.Monad`` (since ``Dynamic`` has an instance of ``Monad``)::
 
-Even nested state machines can be designed if your have a nested Dynamic value
-by using foldDynM
+  total'' :: Dynamic t (Dynamic t Int)
+  total'' = foldr1 (\a b -> (+) <$> a <*> b) <$> total'
 
-see nested_dynamic.hs
+  total :: Dynamic t Int
+  total = join total''
+
+See `QuickRef <https://github.com/reflex-frp/reflex/blob/develop/Quickref.md#flattening-functions>`_
+for details on other flattening APIs.
+
 
 
 .. Push/Pull APIs?
