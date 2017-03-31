@@ -94,20 +94,15 @@ Using these primary ``Event``\s you can create secondary / derived events by
 
 #. Tagging value of ``Dynamic`` or ``Behavior``.
 
-   see :ref:`tagging_event`
+   Use these APIs, see 
+   `Quick Ref <https://github.com/reflex-frp/reflex/blob/develop/Quickref.md#functions-producing-event>`_
+   ::
 
-.. _tagging_event:
-
-Tagging Event
-~~~~~~~~~~~~~
-
-tagPromptlyDyn -
-
-tag -
-
-attachDyn, tagPromptlyDyn
+    tagPromptlyDyn, tag, attachDyn, attachDynWith, attachPromptlyDynWithMaybe
 
 .. todo:: Explain the sampling of Dynamic: Promptly vs delayed?
+
+          May be an example which showcase the correct and wrong usage
 
 Behavior
 --------
@@ -130,6 +125,8 @@ The following are the primary sources of ``Dynamic`` values
 
       See the type of input fields (``TextInput RangeInput`` etc)
 
+.. Any other places where we can get Dynamic??
+
 Event to Dynamic
 ~~~~~~~~~~~~~~~~
 
@@ -150,6 +147,19 @@ Using these primary ``Dynamic`` values you can create secondary / derived values
 
 #. ``zipDyn zipDynWith``
 
+   Zipping is useful when multiple ``Dynamic`` values have a common point of influence
+   in the application.
+
+   For example if I have two variable parameters like color and font of text.
+   Then I can construct the dynamic attributes from these parameters by simply
+   zipping them together.::
+
+    -- textFont :: Dynamic t Text
+    -- textColor :: Dynamic t Text
+
+    getAttr (f,c) = ("style" =: ("font-family: " <> f "; color: " <> c)) 
+
+    elDynAttr "div" (getAttr <$> (zipDyn textFont textColor)) $ text "Text"
 
 Simple Event Propagation Graph
 --------------------------------
@@ -167,7 +177,6 @@ Recursive Do
 ~~~~~~~~~~~~
 
 In Monadic code - create a cyclic graph of event propagation
-
 
 Problems in cyclic dependency
 
@@ -223,6 +232,10 @@ In order to model complex flows of events or dynamically changing data
 collection, we need to use higher order containers like lists (``[]``) or Maps
 (``Data.Map``)
 
+.. todo:: This section is relevant with appropriate examples
+
+          So add examples here
+
 Use of Dynamic t [], Dynamic t (Map k v), etc
 
 User data model design : separate guide?
@@ -232,7 +245,7 @@ Fanning
 
 Split or distribute the event
 
-fan? EventSelector?
+.. todo:: How to effectively use fan? EventSelector?
 
 Merging/Switching
 ~~~~~~~~~~~~~~~~~
@@ -300,8 +313,7 @@ for details on other flattening APIs.
 
 
 
-..
-  Simple Reflex stuff guide, no DOM related stuff here.
+.. just some other content, may be relevant here
 
   https://www.reddit.com/r/reflexfrp/comments/3bocn9/how_to_extract_the_current_value_from_a_text_box/
 
