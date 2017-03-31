@@ -8,13 +8,14 @@ Welcome to Reflex-FRP documentation!
 
 This is a work-in progress, so many sections are incomplete or empty...
 
-Please feel free to contribute to this Documentation by opening a pull-request.
+Please feel free to contribute to this Documentation by opening a pull-request
+`here <https://github.com/reflex-frp/reflexfrp.org>`_
 
 Contents:
 
 .. toctree::
    :maxdepth: 3
-   
+
    installation
    architecture
    guide_to_dom_creation
@@ -23,13 +24,13 @@ Contents:
    debugging
    advanced_topics
 
-..
-  #. Reflex API reference
-  #. Reflex-dom API reference
-  
-  
-  .. API reference can be direct haddock documentation
-    But other places need to put references to this.. How to do it?
+.. todo:: Add Haddock documentation
+
+          Reflex API reference
+
+          Reflex-dom API reference
+
+          Can we preview the API from haddock here directly ?
 
 
 Indices and tables

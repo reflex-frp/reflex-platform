@@ -9,12 +9,13 @@ See `Quick Ref <https://github.com/reflex-frp/reflex-dom/blob/develop/Quickref.m
 
 .. todo:: Add links to latest haddock
 
-..
-  briefly explain these clases here?
-  Reflex.Dom.WidgetHost, Reflex.Dom.Widget
-
 DOM creation works in ``MonadWidget``. Since it is monadic, the sequence of widget APIs directly correspond to the sequence of DOM elements.
 
+.. todo:: Discuss Reflex-Dom entry point functions
+
+          briefly explain these clases here?
+
+          MonadWidget, WidgetHost, Widget
 ..
   -- Reflex-Dom entry point.  Takes a monadic widget-building action of lengthy
   -- type and turns it into an IO action.

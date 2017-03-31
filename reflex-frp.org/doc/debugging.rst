@@ -1,7 +1,7 @@
 Debugging Reflex Application
 ----------------------------
 
-If your application compiles but does not behave as expected or you just want
+If your application compiles but does not behave as expected, or you just want
 to get a better understanding of the actual flow of ``Event``\s then use the
 trace APIs.
 

@@ -11,7 +11,7 @@ important to be able to share code between backend and frontend.
 
 #. Share routes
 
-   This will be backend specific. How to do this??
+ .. todo::   This will be backend specific. How to do this??
 
 
 Assuming you have two projects (either simple cabal projects or with stack, nix),
@@ -27,16 +27,18 @@ in order to share code between the two; you have these options:
    dependency of local package either through stack.yaml or in your nix config.
 
    .. todo:: More details on this
-             Is it good to provide a scaffolding for this
 
-.. Integration with Yesod, Servant, Snap, etc.
-   Any other thing to mention here
+             Is it better to provide a scaffolding for this
+
+             Any other thing to mention here regarding
+             Integration with Yesod, Servant, Snap, etc.
 
 Deploying
 ~~~~~~~~~
 
-You need to serve index.html, rts.js, lib.js, out.js and runmain.js from the
-cabal generated folder ``dist/build/<pkg-name>/<pkg-name>.jsexe/``
+You need to serve ``index.html``, ``rts.js``, ``lib.js``, ``out.js`` and
+``runmain.js`` from the cabal generated folder
+``dist/build/<pkg-name>/<pkg-name>.jsexe/``
 
 Simplest way is to copy these files to the *static* directory of your backend
 project. This can be automated using simple shell script.
