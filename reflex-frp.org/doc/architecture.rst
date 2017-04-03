@@ -1,8 +1,8 @@
 
-Architecture of a Reflex Application
-------------------------------------
+Architecture of a Reflex-DOM Application
+----------------------------------------
 
-A typical reflex application consists of widgets, and some glue code to *connect* the widgets together.
+A typical Reflex-DOM application consists of widgets, and some glue code to *connect* the widgets together.
 
 Widget can be thought as a DOM Structure which has the capability to modify its
 contents in response to events or based on some dynamic values. It can also contain
