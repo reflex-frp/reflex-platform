@@ -39,6 +39,9 @@ Here ``_webSocketConfig_close`` is an ``Event`` which can close the WebSocket co
 from client side. And ``_webSocket_close`` is the response from server when the
 connection closes.
 
+Manually closing a websocket that is configured to reconnect will cause it to reconnect.
+If you want to be able to close it permanently you need to set ``_webSocketConfig_reconnect = False``.
+
 See `reflex-examples <https://github.com/reflex-frp/reflex-examples/blob/master/websocket-echo/src/Main.hs>`_ for an echo example.
 
 
