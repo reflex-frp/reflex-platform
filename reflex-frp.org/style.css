@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css?family=Asap:400,400i,500,500i,700,700i|PT+Sans:400,400i,700,700i');
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 1em;
+    font-family: 'PT Sans', helvetica, sans-serif;
+    font-weight: 400;
+}
+
+.header {
+    padding: 20px;
+}
+
+.header h1 {
+    outline: 2px solid black;
+    width: 12rem;
+    margin: 30px auto;
+    text-align: center;
+    line-height: 1.5em;
+    font-family: 'Asap', helvetica, sans-serif;
+    font-weight: 700;
+}
+
+ul.sections {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    list-style: none;
+}
+
+ul.sections li {
+}
+
+
+ul.sections li a {
+    padding: 1.25rem 0.5rem;
+    text-decoration: none;
+    display: flex;
+    align-items: flex-start;
+    color: #333;
+    text-transform: uppercase;
+}
+
+    ul.sections li a:hover, ul.sections li a:focus {
+        color: blue;
+    }
+
+.main {
+    margin: auto;
+    width: 650px;
+}

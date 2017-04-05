@@ -31,10 +31,10 @@ main = mainWidgetWithCss $(embedFile "style.css") $ do
     elClass "p" "class" $ text "Reflex is an fully-deterministic, higher-order Functional Reactive Programming (FRP) interface and an engine that efficiently implements that interface."
 
 
-  -- Create a list of links from a list of tuples
-  forM_ links $ \pair -> do
-    elAttr "a" ("href" =: (snd pair)) $ text (fst pair)
-    el "br" $ return ()
+    -- Create a list of links from a list of tuples
+    forM_ links $ \pair -> do
+      elAttr "a" ("href" =: (snd pair)) $ text (fst pair)
+      el "br" $ return ()
 
   return ()
 
