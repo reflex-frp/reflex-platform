@@ -24,6 +24,7 @@ main = mainWidgetWithCss $(embedFile "style.css") $ do
 
   elClass "div" "header" $ do
     elClass "h1" "logo" $ text "Reflex-FRP"
+    elClass "ul" "sections" $ navMenu
 
   elClass "div" "main" $ do
     elClass "h3" "title" $ text "Practical Functional Reactive Programming"
@@ -36,3 +37,15 @@ main = mainWidgetWithCss $(embedFile "style.css") $ do
     el "br" $ return ()
 
   return ()
+
+navMenu :: (MonadWidget t m) => m ()
+navMenu = do
+  forM_ sections $ \pair -> do
+    el "li" $
+      elAttr "a" ("href" =: (snd pair)) $ text (fst pair)
+  where sections = [ ("Home", "/")
+                 , ("Tutorial", "/")
+                 , ("Examples", "/")
+                 , ("Documentation", "http://reflex-frp.readthedocs.io")
+                 , ("FAQ", "/")]
+
