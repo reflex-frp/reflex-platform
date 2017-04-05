@@ -1,4 +1,5 @@
 {-# LANGUAGE RecursiveDo, TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import Reflex
 import Reflex.Dom
