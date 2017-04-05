@@ -14,7 +14,8 @@ Contributions are greatly appreciated for this project.
 # Structure
 
 Main branch is `master`
-Currently the preview is on the `gh-pages` branch
+
+Currently the preview is on the `gh-pages` branch, which is a subtree containing the `index.jsexe` directory
 
 
 ---
