@@ -1,3 +1,7 @@
+-- A slightly contrived example just to demonstrate use of nested dynamics
+-- This example also has a nested state machine,
+-- By using foldDynM, we could use foldDyn inside of it.
+--
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
@@ -5,10 +9,6 @@ import Reflex.Dom
 import Data.Text as T
 import Data.Monoid
 
--- A slightly contrived example just to demonstrate use of nested dynamics
--- This example also has a nested state machine,
--- By using foldDynM, we could use foldDyn inside of it.
---
 -- A ScoreCard can either display some info/updates or the current score
 data ScoreCard t =
     Info (Dynamic t Text)
@@ -47,9 +47,9 @@ main = mainWidget $ do
 
     foldDyn handleGameEvent 0 gameEv
 
-  let 
+  let
       initCard = Score scoreDyn
-      
+
       eventHandler _ (Info _) = return (Score scoreDyn)
       eventHandler _ (Score _) = do
         let handleGameEvent (NewGame)    _  = "New Game!"
@@ -62,7 +62,7 @@ main = mainWidget $ do
         -- So this will be reset whenever you toggle the display of score card
         textDyn <- foldDyn handleGameEvent "" gameEv
         return (Info textDyn)
-            
+
   -- external state machine using foldDynM
   -- Here the (ScoreCard t) itself contains a Dynamic value
   -- scoreCardDyn :: Dynamic t (ScoreCard t)
