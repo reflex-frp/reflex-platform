@@ -687,6 +687,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "0sjljf1sbwalw1zycpjf6bqhljag9i1k77b18b0fd1pzrc29wnks";
         };
       });
+      say = overrideCabal super.say (drv: {
+        patches = (drv.patches or []) ++ [
+          ./say-text-jsstring.patch
+        ];
+        buildDepends = (drv.buildDepends or []) ++ [
+          self.ghcjs-base
+        ];
+      });
     };
   ghcHEAD = overrideForGhcHEAD (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD)));
   ghc = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802));
