@@ -69,7 +69,7 @@ Libraries - diagrams-reflex, reflex-gloss, etc.
 FFI
 ~~~
 
-.. todo:: What is the recommended way to do FFI in reflex app.
+.. todo:: What is the recommended way to do FFI in reflex app? The GHCJS wiki has some useful [info](https://github.com/ghcjs/ghcjs/blob/master/doc/foreign-function-interface.md) and may be a good place to start.
 
 Use JQuery, BootStrap, etc?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
