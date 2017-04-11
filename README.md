@@ -12,6 +12,7 @@ Important Notes
 If you're using one of these platforms, please take a look at notes before you begin:
 
 * [NixOS](notes/NixOS.md)
+* [Arch Linux](notes/ArchLinux.md)
 * [Linux Mint](notes/LinuxMint.md)
 
 If you encounter any problems that may be specific to your platform, please submit an issue or pull request so that we can add a note for future users.
