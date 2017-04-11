@@ -3,7 +3,7 @@ source for reflex-frp.org
 
 
 
-Preview the site at [http://reflex-frp.github.io/reflexfrp.org/](http://reflex-frp.github.io/reflexfrp.org/)
+Preview the site at [http://reflex-frp.github.io/reflex-frp.org/](http://reflex-frp.github.io/reflex-frp.org/)
 
 ---
 
