@@ -11,6 +11,7 @@ let nixpkgs = nixpkgsFunc ({
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
+        permittedInsecurePackages = [ "webkitgtk-2.4.11" ];
         packageOverrides = pkgs: {
           webkitgtk = pkgs.webkitgtk214x;
           osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
@@ -239,28 +240,28 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
 #        Cabal = self.Cabal_1_24_2_0;
 
-        gi-atk = appendConfigureFlag super.gi-atk_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-cairo = appendConfigureFlag super.gi-cairo_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdk = appendConfigureFlag super.gi-gdk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdkpixbuf = appendConfigureFlag super.gi-gdkpixbuf_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gio = appendConfigureFlag super.gi-gio_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-glib = appendConfigureFlag super.gi-glib_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gobject = appendConfigureFlag super.gi-gobject_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gtk = appendConfigureFlag super.gi-gtk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-javascriptcore = appendConfigureFlag super.gi-javascriptcore_4_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-pango = appendConfigureFlag super.gi-pango_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-soup = appendConfigureFlag super.gi-soup_2_4_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-webkit = appendConfigureFlag super.gi-webkit_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-atk = appendConfigureFlag super.gi-atk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-cairo = appendConfigureFlag super.gi-cairo "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gdk = appendConfigureFlag super.gi-gdk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gdkpixbuf = appendConfigureFlag super.gi-gdkpixbuf "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gio = appendConfigureFlag super.gi-gio "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-glib = appendConfigureFlag super.gi-glib "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gobject = appendConfigureFlag super.gi-gobject "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gtk = appendConfigureFlag super.gi-gtk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-javascriptcore = appendConfigureFlag super.gi-javascriptcore "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-pango = appendConfigureFlag super.gi-pango "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-soup = appendConfigureFlag super.gi-soup "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-webkit = appendConfigureFlag super.gi-webkit "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         gi-webkit2 = appendConfigureFlag (super.gi-webkit2.override {
-          webkit2gtk = nixpkgs.webkitgtk214x;
+          webkitgtk = nixpkgs.webkitgtk214x;
         }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         gi-gtksource = appendConfigureFlag (super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
         }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        haskell-gi = super.haskell-gi_0_20;
-        haskell-gi-base = super.haskell-gi-base_0_20;
+        haskell-gi = super.haskell-gi;
+        haskell-gi-base = super.haskell-gi-base;
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
-          webkit2gtk = nixpkgs.webkitgtk214x;
+          webkitgtk = nixpkgs.webkitgtk214x;
         };
         gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
         shelly = overrideCabal (doJailbreak super.shelly) (drv: {
@@ -604,9 +605,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
-      mkDerivation = drv: super.mkDerivation.override {
-        hscolour = ghc.hscolour;
-      } (drv // {
+      hscolour = ghc.hscolour;
+
+      mkDerivation = drv: super.mkDerivation (drv // {
         doHaddock = false;
       });
 
