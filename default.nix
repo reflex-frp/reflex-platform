@@ -455,13 +455,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) "0.1.1.4");
         stylish-haskell = doJailbreak super.stylish-haskell;
 
-        haddock-api = replaceSrc super.haddock-api ((nixpkgs.fetchFromGitHub {
-          owner = "haskell";
-          repo = "haddock";
-          rev = "240bc38b94ed2d0af27333b23392d03eeb615e82";
-          sha256 = "198va5xq6prp626prfxf1qlmw4pahzkqgr8dbxmpa323vdq8zlix";
-        }) + "/haddock-api") "2.17.3";
-
         ########################################################################
         # Fixups for new nixpkgs
         ########################################################################
