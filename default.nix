@@ -254,6 +254,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     addExposeAllUnfoldingsFlag = if enableExposeAllUnfoldings
       then drv: appendConfigureFlag drv "-fexpose-all-unfoldings"
       else drv: drv;
+    appendGIFlags = p: appendConfigureFlag p "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+    fixCairoGI = p: overrideCabal p (drv: {
+      preCompileBuildDriver = (drv.preCompileBuildDriver or "") + ''
+        export LD_LIBRARY_PATH="${nixpkgs.cairo}/lib"
+      '';
+    });
+
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
@@ -288,24 +295,20 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
 #        Cabal = self.Cabal_1_24_2_0;
 
-        gi-atk = appendConfigureFlag super.gi-atk_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-cairo = appendConfigureFlag super.gi-cairo_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdk = appendConfigureFlag super.gi-gdk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdkpixbuf = appendConfigureFlag super.gi-gdkpixbuf_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gio = appendConfigureFlag super.gi-gio_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-glib = appendConfigureFlag super.gi-glib_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gobject = appendConfigureFlag super.gi-gobject_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gtk = appendConfigureFlag super.gi-gtk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-javascriptcore = appendConfigureFlag super.gi-javascriptcore_4_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-pango = appendConfigureFlag super.gi-pango_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-soup = appendConfigureFlag super.gi-soup_2_4_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-webkit = appendConfigureFlag super.gi-webkit_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-webkit2 = appendConfigureFlag (super.gi-webkit2.override {
-          webkit2gtk = nixpkgs.webkitgtk214x;
-        }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gtksource = appendConfigureFlag (super.gi-gtksource.override {
-          inherit (nixpkgs.gnome3) gtksourceview;
-        }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-atk = appendGIFlags super.gi-atk;
+        gi-cairo = appendGIFlags (fixCairoGI super.gi-cairo);
+        gi-gdk = appendGIFlags (fixCairoGI super.gi-gdk);
+        gi-gdkpixbuf = appendGIFlags super.gi-gdkpixbuf;
+        gi-gio = appendGIFlags super.gi-gio;
+        gi-glib = appendGIFlags super.gi-glib;
+        gi-gobject = appendGIFlags super.gi-gobject;
+        gi-gtk = appendGIFlags (fixCairoGI super.gi-gtk);
+        gi-javascriptcore = appendGIFlags super.gi-javascriptcore_4_0_11;
+        gi-pango = appendGIFlags (fixCairoGI super.gi-pango);
+        gi-soup = appendGIFlags super.gi-soup;
+        gi-webkit = appendGIFlags super.gi-webkit.override;
+        gi-webkit2 = appendGIFlags (fixCairoGI super.gi-webkit2);
+        gi-gtksource = appendGIFlags super.gi-gtksource;
         haskell-gi = super.haskell-gi_0_20;
         haskell-gi-base = super.haskell-gi-base_0_20;
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
