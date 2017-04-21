@@ -1,6 +1,6 @@
 { nixpkgsFunc ? import ./nixpkgs
-, system ? null
-, config ? null
+, system ? builtins.currentSystem
+, config ? {}
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? false
 , enableTraceReflexEvents ? false
@@ -8,6 +8,7 @@
 , useTextJSString ? true
 }:
 let nixpkgs = nixpkgsFunc ({
+      inherit system;
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
@@ -42,12 +43,46 @@ let nixpkgs = nixpkgsFunc ({
             };
           }) {};
         };
-      } // (if config == null then {} else config);
-    } // (
-      if system == null then {} else { inherit system; }
-    ));
+      } // config;
+    });
     nixpkgsCross = {
-      ios = 
+      android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
+        arm64 = {
+          crossSystem =
+            let cfg = {
+              config = "aarch64-unknown-linux-android";
+              arch = "arm64";
+            }; in {
+            inherit (cfg) config arch;
+            libc = "bionic";
+            withTLS = true;
+            openssl.system = "linux-generic64";
+            platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
+          };
+          config.allowUnfree = true;
+        };
+        arm64Impure = arm64 // {
+          crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
+        };
+        armv7a = {
+          crossSystem =
+            let cfg = {
+              config = "arm-unknown-linux-androideabi";
+              arch = "armv7";
+            }; in {
+            inherit (cfg) config arch;
+            libc = "bionic";
+            withTLS = true;
+            openssl.system = "linux-generic32";
+            platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
+          };
+          config.allowUnfree = true;
+        };
+        armv7aImpure = armv7a // {
+          crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
+        };
+      };
+      ios =
         let config = {
               allowUnfree = true;
               packageOverrides = p: {
@@ -57,36 +92,39 @@ let nixpkgs = nixpkgsFunc ({
                     inherit (p.llvmPackages_39) llvm clang;
                   };
                 };
-                osx_sdk = p.callPackage ({ stdenv }:
-                  let version = "10";
-                  in stdenv.mkDerivation rec {
-                  name = "iOS.sdk";
+                buildPackages = p.buildPackages // {
+                  osx_sdk = p.buildPackages.callPackage ({ stdenv }:
+                    let version = "10";
+                    in stdenv.mkDerivation rec {
+                    name = "iOS.sdk";
 
-                  src = stdenv.ccCross.sdk;
+                    src = p.stdenv.cc.sdk;
 
-                  unpackPhase    = "true";
-                  configurePhase = "true";
-                  buildPhase     = "true";
-                  setupHook = ./setup-hook-ios.sh;
+                    unpackPhase    = "true";
+                    configurePhase = "true";
+                    buildPhase     = "true";
+                    target_prefix = stdenv.lib.replaceStrings ["-"] ["_"] p.targetPlatform.config;
+                    setupHook = ./setup-hook-ios.sh;
 
-                  installPhase = ''
-                    mkdir -p $out/
-                    echo "Source is: $src"
-                    cp -r $src/* $out/
-                  '';
+                    installPhase = ''
+                      mkdir -p $out/
+                      echo "Source is: $src"
+                      cp -r $src/* $out/
+                    '';
 
-                  meta = with stdenv.lib; {
-                    description = "The IOS OS ${version} SDK";
-                    maintainers = with maintainers; [ copumpkin ];
-                    platforms   = platforms.darwin;
-                    license     = licenses.unfree;
-                  };
-                }) {};
+                    meta = with stdenv.lib; {
+                      description = "The IOS OS ${version} SDK";
+                      maintainers = with maintainers; [ copumpkin ];
+                      platforms   = platforms.darwin;
+                      license     = licenses.unfree;
+                    };
+                  }) {};
+                };
               };
             };
         in {
         simulator64 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -104,7 +142,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         arm64 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -122,7 +160,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         armv7 = nixpkgsFunc {
-          crossSystem = 
+          crossSystem =
             let cfg = {
               # You can change config/arch/isiPhoneSimulator depending on your target:
               # aarch64-apple-darwin14 | arm64  | false
@@ -141,15 +179,15 @@ let nixpkgs = nixpkgsFunc ({
         };
       };
     };
-    lib = import (nixpkgs.path + "/pkgs/development/haskell-modules/lib.nix") { pkgs = nixpkgs; };
+    inherit (nixpkgs.haskell) lib;
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]));
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
       intero = nixpkgs.fetchFromGitHub {
         owner = "commercialhaskell";
         repo = "intero";
-        rev = "5378bb637c76c48eca64ccda0c855f7557aecb60";
-        sha256 = "1vgmbs790l8z90bk8sib3xvli06p1nkrjnnvlnhsjzkkpxynf2nf";
+        rev = "04265e68647bbf27772df7b71c9927d451e6256f";
+        sha256 = "0zax01dmrk1zbqw8j8css1w6qynbavfdjfgfxs34pb37gp4v8mgg";
       };
       timezone-series = nixpkgs.fetchFromGitHub {
         owner = "ryantrinkle";
@@ -188,6 +226,16 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     makeRecursivelyOverridable = x: old: x.override old // {
       override = new: makeRecursivelyOverridable x (combineOverrides old new);
     };
+    foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
+      postInstall = ''
+        cd dist/build/${pkg.pname}/${pkg.pname}-tmp
+        for header in $(find . | grep '\.h''$'); do
+          local dest_dir=$out/include/$(dirname "$header")
+          mkdir -p "$dest_dir"
+          cp "$header" "$dest_dir"
+        done
+      '';
+    });
     cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
       buildCommand = ''
         cabal2nix file://"${src}" >"$out"
@@ -224,6 +272,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         jsaddle = jsaddlePkgs.jsaddle;
+        jsaddle-clib = jsaddlePkgs.jsaddle-clib;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
         jsaddle-wkwebview = overrideCabal jsaddlePkgs.jsaddle-wkwebview (drv: {
         });
@@ -278,7 +327,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           };
         });
 
-        intero = replaceSrc super.intero "${sources.intero}" "0.1.18";
+        intero = dontCheck (self.callPackage (cabal2nixResult sources.intero) {});
 
         dependent-map = overrideCabal super.dependent-map (drv: {
           version = "0.2.4.0";
@@ -406,13 +455,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }) "0.1.1.4");
         stylish-haskell = doJailbreak super.stylish-haskell;
 
-        haddock-api = replaceSrc super.haddock-api ((nixpkgs.fetchFromGitHub {
-          owner = "haskell";
-          repo = "haddock";
-          rev = "240bc38b94ed2d0af27333b23392d03eeb615e82";
-          sha256 = "198va5xq6prp626prfxf1qlmw4pahzkqgr8dbxmpa323vdq8zlix";
-        }) + "/haddock-api") "2.17.3";
-
         ########################################################################
         # Fixups for new nixpkgs
         ########################################################################
@@ -448,6 +490,91 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         generic-deriving = dontHaddock super.generic-deriving;
         bifunctors = dontHaddock super.bifunctors;
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
+      };
+    };
+    overrideForGhcAndroid = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        ghc = super.ghc // {
+          bootPkgs = super.ghc.bootPkgs.override {
+            overrides = self: super: {
+              Cabal = self.callPackage "${nixpkgs.fetchFromGitHub {
+                owner = "obsidiansystems";
+                repo = "cabal";
+                rev = "34292fadaf90571dba15e84ee66eb601ab8b317f";
+                sha256 = "06rsgrlz0wf88qqjrkj9lyy45h7ijvza04awnbc9ci7igr1syn1c";
+              }}/Cabal" {};
+            };
+          };
+        };
+        ghcjs-prim = null;
+        ghcjs-json = null;
+        derive = null;
+        focus-http-th = null;
+        th-lift-instances = null;
+        websockets = null;
+        wai = null;
+        warp = null;
+        wai-app-static = null;
+        jsaddle-wkwebview = null;
+
+        aeson = exposeAeson super.aeson;
+
+        semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
+        wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
+        cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
+        profunctors = overrideCabal super.profunctors (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
+          '';
+        });
+        fgl = overrideCabal super.fgl (drv: {
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find Data -name '*.hs')
+          '';
+        });
+        lens = overrideCabal super.lens (drv: {
+          version = "4.15.1";
+          sha256 = null;
+          src = nixpkgs.fetchFromGitHub {
+            owner = "hamishmack";
+            repo = "lens";
+            rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
+            sha256 = "0nxcki1w8qxk4q7hjxpaqzyfjyib52al7jzagf8f3b0v2m3kk1a3";
+          };
+          revision = "4";
+          editedCabalFile = "e055de1a2d30bf9122947afbc5e342b06a0f4a512fece45f5b9132f7beb11539";
+          preConfigure = ''
+            sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
+          '';
+          preCompileBuildDriver = ''
+            rm Setup.lhs
+          '';
+          doCheck = false;
+          jailbreak = true;
+        });
+
+
+        reflex = super.reflex.override {
+          useTemplateHaskell = false;
+        };
+        reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
+        reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
+            postFixup = ''
+                mkdir $out/reflex-todomvc.app
+                cp reflex-todomvc.app/* $out/reflex-todomvc.app/
+                cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
+            '';
+        });
+        happy = self.ghc.bootPkgs.happy;
+
+        # Disabled for now (jsaddle-wkwebview will probably be better on iOS)
+        jsaddle-warp = null;
+        # Disable these because these on iOS
+        jsaddle-webkitgtk = null;
+        jsaddle-webkit2gtk = null;
+
+        mkDerivation = drv: super.mkDerivation.override { hscolour = ghc.hscolour; }
+          (drv // { doHaddock = false; });
       };
     };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
@@ -521,6 +648,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle-webkitgtk = null;
         jsaddle-webkit2gtk = null;
         #Cabal = self.Cabal_1_24_2_0;
+        mkDerivation = drv: super.mkDerivation.override { hscolour = ghc.hscolour; }
+          (drv // {
+            doHaddock = false;
+            enableSharedLibraries = false;
+            enableSharedExecutables = false;
+          });
       };
     };
     overridesForTextJSString = self: super: {
@@ -598,9 +731,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
   ghc7_8 = overrideForGhc7_8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784);
-  ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcCross);
-  ghcIosArm64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcCross);
-  ghcIosArmv7 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcCross);
+  ghcIosSimulator64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcHEAD);
+  ghcAndroidArm64 = overrideForGhcAndroid (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghcHEAD);
+  ghcAndroidArmv7a = overrideForGhcAndroid (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghcHEAD);
+  ghcIosArm64 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcHEAD);
+  ghcIosArmv7 = overrideForGhcIOS (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcHEAD);
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
@@ -623,7 +758,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders ghc ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
