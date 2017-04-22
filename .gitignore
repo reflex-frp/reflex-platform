@@ -31,3 +31,6 @@ reflex-dom/*
 reflex-todomvc/*
 !reflex-todomvc/default.nix
 !reflex-todomvc/github.json
+
+# Dev tools
+.vagrant
