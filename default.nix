@@ -950,5 +950,34 @@ in let this = rec {
     };
   }).config.system.build.virtualBoxOVA;
 
+  dockerImage = with nixpkgs.dockerTools; buildImage {
+    name = "reflex-platform";
+    tag = "latest"; # Is this right?
+
+    diskSize = 8192;
+    contents = with nixpkgs; buildEnv { name = "reflex-env"; paths =
+      (import (nixpkgs.path + "/pkgs/stdenv/common-path.nix") { pkgs = nixpkgs; })
+      ++ tryReflexPackages
+    ; };
+    keepContentsDirlinks = true;
+    runAsRoot = ''
+      #!${nixpkgs.stdenv.shell}
+      ${shadowSetup}
+      groupadd -r reflex
+      useradd -r -g reflex -d /home/reflex -M reflex
+      mkdir -p /home/reflex
+      chown reflex:reflex /home/reflex
+    '';
+
+    config = {
+      User = "reflex";
+      Cmd = "${nixpkgs.bashInteractive}/bin/bash";
+      WorkingDir = "/home/reflex";
+      Env = [
+        "PS1=[\\u:\\w]\\$ "
+      ];
+    };
+  };
+
   inherit lib cabal2nixResult sources;
 }; in this
