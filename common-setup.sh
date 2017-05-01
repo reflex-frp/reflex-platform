@@ -94,6 +94,7 @@ git_thunk() {
 # NOTE: Returns the manifest type in OUTPUT_GIT_MANIFEST_TYPE and the manifest contents in OUTPUT_GIT_MANIFEST
 get_git_manifest() {
     local NIX_PREFETCH_SCRIPTS="$(nix-build --no-out-link -E "(import \"$DIR/nixpkgs\" {}).nix-prefetch-scripts")"
+    local NIX="$(nix-build --no-out-link -E "(import \"$DIR/nixpkgs\" {}).nix")"
     local REPO="$(echo "$1" | sed 's/\.git$//')"
 
     local URL="$(git -C "$REPO" config --get remote.origin.url | sed 's_^git@github.com:_git://github.com/_')" # Don't use git@github.com origins, since these can't be accessed by nix
@@ -105,7 +106,7 @@ get_git_manifest() {
         OUTPUT_GIT_MANIFEST_TYPE=github
         local GITHUB_OWNER="$(echo "$URL" | sed "s_${GITHUB_PATTERN}_\1_")"
         local GITHUB_REPO="$(echo "$URL" | sed "s_${GITHUB_PATTERN}_\2_")"
-        local SHA256="$($NIX_PREFETCH_SCRIPTS/bin/nix-prefetch-zip --hash-type sha256 "$GITHUB_ARCHIVE_URL")"
+        local SHA256="$($NIX/bin/nix-prefetch-url --unpack --type sha256 "$GITHUB_ARCHIVE_URL")"
         OUTPUT_GIT_MANIFEST="$(cat <<EOF
 {
   "owner": "$GITHUB_OWNER",

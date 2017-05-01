@@ -12,6 +12,9 @@ let nixpkgs = nixpkgsFunc ({
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
+        permittedInsecurePackages = [
+          "webkitgtk-2.4.11"
+        ];
         packageOverrides = pkgs: {
           webkitgtk = pkgs.webkitgtk214x;
           osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
@@ -288,28 +291,28 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
 #        Cabal = self.Cabal_1_24_2_0;
 
-        gi-atk = appendConfigureFlag super.gi-atk_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-cairo = appendConfigureFlag super.gi-cairo_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdk = appendConfigureFlag super.gi-gdk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdkpixbuf = appendConfigureFlag super.gi-gdkpixbuf_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gio = appendConfigureFlag super.gi-gio_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-glib = appendConfigureFlag super.gi-glib_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gobject = appendConfigureFlag super.gi-gobject_2_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gtk = appendConfigureFlag super.gi-gtk_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-javascriptcore = appendConfigureFlag super.gi-javascriptcore_4_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-pango = appendConfigureFlag super.gi-pango_1_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-soup = appendConfigureFlag super.gi-soup_2_4_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-webkit = appendConfigureFlag super.gi-webkit_3_0_11 "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-atk = appendConfigureFlag super.gi-atk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-cairo = appendConfigureFlag super.gi-cairo "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gdk = appendConfigureFlag super.gi-gdk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gdkpixbuf = appendConfigureFlag super.gi-gdkpixbuf "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gio = appendConfigureFlag super.gi-gio "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-glib = appendConfigureFlag super.gi-glib "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gobject = appendConfigureFlag super.gi-gobject "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-gtk = appendConfigureFlag super.gi-gtk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-javascriptcore = appendConfigureFlag super.gi-javascriptcore "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-pango = appendConfigureFlag super.gi-pango "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-soup = appendConfigureFlag super.gi-soup "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+        gi-webkit = appendConfigureFlag super.gi-webkit "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         gi-webkit2 = appendConfigureFlag (super.gi-webkit2.override {
-          webkit2gtk = nixpkgs.webkitgtk214x;
+          webkitgtk = nixpkgs.webkitgtk214x;
         }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
         gi-gtksource = appendConfigureFlag (super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
         }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        haskell-gi = super.haskell-gi_0_20;
-        haskell-gi-base = super.haskell-gi-base_0_20;
+        haskell-gi = super.haskell-gi;
+        haskell-gi-base = super.haskell-gi-base;
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
-          webkit2gtk = nixpkgs.webkitgtk214x;
+          webkitgtk = nixpkgs.webkitgtk214x;
         };
         gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
         shelly = overrideCabal (doJailbreak super.shelly) (drv: {
@@ -325,6 +328,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             rev = "901a76e59fddb83b3bb38d44374528d24c4f0785";
             sha256 = "0azj9rrmc3k0s5347faizfmxfsqyp0pxnr9gxp7z38jg9y8ddhh1";
           };
+          doCheck = false;
         });
 
         intero = dontCheck (self.callPackage (cabal2nixResult sources.intero) {});
@@ -376,12 +380,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         x509 = dontHaddock super.x509;
         x509-validation = dontHaddock super.x509-validation;
 
+/*
         aeson = overrideCabal super.aeson (drv: {
           version = "0.11.2.1";
           sha256 = "0k5p06pik7iyjm1jjkjbpqqn0mqps6b8mz9p9sp9hmganl4cffyc";
           revision = "1";
           editedCabalFile = "04sydhx056gpakm39xk7s849qjr218ai1sjj2zr7n0yxxm1sqzz9";
         });
+*/
 
         # Jailbreaks
         ref-tf = doJailbreak super.ref-tf;
@@ -447,12 +453,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           unordered-containers
           tagged
         ]);
-        packunused = doJailbreak (replaceSrc super.packunused (nixpkgs.fetchFromGitHub {
-          owner = "hvr";
-          repo = "packunused";
-          rev = "60b305a3e8f838aa92cff6265979108405bfa347";
-          sha256 = "0qb96kkc4v2wg7jy7iyc7v1b1lxzk7xvkgjrw3s81gbx9b3slllb";
-        }) "0.1.1.4");
         stylish-haskell = doJailbreak super.stylish-haskell;
 
         ########################################################################
@@ -667,6 +667,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         buildDepends = (drv.buildDepends or []) ++ [
           self.ghcjs-base
         ];
+        doHaddock = false;
       });
       jsaddle = overrideCabal super.jsaddle (drv: {
         patches = (drv.patches or []) ++ [
@@ -739,11 +740,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
+    /*
       mkDerivation = drv: super.mkDerivation.override {
         hscolour = ghc.hscolour;
       } (drv // {
         doHaddock = false;
       });
+    */
 
       ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
         inherit (self) llvmPackages;
@@ -891,7 +894,6 @@ in let this = rec {
     nativeHaskellPackages.cabal-install
     nativeHaskellPackages.ghcid
     nativeHaskellPackages.hlint
-    nativeHaskellPackages.packunused
     nixpkgs.cabal2nix
     nixpkgs.curl
     nixpkgs.nix-prefetch-scripts
