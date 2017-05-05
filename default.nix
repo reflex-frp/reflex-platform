@@ -280,8 +280,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle = jsaddlePkgs.jsaddle;
         jsaddle-clib = jsaddlePkgs.jsaddle-clib;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
-        jsaddle-wkwebview = overrideCabal jsaddlePkgs.jsaddle-wkwebview (drv: {
-        });
+        jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview;
         jsaddle-webkit2gtk = jsaddlePkgs.jsaddle-webkit2gtk;
         jsaddle-webkitgtk = jsaddlePkgs.jsaddle-webkitgtk;
         jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
