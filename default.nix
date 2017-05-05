@@ -663,8 +663,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         src = nixpkgs.fetchFromGitHub {
           owner = "luigy";
           repo = "text";
-          rev = "90d36ec1a0be48c25ffc15ddf66c83971e519f34";
-          sha256 = "0d0dlp06pdww1wc9a04nfzfs578ag81knlkpmksc3pz5h2364nak";
+          rev = "e9a5dca15cb5b96ac434aa21db18907383db25a2";
+          sha256 = "1shnr2z463x9p9swkb8x48ab2fg8ggsjspwkh1rw3ss9y6a6l3hg";
         };
         buildDepends = (drv.buildDepends or []) ++ [
           self.ghcjs-base
