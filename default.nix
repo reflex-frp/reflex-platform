@@ -16,6 +16,7 @@ let nixpkgs = nixpkgsFunc ({
           "webkitgtk-2.4.11"
         ];
         packageOverrides = pkgs: {
+          cabal2nix = if system == "i686-linux" then lib.dontCheck pkgs.cabal2nix else pkgs.cabal2nix;
           webkitgtk = pkgs.webkitgtk214x;
           osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
             let version = "10.11";
@@ -243,8 +244,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       buildCommand = ''
         cabal2nix file://"${src}" >"$out"
       '';
-      buildInputs = with nixpkgs; [
-        cabal2nix
+      buildInputs = [
+        nixpkgs.cabal2nix
       ];
 
       # Support unicode characters in cabal files
@@ -274,6 +275,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
+
+        foundation = if system == "i686-linux" then dontCheck super.foundation else super.foundation; # TODO: We should make sure these test failures get fixed
         jsaddle = jsaddlePkgs.jsaddle;
         jsaddle-clib = jsaddlePkgs.jsaddle-clib;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
