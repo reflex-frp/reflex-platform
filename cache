@@ -15,7 +15,7 @@ trap "rm -rf \"$TMPDIR\"" EXIT
 
     nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache.drv" --indirect -E "import ./cache.nix")"
 
-    sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"* # Get rid of these, because they can vary in apparently-meaningless between systems
+    sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"*.narinfo # Get rid of these, because they can vary in apparently-meaningless between systems
 
     nix-shell $NIXOPTS -E 'with import <nixpkgs> {}; runCommand "shell" { buildInputs = [ awscli ]; shellHook = "export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt ; export AWS_CONFIG_FILE=$HOME/.reflex-platform/aws/config"; } ""' --run "aws s3 sync --size-only --cache-control 'public, max-age=315360000' --expires 'Tue, 01 Feb 2050 00:00:00 GMT' '$TMPDIR/' s3://nixcache.reflex-frp.org/"
 )
