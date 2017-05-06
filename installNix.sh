@@ -23,21 +23,21 @@ require_util() {
 }
 
 case "$(uname -s).$(uname -m)" in
-    Linux.x86_64) system=x86_64-linux; hash=d33eb09f2c0d39163944dca2738c26bd35638eb2a3864dd81d50be85d19a1969;;
-    Linux.i?86) system=i686-linux; hash=760f86b20dd438ddf6f0cfc5fe29b23d8301259db0b4159f7103300c6c399df3;;
-    Darwin.x86_64) system=x86_64-darwin; hash=66896f137d02175cc0c0318b130761d4e30416834deaf103e3dccc28c24fe643;;
+    Linux.x86_64) system=x86_64-linux; hash=ae001425af88c0fef645988ec88892110c972cf880216586b5b3a5246e3dd572;;
+    Linux.i?86) system=i686-linux; hash=57cc4be123e5e2d047b79bd06b6e0acaf9d68ff6b2faa6bdf59f46dadd25e7be;;
+    Darwin.x86_64) system=x86_64-darwin; hash=ad2f1d7b2058883ae5835905a9cb69ec69ec54bf6ddf39e0d8f1ae0ac0f7743f;;
     *) oops "sorry, there is no binary distribution of Nix for your platform";;
 esac
 
-url="https://nixos.org/releases/nix/nix-1.11.6/nix-1.11.6-$system.tar.bz2"
+url="https://nixos.org/releases/nix/nix-1.11.9/nix-1.11.9-$system.tar.bz2"
 
-tarball="$tmpDir/$(basename "$tmpDir/nix-1.11.6-$system.tar.bz2")"
+tarball="$tmpDir/$(basename "$tmpDir/nix-1.11.9-$system.tar.bz2")"
 
 require_util curl "download the binary tarball"
 require_util bzcat "decompress the binary tarball"
 require_util tar "unpack the binary tarball"
 
-echo "downloading Nix 1.11.6 binary tarball for $system from '$url' to '$tmpDir'..."
+echo "downloading Nix 1.11.9 binary tarball for $system from '$url' to '$tmpDir'..."
 curl -L "$url" -o "$tarball" || oops "failed to download '$url'"
 
 if type sha256sum > /dev/null 2>&1; then
