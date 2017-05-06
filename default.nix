@@ -187,18 +187,6 @@ let nixpkgs = nixpkgsFunc ({
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]));
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
-      intero = nixpkgs.fetchFromGitHub {
-        owner = "commercialhaskell";
-        repo = "intero";
-        rev = "04265e68647bbf27772df7b71c9927d451e6256f";
-        sha256 = "0zax01dmrk1zbqw8j8css1w6qynbavfdjfgfxs34pb37gp4v8mgg";
-      };
-      timezone-series = nixpkgs.fetchFromGitHub {
-        owner = "ryantrinkle";
-        repo = "timezone-series";
-        rev = "f8dece8c016db6476e2bb0d4f972769a76f6ff40";
-        sha256 = "0j2bxzi102ay4s0vc39vi9xlny7fgsjv379pibdcfzsd6k540517";
-      };
       ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
         name = "ghcjs-boot";
         outPath = filterGit ./ghcjs-boot;
@@ -258,6 +246,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     addExposeAllUnfoldingsFlag = if enableExposeAllUnfoldings
       then drv: appendConfigureFlag drv "-fexpose-all-unfoldings"
       else drv: drv;
+    # The gi-libraries, by default, will use lots of overloading features of ghc that are still a bit too slow; this function disables them
+    dontUseOverloads = p: appendConfigureFlag p "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
@@ -275,54 +265,48 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
-
-        foundation = if system == "i686-linux" then dontCheck super.foundation else super.foundation; # TODO: We should make sure these test failures get fixed
-        jsaddle = jsaddlePkgs.jsaddle;
-        jsaddle-clib = jsaddlePkgs.jsaddle-clib;
+        inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
-        jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview;
-        jsaddle-webkit2gtk = jsaddlePkgs.jsaddle-webkit2gtk;
-        jsaddle-webkitgtk = jsaddlePkgs.jsaddle-webkitgtk;
+
         jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
           preBuild = ''./setup build || true'';
         });
+
+        inherit (ghcjsDom) ghcjs-dom-jsffi;
+
+        # TODO: Fix this in Cabal
+        # When building a package with no haskell files, cabal haddock shouldn't fail
         ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
-        ghcjs-dom-jsffi = ghcjsDom.ghcjs-dom-jsffi;
-        ghcjs-dom = dontCheck (dontHaddock ghcjsDom.ghcjs-dom);
+        ghcjs-dom = dontHaddock ghcjsDom.ghcjs-dom;
 
-#        Cabal = self.Cabal_1_24_2_0;
 
-        gi-atk = appendConfigureFlag super.gi-atk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-cairo = appendConfigureFlag super.gi-cairo "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdk = appendConfigureFlag super.gi-gdk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gdkpixbuf = appendConfigureFlag super.gi-gdkpixbuf "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gio = appendConfigureFlag super.gi-gio "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-glib = appendConfigureFlag super.gi-glib "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gobject = appendConfigureFlag super.gi-gobject "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gtk = appendConfigureFlag super.gi-gtk "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-javascriptcore = appendConfigureFlag super.gi-javascriptcore "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-pango = appendConfigureFlag super.gi-pango "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-soup = appendConfigureFlag super.gi-soup "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-webkit = appendConfigureFlag super.gi-webkit "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-webkit2 = appendConfigureFlag (super.gi-webkit2.override {
+        ########################################################################
+        # Tweaks
+        ########################################################################
+        gi-atk = dontUseOverloads super.gi-atk;
+        gi-cairo = dontUseOverloads super.gi-cairo;
+        gi-gdk = dontUseOverloads super.gi-gdk;
+        gi-gdkpixbuf = dontUseOverloads super.gi-gdkpixbuf;
+        gi-gio = dontUseOverloads super.gi-gio;
+        gi-glib = dontUseOverloads super.gi-glib;
+        gi-gobject = dontUseOverloads super.gi-gobject;
+        gi-gtk = dontUseOverloads super.gi-gtk;
+        gi-javascriptcore = dontUseOverloads super.gi-javascriptcore;
+        gi-pango = dontUseOverloads super.gi-pango;
+        gi-soup = dontUseOverloads super.gi-soup;
+        gi-webkit = dontUseOverloads super.gi-webkit;
+        gi-webkit2 = dontUseOverloads (super.gi-webkit2.override {
           webkitgtk = nixpkgs.webkitgtk214x;
-        }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        gi-gtksource = appendConfigureFlag (super.gi-gtksource.override {
+        });
+        gi-gtksource = dontUseOverloads (super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
-        }) "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-        haskell-gi = super.haskell-gi;
-        haskell-gi-base = super.haskell-gi-base;
+        });
+
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
           webkitgtk = nixpkgs.webkitgtk214x;
         };
-        gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
-        shelly = overrideCabal (doJailbreak super.shelly) (drv: {
-          preConfigure = (drv.preConfigure or "") + ''
-            sed -i 's/base .*<.*4\.9\.1/base/' *.cabal
-            sed -i 's/\(default (T.Text)\)/-- \1/' src/Shelly/Pipe.hs
-          '';
-        });
+
         cabal-macosx = overrideCabal super.cabal-macosx (drv: {
           src = nixpkgs.fetchFromGitHub {
             owner = "hamishmack";
@@ -333,138 +317,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           doCheck = false;
         });
 
-        intero = dontCheck (self.callPackage (cabal2nixResult sources.intero) {});
-
-        dependent-map = overrideCabal super.dependent-map (drv: {
-          version = "0.2.4.0";
-          sha256 = "0il2naf6gdkvkhscvqd8kg9v911vdhqp9h10z5546mninnyrdcsx";
-        });
-        dependent-sum = overrideCabal super.dependent-sum (drv: {
-          version = "0.4";
-          sha256 = "07hs9s78wiybwjwkal2yq65hdavq0gg1h2ld7wbph61s2nsfrpm8";
-        });
-        dependent-sum-template = doJailbreak super.dependent-sum-template;
-
-        # Update for ghc 8.0.2
-        parallel = replaceSrc super.parallel (nixpkgs.fetchFromGitHub {
-          owner = "haskell";
-          repo = "parallel";
-          rev = "040c4f0226a5a9a1e720d89a9e1239028d9f62d9";
-          sha256 = "0s0012jk68vk8rinfd899yxyyh4rk0as5pac2r3b6flkqrfiksa8";
-        }) "3.2.1.0";
-        old-time = doJailbreak super.old-time;
-        split = doJailbreak super.split;
-        distributive = overrideCabal super.distributive (drv: {
-          doCheck = false;
-          preCompileBuildDriver = ''
-            rm Setup.lhs
-          '';
-        });
-        comonad = overrideCabal super.comonad (drv: {
-          doCheck = false;
-          preCompileBuildDriver = ''
-            rm Setup.lhs
-          '';
-        });
-        semigroupoids = overrideCabal super.semigroupoids (drv: {
-          doCheck = false;
-          preCompileBuildDriver = ''
-            rm Setup.lhs
-          '';
-        });
-        # https://github.com/ygale/timezone-series/pull/1
-        timezone-series = doJailbreak (self.callPackage (cabal2nixResult sources.timezone-series) {});
-        constraints = overrideCabal super.constraints (drv: {
-          version = "0.9";
-          sha256 = "17fjr30ig7v1g7w3bkhn1rnhdfqvq9y2g0xx3clqvlfdx9f17d5p";
-        });
-        aeson-compat = doJailbreak super.aeson-compat;
-        x509 = dontHaddock super.x509;
-        x509-validation = dontHaddock super.x509-validation;
-
-/*
-        aeson = overrideCabal super.aeson (drv: {
-          version = "0.11.2.1";
-          sha256 = "0k5p06pik7iyjm1jjkjbpqqn0mqps6b8mz9p9sp9hmganl4cffyc";
-          revision = "1";
-          editedCabalFile = "04sydhx056gpakm39xk7s849qjr218ai1sjj2zr7n0yxxm1sqzz9";
-        });
-*/
-
-        # Jailbreaks
-        ref-tf = doJailbreak super.ref-tf;
-        deepseq-generics = doJailbreak super.deepseq-generics;
+        ########################################################################
+        # Fixes to be upstreamed
+        ########################################################################
+        foundation = if system == "i686-linux" then dontCheck super.foundation else super.foundation; # TODO: We should make sure these test failures get fixed
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
-        diagrams-contrib = doJailbreak super.diagrams-contrib;
-        cases = doJailbreak super.cases; # The test suite's bounds on HTF are too strict
-        async = doJailbreak super.async;
-        lifted-async = overrideCabal (doJailbreak super.lifted-async) (drv: {
-          preConfigure = (drv.preConfigure or "") + ''
-            sed -i 's/\( monad-control \)[0-9\.><= *&|]*/\1/' *.cabal
-            sed -i 's/\( constraints \)[0-9\.><= *&|]*/\1/' *.cabal
-          '';
-        });
-        scientific = doJailbreak super.scientific;
-        these = doJailbreak super.these;
-        case-insensitive = doJailbreak super.case-insensitive;
-        uniplate = doJailbreak super.uniplate;
-        th-lift = overrideCabal (doJailbreak super.th-lift) (drv: {
-          preConfigure = ''
-            sed -i 's/^\( *template-haskell\) *.*$/\1/' th-lift.cabal
-          '';
-        });
-        timezone-olson = dontHaddock (doJailbreak super.timezone-olson);
-
-        vector-algorithms = overrideCabal super.vector-algorithms (drv: {
-          libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.mtl self.mwc-random ];
-        });
-
-        Glob = overrideCabal super.Glob (drv: {
-          libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.semigroups ];
-        });
-
-        # keycode-0.2 has a bug on firefox
-        keycode = overrideCabal (doJailbreak super.keycode) (drv: {
-          version = "0.2.2";
-          sha256 = "046k8d1h5wwadf5z4pppjkc3g7v2zxlzb06s1xgixc42y5y41yan";
-          revision = null;
-          editedCabalFile = null;
-          # Jailbreak is not enought as template-haskell build dependency is
-          # in a cabal conditional
-          preConfigure = ''
-            sed -i 's/^\( *template-haskell\) *.*$/\1/' keycode.cabal
-          '';
-        });
-
-        # Failing tests
-        ed25519 = dontCheck super.ed25519;
-        git = dontCheck super.git;
-
-        # Failing haddocks
-        MemoTrie = dontHaddock super.MemoTrie;
-        diagrams-lib = dontHaddock (appendConfigureFlag super.diagrams-lib "--ghc-option=-XConstrainedClassMethods");
-        hackage-security = dontHaddock (dontCheck super.hackage-security);
-        # statistics = dontHaddock super.statistics;
-
-        # Miscellaneous fixes
-        diagrams-svg = addBuildDepend (doJailbreak super.diagrams-svg) self.lucid-svg;
-        cereal = addBuildDepend super.cereal self.fail;
-        semigroups = addBuildDepends super.semigroups (with self; [
-          hashable
-          unordered-containers
-          tagged
-        ]);
-        stylish-haskell = doJailbreak super.stylish-haskell;
-
-        ########################################################################
-        # Fixups for new nixpkgs
-        ########################################################################
-        language-nix = dontCheck super.language-nix;
-        distribution-nixpkgs = dontCheck super.distribution-nixpkgs;
-
-#        # The lens tests take WAY too long to run
-#        lens = dontCheck super.lens;
 
       } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
@@ -743,14 +601,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 in let this = rec {
   overrideForGhcjs = haskellPackages: haskellPackages.override {
     overrides = self: super: {
-    /*
-      mkDerivation = drv: super.mkDerivation.override {
-        hscolour = ghc.hscolour;
-      } (drv // {
-        doHaddock = false;
-      });
-    */
-
       ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
         inherit (self) llvmPackages;
         haskellPackages = self;
@@ -761,6 +611,8 @@ in let this = rec {
       ghc = super.ghc // {
         withPackages = self.ghcWithPackages;
       };
+
+      diagrams-lib = dontCheck super.diagrams-lib;
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
