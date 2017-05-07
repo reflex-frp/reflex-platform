@@ -1,4 +1,5 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
 
 {-|
 
@@ -49,7 +50,7 @@ host :: (forall t m. TypingApp t m)
         --   programmer using our framework) can't make any assumptions
         --   about which Reflex implementation is being used
      -> IO ()
-host myGuest = do
+host myGuest =
 
   -- Use the Spider implementation of Reflex.
   runSpiderHost $ do
@@ -82,7 +83,7 @@ host myGuest = do
 
       -- Use the trigger to deliver the event.
       case mETrigger of
-        Nothing -> do
+        Nothing ->
           -- This means that nobody is subscribed to the input event.
           --
           -- Since this is the only input event in this system, that would
@@ -94,7 +95,7 @@ host myGuest = do
           -- input and deliver it later - it means that nobody is interested
           -- in this occurrence, so we should discard it.
           return ()
-        Just eTrigger -> do
+        Just eTrigger ->
           -- We have a trigger, so someone is interested in this input event
           -- occurrence.
           --

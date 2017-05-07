@@ -27,7 +27,7 @@ main = hspec $ parallel $ do
   describe "work-on" $ do
     -- Test that the work-on shell can build the core reflex libraries in a variety of configurations
     forM_ ["ghc", "ghcjs"] $ \platform -> do
-      forM_ ["reflex", "reflex-dom", "reflex-todomvc"] $ \package -> do
+      forM_ ["reflex", "reflex-todomvc"] $ \package -> do
         forM_ [False, True] $ \workOnPath -> do
           it ("can build " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
             shelly $ silently $ do
