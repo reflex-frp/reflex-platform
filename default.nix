@@ -6,6 +6,7 @@
 , enableTraceReflexEvents ? false
 , useReflexOptimizer ? false
 , useTextJSString ? true
+, iosSdkVersion
 }:
 let nixpkgs = nixpkgsFunc ({
       inherit system;
@@ -134,8 +135,9 @@ let nixpkgs = nixpkgsFunc ({
               config = "x86_64-apple-darwin14";
               arch = "x86_64";
               isiPhoneSimulator = true;
+              sdkVer = iosSdkVersion;
             }; in {
-            inherit (cfg) config arch isiPhoneSimulator;
+            inherit (cfg) config arch isiPhoneSimulator sdkVer;
             useiOSCross = true;
             libc = "libSystem";
           };
@@ -152,8 +154,9 @@ let nixpkgs = nixpkgsFunc ({
               config = "aarch64-apple-darwin14";
               arch = "arm64";
               isiPhoneSimulator = false;
+              sdkVer = iosSdkVersion;
             }; in {
-            inherit (cfg) config arch isiPhoneSimulator;
+            inherit (cfg) config arch isiPhoneSimulator sdkVer;
             useiOSCross = true;
             libc = "libSystem";
           };
@@ -170,8 +173,9 @@ let nixpkgs = nixpkgsFunc ({
               config = "arm-apple-darwin10";
               arch = "armv7";
               isiPhoneSimulator = false;
+              sdkVer = iosSdkVersion;
             }; in {
-            inherit (cfg) config arch isiPhoneSimulator;
+            inherit (cfg) config arch isiPhoneSimulator sdkVer;
             useiOSCross = true;
             libc = "libSystem";
           };
