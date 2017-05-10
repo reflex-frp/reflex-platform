@@ -20,4 +20,4 @@ with haskellPackages;
   # Add ghc-only packages here                                                 #
   ##############################################################################
 
-] else []) ++ builtins.concatLists (map (x: x.override { mkDerivation = drv: (drv.buildDepends or []) ++ (drv.libraryHaskellDepends or []) ++ (drv.executableHaskellDepends or []); }) [ reflex reflex-dom reflex-todomvc ])
+] else []) ++ builtins.concatLists (map (x: (x.override { mkDerivation = drv: { out = (drv.buildDepends or []) ++ (drv.libraryHaskellDepends or []) ++ (drv.executableHaskellDepends or []); }; }).out) [ reflex reflex-dom reflex-todomvc ])
