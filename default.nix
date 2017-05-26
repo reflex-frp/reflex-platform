@@ -49,6 +49,7 @@ let nixpkgs = nixpkgsFunc ({
         };
       } // config;
     });
+    inherit (nixpkgs) fetchurl fetchgit fetchFromGitHub;
     nixpkgsCross = {
       android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
         arm64 = {
@@ -184,15 +185,15 @@ let nixpkgs = nixpkgsFunc ({
       };
     };
     inherit (nixpkgs.haskell) lib;
-    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "default.nix" "shell.nix"]));
+    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git"]));
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
-      ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then nixpkgs.fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
+      ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
         name = "ghcjs-boot";
         outPath = filterGit ./ghcjs-boot;
       };
-      shims = if builtins.pathExists ./shims/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
-      ghcjs = if builtins.pathExists ./ghcjs/github.json then nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
+      shims = if builtins.pathExists ./shims/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
+      ghcjs = if builtins.pathExists ./ghcjs/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
@@ -308,7 +309,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         };
 
         cabal-macosx = overrideCabal super.cabal-macosx (drv: {
-          src = nixpkgs.fetchFromGitHub {
+          src = fetchFromGitHub {
             owner = "hamishmack";
             repo = "cabal-macosx";
             rev = "901a76e59fddb83b3bb38d44374528d24c4f0785";
@@ -324,10 +325,36 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
+        hackageSecurity = doJailbreak super.hackage-security;
 
+        ########################################################################
+        # Packages not in hackage
+        ########################################################################
+        concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
+          owner = "conal";
+          repo = "concat";
+          rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
+          sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
+        }) {}));
       } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
+    };
+    overrideForGhcHEAD = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        th-expand-syns = doJailbreak super.th-expand-syns;
+        ChasingBottoms = doJailbreak super.ChasingBottoms;
+        base-orphans = dontCheck super.base-orphans;
+        bifunctors = dontCheck super.bifunctors;
+        HTTP = doJailbreak super.HTTP;
+        newtype-generics = doJailbreak super.newtype-generics;
+        extra = replaceSrc super.extra (fetchFromGitHub {
+          owner = "ndmitchell";
+          repo = "extra";
+          rev = "22b0e6aa6077b2d969e8b8ac613f5a3455d9e88d";
+          sha256 = "0milbw2azkj22rqacrnd0x4wh65qfrl3nhbmwfxzmdrsc2la3bkh";
+        }) "1.5.2";
+      };
     };
     overrideForGhc8 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
@@ -358,7 +385,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ghc = super.ghc // {
           bootPkgs = super.ghc.bootPkgs.override {
             overrides = self: super: {
-              Cabal = self.callPackage "${nixpkgs.fetchFromGitHub {
+              Cabal = self.callPackage "${fetchFromGitHub {
                 owner = "obsidiansystems";
                 repo = "cabal";
                 rev = "34292fadaf90571dba15e84ee66eb601ab8b317f";
@@ -396,7 +423,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         lens = overrideCabal super.lens (drv: {
           version = "4.15.1";
           sha256 = null;
-          src = nixpkgs.fetchFromGitHub {
+          src = fetchFromGitHub {
             owner = "hamishmack";
             repo = "lens";
             rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
@@ -472,7 +499,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         lens = overrideCabal super.lens (drv: {
           version = "4.15.1";
           sha256 = null;
-          src = nixpkgs.fetchFromGitHub {
+          src = fetchFromGitHub {
             owner = "hamishmack";
             repo = "lens";
             rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
@@ -519,7 +546,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overridesForTextJSString = self: super: {
       text = overrideCabal super.text (drv: {
-        src = nixpkgs.fetchFromGitHub {
+        src = fetchFromGitHub {
           owner = "luigy";
           repo = "text";
           rev = "e9a5dca15cb5b96ac434aa21db18907383db25a2";
@@ -538,14 +565,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           self.ghcjs-json
         ];
       });
-      ghcjs-json = self.callPackage (cabal2nixResult (nixpkgs.fetchFromGitHub {
+      ghcjs-json = self.callPackage (cabal2nixResult (fetchFromGitHub {
         owner = "obsidiansystems";
         repo = "ghcjs-json";
         rev = "3a6e1e949aced800d32e0683a107f5387295f3a6";
         sha256 = "1pjsvyvy6ac3358db19iwgbmsmm0si2hzh2ja1hclq43q6d80yij";
       })) {};
       ghcjs-base = overrideCabal super.ghcjs-base (drv: {
-        src = nixpkgs.fetchFromGitHub {
+        src = fetchFromGitHub {
           owner = "luigy";
           repo = "ghcjs-base";
           rev = "8569f5d541aa846f2130ff789d19bcd55ea41d2a";
@@ -558,7 +585,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ];
       });
       attoparsec = overrideCabal super.attoparsec (drv: {
-        src = nixpkgs.fetchFromGitHub {
+        src = fetchFromGitHub {
           owner = "luigy";
           repo = "attoparsec";
           rev = "e766a754811042f061b6b4498137d2ad28e207a8";
@@ -566,7 +593,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         };
       });
       hashable = overrideCabal super.hashable (drv: {
-        src = nixpkgs.fetchFromGitHub {
+        src = fetchFromGitHub {
           owner = "luigy";
           repo = "hashable";
           rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
@@ -574,7 +601,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         };
       });
       conduit-extra = overrideCabal super.conduit-extra (drv: {
-        src = "${nixpkgs.fetchFromGitHub {
+        src = "${fetchFromGitHub {
           owner = "luigy";
           repo = "conduit";
           rev = "aeb20e4eb7f7bfc07ec401c82821cbb04018b571";
@@ -582,7 +609,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         }}/conduit-extra";
       });
       double-conversion = overrideCabal super.double-conversion (drv: {
-        src = nixpkgs.fetchFromGitHub {
+        src = fetchFromGitHub {
           owner = "obsidiansystems";
           repo = "double-conversion";
           rev = "0f9ddde468687d25fa6c4c9accb02a034bc2f9c3";
@@ -590,6 +617,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         };
       });
     };
+  ghcHEAD = overrideForGhcHEAD (overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD));
   ghc = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802);
   ghc8_0_1 = overrideForGhc8 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801);
   ghc7 = overrideForGhc7 (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103);
@@ -617,7 +645,7 @@ in let this = rec {
 
     } // (if useTextJSString then overridesForTextJSString self super else {});
   };
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders ghc ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
   stage2Script = nixpkgs.runCommand "stage2.nix" {
     GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
     buildCommand = ''
