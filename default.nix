@@ -336,6 +336,18 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
           sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
         }) {}));
+
+        superconstraints =
+          # Remove override when assertion fails
+          assert (super.superconstraints or null) == null;
+          self.callPackage (self.haskellSrc2nix {
+            name = "superconstraints";
+            src = fetchurl {
+              url = "https://hackage.haskell.org/package/superconstraints-0.0.1/superconstraints.cabal";
+              sha256 = "0bgc8ldml3533522gp1x2bjiazllknslpl2rvdkd1k1zfdbh3g9m";
+            };
+            sha256 = "1gx9p9i5jli91dnvvrc30j04h1v2m3d71i8sxli6qrhplq5y63dk";
+          }) {};
       } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
