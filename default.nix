@@ -352,6 +352,75 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
     };
+    overrideForGhcjs = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
+          inherit (self) llvmPackages;
+          haskellPackages = self;
+          packages = selectFrom self;
+          ${if useReflexOptimizer then "ghcLibdir" else null} = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
+        };
+
+        ghc = super.ghc // {
+          withPackages = self.ghcWithPackages;
+        };
+
+        diagrams-lib = dontCheck super.diagrams-lib;
+
+      } // (if useTextJSString then overridesForTextJSString self super else {});
+    };
+    stage2Script = nixpkgs.runCommand "stage2.nix" {
+      GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
+      buildCommand = ''
+        echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
+        patchShebangs .
+        ./gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
+      '';
+      buildInputs = with nixpkgs; [
+        ruby cabal2nix
+      ];
+    } "";
+    ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
+      bootPkgs = ghc;
+      ghcjsBootSrc = sources.ghcjs-boot;
+      shims = sources.shims;
+    }) (drv: {
+      src = sources.ghcjs;
+    })) // {
+      mkStage2 = import stage2Script {
+        ghcjsBoot = sources.ghcjs-boot;
+      };
+      stage1Packages = [
+        "array"
+        "base"
+        "binary"
+        "bytestring"
+        "containers"
+        "deepseq"
+        "directory"
+        "filepath"
+        "ghc-boot"
+        "ghc-boot-th"
+        "ghc-prim"
+        "ghci"
+        "ghcjs-prim"
+        "ghcjs-th"
+        "integer-gmp"
+        "pretty"
+        "primitive"
+        "process"
+        "rts"
+        "template-haskell"
+        "time"
+        "transformers"
+        "unix"
+      ];
+    };
+    ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
+      ghc = ghcjsCompiler;
+      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { };
+    };
+    ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
     overrideForGhcHEAD = haskellPackages: haskellPackages.override {
       overrides = self: super: {
         th-expand-syns = doJailbreak super.th-expand-syns;
@@ -377,7 +446,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # some instances have been added to QuickCheck which overlap with ones
         # defined by aeson.  This can probably be removed once ghcjs-boot has
         # updated to aeson >= 0.11.2.1.
-        aeson = dontCheck (self.callPackage (self.hackage2nix "aeson" "0.11.2.0") {});
+        aeson = dontCheck (self.callPackage (self.hackage2nix "aeson" ghcjs.aeson.version) {});
       };
     };
     overrideForGhc8 = haskellPackages: haskellPackages.override {
@@ -652,35 +721,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghcIosArm64 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcHEAD));
   ghcIosArmv7 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcHEAD));
 in let this = rec {
-  overrideForGhcjs = haskellPackages: haskellPackages.override {
-    overrides = self: super: {
-      ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-        inherit (self) llvmPackages;
-        haskellPackages = self;
-        packages = selectFrom self;
-        ${if useReflexOptimizer then "ghcLibdir" else null} = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
-      };
-
-      ghc = super.ghc // {
-        withPackages = self.ghcWithPackages;
-      };
-
-      diagrams-lib = dontCheck super.diagrams-lib;
-
-    } // (if useTextJSString then overridesForTextJSString self super else {});
-  };
   inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
-  stage2Script = nixpkgs.runCommand "stage2.nix" {
-    GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
-    buildCommand = ''
-      echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
-      patchShebangs .
-      ./gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
-    '';
-    buildInputs = with nixpkgs; [
-      ruby cabal2nix
-    ];
-  } "";
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
         ghcLibdirLink = nixpkgs.stdenv.mkDerivation {
@@ -700,48 +741,8 @@ in let this = rec {
       '';
     };
   };
-  ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
-    bootPkgs = ghc;
-    ghcjsBootSrc = sources.ghcjs-boot;
-    shims = sources.shims;
-  }) (drv: {
-    src = sources.ghcjs;
-  })) // {
-    mkStage2 = import stage2Script {
-      ghcjsBoot = sources.ghcjs-boot;
-    };
-    stage1Packages = [
-      "array"
-      "base"
-      "binary"
-      "bytestring"
-      "containers"
-      "deepseq"
-      "directory"
-      "filepath"
-      "ghc-boot"
-      "ghc-boot-th"
-      "ghc-prim"
-      "ghci"
-      "ghcjs-prim"
-      "ghcjs-th"
-      "integer-gmp"
-      "pretty"
-      "primitive"
-      "process"
-      "rts"
-      "template-haskell"
-      "time"
-      "transformers"
-      "unix"
-    ];
-  };
-  ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
-    ghc = ghcjsCompiler;
-    packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { };
-  };
 
-  ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
+  inherit ghcjs ghcjsCompiler;
   platforms = [ "ghcjs" "ghc" ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
