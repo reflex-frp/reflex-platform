@@ -343,10 +343,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           self.callPackage (self.haskellSrc2nix {
             name = "superconstraints";
             src = fetchurl {
-              url = "https://hackage.haskell.org/package/superconstraints-0.0.1/superconstraints.cabal";
-              sha256 = "0bgc8ldml3533522gp1x2bjiazllknslpl2rvdkd1k1zfdbh3g9m";
+              url = "https://hackage.haskell.org/package/superconstraints-0.0.2/superconstraints.cabal";
+              sha256 = "0fz7q6jvlgj8j9z96b553yigwnmh9inhx73iv5p4spa3ih1jybba";
             };
-            sha256 = "1gx9p9i5jli91dnvvrc30j04h1v2m3d71i8sxli6qrhplq5y63dk";
+            sha256 = "0wdh3vjqls9mdvii7qxcv993305ahznffiv0qkfkwg0lxsshwdxy";
           }) {};
       } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
