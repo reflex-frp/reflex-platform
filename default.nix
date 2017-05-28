@@ -112,6 +112,7 @@ let nixpkgs = nixpkgsFunc ({
             isiPhoneSimulator = true;
             sdkVer = iosSdkVersion;
             useiOSCross = true;
+            openssl.system = "darwin64-x86_64-cc";
             libc = "libSystem";
           };
           inherit config;
@@ -129,6 +130,7 @@ let nixpkgs = nixpkgsFunc ({
             isiPhoneSimulator = false;
             sdkVer = iosSdkVersion;
             useiOSCross = true;
+            openssl.system = "ios64-cross";
             libc = "libSystem";
           };
           inherit config;
@@ -146,6 +148,7 @@ let nixpkgs = nixpkgsFunc ({
             isiPhoneSimulator = false;
             sdkVer = iosSdkVersion;
             useiOSCross = true;
+            openssl.system = "ios-cross";
             libc = "libSystem";
           };
           inherit config;
