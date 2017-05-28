@@ -6,7 +6,7 @@
 , enableTraceReflexEvents ? false
 , useReflexOptimizer ? false
 , useTextJSString ? true
-, iosSdkVersion ? "10.2"
+, iosSdkVersion ? "10.3"
 }:
 let nixpkgs = nixpkgsFunc ({
       inherit system;
