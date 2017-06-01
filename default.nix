@@ -18,7 +18,7 @@ let nixpkgs = nixpkgsFunc ({
         ];
         packageOverrides = pkgs: {
           cabal2nix = if system == "i686-linux" then lib.dontCheck pkgs.cabal2nix else pkgs.cabal2nix;
-          webkitgtk = pkgs.webkitgtk214x;
+          webkitgtk = pkgs.webkitgtk216x;
           osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
             let version = "10.11";
             in stdenv.mkDerivation rec {
@@ -302,14 +302,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         gi-soup = dontUseOverloads super.gi-soup;
         gi-webkit = dontUseOverloads super.gi-webkit;
         gi-webkit2 = dontUseOverloads (super.gi-webkit2.override {
-          webkitgtk = nixpkgs.webkitgtk214x;
+          webkitgtk = nixpkgs.webkitgtk216x;
         });
         gi-gtksource = dontUseOverloads (super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
         });
 
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
-          webkitgtk = nixpkgs.webkitgtk214x;
+          webkitgtk = nixpkgs.webkitgtk216x;
         };
 
         cabal-macosx = overrideCabal super.cabal-macosx (drv: {
