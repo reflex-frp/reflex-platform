@@ -15,6 +15,7 @@ import Debug.Trace
 
 main = mainWidgetWithCss $(embedFile "style.css") $ do
 
+
   let links = [ ("hackage", "https://hackage.haskell.org/package/reflex")
               , ("twitter", "http://twitter.com")
               , ("github", "http://github.com/reflex-frp")
@@ -23,7 +24,8 @@ main = mainWidgetWithCss $(embedFile "style.css") $ do
               ]
 
   elClass "div" "header" $ do
-    elClass "h1" "logo" $ text "Reflex-FRP"
+    elClass "h1" "logo" $ do
+      elAttr "img" ("src" =: "reflex-frp-logo.jpg") (text "")
     elClass "ul" "sections" $ navMenu
 
   elClass "div" "main" $ do
@@ -38,6 +40,7 @@ main = mainWidgetWithCss $(embedFile "style.css") $ do
 
   return ()
 
+
 navMenu :: (MonadWidget t m) => m ()
 navMenu = do
   forM_ sections $ \pair -> do
@@ -49,3 +52,11 @@ navMenu = do
                  , ("Documentation", "http://reflex-frp.readthedocs.io")
                  , ("FAQ", "/")]
 
+
+navMenu1 :: (MonadWidget t m) => m ()
+navMenu1 = do
+  forM_ sections $ \link -> do
+    el "li" $
+      elAttr "a" ("href" =: "#") $
+        text link
+  where sections = [ "Home", "Tutorials", "Examples", "Documentation", "FAQ"]

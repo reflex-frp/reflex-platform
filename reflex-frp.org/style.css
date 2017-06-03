@@ -11,43 +11,55 @@ html {
 }
 
 .header {
-    padding: 20px;
 }
 
 .header h1 {
-    outline: 2px solid black;
-    width: 12rem;
-    margin: 30px auto;
+    margin: 0 auto;
     text-align: center;
-    line-height: 1.5em;
     font-family: 'Asap', helvetica, sans-serif;
     font-weight: 700;
 }
 
+.header h1 img {
+  width: 32rem;
+}
+
 ul.sections {
-    margin: 0;
-    padding: 0;
+    margin: 0 0 3rem 0;
+    padding: 0.5rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     list-style: none;
+    border-top: 1px solid #d1dadc;
+    border-bottom: 1px solid #d1dadc;
 }
 
 ul.sections li {
 }
 
+ul.sections li + li {
+  border-left: 1px solid #ecf1f3;
+}
+
 
 ul.sections li a {
-    padding: 1.25rem 0.5rem;
+    padding: 0 0.3rem;
+    margin: 0.3rem 1rem;
     text-decoration: none;
     display: flex;
     align-items: flex-start;
     color: #333;
     text-transform: uppercase;
+    border-bottom: 4px solid transparent;
 }
 
     ul.sections li a:hover, ul.sections li a:focus {
-        color: blue;
+        color: #d4272a;
+    }
+
+    ul.sections li a.active {
+        border-bottom: 4px solid  #d4272a;
     }
 
 .main {
