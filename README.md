@@ -55,6 +55,21 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
 
 5. If you need to add any additional dependencies, edit `packages.nix`, then exit and re-enter the try-reflex shell.  **Don't use** `cabal install` to install libraries while inside the try-reflex shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
 
+Building the Todo-MVC app and other packages
+--------------------------------------------
+
+This repository contains various packages (these are the folders containing only two .nix files, e.g `reflex`, `reflex-dom` and `reflex-todomvc`). To work on these packages, you can use the [`work-on` script](HACKING.md).
+
+For instance, to build the Todo-MVC app, you can type (inside this repository's main folder)
+
+```bash
+./hack-on reflex-todomvc # This checks out the submodule containing the code for the app
+cd reflex-todomvc # This is the checked-out submodule
+ghcjs --make src-bin/main.h # Building the app
+```
+
+This creates the app at `src-bin/main.jsexe/index.html`, which you can open in your browser.
+
 Tutorial
 --------
 In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a simple functional reactive calculator to be used in a web browser.
