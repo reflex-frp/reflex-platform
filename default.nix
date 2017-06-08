@@ -54,12 +54,9 @@ let nixpkgs = nixpkgsFunc ({
     nixpkgsCross = {
       android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
         arm64 = {
-          crossSystem =
-            let cfg = {
-              config = "aarch64-unknown-linux-android";
-              arch = "arm64";
-            }; in {
-            inherit (cfg) config arch;
+          crossSystem = {
+            config = "aarch64-unknown-linux-android";
+            arch = "arm64";
             libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic64";
@@ -71,12 +68,9 @@ let nixpkgs = nixpkgsFunc ({
           crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
         };
         armv7a = {
-          crossSystem =
-            let cfg = {
-              config = "arm-unknown-linux-androideabi";
-              arch = "armv7";
-            }; in {
-            inherit (cfg) config arch;
+          crossSystem = {
+            config = "arm-unknown-linux-androideabi";
+            arch = "armv7";
             libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic32";
@@ -130,57 +124,48 @@ let nixpkgs = nixpkgsFunc ({
             };
         in {
         simulator64 = nixpkgsFunc {
-          crossSystem =
-            let cfg = {
-              # You can change config/arch/isiPhoneSimulator depending on your target:
-              # aarch64-apple-darwin14 | arm64  | false
-              # arm-apple-darwin10     | armv7  | false
-              # i386-apple-darwin11    | i386   | true
-              # x86_64-apple-darwin14  | x86_64 | true
-              config = "x86_64-apple-darwin14";
-              arch = "x86_64";
-              isiPhoneSimulator = true;
-              sdkVer = iosSdkVersion;
-            }; in {
-            inherit (cfg) config arch isiPhoneSimulator sdkVer;
+          crossSystem = {
+            # You can change config/arch/isiPhoneSimulator depending on your target:
+            # aarch64-apple-darwin14 | arm64  | false
+            # arm-apple-darwin10     | armv7  | false
+            # i386-apple-darwin11    | i386   | true
+            # x86_64-apple-darwin14  | x86_64 | true
+            config = "x86_64-apple-darwin14";
+            arch = "x86_64";
+            isiPhoneSimulator = true;
+            sdkVer = iosSdkVersion;
             useiOSCross = true;
             libc = "libSystem";
           };
           inherit config;
         };
         arm64 = nixpkgsFunc {
-          crossSystem =
-            let cfg = {
-              # You can change config/arch/isiPhoneSimulator depending on your target:
-              # aarch64-apple-darwin14 | arm64  | false
-              # arm-apple-darwin10     | armv7  | false
-              # i386-apple-darwin11    | i386   | true
-              # x86_64-apple-darwin14  | x86_64 | true
-              config = "aarch64-apple-darwin14";
-              arch = "arm64";
-              isiPhoneSimulator = false;
-              sdkVer = iosSdkVersion;
-            }; in {
-            inherit (cfg) config arch isiPhoneSimulator sdkVer;
+          crossSystem = {
+            # You can change config/arch/isiPhoneSimulator depending on your target:
+            # aarch64-apple-darwin14 | arm64  | false
+            # arm-apple-darwin10     | armv7  | false
+            # i386-apple-darwin11    | i386   | true
+            # x86_64-apple-darwin14  | x86_64 | true
+            config = "aarch64-apple-darwin14";
+            arch = "arm64";
+            isiPhoneSimulator = false;
+            sdkVer = iosSdkVersion;
             useiOSCross = true;
             libc = "libSystem";
           };
           inherit config;
         };
         armv7 = nixpkgsFunc {
-          crossSystem =
-            let cfg = {
-              # You can change config/arch/isiPhoneSimulator depending on your target:
-              # aarch64-apple-darwin14 | arm64  | false
-              # arm-apple-darwin10     | armv7  | false
-              # i386-apple-darwin11    | i386   | true
-              # x86_64-apple-darwin14  | x86_64 | true
-              config = "arm-apple-darwin10";
-              arch = "armv7";
-              isiPhoneSimulator = false;
-              sdkVer = iosSdkVersion;
-            }; in {
-            inherit (cfg) config arch isiPhoneSimulator sdkVer;
+          crossSystem = {
+            # You can change config/arch/isiPhoneSimulator depending on your target:
+            # aarch64-apple-darwin14 | arm64  | false
+            # arm-apple-darwin10     | armv7  | false
+            # i386-apple-darwin11    | i386   | true
+            # x86_64-apple-darwin14  | x86_64 | true
+            config = "arm-apple-darwin10";
+            arch = "armv7";
+            isiPhoneSimulator = false;
+            sdkVer = iosSdkVersion;
             useiOSCross = true;
             libc = "libSystem";
           };
