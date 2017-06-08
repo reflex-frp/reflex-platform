@@ -233,18 +233,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         done
       '';
     });
-    cabal2nixResult = src: nixpkgs.runCommand "cabal2nixResult" {
-      buildCommand = ''
-        cabal2nix file://"${src}" >"$out"
-      '';
-      buildInputs = [
-        nixpkgs.cabal2nix
-      ];
-
-      # Support unicode characters in cabal files
-      ${if !nixpkgs.stdenv.isDarwin then "LOCALE_ARCHIVE" else null} = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
-      ${if !nixpkgs.stdenv.isDarwin then "LC_ALL" else null} = "en_US.UTF-8";
-    } "";
+    cabal2nixResult = src: builtins.trace "deprecated, use haskellSrc2nix from nixpkgs" (lib.haskellSrc2nix {
+      name = "for-unknown-package";
+      src = "file://${src}";
+      sha256 = null;
+    });
     addReflexTraceEventsFlag = if enableTraceReflexEvents
       then drv: appendConfigureFlag drv "-fdebug-trace-events"
       else drv: drv;
