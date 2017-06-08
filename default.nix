@@ -534,8 +534,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle-webkitgtk = null;
         jsaddle-webkit2gtk = null;
 
-        mkDerivation = drv: super.mkDerivation.override { hscolour = ghc.hscolour; }
-          (drv // { doHaddock = false; });
+        mkDerivation = drv: super.mkDerivation (drv // { doHaddock = false; });
       };
     };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
