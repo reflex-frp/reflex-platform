@@ -271,8 +271,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Reflex packages
         ########################################################################
         reflex = addReflexTraceEventsFlag (addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
-        reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom));
-        reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core));
+        reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (dontCheck (doJailbreak reflexDom.reflex-dom)));
+        reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (dontCheck (doJailbreak reflexDom.reflex-dom-core)));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         jsaddle = jsaddlePkgs.jsaddle;
