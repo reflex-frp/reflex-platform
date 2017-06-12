@@ -17,7 +17,7 @@ let nixpkgs = nixpkgsFunc ({
           "webkitgtk-2.4.11"
         ];
         packageOverrides = pkgs: {
-          cabal2nix = if system == "i686-linux" then lib.dontCheck pkgs.cabal2nix else pkgs.cabal2nix;
+          #cabal2nix = if system == "i686-linux" then lib.dontCheck pkgs.cabal2nix else pkgs.cabal2nix;
           webkitgtk = pkgs.webkitgtk216x;
           osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
             let version = "10.11";
@@ -238,6 +238,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
               else drv: drv;
         in {
+        base-compat = self.hackage2nix "base-compat" "0.9.2";
+
         ########################################################################
         # Reflex packages
         ########################################################################
@@ -356,7 +358,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         patchShebangs .
         ./gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
       '';
-      buildInputs = with nixpkgs; [
+      nativeBuildInputs = with nixpkgs; [
         ruby cabal2nix
       ];
     } "";
@@ -514,6 +516,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           jailbreak = true;
         });
 
+        syb = overrideCabal super.syb (drv: { jailbreak = true; });
+        cabalDoctest = null;
 
         reflex = super.reflex.override {
           useTemplateHaskell = false;
