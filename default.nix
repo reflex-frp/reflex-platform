@@ -238,7 +238,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
               else drv: drv;
         in {
-        base-compat = self.hackage2nix "base-compat" "0.9.2";
+        base-compat = self.callHackage "base-compat" "0.9.2" {};
 
         ########################################################################
         # Reflex packages
