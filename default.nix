@@ -290,10 +290,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         cabal-macosx = overrideCabal super.cabal-macosx (drv: {
           src = fetchFromGitHub {
-            owner = "hamishmack";
+            owner = "ObsidianSystems";
             repo = "cabal-macosx";
-            rev = "901a76e59fddb83b3bb38d44374528d24c4f0785";
-            sha256 = "0azj9rrmc3k0s5347faizfmxfsqyp0pxnr9gxp7z38jg9y8ddhh1";
+            rev = "81a1a6ecfbe4dfe3ab0dc6406a8fd7ae3d4615e9";
+            sha256 = "1wlir74glrpxjhy2x38wpdcbc26wg7lx7iw91nyx86y8cjd2h0w5";
           };
           doCheck = false;
         });
