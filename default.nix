@@ -437,8 +437,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhc7 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
-        cabal-install = self.cabal-install_1_22_9_0;
-        Cabal = self.Cabal_1_22_8_0;
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
