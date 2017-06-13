@@ -201,9 +201,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       editedCabalFile = null;
     });
     combineOverrides = old: new: (old // new) // {
-      overrides = self: super:
-        let oldOverrides = old.overrides self super;
-        in oldOverrides // new.overrides self (super // oldOverrides);
+      overrides = nixpkgs.lib.composeExtensions old.overrides new.overrides;
     };
     makeRecursivelyOverridable = x: old: x.override old // {
       override = new: makeRecursivelyOverridable x (combineOverrides old new);
