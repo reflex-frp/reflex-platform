@@ -218,7 +218,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         done
       '';
     });
-    cabal2nixResult = src: builtins.trace "deprecated, use haskellSrc2nix from nixpkgs" (lib.haskellSrc2nix {
+    cabal2nixResult = src: builtins.trace "deprecated, use haskellSrc2nix from nixpkgs" (ghc.haskellSrc2nix {
       name = "for-unknown-package";
       src = "file://${src}";
       sha256 = null;
