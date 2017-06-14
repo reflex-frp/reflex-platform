@@ -294,8 +294,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           src = fetchFromGitHub {
             owner = "ObsidianSystems";
             repo = "cabal-macosx";
-            rev = "81a1a6ecfbe4dfe3ab0dc6406a8fd7ae3d4615e9";
-            sha256 = "1wlir74glrpxjhy2x38wpdcbc26wg7lx7iw91nyx86y8cjd2h0w5";
+            rev = "76438017d41f53c1ccc8dddcded4081b517fdcb2";
+            sha256 = "0x3imlmx3ibdc6qjbi708l4bl7550ms7i1zp6zxjqw7r7hvbhxfv";
           };
           doCheck = false;
         });
