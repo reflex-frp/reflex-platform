@@ -229,6 +229,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       else drv: drv;
     # The gi-libraries, by default, will use lots of overloading features of ghc that are still a bit too slow; this function disables them
     dontUseOverloads = p: appendConfigureFlag p "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
+    dontUseCustomSetup = p: overrideCabal p (drv: {
+      preCompileBuildDriver = assert (drv.preCompileBuildDriver or null) == null; ''
+        rm Setup.hs || rm Setup.lhs
+      '';
+    });
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
@@ -239,6 +244,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
               else drv: drv;
         in {
         base-compat = self.callHackage "base-compat" "0.9.2" {};
+        hashable = doJailbreak (self.callHackage "hashable" "1.2.5.0" {});
+        distributive = dontUseCustomSetup super.distributive;
+        comonad = dontUseCustomSetup super.comonad;
+        semigroupoids = dontUseCustomSetup super.semigroupoids;
+        vector = doJailbreak super.vector;
+        these = doJailbreak super.these;
 
         ########################################################################
         # Reflex packages
@@ -292,10 +303,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         cabal-macosx = overrideCabal super.cabal-macosx (drv: {
           src = fetchFromGitHub {
-            owner = "ObsidianSystems";
+            owner = "obsidiansystems";
             repo = "cabal-macosx";
-            rev = "76438017d41f53c1ccc8dddcded4081b517fdcb2";
-            sha256 = "0x3imlmx3ibdc6qjbi708l4bl7550ms7i1zp6zxjqw7r7hvbhxfv";
+            rev = "b1e22331ffa91d66da32763c0d581b5d9a61481b";
+            sha256 = "1y2qk61ciflbxjm0b1ab3h9lk8cm7m6ln5ranpf1lg01z1qk28m8";
           };
           doCheck = false;
         });
@@ -517,7 +528,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
 
         syb = overrideCabal super.syb (drv: { jailbreak = true; });
-        cabalDoctest = null;
+        cabal-doctest = null;
 
         reflex = super.reflex.override {
           useTemplateHaskell = false;
@@ -538,7 +549,17 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle-webkitgtk = null;
         jsaddle-webkit2gtk = null;
 
-        mkDerivation = drv: super.mkDerivation (drv // { doHaddock = false; });
+        mkDerivation = drv: super.mkDerivation (drv // {
+          doHaddock = false;
+          dontStrip = true;
+          enableSharedExecutables = false;
+          configureFlags = (drv.configureFlags or []) ++ [
+            "--ghc-option=-fPIC"
+            "--ghc-option=-optc-fPIC"
+            "--ghc-option=-optc-shared"
+            "--ghc-option=-optl-shared"
+          ];
+        });
       };
     };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
