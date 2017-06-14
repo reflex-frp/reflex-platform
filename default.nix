@@ -438,6 +438,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     overrideForGhc7 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
+        ghcjs-dom = overrideCabal super.ghcjs-dom (drv: {
+          preConfigure = "sed -i -e 's|cabal-version: >=1.24|cabal-version: >=1.22|' ghcjs-dom.cabal";
+        });
+        ghcjs-dom-ffi = overrideCabal super.ghcjs-dom-ffi (drv: {
+          preConfigure = "sed -i -e 's|cabal-version: >=1.24|cabal-version: >=1.22|' ghcjs-dom-ffi.cabal";
+        });
       };
     };
     overrideForGhc7_8 = haskellPackages: (overrideForGhc7 haskellPackages).override {
