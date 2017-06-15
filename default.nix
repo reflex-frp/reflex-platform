@@ -244,12 +244,23 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
               else drv: drv;
         in {
         base-compat = self.callHackage "base-compat" "0.9.2" {};
+        constraints = self.callHackage "constraints" "0.9" {};
         hashable = doJailbreak (self.callHackage "hashable" "1.2.5.0" {});
-        distributive = dontUseCustomSetup super.distributive;
-        comonad = dontUseCustomSetup super.comonad;
-        semigroupoids = dontUseCustomSetup super.semigroupoids;
         vector = doJailbreak super.vector;
         these = doJailbreak super.these;
+        aeson-compat = doJailbreak super.aeson-compat;
+        timezone-series = self.callCabal2nix "timezone-series" (fetchFromGitHub {
+          owner = "ygale";
+          repo = "timezone-series";
+          rev = "9f42baf542c54ad554bd53582819eaa454ed633d";
+          sha256 = "1axrx8lziwi6pixws4lq3yz871vxi81rib6cpdl62xb5bh9y03j6";
+        }) {};
+        timezone-olson = self.callCabal2nix "timezone-olson" (fetchFromGitHub {
+          owner = "ygale";
+          repo = "timezone-olson";
+          rev = "aecec86be48580f23145ffb3bf12a4ae191d12d3";
+          sha256 = "1xxbwb8z27qbcscbg5qdyzlc2czg5i3b0y04s9h36hfcb07hasnz";
+        }) {};
 
         ########################################################################
         # Reflex packages
@@ -258,6 +269,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom));
         reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
+        reflex-aeson-orphans = self.callPackage ./reflex-aeson-orphans {};
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
@@ -491,7 +503,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         aeson = exposeAeson super.aeson;
 
-        semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
+        # These custom Setup.lhs files don't work
+        distributive = dontUseCustomSetup super.distributive;
+        comonad = dontUseCustomSetup super.comonad;
+        semigroupoids = dontUseCustomSetup (appendConfigureFlag super.semigroupoids "-f-doctests");
+
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
         cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
         profunctors = overrideCabal super.profunctors (drv: {
