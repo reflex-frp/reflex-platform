@@ -591,10 +591,17 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # IOS doesn't support template haskell yet
         aeson = exposeAeson super.aeson;
 
+        cabal-doctest = null;
+        syb = overrideCabal super.syb (drv: { jailbreak = true; });
+
+        # These custom Setup.lhs files don't work
+        distributive = dontUseCustomSetup super.distributive;
+        comonad = dontUseCustomSetup super.comonad;
+        semigroupoids = dontUseCustomSetup (appendConfigureFlag super.semigroupoids "-f-doctests");
+
         #text = appendConfigureFlag super.text "-finteger-simple";
         #scientific = appendConfigureFlag super.scientific "-finteger-simple";
         #hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
-        semigroupoids = appendConfigureFlag super.semigroupoids "-f-doctests";
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
         cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
         profunctors = overrideCabal super.profunctors (drv: {
