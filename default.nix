@@ -647,12 +647,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         jsaddle-webkitgtk = null;
         jsaddle-webkit2gtk = null;
         #Cabal = self.Cabal_1_24_2_0;
-        mkDerivation = drv: super.mkDerivation.override { hscolour = ghc.hscolour; }
-          (drv // {
-            doHaddock = false;
-            enableSharedLibraries = false;
-            enableSharedExecutables = false;
-          });
+        mkDerivation = drv: super.mkDerivation (drv // {
+          doHaddock = false;
+          enableSharedLibraries = false;
+          enableSharedExecutables = false;
+        });
       };
     };
     overridesForTextJSString = self: super: {
