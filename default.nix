@@ -859,7 +859,10 @@ in let this = rec {
     let suffixLen = builtins.stringLength suffix;
     in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
 
-  reflexEnv = platform: (builtins.getAttr platform this).ghcWithHoogle (p: import ./packages.nix { haskellPackages = p; inherit platform; });
+  reflexEnv = platform:
+    let haskellPackages = builtins.getAttr platform this;
+        ghcWithStuff = if platform == "ghc" || platform == "ghcjs" then haskellPackages.ghcWithHoogle else haskellPackages.ghcWithPackages;
+    in ghcWithStuff (p: import ./packages.nix { haskellPackages = p; inherit platform; });
 
   tryReflexPackages = generalDevTools ghc ++ builtins.map reflexEnv platforms;
 
