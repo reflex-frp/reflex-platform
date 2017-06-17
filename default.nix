@@ -470,16 +470,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             };
           };
         };
-        ghcjs-prim = null;
-        ghcjs-json = null;
-        derive = null;
-        focus-http-th = null;
-        th-lift-instances = null;
-        websockets = null;
-        wai = null;
-        warp = null;
-        wai-app-static = null;
-        jsaddle-wkwebview = null;
 
         aeson = exposeAeson super.aeson;
 
