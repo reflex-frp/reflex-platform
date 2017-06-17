@@ -17,36 +17,7 @@ let nixpkgs = nixpkgsFunc ({
           "webkitgtk-2.4.11"
         ];
         packageOverrides = pkgs: {
-          #cabal2nix = if system == "i686-linux" then lib.dontCheck pkgs.cabal2nix else pkgs.cabal2nix;
           webkitgtk = pkgs.webkitgtk216x;
-          osx_sdk = pkgs.callPackage ({ stdenv, fetchzip }:
-            let version = "10.11";
-            in stdenv.mkDerivation rec {
-            name = "MacOSX10.11.sdk";
-
-            src = fetchzip {
-              url = "https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz";
-              sha256 = "132vz288l6pk7ci49fcvkkmci47w451ggidh3sarm1f9m7sg7b1k";
-            };
-
-            unpackPhase    = "true";
-            configurePhase = "true";
-            buildPhase     = "true";
-            setupHook = ./setup-hook.sh;
-
-            installPhase = ''
-              mkdir -p $out/Developer/SDKs/
-              echo "Source is: $src"
-              cp -r $src/* $out/Developer/SDKs/
-            '';
-
-            meta = with stdenv.lib; {
-              description = "The Mac OS ${version} SDK";
-              maintainers = with maintainers; [ copumpkin ];
-              platforms   = platforms.darwin;
-              license     = licenses.unfree;
-            };
-          }) {};
         };
       } // config;
     });
@@ -863,7 +834,7 @@ in let this = rec {
   # The systems that we want to build for on the current system
   cacheTargetSystems = [
     "x86_64-linux"
-    "i686-linux"
+#    "i686-linux"
     "x86_64-darwin"
   ];
 
