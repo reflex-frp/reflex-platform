@@ -27,6 +27,7 @@ let nixpkgs = nixpkgsFunc ({
     nixpkgsCross = {
       android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
         arm64 = {
+          inherit system;
           crossSystem = {
             config = "aarch64-unknown-linux-android";
             arch = "arm64";
@@ -38,9 +39,11 @@ let nixpkgs = nixpkgsFunc ({
           config.allowUnfree = true;
         };
         arm64Impure = arm64 // {
+          inherit system;
           crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
         };
         armv7a = {
+          inherit system;
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
             arch = "armv7";
@@ -97,6 +100,7 @@ let nixpkgs = nixpkgsFunc ({
             };
         in {
         simulator64 = nixpkgsFunc {
+          inherit system;
           crossSystem = {
             # You can change config/arch/isiPhoneSimulator depending on your target:
             # aarch64-apple-darwin14 | arm64  | false
@@ -113,6 +117,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         arm64 = nixpkgsFunc {
+          inherit system;
           crossSystem = {
             # You can change config/arch/isiPhoneSimulator depending on your target:
             # aarch64-apple-darwin14 | arm64  | false
@@ -129,6 +134,7 @@ let nixpkgs = nixpkgsFunc ({
           inherit config;
         };
         armv7 = nixpkgsFunc {
+          inherit system;
           crossSystem = {
             # You can change config/arch/isiPhoneSimulator depending on your target:
             # aarch64-apple-darwin14 | arm64  | false
