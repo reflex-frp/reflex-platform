@@ -163,6 +163,7 @@ let nixpkgs = nixpkgsFunc ({
       shims = if builtins.pathExists ./shims/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
       ghcjs = if builtins.pathExists ./ghcjs/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
+    inherit (nixpkgs.stdenv.lib) optionals;
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
     exposeAeson = aeson: overrideCabal aeson (drv: {
@@ -746,7 +747,15 @@ in let this = rec {
   };
 
   inherit ghcjs ghcjsCompiler;
-  platforms = [ "ghcjs" "ghc" ];
+  platforms = [
+    "ghcjs"
+    "ghc"
+  ] ++ (optionals (system == "x86_64-linux") [
+#    "ghcAndroidArm64"
+#    "ghcAndroidArmv7a"
+  ]) ++ (optionals nixpkgs.stdenv.isDarwin [
+    "ghcIosArm64"
+  ]);
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
@@ -842,7 +851,7 @@ in let this = rec {
   # The systems that we want to build for on the current system
   cacheTargetSystems = [
     "x86_64-linux"
-#    "i686-linux"
+    "i686-linux"
     "x86_64-darwin"
   ];
 
