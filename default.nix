@@ -799,7 +799,7 @@ in let this = rec {
 
   # Tools that are useful for development under both ghc and ghcjs
   generalDevTools = haskellPackages:
-    let nativeHaskellPackages = if haskellPackages.ghc.isGhcjs or false then ghc else haskellPackages;
+    let nativeHaskellPackages = ghc;
     in [
     nativeHaskellPackages.Cabal
     nativeHaskellPackages.cabal-install
