@@ -17,6 +17,7 @@ Important Notes
 If you're using one of these platforms, please take a look at notes before you begin:
 
 * [NixOS](notes/NixOS.md)
+* [Arch Linux](notes/ArchLinux.md)
 * [Linux Mint](notes/LinuxMint.md)
 
 If you encounter any problems that may be specific to your platform, please submit an issue or pull request so that we can add a note for future users.
@@ -306,13 +307,13 @@ ops = Map.fromList [("+", "+"), ("-", "-"), ("*", "*"), ("/", "/")]
 
 textToOp :: (Fractional a) => Text -> a -> a -> a
 textToOp s = case s of
-                    "-" -> (-)
-                    "*" -> (*)
-                    "/" -> (/)
-                    _ -> (+)
+                  "-" -> (-)
+                  "*" -> (*)
+                  "/" -> (/)
+                  _ -> (+)
 ```
 
-This is our complete program. We've added an uninteresting function `textToOp` that takes a `Text` and returns an operation. The keys of the `Map` we used to create the `Dropdown` had the type `Text`. When we retrieve the value of `Dropdown`, we'll use `TextToOp` to turn the `Dropdown` selection into the function we need to apply to our numbers.
+This is our complete program. We've added an uninteresting function `textToOp` that takes a `Text` and returns an operation. The keys of the `Map` we used to create the `Dropdown` had the type `Text`. When we retrieve the value of `Dropdown`, we'll use `textToOp` to turn the `Dropdown` selection into the function we need to apply to our numbers.
 
 After creating the two `numberInput`s, we combine them using `zipDynWith` applying `(,)`, making a tuple of type `Dynamic (Maybe Double, Maybe Double)` and binding it to `values`.
 

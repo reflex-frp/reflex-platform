@@ -1,1 +1,6 @@
+-- All the text in reflex-dom is Text, not String
 :set -XOverloadedStrings
+-- Without this, on Mac, we can't open a WKWebView
+:set -fno-ghci-sandbox
+-- Sensible default
+:m + Reflex.Dom
