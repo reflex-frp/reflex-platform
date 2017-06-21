@@ -517,6 +517,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         syb = overrideCabal super.syb (drv: { jailbreak = true; });
         cabal-doctest = null;
 
+        # Break version bounds on base for GHC HEAD.
+        lifted-async = doJailbreak super.lifted-async;
+        safe-exceptions = doJailbreak super.safe-exceptions;
+
         reflex = super.reflex.override {
           useTemplateHaskell = false;
         };
