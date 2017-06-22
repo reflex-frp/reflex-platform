@@ -62,6 +62,6 @@ $SUGGESTION_GHCJS
 EOF
 )
 
-nix-build "$DIR/shell.nix" --drv-link "$DIR/gc-roots/shell.drv" $NIXOPTS --indirect --add-root "$DIR/gc-roots/shell.out" >/dev/null
+prebuild_try_reflex_shell
 terminate_logging
-nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS --command "echo \"$INFO\" ; return" "$@"
+try_reflex_shell --command "echo \"$INFO\" ; return" "$@"
