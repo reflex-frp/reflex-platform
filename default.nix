@@ -6,7 +6,7 @@
 , enableTraceReflexEvents ? false
 , useReflexOptimizer ? false
 , useTextJSString ? true
-, iosSdkVersion ? "10.3"
+, iosSdkVersion ? "10.2"
 }:
 let nixpkgs = nixpkgsFunc ({
       inherit system;
@@ -743,7 +743,7 @@ in let this = rec {
 #    "ghcAndroidArm64"
 #    "ghcAndroidArmv7a"
   ]) ++ (optionals nixpkgs.stdenv.isDarwin [
-#    "ghcIosArm64"
+    "ghcIosArm64"
   ]);
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
