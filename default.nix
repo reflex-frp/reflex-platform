@@ -747,7 +747,7 @@ in let this = rec {
 #    "ghcAndroidArm64"
 #    "ghcAndroidArmv7a"
   ]) ++ (optionals nixpkgs.stdenv.isDarwin [
-    "ghcIosArm64"
+#    "ghcIosArm64"
   ]);
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
