@@ -25,7 +25,7 @@ fi
 echo "Entering the reflex sandbox..."
 
 # This must be built first, so that the ghcjs.reflex-todomvc built below is built in parallel with everything else
-nix-build "$DIR/shell.nix" --drv-link "$DIR/gc-roots/shell.drv" $NIXOPTS --indirect --add-root "$DIR/gc-roots/shell.out" >/dev/null
+prebuild_try_reflex_shell
 
 SUGGESTION_GHC=$(cat <<EOF
 To run a simple app:
@@ -61,4 +61,4 @@ EOF
 )
 
 terminate_logging
-nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS --command "echo \"$INFO\" ; return" "$@"
+try_reflex_shell --command "echo \"$INFO\" ; return" "$@"
