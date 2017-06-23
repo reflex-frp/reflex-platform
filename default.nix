@@ -635,18 +635,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       };
     };
     overridesForTextJSString = self: super: {
-      text = overrideCabal super.text (drv: {
-        src = fetchFromGitHub {
-          owner = "luigy";
-          repo = "text";
-          rev = "e9a5dca15cb5b96ac434aa21db18907383db25a2";
-          sha256 = "1shnr2z463x9p9swkb8x48ab2fg8ggsjspwkh1rw3ss9y6a6l3hg";
-        };
-        buildDepends = (drv.buildDepends or []) ++ [
-          self.ghcjs-base
-        ];
-        doHaddock = false;
-      });
+      text = self.callCabal2nix "text" (fetchFromGitHub {
+        owner = "luigy";
+        repo = "text";
+        rev = "e9a5dca15cb5b96ac434aa21db18907383db25a2";
+        sha256 = "1shnr2z463x9p9swkb8x48ab2fg8ggsjspwkh1rw3ss9y6a6l3hg";
+      }) {};
       jsaddle = overrideCabal super.jsaddle (drv: {
         patches = (drv.patches or []) ++ [
           ./jsaddle-text-jsstring.patch
@@ -682,14 +676,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           sha256 = "106fn187hw9z3bidbkp7r4wafmhk7g2iv2k0hybirv63f8727x3x";
         };
       });
-      hashable = overrideCabal super.hashable (drv: {
-        src = fetchFromGitHub {
-          owner = "luigy";
-          repo = "hashable";
-          rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
-          sha256 = "1rl55p5y0mm8a7hxlfzhhgnnciw2h63ilxdaag3h7ypdx4bfd6rs";
-        };
-      });
+      hashable = addBuildDepend (self.callCabal2nix "hashable" (fetchFromGitHub {
+        owner = "luigy";
+        repo = "hashable";
+        rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
+        sha256 = "1rl55p5y0mm8a7hxlfzhhgnnciw2h63ilxdaag3h7ypdx4bfd6rs";
+      }) {}) self.text;
       conduit-extra = overrideCabal super.conduit-extra (drv: {
         src = "${fetchFromGitHub {
           owner = "luigy";
