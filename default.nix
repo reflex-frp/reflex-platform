@@ -653,12 +653,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           self.ghcjs-json
         ];
       });
-      ghcjs-json = self.callPackage (cabal2nixResult (fetchFromGitHub {
+      ghcjs-json = self.callCabal2nix "ghcjs-json" (fetchFromGitHub {
         owner = "obsidiansystems";
         repo = "ghcjs-json";
         rev = "3a6e1e949aced800d32e0683a107f5387295f3a6";
         sha256 = "1pjsvyvy6ac3358db19iwgbmsmm0si2hzh2ja1hclq43q6d80yij";
-      })) {};
+      }) {};
       ghcjs-base = overrideCabal super.ghcjs-base (drv: {
         src = fetchFromGitHub {
           owner = "luigy";
