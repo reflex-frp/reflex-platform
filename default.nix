@@ -360,41 +360,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ruby cabal2nix
       ];
     } "";
-    ghcjsCompiler = (overrideCabal (ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
+    ghcjsCompiler = ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
       bootPkgs = ghc;
+      ghcjsSrc = sources.ghcjs;
       ghcjsBootSrc = sources.ghcjs-boot;
       shims = sources.shims;
-    }) (drv: {
-      src = sources.ghcjs;
-    })) // {
-      mkStage2 = import stage2Script {
-        ghcjsBoot = sources.ghcjs-boot;
-      };
-      stage1Packages = [
-        "array"
-        "base"
-        "binary"
-        "bytestring"
-        "containers"
-        "deepseq"
-        "directory"
-        "filepath"
-        "ghc-boot"
-        "ghc-boot-th"
-        "ghc-prim"
-        "ghci"
-        "ghcjs-prim"
-        "ghcjs-th"
-        "integer-gmp"
-        "pretty"
-        "primitive"
-        "process"
-        "rts"
-        "template-haskell"
-        "time"
-        "transformers"
-        "unix"
-      ];
+      stage2 = import stage2Script;
     };
     ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghcjsCompiler;
