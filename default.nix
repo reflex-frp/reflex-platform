@@ -405,7 +405,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # some instances have been added to QuickCheck which overlap with ones
         # defined by aeson.  This can probably be removed once ghcjs-boot has
         # updated to aeson >= 0.11.2.1.
-        aeson = dontCheck (self.callPackage (self.hackage2nix "aeson" ghcjs.aeson.version) {});
+        aeson = let version = (import stage2Script { ghcjsBoot = null; } { inherit (self) callPackage; }).aeson.version;
+          in dontCheck (self.callPackage (self.hackage2nix "aeson" version) {});
       };
     };
     overrideForGhc8 = haskellPackages: haskellPackages.override {
