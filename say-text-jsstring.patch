@@ -1,0 +1,22 @@
+diff --git a/src/Say.hs b/src/Say.hs
+index a1f6802..fd9145d 100644
+--- a/src/Say.hs
++++ b/src/Say.hs
+@@ -146,7 +146,7 @@ hSay h msg =
+                 return new_buf
+ 
+     writeBlocksRaw :: Buffer CharBufElem -> Stream Char -> IO ()
+-    writeBlocksRaw buf0 (Stream next0 s0 _len) =
++    writeBlocksRaw buf0 (Stream next0 s0) =
+         outer s0 buf0
+       where
+         outer s1 Buffer{bufRaw=raw, bufSize=len} =
+@@ -168,7 +168,7 @@ hSay h msg =
+                 flush = commit n True{-needs flush-} False{-don't release-} >>= outer s
+ 
+     writeBlocksCRLF :: Buffer CharBufElem -> Stream Char -> IO ()
+-    writeBlocksCRLF buf0 (Stream next0 s0 _len) =
++    writeBlocksCRLF buf0 (Stream next0 s0) =
+         outer s0 buf0
+       where
+         outer s1 Buffer{bufRaw=raw, bufSize=len} =

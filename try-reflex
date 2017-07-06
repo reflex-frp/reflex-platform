@@ -24,19 +24,17 @@ fi
 
 echo "Entering the reflex sandbox..."
 
-# TODO: Use a better check that actually checks for each platform's availability
-if [ ! "$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.isDarwin')" = "true" ] ; then
+# This must be built first, so that the ghcjs.reflex-todomvc built below is built in parallel with everything else
+prebuild_try_reflex_shell
+
 SUGGESTION_GHC=$(cat <<EOF
-To run a simple GUI as a native binary:
-$ ghc -XOverloadedStrings -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
+To run a simple app:
+$ ghc -dynamic -XOverloadedStrings -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
 
 Or to see a more complex native binary GUI example (based on the source at https://github.com/reflex-frp/reflex-todomvc/blob/master/src/Main.hs):
 $ reflex-todomvc
 EOF
 )
-else
-SUGGESTION_GHC=""
-fi
 
 SUGGESTION_GHCJS=$(cat <<EOF2
 To create a simple web GUI:
@@ -62,6 +60,5 @@ $SUGGESTION_GHCJS
 EOF
 )
 
-nix-build "$DIR/shell.nix" --drv-link "$DIR/gc-roots/shell.drv" $NIXOPTS --indirect --add-root "$DIR/gc-roots/shell.out" >/dev/null
 terminate_logging
-nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS --command "echo \"$INFO\" ; return" "$@"
+try_reflex_shell --command "echo \"$INFO\" ; return" "$@"
