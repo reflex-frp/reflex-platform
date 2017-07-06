@@ -20,25 +20,25 @@ result
 .DS_Store
 
 # Hide any files in hack-on/off quasi-submodules
-nixpkgs/*
-!nixpkgs/default.nix
-!nixpkgs/github.json
-reflex/*
-!reflex/default.nix
-!reflex/github.json
-jsaddle/*
-!jsaddle/default.nix
-!jsaddle/github.json
-jsaddle-dom/*
-!jsaddle-dom/default.nix
-!jsaddle-dom/github.json
-ghcjs-dom/*
-!ghcjs-dom/default.nix
-!ghcjs-dom/github.json
-reflex-dom/*
-!reflex-dom/default.nix
-!reflex-dom/github.json
-reflex-todomvc/*
-!reflex-todomvc/default.nix
-!reflex-todomvc/github.json
-/dist-newstyle/
+# nixpkgs/*
+# !nixpkgs/default.nix
+# !nixpkgs/github.json
+# reflex/*
+# !reflex/default.nix
+# !reflex/github.json
+# jsaddle/*
+# !jsaddle/default.nix
+# !jsaddle/github.json
+# jsaddle-dom/*
+# !jsaddle-dom/default.nix
+# !jsaddle-dom/github.json
+# ghcjs-dom/*
+# !ghcjs-dom/default.nix
+# !ghcjs-dom/github.json
+# reflex-dom/*
+# !reflex-dom/default.nix
+# !reflex-dom/github.json
+# reflex-todomvc/*
+# !reflex-todomvc/default.nix
+# !reflex-todomvc/github.json
+# /dist-newstyle/
