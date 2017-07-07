@@ -158,13 +158,19 @@ let nixpkgs = nixpkgsFunc ({
     inherit (nixpkgs.haskell) lib;
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git"]));
     # All imports of sources need to go here, so that they can be explicitly cached
-    sources = {
-      ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
-        name = "ghcjs-boot";
-        outPath = filterGit ./ghcjs-boot;
+    readJSONFile = f: builtins.fromJSON (builtins.readFile f);
+    fetchHackable = p:
+      if builtins.pathExists (p + "/git.json") then fetchgit (readJSONFile (p + "/git.json"))
+      else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (readJSONFile (p + "/github.json"))
+      else {
+        name = baseNameOf p;
+        outPath = filterGit p;
       };
-      shims = if builtins.pathExists ./shims/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
-      ghcjs = if builtins.pathExists ./ghcjs/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
+    sources = {
+      ghcjs-boot = fetchHackable ./ghcjs-boot;
+      shims = fetchHackable ./shims;
+      ghcjs = fetchHackable ./ghcjs;
+      concat = fetchHackable ./concat;
     };
     inherit (nixpkgs.stdenv.lib) optionals;
 in with lib;
@@ -318,24 +324,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # Packages not in hackage
         ########################################################################
-        concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
-          owner = "conal";
-          repo = "concat";
-          rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
-          sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
-        }) {}));
+        concat-classes = dontHaddock (dontCheck (self.callCabal2nix "concat-classes" (sources.concat + "/classes") {}));
+        concat-plugin = dontHaddock (dontCheck (self.callCabal2nix "concat-plugin" (sources.concat + "/plugin") {}));
 
-        superconstraints =
-          # Remove override when assertion fails
-          assert (super.superconstraints or null) == null;
-          self.callPackage (self.haskellSrc2nix {
-            name = "superconstraints";
-            src = fetchurl {
-              url = "https://hackage.haskell.org/package/superconstraints-0.0.2/superconstraints.cabal";
-              sha256 = "0fz7q6jvlgj8j9z96b553yigwnmh9inhx73iv5p4spa3ih1jybba";
-            };
-            sha256 = "0wdh3vjqls9mdvii7qxcv993305ahznffiv0qkfkwg0lxsshwdxy";
-          }) {};
+        superconstraints = doJailbreak super.superconstraints;
       } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
