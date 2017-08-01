@@ -248,8 +248,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     addReflexTraceEventsFlag = if enableTraceReflexEvents
       then drv: appendConfigureFlag drv "-fdebug-trace-events"
       else drv: drv;
-    addExposeAllUnfoldingsFlag = if enableExposeAllUnfoldings
-      then drv: appendConfigureFlag drv "-fexpose-all-unfoldings"
+    # This is important to have for jsaddle, reflex, reflex-dom-core, and reflex-dom, at the very least; I suspect it's important for a lot more stuff, as well
+    addExposeAllUnfoldingsToDrv = if enableExposeAllUnfoldings
+      then drv: drv // {
+          configureFlags = (drv.configureFlags or []) ++ [
+            "--ghc-options=-fexpose-all-unfoldings"
+          ];
+        }
       else drv: drv;
     # The gi-libraries, by default, will use lots of overloading features of ghc that are still a bit too slow; this function disables them
     dontUseOverloads = p: appendConfigureFlag p "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
@@ -262,12 +267,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
               else drv: drv;
         in {
+        mkDerivation = drv: super.mkDerivation (addExposeAllUnfoldingsToDrv drv);
+
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addReflexTraceEventsFlag (addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
-        reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom));
-        reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core));
+        reflex = addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {}));
+        reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
+        reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
