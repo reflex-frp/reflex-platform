@@ -691,7 +691,13 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       });
     };
   ghcHEAD = overrideForGhcHEAD (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD)));
-  ghc = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802));
+  patchGhc8 = haskellPackages: haskellPackages.override {
+    overrides = self: super: {};
+    ghc = haskellPackages.ghc.overrideDerivation (drv: {
+      patches = ([]) ++ [ ./optimize-superclass-constraints.patch ];
+    });
+  };
+  ghc = patchGhc8 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802)));
   ghc8_0_1 = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801));
   ghc7 = overrideForGhc7 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103));
   ghc7_8 = overrideForGhc7_8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784));
