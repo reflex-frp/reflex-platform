@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+sed -i \
+    -e '1 s/^/var entries = {};\n/' \
+    -e 'N
+        s/^\(function \(.*\)(.*)\n{\)/\1\n  entries["\2"] = (entries["\2"] || 0) + 1;/
+        t yes
+        P
+        D
+        :yes' \
+    "$1"
