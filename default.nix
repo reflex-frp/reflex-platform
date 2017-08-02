@@ -228,7 +228,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         in {
         base-compat = self.callHackage "base-compat" "0.9.2" {};
         constraints = self.callHackage "constraints" "0.9" {};
-        hashable = doJailbreak (self.callHackage "hashable" "1.2.5.0" {});
         vector = doJailbreak super.vector;
         these = doJailbreak super.these;
         aeson-compat = doJailbreak super.aeson-compat;
@@ -244,6 +243,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           rev = "aecec86be48580f23145ffb3bf12a4ae191d12d3";
           sha256 = "1xxbwb8z27qbcscbg5qdyzlc2czg5i3b0y04s9h36hfcb07hasnz";
         }) {};
+        quickcheck-instances = doJailbreak super.quickcheck-instances;
+
+        haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.1" {};
+        gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
 
         ########################################################################
         # Reflex packages
@@ -313,7 +316,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
-        hackageSecurity = doJailbreak super.hackage-security;
 
         ########################################################################
         # Packages not in hackage
@@ -339,6 +341,21 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
+    };
+    overrideForGhc8_2_1 = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        haddock-api = null; #dontCheck super.haddock-api;
+        haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
+        haddock = null;
+        shelly = doJailbreak super.shelly;
+        hackage-security = dontCheck (doJailbreak super.hackage-security);
+        cabal-install = self.callCabal2nix "cabal-install" ((fetchFromGitHub {
+          owner = "haskell";
+          repo = "cabal";
+          rev = "082cf2066b7206d3b12a9f92d832236e2484b4c1";
+          sha256 = "0xzkwwim3chx9sd94b7n41ii9d51xzjlj48ikgn5dqjnxryz2r4k";
+        }) + "/cabal-install") {};
+      };
     };
     overrideForGhcjs = haskellPackages: haskellPackages.override {
       overrides = self: super: {
@@ -368,8 +385,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ruby cabal2nix
       ];
     } "";
-    ghcjsCompiler = ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
-      bootPkgs = ghc;
+    ghcjsCompiler = ghc8_2_1.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
+      bootPkgs = ghc8_2_1;
       ghcjsSrc = sources.ghcjs;
       ghcjsBootSrc = sources.ghcjs-boot;
       shims = sources.shims;
@@ -684,6 +701,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       });
     };
   ghcHEAD = overrideForGhcHEAD (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD)));
+  ghc8_2_1 = overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821)));
   ghc = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802));
   ghc8_0_1 = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801));
   ghc7 = overrideForGhc7 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103));
@@ -694,7 +712,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghcIosArm64 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcHEAD));
   ghcIosArmv7 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcHEAD));
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
         ghcLibdirLink = nixpkgs.stdenv.mkDerivation {
