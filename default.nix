@@ -687,7 +687,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   patchGhc8 = haskellPackages: haskellPackages.override {
     overrides = self: super: {};
     ghc = haskellPackages.ghc.overrideDerivation (drv: {
-      patches = ([]) ++ [ ./optimize-superclass-constraints.patch ];
+      patches = (drv.patches or []) ++ [ ./optimize-superclass-constraints.patch ];
     });
   };
   ghc = patchGhc8 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802)));
