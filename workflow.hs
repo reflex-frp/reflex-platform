@@ -7,6 +7,7 @@ import Control.Applicative
 import Control.Monad
 import Data.Text (Text)
 import Data.Either
+import Control.Monad.Except
 
 type CategoryName = Text
 type FolderId = Text
@@ -43,10 +44,17 @@ getAsset doIt fid = return $ ["A1", "A2"] <$ doIt
 
 main :: IO ()
 main = mainWidget $ do
-  done <- runW $ do
-    W $ button "hello"
-    W $ button "goodbye"
-  display =<< count done
+  done <- runW $ runExceptT $ do
+    v <- lift $ W $ do
+      i <- inputElement def
+      tag (current (value i)) <$> button "Submit"
+    when (v == "") $ throwError "Can't be empty!"
+    lift $ W $ do
+      text "Looks good!"
+      button "Finish"
+  el "div" $ do
+    text "Results: "
+    display =<< foldDyn (:) [] done
 
 {-
 checkCategoryName :: MonadWidget t m => CategoryName -> W ErrorMessage t m ()
