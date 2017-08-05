@@ -2,7 +2,7 @@
 , system ? builtins.currentSystem
 , config ? {}
 , enableLibraryProfiling ? false
-, enableExposeAllUnfoldings ? false
+, enableExposeAllUnfoldings ? true
 , enableTraceReflexEvents ? false
 , useReflexOptimizer ? false
 , useTextJSString ? true
@@ -208,10 +208,17 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       then drv: appendConfigureFlag drv "-fdebug-trace-events"
       else drv: drv;
     # This is important to have for jsaddle, reflex, reflex-dom-core, and reflex-dom, at the very least; I suspect it's important for a lot more stuff, as well
-    addExposeAllUnfoldingsToDrv = if enableExposeAllUnfoldings
+    addExposeAllUnfoldingsToDrvGhc = if enableExposeAllUnfoldings
       then drv: drv // {
           configureFlags = (drv.configureFlags or []) ++ [
             "--ghc-options=-fexpose-all-unfoldings"
+          ];
+        }
+      else drv: drv;
+    addExposeAllUnfoldingsToDrvGhcjs = if enableExposeAllUnfoldings
+      then drv: drv // {
+          configureFlags = (drv.configureFlags or []) ++ [
+            "--ghcjs-options=-fexpose-all-unfoldings"
           ];
         }
       else drv: drv;
@@ -231,7 +238,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
               else drv: drv;
         in {
-        mkDerivation = drv: super.mkDerivation (addExposeAllUnfoldingsToDrv drv);
 
         base-compat = self.callHackage "base-compat" "0.9.2" {};
         constraints = self.callHackage "constraints" "0.9" {};
@@ -349,6 +355,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhcjs = haskellPackages: haskellPackages.override {
       overrides = self: super: {
+        mkDerivation = drv: super.mkDerivation (addExposeAllUnfoldingsToDrvGhcjs drv);
         ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
           inherit (self) llvmPackages;
           haskellPackages = self;
@@ -405,6 +412,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhc = haskellPackages: haskellPackages.override {
       overrides = self: super: {
+        mkDerivation = drv: super.mkDerivation (addExposeAllUnfoldingsToDrvGhc drv);
         ########################################################################
         # Synchronize packages with ghcjs
         ########################################################################
