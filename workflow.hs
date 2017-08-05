@@ -14,25 +14,23 @@ type AssetId = Text
 type AssetPath = Text
 type ErrorMessage = Text
 
-newtype W r t m a = W { runW :: m (Event t (Either r a)) }
+newtype W t m a = W { runW :: m (Event t a) } --TODO: We probably want to clear the widget when it's done and only let the "Done" event fire once
 
-instance MonadWidget t m => Functor (W r t m) where
+instance MonadWidget t m => Functor (W t m) where
   fmap f x = x >>= return . f
 
-instance MonadWidget t m => Applicative (W r t m) where
+instance MonadWidget t m => Applicative (W t m) where
   (<*>) = ap
   pure = return
 
-instance MonadWidget t m => Monad (W r t m) where
+instance MonadWidget t m => Monad (W t m) where
   return x = W $ do
     postBuild <- getPostBuild
-    return $ Right x <$ postBuild
-  (W x :: W r t m a) >>= (f :: a -> W r t m b) = W $ do
-    rec (xDone :: Event t (Either r a), fInstalled :: Event t (Event t (Either r b))) <- runWithReplace x $ either (\_ -> return never) (runW . f) <$> xDone
-    fDone :: Event t (Either r b) <- switchPromptlyDyn <$> holdDyn never fInstalled
-    return $ leftmost [ fmapMaybe (\case { Left x -> Just (Left x) ; Right _ -> Nothing }) xDone
-                      , fDone
-                      ]
+    return $ x <$ postBuild
+  W x >>= f = W $ do
+    rec (xDone, fInstalled) <- runWithReplace x $ runW . f <$> xDone --TODO: We really should only need one runWithReplace at top level
+    fDone <- switchPromptlyDyn <$> holdDyn never fInstalled
+    return fDone
 
 getCategories :: MonadWidget t m => Event t () -> m (Event t [CategoryName])
 getCategories = return . (["MyCategory", "YourCategory"] <$)
@@ -43,6 +41,14 @@ getFolders doIt cn = return $ ["F1", "F2"] <$ doIt
 getAsset :: MonadWidget t m => Event t () -> Dynamic t FolderId -> m (Event t [AssetId])
 getAsset doIt fid = return $ ["A1", "A2"] <$ doIt
 
+main :: IO ()
+main = mainWidget $ do
+  done <- runW $ do
+    W $ button "hello"
+    W $ button "goodbye"
+  display =<< count done
+
+{-
 checkCategoryName :: MonadWidget t m => CategoryName -> W ErrorMessage t m ()
 checkCategoryName n = W $ do
   cats <- getCategories =<< getPostBuild
@@ -72,3 +78,4 @@ test = do
     checkCategoryName cn
     checkFolderName cn fn
     return "TheAssetPath"
+-}
