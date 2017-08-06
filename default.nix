@@ -349,7 +349,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             };
             sha256 = "1gx9p9i5jli91dnvvrc30j04h1v2m3d71i8sxli6qrhplq5y63dk";
           }) {};
-      } // (if enableLibraryProfiling && !(super.ghc.isGhcjs or false) then {
+      } // (if enableLibraryProfiling then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
     };
