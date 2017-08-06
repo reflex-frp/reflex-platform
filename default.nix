@@ -629,8 +629,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       text = self.callCabal2nix "text" (fetchFromGitHub {
         owner = "luigy";
         repo = "text";
-        rev = "e9a5dca15cb5b96ac434aa21db18907383db25a2";
-        sha256 = "1shnr2z463x9p9swkb8x48ab2fg8ggsjspwkh1rw3ss9y6a6l3hg";
+        rev = "6cc95ebb07c07001666d84ace5c13caefaaa0cad";
+        sha256 = "1zplzy9mfpwjrk5l22gmla1vmk7wmwmgmjfk64b57ysn7madlv19";
       }) {};
       jsaddle = overrideCabal super.jsaddle (drv: {
         patches = (drv.patches or []) ++ [
