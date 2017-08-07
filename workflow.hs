@@ -15,23 +15,32 @@ type AssetId = Text
 type AssetPath = Text
 type ErrorMessage = Text
 
-newtype W t m a = W { runW :: m (Event t a) } --TODO: We probably want to clear the widget when it's done and only let the "Done" event fire once
+newtype W t m a = W { unW :: Either a (m (Event t (W t m a))) } --TODO: We probably want to clear the widget when it's done and only let the "Done" event fire once
 
-instance MonadWidget t m => Functor (W t m) where
+runW :: (MonadAdjust t m, PostBuild t m, MonadHold t m, MonadFix m) => W t m a -> m (Event t a)
+runW w0 = do
+  let go (W w) = case w of
+        Left l -> (return l <$) <$> getPostBuild
+        Right r -> r
+  rec (next0, built) <- runWithReplace (go w0) $ either (const $ return never) id . unW <$> next
+      next <- switch <$> hold next0 built
+  return $ fmapMaybe (either Just (const Nothing) . unW) next
+
+instance (Reflex t, Functor m) => Functor (W t m) where
   fmap f x = x >>= return . f
 
-instance MonadWidget t m => Applicative (W t m) where
+instance (Reflex t, Functor m) => Applicative (W t m) where
   (<*>) = ap
   pure = return
 
-instance MonadWidget t m => Monad (W t m) where
-  return x = W $ do
-    postBuild <- getPostBuild
-    return $ x <$ postBuild
-  W x >>= f = W $ do
-    rec (xDone, fInstalled) <- runWithReplace x $ runW . f <$> xDone --TODO: We really should only need one runWithReplace at top level
-    fDone <- switchPromptlyDyn <$> holdDyn never fInstalled
-    return fDone
+instance (Reflex t, Functor m) => Monad (W t m) where
+  return x = W $ Left x
+  W x >>= f = W $ case x of
+    Left l -> unW $ f l
+    Right r -> Right $ fmap (fmap (>>= f)) r
+
+prompt :: (Reflex t, Functor m) => m (Event t a) -> W t m a
+prompt p = W $ Right $ fmap return <$> p
 
 getCategories :: MonadWidget t m => Event t () -> m (Event t [CategoryName])
 getCategories = return . (["MyCategory", "YourCategory"] <$)
@@ -45,11 +54,11 @@ getAsset doIt fid = return $ ["A1", "A2"] <$ doIt
 main :: IO ()
 main = mainWidget $ do
   done <- runW $ runExceptT $ do
-    v <- lift $ W $ do
+    v <- lift $ prompt $ do
       i <- inputElement def
       tag (current (value i)) <$> button "Submit"
     when (v == "") $ throwError "Can't be empty!"
-    lift $ W $ do
+    lift $ prompt $ do
       text "Looks good!"
       button "Finish"
   el "div" $ do
