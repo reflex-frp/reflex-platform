@@ -37,7 +37,7 @@ instance (Reflex t, Functor m) => Monad (W t m) where
   return x = W $ Left x
   W x >>= f = W $ case x of
     Left l -> unW $ f l
-    Right r -> Right $ fmap (fmap (>>= f)) r
+    Right r -> Right $ fmap (fmap (>>= f)) r --TODO: This is too much fmapping
 
 prompt :: (Reflex t, Functor m) => m (Event t a) -> W t m a
 prompt p = W $ Right $ fmap return <$> p
