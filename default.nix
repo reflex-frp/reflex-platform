@@ -292,7 +292,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         gi-gdkpixbuf = dontUseOverloads super.gi-gdkpixbuf;
         gi-glib = dontUseOverloads (self.callPackage ./gi-glib.nix {});
         gi-gio = dontUseOverloads (self.callPackage ./gi-gio.nix {});
-        gi-gtk = dontUseOverloads (self.callPackage ./gi-gtk.nix {});
+        gi-gtk = dontUseOverloads (self.callPackage ./gi-gtk.nix {
+          gtk3 = nixpkgs.gnome3.gtk;
+        });
         gi-javascriptcore = dontUseOverloads (self.callPackage ./gi-javascriptcore.nix {});
         gi-webkit2 = dontUseOverloads (self.callPackage ./gi-webkit2.nix {
           webkitgtk = nixpkgs.webkitgtk216x;
