@@ -290,20 +290,22 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         gi-cairo = dontUseOverloads super.gi-cairo;
         gi-gdk = dontUseOverloads super.gi-gdk;
         gi-gdkpixbuf = dontUseOverloads super.gi-gdkpixbuf;
-        gi-gio = dontUseOverloads super.gi-gio;
-        gi-glib = dontUseOverloads super.gi-glib;
+        gi-glib = dontUseOverloads (self.callPackage ./gi-glib.nix {});
+        gi-gio = dontUseOverloads (self.callPackage ./gi-gio.nix {});
+        gi-gtk = dontUseOverloads (self.callPackage ./gi-gtk.nix {});
+        gi-javascriptcore = dontUseOverloads (self.callPackage ./gi-javascriptcore.nix {});
+        gi-webkit2 = dontUseOverloads (self.callPackage ./gi-webkit2.nix {
+          webkitgtk = nixpkgs.webkitgtk216x;
+        });
         gi-gobject = dontUseOverloads super.gi-gobject;
-        gi-gtk = dontUseOverloads super.gi-gtk;
-        gi-javascriptcore = dontUseOverloads super.gi-javascriptcore;
         gi-pango = dontUseOverloads super.gi-pango;
         gi-soup = dontUseOverloads super.gi-soup;
         gi-webkit = dontUseOverloads super.gi-webkit;
-        gi-webkit2 = dontUseOverloads (super.gi-webkit2.override {
-          webkitgtk = nixpkgs.webkitgtk216x;
-        });
         gi-gtksource = dontUseOverloads (super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
         });
+
+        haskell-gi-overloading = self.callPackage ./haskell-gi-overloading.nix {};
 
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
           webkitgtk = nixpkgs.webkitgtk216x;
