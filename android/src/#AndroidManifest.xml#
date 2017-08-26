@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="@PACKAGENAME@"
+      android:versionCode="@VERSIONCODE@"
+      android:versionName="@VERSIONNAME@">
+    <application android:label="@string/app_name"
+                 android:icon="@ICONRESOURCE@"
+                 android:hardwareAccelerated="true">
+        <activity android:name=".MainActivity"
+                  android:label="@string/app_name"
+                  android:configChanges="orientation|screenSize"
+                  android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            @INTENTFILTERS@
+        </activity>
+        @SERVICES@
+    </application>
+    <uses-sdk android:minSdkVersion="25" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    @PERMISSIONS@
+</manifest>

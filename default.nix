@@ -20,6 +20,12 @@ let nixpkgs = nixpkgsFunc ({
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
+          all-cabal-hashes = fetchFromGitHub {
+            owner = "commercialhaskell";
+            repo = "all-cabal-hashes";
+            rev = "dd87c4d871509f56fc17ee027c8fd8082832f66d";
+            sha256 = "1nxvnpnqvbwm73bjh7cxj4d6dn734np9j03yl5a1z835b0p5pjr5";
+          };
         };
       } // config;
     });
@@ -266,6 +272,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
         reflex-aeson-orphans = self.callPackage ./reflex-aeson-orphans {};
+        haven = self.callHackage "haven" "0.2.0.0" {};
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
@@ -718,8 +725,29 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghcAndroidArmv7a = overrideForGhcAndroid (overrideForGhc (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghcHEAD));
   ghcIosArm64 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcHEAD));
   ghcIosArmv7 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcHEAD));
+  #TODO: Separate debug and release APKs
+  #TODO: Warn the user that the android app name can't include dashes
+  android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a; };
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android;
+  androidReflexTodomvc = android.buildApp {
+    package = p: p.reflex-todomvc;
+    name = "ReflexTodoMVC";
+    packagePrefix = "systems.obsidian";
+  };
+  overrideAndroidHello = p: overrideCabal p (drv: {
+    preConfigure = (drv.preConfigure or "") + ''
+      set -x
+      mkdir cbits
+      ln -s "${./android/stubs.c}" cbits/stubs.c
+      sed -i 's/^executable \(.*\)$/executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared\n  c-sources: cbits\/stubs.c\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/' *.cabal
+    '';
+  });
+  androidHelloWorld = android.buildApp {
+    package = p: overrideAndroidHello p.hello;
+    name = "hello";
+    packagePrefix = "org.reflexfrp";
+  };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
         ghcLibdirLink = nixpkgs.stdenv.mkDerivation {
@@ -801,6 +829,11 @@ in let this = rec {
   });
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
+  androidDevTools = [
+    nativeHaskellPackages.haven
+    nixpkgs.maven
+  ];
+
   # Tools that are useful for development under both ghc and ghcjs
   generalDevTools = haskellPackages:
     let nativeHaskellPackages = ghc;
@@ -816,7 +849,7 @@ in let this = rec {
     nixpkgs.pkgconfig
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []);
+  ] else []) ++ androidDevTools;
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
