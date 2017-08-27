@@ -403,8 +403,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ruby cabal2nix
       ];
     } "";
-    ghcjsCompiler = ghc8_2_1.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
-      bootPkgs = ghc8_2_1;
+    ghcjsCompiler = ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
+      bootPkgs = ghc;
       ghcjsSrc = sources.ghcjs;
       ghcjsBootSrc = sources.ghcjs-boot;
       shims = sources.shims;
