@@ -47,26 +47,11 @@ in runCommand "android-app" {
     mkdir $out
 
     # copy build files and do substitutions
-    cp $src/project.properties $out
     cp $src/gradle.properties $out
 
     ln -s "$buildGradle" "$out/build.gradle"
 
     ${lib.optionalString (googleServicesJson != null) "cp ${googleServicesJson} $out/google-services.json"}
-
-    cp $src/local.properties $out
-    substituteInPlace $out/local.properties \
-      --subst-var-by SDKDIR "${androidSdk}/libexec"
-
-    cp $src/build.xml $out
-    substituteInPlace $out/build.xml \
-      --subst-var-by PROJECTNAME "${appName}"
-
-    cp $src/custom_rules.xml $out
-    substituteInPlace $out/custom_rules.xml \
-      --subst-var-by PROJECTNAME "${appName}"
-
-    cp $src/ant.properties $out
 
     ln -s "$androidManifest" "$out/AndroidManifest.xml"
 
