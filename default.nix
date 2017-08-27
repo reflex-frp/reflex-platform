@@ -20,6 +20,12 @@ let nixpkgs = nixpkgsFunc ({
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
+          all-cabal-hashes = fetchFromGitHub {
+            owner = "commercialhaskell";
+            repo = "all-cabal-hashes";
+            rev = "dd87c4d871509f56fc17ee027c8fd8082832f66d";
+            sha256 = "1nxvnpnqvbwm73bjh7cxj4d6dn734np9j03yl5a1z835b0p5pjr5";
+          };
         };
       } // config;
     });
@@ -361,17 +367,29 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhc8_2_1 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
-        haddock-api = null; #dontCheck super.haddock-api;
-        haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
-        haddock = null;
-        shelly = doJailbreak super.shelly;
-        hackage-security = dontCheck (doJailbreak super.hackage-security);
+        ChasingBottoms = dontCheck (self.callHackage "ChasingBottoms" "1.3.1.3" {});
+        base-orphans = self.callHackage "base-orphans" "0.6" {};
         cabal-install = self.callCabal2nix "cabal-install" ((fetchFromGitHub {
           owner = "haskell";
           repo = "cabal";
           rev = "082cf2066b7206d3b12a9f92d832236e2484b4c1";
           sha256 = "0xzkwwim3chx9sd94b7n41ii9d51xzjlj48ikgn5dqjnxryz2r4k";
         }) + "/cabal-install") {};
+        comonad = self.callHackage "comonad" "5.0.2" {};
+        distributive = self.callHackage "distributive" "0.5.3" {};
+        doctest = self.callHackage "doctest" "0.13.0" {};
+        hackage-security = dontCheck (doJailbreak super.hackage-security);
+        haddock = null;
+        haddock-api = null; #dontCheck super.haddock-api;
+        haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
+        hspec-meta = self.callHackage "hspec-meta" "2.4.4" {};
+        lens = self.callHackage "lens" "4.15.4" {};
+        primitive = self.callHackage "primitive" "0.6.2.0" {};
+        profunctors = self.callHackage "profunctors" "5.2.1" {};
+        semigroupoids = self.callHackage "semigroupoids" "5.2.1" {};
+        shelly = doJailbreak super.shelly;
+        syb = self.callHackage "syb" "0.7" {};
+        vector = self.callHackage "vector" "0.12.0.1" {};
       };
     };
     overrideForGhcjs = haskellPackages: haskellPackages.override {
