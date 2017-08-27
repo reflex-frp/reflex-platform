@@ -247,7 +247,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         base-compat = self.callHackage "base-compat" "0.9.2" {};
         constraints = self.callHackage "constraints" "0.9" {};
-        hashable = doJailbreak (self.callHackage "hashable" "1.2.5.0" {});
         vector = doJailbreak super.vector;
         these = doJailbreak super.these;
         aeson-compat = doJailbreak super.aeson-compat;
@@ -263,6 +262,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           rev = "aecec86be48580f23145ffb3bf12a4ae191d12d3";
           sha256 = "1xxbwb8z27qbcscbg5qdyzlc2czg5i3b0y04s9h36hfcb07hasnz";
         }) {};
+        quickcheck-instances = doJailbreak super.quickcheck-instances;
+
+        haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.1" {};
+        gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
 
         ########################################################################
         # Reflex packages
@@ -337,7 +340,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
-        hackageSecurity = doJailbreak super.hackage-security;
 
         ########################################################################
         # Packages not in hackage
@@ -363,6 +365,33 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       } // (if enableLibraryProfiling then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
+    };
+    overrideForGhc8_2_1 = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        ChasingBottoms = dontCheck (self.callHackage "ChasingBottoms" "1.3.1.3" {});
+        base-orphans = self.callHackage "base-orphans" "0.6" {};
+        cabal-install = self.callCabal2nix "cabal-install" ((fetchFromGitHub {
+          owner = "haskell";
+          repo = "cabal";
+          rev = "082cf2066b7206d3b12a9f92d832236e2484b4c1";
+          sha256 = "0xzkwwim3chx9sd94b7n41ii9d51xzjlj48ikgn5dqjnxryz2r4k";
+        }) + "/cabal-install") {};
+        comonad = self.callHackage "comonad" "5.0.2" {};
+        distributive = self.callHackage "distributive" "0.5.3" {};
+        doctest = self.callHackage "doctest" "0.13.0" {};
+        hackage-security = dontCheck (doJailbreak super.hackage-security);
+        haddock = null;
+        haddock-api = null; #dontCheck super.haddock-api;
+        haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
+        hspec-meta = self.callHackage "hspec-meta" "2.4.4" {};
+        lens = self.callHackage "lens" "4.15.4" {};
+        primitive = self.callHackage "primitive" "0.6.2.0" {};
+        profunctors = self.callHackage "profunctors" "5.2.1" {};
+        semigroupoids = self.callHackage "semigroupoids" "5.2.1" {};
+        shelly = doJailbreak super.shelly;
+        syb = self.callHackage "syb" "0.7" {};
+        vector = self.callHackage "vector" "0.12.0.1" {};
+      };
     };
     overrideForGhcjs = haskellPackages: haskellPackages.override {
       overrides = self: super: {
@@ -716,6 +745,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       patches = ([]) ++ [ ./optimize-superclass-constraints.patch ];
     });
   };
+  ghc8_2_1 = overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821)));
   ghc = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802));
   ghc8_0_1 = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801));
   ghc7 = overrideForGhc7 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103));
@@ -729,7 +759,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   #TODO: Warn the user that the android app name can't include dashes
   android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a; };
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     name = "ReflexTodoMVC";
@@ -862,7 +892,7 @@ in let this = rec {
 
   workOnMulti = env: packageNames: nixpkgs.runCommand "shell" {
     buildInputs = [
-      (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or [])); }; }).out) packageNames)))
+      (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames)))
     ] ++ generalDevTools env;
   } "";
 
