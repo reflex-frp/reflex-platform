@@ -8,7 +8,13 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let nixpkgs = nixpkgsFunc ({
+let all-cabal-hashes = fetchFromGitHub {
+      owner = "commercialhaskell";
+      repo = "all-cabal-hashes";
+      rev = "adb039bba3bb46941c3ee08bdd68f25bf2aa5c60";
+      sha256 = "0mjkrbifag39gm153v5wn555jq7ckwn8s3f1wwsdw67wmql4gcn7";
+    };
+    nixpkgs = nixpkgsFunc ({
       inherit system;
       config = {
         allowUnfree = true;
@@ -20,12 +26,7 @@ let nixpkgs = nixpkgsFunc ({
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
-          all-cabal-hashes = fetchFromGitHub {
-            owner = "commercialhaskell";
-            repo = "all-cabal-hashes";
-            rev = "dd87c4d871509f56fc17ee027c8fd8082832f66d";
-            sha256 = "1nxvnpnqvbwm73bjh7cxj4d6dn734np9j03yl5a1z835b0p5pjr5";
-          };
+          inherit all-cabal-hashes;
         };
       } // config;
     });
@@ -43,6 +44,9 @@ let nixpkgs = nixpkgsFunc ({
             platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
           };
           config.allowUnfree = true;
+          config.packageOverrides = pkgs: {
+            inherit all-cabal-hashes;
+          };
         };
         arm64Impure = arm64 // {
           inherit system;
@@ -59,6 +63,9 @@ let nixpkgs = nixpkgsFunc ({
             platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
           };
           config.allowUnfree = true;
+          config.packageOverrides = pkgs: {
+            inherit all-cabal-hashes;
+          };
         };
         armv7aImpure = armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
@@ -102,6 +109,7 @@ let nixpkgs = nixpkgsFunc ({
                     };
                   }) {};
                 };
+                inherit all-cabal-hashes;
               };
             };
         in {
@@ -266,6 +274,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.1" {};
         gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
+
+        # Newer versions of 'hashable' don't work on the ghc 8.1.* that Android
+        # and iOS are currently using.  Once they're upgraded to 8.2, we should
+        # update 'hashable' to latest.
+        hashable = doJailbreak (self.callHackage "hashable" "1.2.4.0" {});
 
         ########################################################################
         # Reflex packages
@@ -490,12 +503,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ghc = super.ghc // {
           bootPkgs = super.ghc.bootPkgs.override {
             overrides = self: super: {
-              Cabal = self.callPackage "${fetchFromGitHub {
-                owner = "obsidiansystems";
-                repo = "cabal";
-                rev = "34292fadaf90571dba15e84ee66eb601ab8b317f";
-                sha256 = "06rsgrlz0wf88qqjrkj9lyy45h7ijvza04awnbc9ci7igr1syn1c";
-              }}/Cabal" {};
+              Cabal = appendPatch (self.callHackage "Cabal" "2.0.0.2" {}) ./Cabal-Allow-any-arch-with-linux-for-foreign-libs.patch;
             };
           };
         };
