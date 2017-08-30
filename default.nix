@@ -561,11 +561,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         };
         reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
         reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
-            postFixup = ''
-                mkdir $out/reflex-todomvc.app
-                cp reflex-todomvc.app/* $out/reflex-todomvc.app/
-                cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
-            '';
+            #TODO: Re-enable creating an app
+            #postFixup = ''
+            #    mkdir $out/reflex-todomvc.app
+            #    cp reflex-todomvc.app/* $out/reflex-todomvc.app/
+            #    cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
+            #'';
         });
         happy = self.ghc.bootPkgs.happy;
 
@@ -768,23 +769,25 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a; };
 in let this = rec {
   inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android;
-  androidReflexTodomvc = android.buildApp {
-    package = p: p.reflex-todomvc;
-    name = "ReflexTodoMVC";
-    packagePrefix = "systems.obsidian";
-  };
-  overrideAndroidHello = p: overrideCabal p (drv: {
+  overrideAndroidCabal = executableName: p: overrideCabal p (drv: {
     preConfigure = (drv.preConfigure or "") + ''
       set -x
       mkdir cbits
-      ln -s "${./android/stubs.c}" cbits/stubs.c
-      sed -i 's/^executable \(.*\)$/executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared\n  c-sources: cbits\/stubs.c\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/' *.cabal
+      ln -s "${./android/haskellActivity.c}" cbits/haskellActivity.c
+      sed -i 's/^executable ${executableName}$/executable lib${executableName}.so\n  cc-options: -shared -fPIC\n  ld-options: -shared\n  c-sources: cbits\/haskellActivity.c\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/' *.cabal
     '';
   });
+  androidReflexTodomvc = android.buildApp {
+    package = p: overrideAndroidCabal "reflex-todomvc" p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    applicationId = "org.reflexfrp.todomvc";
+    displayName = "Reflex TodoMVC";
+  };
   androidHelloWorld = android.buildApp {
-    package = p: overrideAndroidHello p.hello;
-    name = "hello";
-    packagePrefix = "org.reflexfrp";
+    package = p: overrideAndroidCabal "hello" p.hello;
+    executableName = "hello";
+    applicationId = "org.reflexfrp.hello";
+    displayName = "Hello, world!";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
@@ -868,7 +871,7 @@ in let this = rec {
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   androidDevTools = [
-    nativeHaskellPackages.haven
+#    nativeHaskellPackages.haven
     nixpkgs.maven
   ];
 
@@ -876,7 +879,7 @@ in let this = rec {
   generalDevTools = haskellPackages:
     let nativeHaskellPackages = ghc;
     in [
-    nativeHaskellPackages.Cabal
+#    nativeHaskellPackages.Cabal
     nativeHaskellPackages.cabal-install
     nativeHaskellPackages.ghcid
     nativeHaskellPackages.hlint
