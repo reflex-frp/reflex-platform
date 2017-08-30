@@ -1,16 +1,9 @@
-{ googleServicesClasspath
-, googleServicesPlugin
-, applicationId
-, versionCode
-, versionName
+{ applicationId
+, version
+, releaseKey
 , additionalDependencies
-# releaseKey should be null for a debug build, or something like this for a release build:
-# { storeFile = ./android/keystore;
-#   storePassword = "password";
-#   keyAlias = "myKey";
-#   keyPassword = "password";
-# }
-, releaseKey ? null
+, googleServicesClasspath
+, googleServicesPlugin
 }:
 ''
 buildscript {
@@ -47,8 +40,8 @@ android {
         applicationId "${applicationId}"
         minSdkVersion 14
         targetSdkVersion 25
-        versionCode ${versionCode}
-        versionName "${versionName}"
+        versionCode ${version.code}
+        versionName "${version.name}"
     }
 
     ${if releaseKey == null then "" else ''

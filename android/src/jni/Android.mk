@@ -23,7 +23,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := app
-LOCAL_SRC_FILES := ../lib/$(TARGET_ARCH_ABI)/@APP_LIB_NAME@
+LOCAL_SRC_FILES := ../lib/$(TARGET_ARCH_ABI)/libHaskellActivity.so
 LOCAL_SHARED_LIBRARIES := "libiconv" "libcharset"
 LOCAL_LDLIBS := -llog
 

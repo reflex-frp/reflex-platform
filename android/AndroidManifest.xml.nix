@@ -1,7 +1,6 @@
-{ packageName
-, versionCode
-, versionName
-, iconResource
+{ applicationId
+, version
+, iconPath
 , intentFilters
 , services
 , permissions
@@ -9,13 +8,13 @@
 ''
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="${packageName}"
-      android:versionCode="${versionCode}"
-      android:versionName="${versionName}">
+      package="${applicationId}"
+      android:versionCode="${version.code}"
+      android:versionName="${version.name}">
     <application android:label="@string/app_name"
-                 android:icon="${iconResource}"
+                 android:icon="${iconPath}"
                  android:hardwareAccelerated="true">
-        <activity android:name=".MainActivity"
+        <activity android:name="org.reflexfrp.HaskellActivity"
                   android:label="@string/app_name"
                   android:configChanges="orientation|screenSize"
                   android:windowSoftInputMode="adjustResize">
