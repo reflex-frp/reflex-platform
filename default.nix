@@ -318,6 +318,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # Packages not in hackage
         ########################################################################
+        servant-reflex = self.callCabal2nix "servant-reflex" (fetchFromGitHub {
+          owner = "imalsogreg";
+          repo = "servant-reflex";
+          rev = "bd6e66fe00e131f8d1003201873258a5f3b06797";
+          sha256 = "025y346jimh7ki8q3zrkh3xsx6ddc3zf95qxmbnpy1ww3h0i2wq4";
+        }) {};
         concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
           owner = "conal";
           repo = "concat";
