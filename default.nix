@@ -396,6 +396,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         haddock = null;
         haddock-api = null; #dontCheck super.haddock-api;
         haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
+        hashable = doJailbreak (self.callHackage "hashable" "1.2.6.1" {});
         hspec-meta = self.callHackage "hspec-meta" "2.4.4" {};
         lens = self.callHackage "lens" "4.15.4" {};
         primitive = self.callHackage "primitive" "0.6.2.0" {};
