@@ -8,7 +8,13 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let nixpkgs = nixpkgsFunc ({
+let all-cabal-hashes = fetchFromGitHub {
+      owner = "commercialhaskell";
+      repo = "all-cabal-hashes";
+      rev = "adb039bba3bb46941c3ee08bdd68f25bf2aa5c60";
+      sha256 = "0mjkrbifag39gm153v5wn555jq7ckwn8s3f1wwsdw67wmql4gcn7";
+    };
+    nixpkgs = nixpkgsFunc ({
       inherit system;
       config = {
         allowUnfree = true;
@@ -20,6 +26,7 @@ let nixpkgs = nixpkgsFunc ({
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
+					inherit all-cabal-hashes;
         };
       } // config;
     });
@@ -344,6 +351,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     overrideForGhc8_2_1 = haskellPackages: haskellPackages.override {
       overrides = self: super: {
+				email-validate = self.callHackage "email-validate" "2.3.1" {};
+        jsaddle = self.callHackage "jsaddle" "0.9.4.0" {};
+        mime-mail = self.callHackage "mime-mail" "0.4.14" {};
+        derive = self.callHackage "derive" "2.6.3" {};
         haddock-api = null; #dontCheck super.haddock-api;
         haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
         haddock = null;
@@ -702,7 +713,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
   ghcHEAD = overrideForGhcHEAD (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD)));
   ghc8_2_1 = overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821)));
-  ghc = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802));
+  ghc = overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821)));
+  #ghc = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802));
   ghc8_0_1 = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801));
   ghc7 = overrideForGhc7 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103));
   ghc7_8 = overrideForGhc7_8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784));
