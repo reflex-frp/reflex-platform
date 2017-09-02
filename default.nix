@@ -258,14 +258,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addReflexTraceEventsFlag (addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
+        reflex = dontCheck (addReflexTraceEventsFlag (addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {}))));
         reflex-dom = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom));
         reflex-dom-core = addExposeAllUnfoldingsFlag (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core));
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
         reflex-aeson-orphans = self.callPackage ./reflex-aeson-orphans {};
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
-        jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
+        jsaddle-warp = self.callHackage "jsaddle-warp" "0.9.4.0" {};
 
         jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
