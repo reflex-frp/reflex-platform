@@ -265,7 +265,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         reflex-aeson-orphans = self.callPackage ./reflex-aeson-orphans {};
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
-        jsaddle-warp = self.callHackage "jsaddle-warp" "0.9.4.0" {};
+        jsaddle-warp = dontCheck (self.callHackage "jsaddle-warp" "0.9.4.0" {});
 
         jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
