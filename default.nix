@@ -888,6 +888,7 @@ in let this = rec {
     nixpkgs.nix-prefetch-scripts
     nixpkgs.nodejs
     nixpkgs.pkgconfig
+    nixpkgs.closurecompiler
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
   ] else []) ++ androidDevTools;
