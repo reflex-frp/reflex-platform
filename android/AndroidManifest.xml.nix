@@ -14,7 +14,7 @@
     <application android:label="@string/app_name"
                  android:icon="${iconPath}"
                  android:hardwareAccelerated="true">
-        <activity android:name="org.reflexfrp.HaskellActivity"
+        <activity android:name="systems.obsidian.HaskellActivity"
                   android:label="@string/app_name"
                   android:configChanges="orientation|screenSize"
                   android:windowSoftInputMode="adjustResize">

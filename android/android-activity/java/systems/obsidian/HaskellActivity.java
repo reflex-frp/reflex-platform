@@ -1,4 +1,4 @@
-package org.reflexfrp;
+package systems.obsidian;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,7 +8,7 @@ import android.util.Log;
 import java.util.concurrent.SynchronousQueue;
 
 public class HaskellActivity extends Activity {
-  public native int haskellStartMain();
+  public native int haskellStartMain(SynchronousQueue<Long> setCallbacks);
   public native void haskellOnCreate(long callbacks);
   public native void haskellOnStart(long callbacks);
   public native void haskellOnResume(long callbacks);
@@ -30,13 +30,13 @@ public class HaskellActivity extends Activity {
     final SynchronousQueue<Long> setCallbacks = new SynchronousQueue<Long>();
     new Thread() {
       public void run() {
-        final int exitCode = haskellStartMain();
+        final int exitCode = haskellStartMain(setCallbacks);
         Log.d("HaskellActivity", String.format("Haskell main action exited with status %d", exitCode));
         try {
           // Since Haskell's main has exited, it won't call mainStarted.
           // Instead, we unblock the main thread here.
           //TODO: If continueWithCallbacks has already been called, is this safe?
-          setCallbacks.put(0L);
+          setCallbacks.put(0L); //TODO: Always call finish() if we hit this
         } catch(InterruptedException e) {
           //TODO: Should we do something with this?
         }
@@ -55,6 +55,7 @@ public class HaskellActivity extends Activity {
     try {
       setCallbacks.put(callbacks);
     } catch(InterruptedException e) {
+      Log.d("HaskellActivity", "setting callbacks interrupted");
       //TODO: Should we do something with this?
     }
   }

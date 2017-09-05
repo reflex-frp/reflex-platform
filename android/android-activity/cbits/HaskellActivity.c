@@ -8,6 +8,7 @@
 #include <setjmp.h>
 #include "HsFFI.h"
 #include "Rts.h"
+#include "HaskellActivity.h"
 
 // From ghc/rts/RtsStartup.c
 extern void (*exitFn)(int);
@@ -16,73 +17,59 @@ extern StgClosure ZCMain_main_closure;
 
 //TODO: Get everything above this from an existing header file if possible
 
-//TODO: Use hsc2hs
-typedef struct activityCallbacks {
-  void (*onCreate) (); //TODO: Support savedInstanceState
-  void (*onStart) ();
-  void (*onResume) ();
-  void (*onPause) ();
-  void (*onStop) ();
-  void (*onDestroy) ();
-  void (*onRestart) ();
-  void (*onNewIntent) (const char *, const char *); //TODO: Pass the whole argument and use JNI
-} activityCallbacks;
-
-//TODO: Move all declarations above this into headers
-
 static JavaVM* jvm = NULL;
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnCreate (JNIEnv *env, jobject thisObj, long callbacksLong) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnCreate (JNIEnv *env, jobject thisObj, long callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onCreate) {
     callbacks->onCreate();
   }
 }
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnStart (JNIEnv *env, jobject thisObj, long callbacksLong) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnStart (JNIEnv *env, jobject thisObj, long callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onStart) {
     callbacks->onStart();
   }
 }
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnResume (JNIEnv *env, jobject thisObj, long callbacksLong) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnResume (JNIEnv *env, jobject thisObj, long callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onResume) {
     callbacks->onResume();
   }
 }
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnPause (JNIEnv *env, jobject thisObj, long callbacksLong) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnPause (JNIEnv *env, jobject thisObj, long callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onPause) {
     callbacks->onPause();
   }
 }
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnStop (JNIEnv *env, jobject thisObj, long callbacksLong) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnStop (JNIEnv *env, jobject thisObj, long callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onStop) {
     callbacks->onStop();
   }
 }
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnDestroy (JNIEnv *env, jobject thisObj, long callbacksLong) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnDestroy (JNIEnv *env, jobject thisObj, long callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onDestroy) {
     callbacks->onDestroy();
   }
 }
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnRestart (JNIEnv *env, jobject thisObj, long callbacksLong) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnRestart (JNIEnv *env, jobject thisObj, long callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onRestart) {
     callbacks->onRestart();
   }
 }
 
-JNIEXPORT void JNICALL Java_org_reflexfrp_HaskellActivity_haskellOnNewIntent (JNIEnv *env, jobject thisObj, long callbacksLong, jstring intent, jstring intentdata) {
-  const activityCallbacks *callbacks = (const activityCallbacks *)callbacksLong;
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnNewIntent (JNIEnv *env, jobject thisObj, long callbacksLong, jstring intent, jstring intentdata) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onNewIntent) {
     const char *cstring_intent = (*env)->GetStringUTFChars(env, intent, 0);
     const char *cstring_intentdata = (*env)->GetStringUTFChars(env, intentdata, 0);
@@ -104,14 +91,14 @@ static void mainFinished(int exitCode)
 	longjmp(mainJmpbuf, exitCode + EXIT_CODE_OFFSET);
 }
 
-// Filled in by Java_org_reflexfrp_HaskellActivity_haskellStartMain and disposed
+// Filled in by Java_systems_obsidian_HaskellActivity_haskellStartMain and disposed
 // of by haskellActivityContinueWithCallbacks
 static jobject haskellActivity = 0;
 static jobject setCallbacksQueue = 0;
 
 // Continue constructing the HaskellActivity.
 // WARNING: This may only be invoked once per Haskell 'main' invocation
-void haskellActivityContinueWithCallbacks(const activityCallbacks *callbacks) {
+void HaskellActivity_continueWithCallbacks(const ActivityCallbacks *callbacks) {
   assert(haskellActivity);
 
   JNIEnv *env;
@@ -119,17 +106,21 @@ void haskellActivityContinueWithCallbacks(const activityCallbacks *callbacks) {
   assert(attachResult == JNI_OK);
 
   jclass cls = (*env)->GetObjectClass(env, haskellActivity);
-  jmethodID continueWithCallbacks = (*env)->GetStaticMethodID(env, cls, "continueWithCallbacks", "(J)V");
+  jmethodID continueWithCallbacks = (*env)->GetStaticMethodID(env, cls, "continueWithCallbacks", "(Ljava/util/concurrent/SynchronousQueue;J)V");
   assert(continueWithCallbacks);
 
-  (*env)->CallStaticVoidMethod(env, cls, setCallbacksQueue);
+  (*env)->CallStaticVoidMethod(env, cls, continueWithCallbacks, setCallbacksQueue, callbacks);
+  if((*env)->ExceptionOccurred(env)) {
+    __android_log_write(ANDROID_LOG_DEBUG, "HaskellActivity", "continueWithCallbacks exception");
+    (*env)->ExceptionDescribe(env);
+  }
 
   (*env)->DeleteGlobalRef(env, haskellActivity);
   (*env)->DeleteGlobalRef(env, setCallbacksQueue);
   haskellActivity = 0;
 }
 
-JNIEXPORT int JNICALL Java_org_reflexfrp_HaskellActivity_haskellStartMain (JNIEnv *env, jobject thisObj, jobject setCallbacksQueue_) {
+JNIEXPORT int JNICALL Java_systems_obsidian_HaskellActivity_haskellStartMain (JNIEnv *env, jobject thisObj, jobject setCallbacksQueue_) {
   // Retain the HaskellActivity that we're running under
   haskellActivity = (*env)->NewGlobalRef(env, thisObj);
   setCallbacksQueue = (*env)->NewGlobalRef(env, setCallbacksQueue_);

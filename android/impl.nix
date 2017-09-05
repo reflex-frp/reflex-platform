@@ -47,6 +47,7 @@ env: with env;
         applicationMk = builtins.toFile "Application.mk" (import ./Application.mk.nix {
           inherit nixpkgs abiVersions;
         });
+        javaSrc = ghcAndroidArm64.android-activity.src + "/java";
         src = ./src;
         nativeBuildInputs = [ nixpkgs.rsync ];
         unpackPhase = "";
@@ -54,6 +55,8 @@ env: with env;
           set -x
 
           cp -r --no-preserve=mode "$src" "$out"
+          mkdir -p "$out/src/main"
+          cp -r --no-preserve=mode "$javaSrc" "$out/src/main/java"
           ln -s "$buildGradle" "$out/build.gradle"
           ln -s "$androidManifestXml" "$out/AndroidManifest.xml"
           mkdir -p "$out/res/values"

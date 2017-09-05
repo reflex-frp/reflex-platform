@@ -508,6 +508,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
             };
           };
         };
+        android-activity = self.callPackage ./android/android-activity {
+          inherit (nixpkgs) jdk;
+        };
 
         aeson = exposeAeson super.aeson;
 
@@ -769,22 +772,28 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a; };
 in let this = rec {
   inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android;
-  overrideAndroidCabal = executableName: p: overrideCabal p (drv: {
+  overrideAndroidCabal = executableName: package: packageSet: overrideCabal package (drv: {
+    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+      packageSet.android-activity
+    ];
     preConfigure = (drv.preConfigure or "") + ''
       set -x
       mkdir cbits
-      ln -s "${./android/haskellActivity.c}" cbits/haskellActivity.c
-      sed -i 's/^executable ${executableName}$/executable lib${executableName}.so\n  cc-options: -shared -fPIC\n  ld-options: -shared\n  c-sources: cbits\/haskellActivity.c\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/' *.cabal
+      sed -i '/^executable ${executableName}$/,/^[^ \t]/ s/build-depends:/build-depends: android-activity,/i' *.cabal
+      if grep -vq 'android-activity' *.cabal ; then # Must not have had a build-depends
+        sed -i 's/^executable ${executableName}$/\0\n  build-depends: android-activity/i' *.cabal
+      fi
+      sed -i 's/^executable ${executableName}$/executable lib${executableName}.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/i' *.cabal
     '';
   });
   androidReflexTodomvc = android.buildApp {
-    package = p: overrideAndroidCabal "reflex-todomvc" p.reflex-todomvc;
+    package = p: overrideAndroidCabal "reflex-todomvc" p.reflex-todomvc p;
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
   };
   androidHelloWorld = android.buildApp {
-    package = p: overrideAndroidCabal "hello" p.hello;
+    package = p: overrideAndroidCabal "hello" p.hello p;
     executableName = "hello";
     applicationId = "org.reflexfrp.hello";
     displayName = "Hello, world!";
@@ -871,7 +880,7 @@ in let this = rec {
   releaseCandidates = mapSet mkReleaseCandidate ghc;
 
   androidDevTools = [
-#    nativeHaskellPackages.haven
+    ghc.haven
     nixpkgs.maven
   ];
 
@@ -879,7 +888,7 @@ in let this = rec {
   generalDevTools = haskellPackages:
     let nativeHaskellPackages = ghc;
     in [
-#    nativeHaskellPackages.Cabal
+    nativeHaskellPackages.Cabal
     nativeHaskellPackages.cabal-install
     nativeHaskellPackages.ghcid
     nativeHaskellPackages.hlint
