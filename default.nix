@@ -450,8 +450,22 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
+
+    addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
+      then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
+      else drv: drv;
+
+    reflexDomMobileSrc = fetchFromGitHub
+      { owner = "reflex-frp";
+        repo = "reflex-dom";
+        rev = "9b7da8074f3cd1e119be759395fc2b8abaaea3b6";
+        sha256 = "0mrlbgd41iywg9nvrshfm7qcq6sjxsxw7bwyczp963n4mppmyyfp";
+      };
+
     overrideForGhcAndroid = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
+      overrides = self: super:
+      let reflexDomMobile = import reflexDomMobileSrc self nixpkgs;
+      in {
         ghc = super.ghc // {
           bootPkgs = super.ghc.bootPkgs.override {
             overrides = self: super: {
@@ -512,10 +526,17 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         lifted-async = doJailbreak super.lifted-async;
         safe-exceptions = doJailbreak super.safe-exceptions;
 
-        reflex = super.reflex.override {
-          useTemplateHaskell = false;
-        };
-        reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
+        reflex = addReflexTraceEventsFlag (addReflexOptimizerFlag ((self.callPackage (fetchFromGitHub {
+            owner = "reflex-frp";
+            repo = "reflex";
+            rev = "268020b29c0e4a986bb6e0b2f9f33acc6fc108af";
+            sha256 = "1vhihadywi3xyxh5nky0hx249i33qv29a8pnc2h62mzpfgilpkl9";
+          }) {}).override { useTemplateHaskell = false; }));
+
+        reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDomMobile.reflex-dom);
+
+        reflex-dom-core = appendConfigureFlag (addReflexOptimizerFlag (doJailbreak reflexDomMobile.reflex-dom-core)) "-f-use-template-haskell";
+
         reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
             postFixup = ''
                 mkdir $out/reflex-todomvc.app
@@ -545,7 +566,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       };
     };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
+      overrides = self: super:
+      let reflexDomMobile = import reflexDomMobileSrc self nixpkgs;
+      in {
         ghcjs-prim = null;
         ghcjs-json = null;
         derive = null;
@@ -602,10 +625,18 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           doCheck = false;
           jailbreak = true;
         });
-        reflex = super.reflex.override {
-          useTemplateHaskell = false;
-        };
-        reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
+
+        reflex = addReflexTraceEventsFlag (addReflexOptimizerFlag ((self.callPackage (fetchFromGitHub {
+            owner = "reflex-frp";
+            repo = "reflex";
+            rev = "268020b29c0e4a986bb6e0b2f9f33acc6fc108af";
+            sha256 = "1vhihadywi3xyxh5nky0hx249i33qv29a8pnc2h62mzpfgilpkl9";
+          }) {}).override { useTemplateHaskell = false; }));
+
+        reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDomMobile.reflex-dom);
+
+        reflex-dom-core = appendConfigureFlag (addReflexOptimizerFlag (doJailbreak reflexDomMobile.reflex-dom-core)) "-f-use-template-haskell";
+
         reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
             postFixup = ''
                 mkdir $out/reflex-todomvc.app
