@@ -565,6 +565,22 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         });
       };
     };
+    overrideForGhcWarp = haskellPackages: haskellPackages.override {
+      overrides = self: super:
+      let reflexDomMobile = import reflexDomMobileSrc self nixpkgs;
+      in {
+        reflex = addReflexTraceEventsFlag (addReflexOptimizerFlag ((self.callPackage (fetchFromGitHub {
+            owner = "reflex-frp";
+            repo = "reflex";
+            rev = "268020b29c0e4a986bb6e0b2f9f33acc6fc108af";
+            sha256 = "1vhihadywi3xyxh5nky0hx249i33qv29a8pnc2h62mzpfgilpkl9";
+          }) {}).override { useTemplateHaskell = false; }));
+
+        reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDomMobile.reflex-dom);
+
+        reflex-dom-core = appendConfigureFlag (addReflexOptimizerFlag (doJailbreak reflexDomMobile.reflex-dom-core)) "-f-use-template-haskell";
+      };
+    };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
       overrides = self: super:
       let reflexDomMobile = import reflexDomMobileSrc self nixpkgs;
@@ -749,8 +765,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghcAndroidArmv7a = overrideForGhcAndroid (overrideForGhc (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghcHEAD));
   ghcIosArm64 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcHEAD));
   ghcIosArmv7 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcHEAD));
+  ghcWarp = overrideForGhcWarp ghc;
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a ghcWarp;
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
         ghcLibdirLink = nixpkgs.stdenv.mkDerivation {
