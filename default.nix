@@ -112,8 +112,8 @@ let all-cabal-hashes = fetchFromGitHub {
                 inherit all-cabal-hashes;
               };
             };
-        in {
-        simulator64 = nixpkgsFunc {
+        in nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) {
+        simulator64 = {
           inherit system;
           crossSystem = {
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -131,7 +131,7 @@ let all-cabal-hashes = fetchFromGitHub {
           };
           inherit config;
         };
-        arm64 = nixpkgsFunc {
+        arm64 = {
           inherit system;
           crossSystem = {
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -149,7 +149,7 @@ let all-cabal-hashes = fetchFromGitHub {
           };
           inherit config;
         };
-        armv7 = nixpkgsFunc {
+        armv7 = {
           inherit system;
           crossSystem = {
             # You can change config/arch/isiPhoneSimulator depending on your target:
