@@ -762,11 +762,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghc8_0_1 = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801));
   ghc7 = overrideForGhc7 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103));
   ghc7_8 = overrideForGhc7_8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784));
-  ghcIosSimulator64 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghcHEAD));
-  ghcAndroidArm64 = overrideForGhcAndroid (overrideForGhc (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghcHEAD));
-  ghcAndroidArmv7a = overrideForGhcAndroid (overrideForGhc (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghcHEAD));
-  ghcIosArm64 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghcHEAD));
-  ghcIosArmv7 = overrideForGhcIOS (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghcHEAD));
+  ghcIosSimulator64 = overrideForGhcIOS (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821))));
+  ghcAndroidArm64 = overrideForGhcAndroid (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821))));
+  ghcAndroidArmv7a = overrideForGhcAndroid (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821))));
+  ghcIosArm64 = overrideForGhcIOS (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821))));
+  ghcIosArmv7 = overrideForGhcIOS (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821))));
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a; };
