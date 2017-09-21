@@ -442,9 +442,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       shims = sources.shims;
       stage2 = import stage2Script;
     };
-    ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
+    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
       ghc = ghcjsCompiler;
-      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { };
     };
     ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
     overrideForGhcHEAD = haskellPackages: haskellPackages.override {
