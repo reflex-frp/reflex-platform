@@ -10,6 +10,7 @@ with haskellPackages;
   reflex-dom
   reflex-todomvc
 
+  network-uri
 ] ++ (if platform == "ghcjs" then [
   ##############################################################################
   # Add ghcjs-only packages here                                               #
