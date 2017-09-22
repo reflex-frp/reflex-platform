@@ -5,7 +5,6 @@
 import Reflex.Dom
 
 import Control.Monad.Trans
-import Data.Time.Clock
 
 import GHCJS.DOM.HTMLTextAreaElement (HTMLTextAreaElement)
 import qualified GHCJS.DOM.HTMLTextAreaElement as TA
@@ -19,21 +18,21 @@ import Emoji
 say :: MonadIO m => String -> m ()
 say = liftIO . putStrLn
 
-setSelectionPos :: (HasJS x (WidgetHost m), PerformEvent t m, MonadJSM (Performable m)) => HTMLTextAreaElement -> Event t Int -> m ()
-setSelectionPos t e = performEvent_ . ffor e $ \n -> do 
+setSelectionPos :: (HasJS x (WidgetHost m), PerformEvent t m, MonadJSM (Performable m)) => HTMLTextAreaElement -> Event t Int -> m (Event t ())
+setSelectionPos t e = performEvent . ffor e $ \n -> do 
   TA.setSelectionStart t n
   TA.setSelectionEnd t n
   El.focus t
+  return ()
 
 main :: IO ()
 main = do
-  now <- getCurrentTime
   mainWidget $ do
-    rec tick <- tickLossy 0.000001 now
-        let emojiPickE = () <$ tick
+    rec begin <- button "Begin"
         t <- textAreaElement $ def { _textAreaElementConfig_setValue = Just (fmap snd newEmoji) }
-        setSelectionPos (_textAreaElement_raw t) resetPosE 
+        again <- setSelectionPos (_textAreaElement_raw t) resetPosE
+        --again' <- delay 0 again
         let newEmoji = attachWith (\s _ -> let (n',s') = insertEmojiAt (T.unpack s) in (n', T.pack s')) 
-                                  (current $ value t) emojiPickE
+                                  (current $ value t) (leftmost [begin,again])
             resetPosE = fmap fst newEmoji
     return ()
