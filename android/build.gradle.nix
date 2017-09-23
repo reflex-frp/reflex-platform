@@ -25,7 +25,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.1'
+    buildToolsVersion '26.0.1'
 
     sourceSets {
       main {
