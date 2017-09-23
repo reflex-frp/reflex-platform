@@ -116,6 +116,7 @@ let all-cabal-hashes = fetchFromGitHub {
         simulator64 = {
           inherit system;
           crossSystem = {
+            useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
             # aarch64-apple-darwin14 | arm64  | false
             # arm-apple-darwin10     | armv7  | false
@@ -134,6 +135,7 @@ let all-cabal-hashes = fetchFromGitHub {
         arm64 = {
           inherit system;
           crossSystem = {
+            useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
             # aarch64-apple-darwin14 | arm64  | false
             # arm-apple-darwin10     | armv7  | false
@@ -152,6 +154,7 @@ let all-cabal-hashes = fetchFromGitHub {
         armv7 = {
           inherit system;
           crossSystem = {
+            useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
             # aarch64-apple-darwin14 | arm64  | false
             # arm-apple-darwin10     | armv7  | false
