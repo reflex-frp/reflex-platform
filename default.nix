@@ -278,7 +278,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Newer versions of 'hashable' don't work on the ghc 8.1.* that Android
         # and iOS are currently using.  Once they're upgraded to 8.2, we should
         # update 'hashable' to latest.
-        hashable = doJailbreak (self.callHackage "hashable" "1.2.4.0" {});
+        hashable = doJailbreak (self.callHackage "hashable" "1.2.6.1" {});
 
         ########################################################################
         # Reflex packages
@@ -397,7 +397,6 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         haddock-api = null; #dontCheck super.haddock-api;
         haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
         hspec-meta = self.callHackage "hspec-meta" "2.4.4" {};
-        lens = self.callHackage "lens" "4.15.4" {};
         primitive = self.callHackage "primitive" "0.6.2.0" {};
         profunctors = self.callHackage "profunctors" "5.2.1" {};
         semigroupoids = self.callHackage "semigroupoids" "5.2.1" {};
@@ -498,19 +497,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
       };
     };
-    overrideForGhcAndroid = haskellPackages: haskellPackages.override {
+    disableTemplateHaskell = haskellPackages: haskellPackages.override {
       overrides = self: super: {
-        ghc = super.ghc // {
-          bootPkgs = super.ghc.bootPkgs.override {
-            overrides = self: super: {
-              Cabal = appendPatch (self.callHackage "Cabal" "2.0.0.2" {}) ./Cabal-Allow-any-arch-with-linux-for-foreign-libs.patch;
-            };
-          };
-        };
-        android-activity = self.callPackage ./android/android-activity {
-          inherit (nixpkgs) jdk;
-        };
-
+        # Aeson's TH splices refer to names that aren't exported
         aeson = exposeAeson super.aeson;
 
         # These custom Setup.lhs files don't work
@@ -520,6 +509,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
 
         wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
         cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
+
         profunctors = overrideCabal super.profunctors (drv: {
           preConfigure = ''
             sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
@@ -531,32 +521,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           '';
         });
         lens = overrideCabal super.lens (drv: {
-          version = "4.15.1";
-          sha256 = null;
-          src = fetchFromGitHub {
-            owner = "hamishmack";
-            repo = "lens";
-            rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
-            sha256 = "0nxcki1w8qxk4q7hjxpaqzyfjyib52al7jzagf8f3b0v2m3kk1a3";
-          };
-          revision = "4";
-          editedCabalFile = "e055de1a2d30bf9122947afbc5e342b06a0f4a512fece45f5b9132f7beb11539";
           preConfigure = ''
             sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
-          '';
-          preCompileBuildDriver = ''
-            rm Setup.lhs
           '';
           doCheck = false;
           jailbreak = true;
         });
-
-        syb = overrideCabal super.syb (drv: { jailbreak = true; });
-        cabal-doctest = null;
-
-        # Break version bounds on base for GHC HEAD.
-        lifted-async = doJailbreak super.lifted-async;
-        safe-exceptions = doJailbreak super.safe-exceptions;
 
         reflex = super.reflex.override {
           useTemplateHaskell = false;
@@ -577,6 +547,27 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         # Disable these because these on iOS
         jsaddle-webkitgtk = null;
         jsaddle-webkit2gtk = null;
+      };
+    };
+    overrideForGhcAndroid = haskellPackages: haskellPackages.override {
+      overrides = self: super: {
+        ghc = super.ghc // {
+          bootPkgs = super.ghc.bootPkgs.override {
+            overrides = self: super: {
+              Cabal = appendPatch (self.callHackage "Cabal" "2.0.0.2" {}) ./Cabal-Allow-any-arch-with-linux-for-foreign-libs.patch;
+            };
+          };
+        };
+        android-activity = self.callPackage ./android/android-activity {
+          inherit (nixpkgs) jdk;
+        };
+
+        syb = overrideCabal super.syb (drv: { jailbreak = true; });
+        cabal-doctest = null;
+
+        # Break version bounds on base for GHC HEAD.
+        lifted-async = doJailbreak super.lifted-async;
+        safe-exceptions = doJailbreak super.safe-exceptions;
 
         mkDerivation = drv: super.mkDerivation (drv // {
           doHaddock = false;
@@ -762,10 +753,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghc7 = overrideForGhc7 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103));
   ghc7_8 = overrideForGhc7_8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784));
   ghcIosSimulator64 = overrideForGhcIOS (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821))));
-  ghcAndroidArm64 = overrideForGhcAndroid (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821))));
-  ghcAndroidArmv7a = overrideForGhcAndroid (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821))));
-  ghcIosArm64 = overrideForGhcIOS (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821))));
-  ghcIosArmv7 = overrideForGhcIOS (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821))));
+  ghcAndroidArm64 = overrideForGhcAndroid (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821)))));
+  ghcAndroidArmv7a = overrideForGhcAndroid (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821)))));
+  ghcIosArm64 = overrideForGhcIOS (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821)))));
+  ghcIosArmv7 = overrideForGhcIOS (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821)))));
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a; };
