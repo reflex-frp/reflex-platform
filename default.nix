@@ -762,34 +762,14 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghcIosArmv7 = overrideForGhcIOS (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821)))));
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
-  android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a; };
+  android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
 in let this = rec {
   inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android;
-  overrideAndroidCabal = executableName: package: packageSet: overrideCabal package (drv: {
-    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
-      packageSet.android-activity
-    ];
-    preConfigure = (drv.preConfigure or "") + ''
-      set -x
-      mkdir cbits
-      sed -i '/^executable ${executableName}$/,/^[^ \t]/ s/build-depends:/build-depends: android-activity,/i' *.cabal
-      if grep -vq 'android-activity' *.cabal ; then # Must not have had a build-depends
-        sed -i 's/^executable ${executableName}$/\0\n  build-depends: android-activity/i' *.cabal
-      fi
-      sed -i 's/^executable ${executableName}$/executable lib${executableName}.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/i' *.cabal
-    '';
-  });
   androidReflexTodomvc = android.buildApp {
-    package = p: overrideAndroidCabal "reflex-todomvc" p.reflex-todomvc p;
+    package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
-  };
-  androidHelloWorld = android.buildApp {
-    package = p: overrideAndroidCabal "hello" p.hello p;
-    executableName = "hello";
-    applicationId = "org.reflexfrp.hello";
-    displayName = "Hello, world!";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";

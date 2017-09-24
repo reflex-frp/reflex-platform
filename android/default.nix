@@ -3,6 +3,7 @@ env@{
 , nixpkgsCross
 , ghcAndroidArm64
 , ghcAndroidArmv7a
+, overrideCabal
 }:
 with nixpkgs.lib.strings;
 let impl = import ./impl.nix env;

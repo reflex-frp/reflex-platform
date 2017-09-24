@@ -1,5 +1,12 @@
 env: with env;
-{
+let overrideAndroidCabal = executableName: package: overrideCabal package (drv: {
+      preConfigure = (drv.preConfigure or "") + ''
+        #set -x
+        #mkdir cbits
+        sed -i 's/^executable ${executableName}$/executable lib${executableName}.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/i' *.cabal
+      '';
+    });
+in {
   buildApp = args: with args; nixpkgs.androidenv.buildGradleApp {
     acceptAndroidSdkLicenses = true;
     buildDirectory = "./.";
@@ -18,7 +25,7 @@ env: with env;
           splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             inherit (myNixpkgs) libiconv;
-            hsApp = package myHaskellPackages;
+            hsApp = overrideAndroidCabal executableName (package myHaskellPackages);
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.arm64Impure;
