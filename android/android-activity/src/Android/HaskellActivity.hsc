@@ -1,6 +1,8 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 module Android.HaskellActivity
-  ( ActivityCallbacks
+  ( ActivityCallbacks (..)
+  , HaskellActivity (..)
+  , getHaskellActivity
   , continueWithCallbacks
   , traceActivityCallbacks
   ) where
@@ -15,6 +17,10 @@ import Foreign.Ptr
 import Foreign.Storable
 
 #include "HaskellActivity.h"
+
+newtype HaskellActivity = HaskellActivity { unHaskellActivity :: Ptr HaskellActivity }
+
+foreign import ccall unsafe "HaskellActivity_get" getHaskellActivity :: IO HaskellActivity
 
 -- | Allow the HaskellActivity to proceed.  The given callbacks will be invoked
 -- at the appropriate times in the Android Activity lifecycle.

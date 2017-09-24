@@ -17,7 +17,7 @@ extern StgClosure ZCMain_main_closure;
 
 //TODO: Get everything above this from an existing header file if possible
 
-static JavaVM* jvm = NULL;
+JavaVM* HaskellActivity_jvm = NULL;
 
 JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnCreate (JNIEnv *env, jobject thisObj, long callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
@@ -86,8 +86,7 @@ static jmp_buf mainJmpbuf;
 // subtract it off later.
 #define EXIT_CODE_OFFSET 0x10000
 
-static void mainFinished(int exitCode)
-{
+static void mainFinished(int exitCode) {
 	longjmp(mainJmpbuf, exitCode + EXIT_CODE_OFFSET);
 }
 
@@ -96,13 +95,17 @@ static void mainFinished(int exitCode)
 static jobject haskellActivity = 0;
 static jobject setCallbacksQueue = 0;
 
+jobject HaskellActivity_get() {
+  return haskellActivity;
+}
+
 // Continue constructing the HaskellActivity.
 // WARNING: This may only be invoked once per Haskell 'main' invocation
 void HaskellActivity_continueWithCallbacks(const ActivityCallbacks *callbacks) {
   assert(haskellActivity);
 
   JNIEnv *env;
-  jint attachResult = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+  jint attachResult = (*HaskellActivity_jvm)->AttachCurrentThread(HaskellActivity_jvm, &env, NULL);
   assert(attachResult == JNI_OK);
 
   jclass cls = (*env)->GetObjectClass(env, haskellActivity);
@@ -115,9 +118,12 @@ void HaskellActivity_continueWithCallbacks(const ActivityCallbacks *callbacks) {
     (*env)->ExceptionDescribe(env);
   }
 
-  (*env)->DeleteGlobalRef(env, haskellActivity);
+  //TODO: Provide a better way of having access to this
+  // (*env)->DeleteGlobalRef(env, haskellActivity);
+  // haskellActivity = 0;
+
   (*env)->DeleteGlobalRef(env, setCallbacksQueue);
-  haskellActivity = 0;
+  setCallbacksQueue = 0;
 }
 
 JNIEXPORT int JNICALL Java_systems_obsidian_HaskellActivity_haskellStartMain (JNIEnv *env, jobject thisObj, jobject setCallbacksQueue_) {
@@ -203,7 +209,7 @@ void startLogger(const char *tag) {
 ////////////////////////////////////////////////////////////////////////////////
 
 JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
-  jvm = vm;
+  HaskellActivity_jvm = vm;
 
   startLogger("HaskellActivity"); //TODO: Use the app name
 

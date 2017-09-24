@@ -47,7 +47,13 @@ env: with env;
         applicationMk = builtins.toFile "Application.mk" (import ./Application.mk.nix {
           inherit nixpkgs abiVersions;
         });
-        javaSrc = ghcAndroidArm64.android-activity.src + "/java";
+        javaSrc = nixpkgs.buildEnv {
+          name = applicationId + "-java";
+          paths = [
+            (ghcAndroidArm64.android-activity.src + "/java") #TODO: Use output, not src
+            (ghcAndroidArm64.reflex-dom.src + "/java")
+          ];
+        };
         src = ./src;
         nativeBuildInputs = [ nixpkgs.rsync ];
         unpackPhase = "";

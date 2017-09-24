@@ -1,3 +1,8 @@
+#ifndef HASKELLACTIVITY_H_INCLUDED
+#define HASKELLACTIVITY_H_INCLUDED
+
+#include <jni.h>
+
 typedef struct ActivityCallbacks {
   void (*onCreate) (); //TODO: Support savedInstanceState
   void (*onStart) ();
@@ -9,4 +14,6 @@ typedef struct ActivityCallbacks {
   void (*onNewIntent) (const char *, const char *); //TODO: Pass the whole argument and use JNI
 } ActivityCallbacks;
 
-extern void haskellActivity_continueWithCallbacks(const ActivityCallbacks *callbacks);
+extern JavaVM* HaskellActivity_jvm;
+
+#endif

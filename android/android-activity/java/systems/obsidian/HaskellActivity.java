@@ -5,6 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ViewGroup.LayoutParams;
+import android.view.Window;
+import android.webkit.CookieManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import java.util.concurrent.SynchronousQueue;
 
 public class HaskellActivity extends Activity {

@@ -2,7 +2,7 @@
 mkDerivation {
   pname = "android-activity";
   version = "0.1";
-  src = ./.;
+  src = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git"])) ./.;
   libraryHaskellDepends = [ base data-default ];
   librarySystemDepends = [ jdk ];
   homepage = "https://github.com/obsidiansystems/android-activity";

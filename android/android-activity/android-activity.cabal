@@ -22,5 +22,6 @@ library
   default-language: Haskell2010
   c-sources: cbits/HaskellActivity.c
   include-dirs: cbits/include
+  install-includes: HaskellActivity.h
   exposed-modules:
     Android.HaskellActivity
