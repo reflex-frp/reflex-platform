@@ -535,14 +535,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
           useTemplateHaskell = false;
         };
         reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
-        reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
-            #TODO: Re-enable creating an app
-            #postFixup = ''
-            #    mkdir $out/reflex-todomvc.app
-            #    cp reflex-todomvc.app/* $out/reflex-todomvc.app/
-            #    cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
-            #'';
-        });
+        # TODO: this is probably a good idea too
+        #alex = self.ghc.bootPkgs.alex;
         happy = self.ghc.bootPkgs.happy;
 
         # Disabled for now (jsaddle-wkwebview will probably be better on iOS)
@@ -597,56 +591,9 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         warp = null;
         wai-app-static = null;
 
-        # IOS doesn't support template haskell yet
-        aeson = exposeAeson super.aeson;
-
         cabal-doctest = null;
         syb = overrideCabal super.syb (drv: { jailbreak = true; });
 
-        # These custom Setup.lhs files don't work
-        distributive = dontUseCustomSetup super.distributive;
-        comonad = dontUseCustomSetup super.comonad;
-        semigroupoids = dontUseCustomSetup (appendConfigureFlag super.semigroupoids "-f-doctests");
-
-        #text = appendConfigureFlag super.text "-finteger-simple";
-        #scientific = appendConfigureFlag super.scientific "-finteger-simple";
-        #hashable = appendConfigureFlag super.hashable "-f-integer-gmp";
-        wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
-        cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
-        profunctors = overrideCabal super.profunctors (drv: {
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
-          '';
-        });
-        fgl = overrideCabal super.fgl (drv: {
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' $(find Data -name '*.hs')
-          '';
-        });
-        lens = overrideCabal super.lens (drv: {
-          version = "4.15.1";
-          sha256 = null;
-          src = fetchFromGitHub {
-            owner = "hamishmack";
-            repo = "lens";
-            rev = "dff33c6b9ba719c9d853d5ba53a35fafe3620d9c";
-            sha256 = "0nxcki1w8qxk4q7hjxpaqzyfjyib52al7jzagf8f3b0v2m3kk1a3";
-          };
-          revision = "4";
-          editedCabalFile = "e055de1a2d30bf9122947afbc5e342b06a0f4a512fece45f5b9132f7beb11539";
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
-          '';
-          preCompileBuildDriver = ''
-            rm Setup.lhs
-          '';
-          doCheck = false;
-          jailbreak = true;
-        });
-        reflex = super.reflex.override {
-          useTemplateHaskell = false;
-        };
-        reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
         reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
             postFixup = ''
                 mkdir $out/reflex-todomvc.app
@@ -654,15 +601,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
                 cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
             '';
         });
-        happy = self.ghc.bootPkgs.happy;
-        # Disabled until we can figure out how to build reflex-todomvc setup with host GHC
         cabal-macosx = null;
-        # Disabled for now (jsaddle-wkwebview will probably be better on iOS)
-        jsaddle-warp = null;
-        # Disable these because these on iOS
-        jsaddle-webkitgtk = null;
-        jsaddle-webkit2gtk = null;
-        #Cabal = self.Cabal_1_24_2_0;
         mkDerivation = drv: super.mkDerivation (drv // {
           doHaddock = false;
           enableSharedLibraries = false;
