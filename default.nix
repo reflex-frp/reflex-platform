@@ -701,9 +701,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   ghcIosArmv7 = overrideForGhcIOS (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821)))));
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
-  android = import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
+  android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
+  androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android androidWithHaskellPackages;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
