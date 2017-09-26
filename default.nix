@@ -444,9 +444,16 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       shims = sources.shims;
       stage2 = import stage2Script;
     };
-    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
+    ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghcjsCompiler;
+      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { haskellLib = nixpkgs.haskell.lib; };
+      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { haskellLib = nixpkgs.haskell.lib; };
+      haskellLib = nixpkgs.haskell.lib;
     };
+#    TODO: Figure out why this approach doesn't work; it doesn't seem to evaluate our overridden ghc at all
+#    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
+#      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
+#    };
     ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
     overrideForGhcHEAD = haskellPackages: haskellPackages.override {
       overrides = self: super: {
