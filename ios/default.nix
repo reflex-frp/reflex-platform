@@ -1,4 +1,4 @@
-{ nixpkgs }:
+{ nixpkgs, libiconv }:
 
 { #TODO
   bundleName
@@ -202,7 +202,7 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     </dict>
     </plist>
   '');
-  deployScript = builtins.toFile "deploy" ''
+  deployScript = nixpkgs.writeText "deploy" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
@@ -247,6 +247,13 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${exeName}.app" $tmpdir
     chmod +w "$tmpdir/${exeName}.app"
+    chmod +w "$tmpdir/${exeName}.app/${exeName}"
+    # Hack around pure libiconv being used.
+    # TODO: Override libraries with stubs from the SDK, so as to link libraries
+    # on phone. Or statically link.
+    ${nixpkgs.darwin.cctools}/bin/install_name_tool \
+      -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
+      $tmpdir/${exeName}.app/${exeName}
     mkdir -p "$tmpdir/${exeName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${exeName}.app"
