@@ -32,6 +32,8 @@ in rec {
   defaultAssets = ./assets;
   defaultIconPath = "@drawable/ic_launcher";
 
+  buildIcons = nixpkgs.callPackage ./buildIcons.nix {};
+
   buildApp = {
       package
       # A function from haskellPackages to the package we'd like to turn into
