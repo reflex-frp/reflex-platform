@@ -703,13 +703,24 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
   androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
+  ios.buildApp = import ./ios { inherit nixpkgs; host = "asdf"; };
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android androidWithHaskellPackages;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android ios androidWithHaskellPackages;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
+  };
+  iosReflexTodomvc = ios.buildApp {
+    bundleName = "Reflex TodoMVC";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleVersionString = "1";
+    bundleVersion = "1";
+    exeName = "reflex-todomvc";
+    exePath = ghcIosArm64.reflex-todomvc + "/bin";
+    staticSrc = ./ios/static;
+    apsEnv = "development";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
