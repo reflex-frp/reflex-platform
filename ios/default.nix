@@ -191,13 +191,11 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     set -eo pipefail
 
     if [ -z "$1" -o -z "$2" ]; then
-      echo "Usage: $0 [TEAM_ID] [CONFIG_ROUTE]" >&2
+      echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
 
     TEAM_ID=$1
-    shift
-    CONFIG_ROUTE=$1
     shift
 
     set -euo pipefail
@@ -232,7 +230,6 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     cp -LR "$(dirname $0)/../${exeName}.app" $tmpdir
     chmod +w "$tmpdir/${exeName}.app"
     mkdir -p "$tmpdir/${exeName}.app/config"
-    cp "$CONFIG_ROUTE" "$tmpdir/${exeName}.app/config/route"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${exeName}.app"
 
@@ -243,13 +240,11 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     set -eo pipefail
 
     if [ -z "$1" -o -z "$2" ]; then
-      echo "Usage: $0 [TEAM_ID] [CONFIG_ROUTE] [IPA_DESTINATION] [EMBEDDED_PROVISIONING_PROFILE]" >&2
+      echo "Usage: $0 [TEAM_ID] [IPA_DESTINATION] [EMBEDDED_PROVISIONING_PROFILE]" >&2
       exit 1
     fi
 
     TEAM_ID=$1
-    shift
-    CONFIG_ROUTE=$1
     shift
     IPA_DESTINATION=$1
     shift
@@ -290,7 +285,6 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     chmod +rw "$tmpdir/${exeName}.app/${exeName}"
     strip "$tmpdir/${exeName}.app/${exeName}"
     mkdir -p "$tmpdir/${exeName}.app/config"
-    cp "$CONFIG_ROUTE" "$tmpdir/${exeName}.app/config/route"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${exeName}.app"
 
@@ -301,7 +295,7 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     #!/usr/bin/env bash
 
     if [ -z "$1" ]; then
-      echo "Usage: $0 [CONFIG_ROUTE]" >&2
+      echo "Usage: $0" >&2
       exit 1
     fi
 
