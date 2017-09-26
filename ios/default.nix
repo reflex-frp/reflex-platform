@@ -215,8 +215,10 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     signer=$(security find-certificate -c "iPhone Developer" -a \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
-      | while read c; do security find-certificate -c "$c" -p \
-      | openssl x509 -subject -noout; done \
+      | while read c; do \
+          security find-certificate -c "$c" -p \
+            | openssl x509 -subject -noout; \
+        done \
       | grep "OU=$TEAM_ID/" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1)
@@ -268,8 +270,10 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     signer=$(security find-certificate -c "iPhone Distribution" -a \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
-      | while read c; do security find-certificate -c "$c" -p \
-      | openssl x509 -subject -noout; done \
+      | while read c; do \
+          security find-certificate -c "$c" -p \
+            | openssl x509 -subject -noout; \
+        done \
       | grep "OU=$TEAM_ID/" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1)
