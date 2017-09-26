@@ -1,23 +1,38 @@
-{ nixpkgs
-, host
-}:
+{ nixpkgs }:
 
 { #TODO
   bundleName
+
 , #TODO
   bundleIdentifier
+
 , #TODO
   bundleVersionString
+
 , #TODO
   bundleVersion
+
 , #TODO
   exeName
+
 , #TODO
   exePath
+
 , #TODO
   staticSrc
-, #TODO
-  apsEnv
+
+, # Information for push notifications. Is either `"production"` or
+  # `"development"`, if not null.
+  #
+  # Requires the push notification application service to be enabled for this
+  # App ID in your Apple developer account.
+  apsEnv ? null
+
+, # URL patterns for which to handle links. E.g. `[ "*.mywebsite.com" ]`.
+  #
+  # Requires the associated domains application service to be enabled for this
+  # App ID in your Apple developer account.
+  hosts ? []
 }:
 
 nixpkgs.runCommand "${exeName}-app" (rec {
@@ -172,16 +187,17 @@ nixpkgs.runCommand "${exeName}-app" (rec {
       <array>
         <string><team-id/>.${bundleIdentifier}</string>
       </array>
+  ''
+  + nixpkgs.lib.optionalString (apsEnv != null) ''
       <key>aps-environment</key>
       <string>${apsEnv}</string>
   ''
-  + (if host == null then "" else ''
+  + nixpkgs.lib.optionalString (hosts != []) ''
       <key>com.apple.developer.associated-domains</key>
       <array>
-        <string>applinks:${host}</string>
-        <string>applinks:*.${host}</string>
+        ${map (host: "<string>applinks:${host}</string>") hosts}
       </array>
-  '')
+  ''
   + ''
     </dict>
     </plist>
@@ -190,7 +206,7 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if (( "$#" != 1 )); then
+    if (( "$#" < 1 )); then
       echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
