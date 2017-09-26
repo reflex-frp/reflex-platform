@@ -83,9 +83,9 @@ nixpkgs.runCommand "${exeName}-app" (rec {
         <dict>
           <key>CFBundleIconFiles</key>
           <array>
-            <string>Icon iOS 60</string>
-            <string>Icon iOS 76</string>
-            <string>Icon iOS 83.5</string>
+            <string>Icon-60</string>
+            <string>Icon-76</string>
+            <string>Icon-83.5</string>
           </array>
         </dict>
       </dict>
@@ -95,7 +95,7 @@ nixpkgs.runCommand "${exeName}-app" (rec {
         <dict>
           <key>CFBundleIconFiles</key>
           <array>
-            <string>Icon iOS 60</string>
+            <string>Icon-60</string>
           </array>
         </dict>
       </dict>
@@ -341,7 +341,7 @@ nixpkgs.runCommand "${exeName}-app" (rec {
   chmod +x "$out/bin/run-in-sim"
   ln -s "$exePath/${exeName}" "$out/${exeName}.app/"
   cp -RL "${staticSrc}"/* "$out/${exeName}.app/"
-  for icon in "${staticSrc}"/assets/Icon\ iOS\ *.png; do
+  for icon in "${staticSrc}"/assets/Icon*.png; do
     cp -RL "$icon" "$out/${exeName}.app/"
   done
 ''
