@@ -338,4 +338,5 @@ nixpkgs.runCommand "${exeName}-app" (rec {
   for icon in "${staticSrc}"/assets/Icon*.png; do
     cp -RL "$icon" "$out/${exeName}.app/"
   done
+  set +x
 ''
