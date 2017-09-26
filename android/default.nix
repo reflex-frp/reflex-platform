@@ -29,6 +29,7 @@ in rec {
     };
 
   defaultResources = ./res;
+  defaultAssets = ./assets;
   defaultIconPath = "@drawable/ic_launcher";
 
   buildApp = {
@@ -70,6 +71,8 @@ in rec {
 
     , resources ? defaultResources
 
+    , assets ? defaultAssets
+
     , iconPath ? defaultIconPath
 
     , permissions ? ""
@@ -92,6 +95,7 @@ in rec {
               version
               releaseKey
               resources
+              assets
               iconPath
               permissions
               services

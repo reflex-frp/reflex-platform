@@ -91,6 +91,7 @@ in {
               cp --no-preserve=mode "${hsApp}/bin/lib${executableName}.so" "$ARCH_LIB/libHaskellActivity.so"
             }
         '') abiVersions) + ''
+          rsync -r --chmod=+w "${assets}"/ "$out/assets/"
           rsync -r --chmod=+w "${resources}"/ "$out/res/"
           [ -d "$out/assets" ]
           [ -d "$out/res" ]
