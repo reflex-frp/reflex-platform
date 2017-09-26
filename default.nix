@@ -754,8 +754,8 @@ in let this = rec {
     "ghcjs"
     "ghc"
   ] ++ (optionals (system == "x86_64-linux") [
-#    "ghcAndroidArm64"
-#    "ghcAndroidArmv7a"
+    "ghcAndroidArm64"
+    "ghcAndroidArmv7a"
   ]) ++ (optionals nixpkgs.stdenv.isDarwin [
     "ghcIosArm64"
   ]);
