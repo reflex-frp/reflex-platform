@@ -209,7 +209,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
       postInstall = ''
         cd dist/build/${pkg.pname}/${pkg.pname}-tmp
-        for header in $(find . | grep '\.h$'); do
+        for header in $(find . | grep '\.h'$); do
           local dest_dir=$out/include/$(dirname "$header")
           mkdir -p "$dest_dir"
           cp "$header" "$dest_dir"
