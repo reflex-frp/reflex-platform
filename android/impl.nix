@@ -7,12 +7,12 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
     addDeployScript = src: nixpkgs.runCommand "android-app" {
       inherit src;
       buildCommand = ''
-        mkdir "$out"
+        mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
-        cat >"$out/deploy" <<EOF
+        cat >"$out/bin/deploy" <<EOF
           $(which adb) install "$out/$(echo $out/*.apk)"
         EOF
-        chmod +x "$out/deploy"
+        chmod +x "$out/bin/deploy"
       '';
       buildInputs = with nixpkgs; [
         androidsdk
