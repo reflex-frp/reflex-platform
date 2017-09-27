@@ -1,4 +1,4 @@
-{ nixpkgs, libiconv }:
+{ nixpkgs, libiconv, ghcIosArm64 }:
 
 { #TODO
   bundleName
@@ -7,19 +7,19 @@
   bundleIdentifier
 
 , #TODO
-  bundleVersionString
+  bundleVersionString ? "1"
 
 , #TODO
-  bundleVersion
+  bundleVersion ? "1"
 
 , #TODO
-  exeName
+  executableName
 
 , #TODO
-  exePath
+  package
 
 , #TODO
-  staticSrc
+  staticSrc ? ./static
 
 , # Information for push notifications. Is either `"production"` or
   # `"development"`, if not null.
@@ -35,8 +35,8 @@
   hosts ? []
 }:
 
-nixpkgs.runCommand "${exeName}-app" (rec {
-  inherit exePath;
+nixpkgs.runCommand "${executableName}-app" (rec {
+  exePath = package ghcIosArm64;
   infoPlist = builtins.toFile "Info.plist" ''
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -45,7 +45,7 @@ nixpkgs.runCommand "${exeName}-app" (rec {
       <key>CFBundleDevelopmentRegion</key>
       <string>en</string>
       <key>CFBundleExecutable</key>
-      <string>${exeName}</string>
+      <string>${executableName}</string>
       <key>CFBundleIdentifier</key>
       <string>${bundleIdentifier}</string>
       <key>CFBundleInfoDictionaryVersion</key>
@@ -245,20 +245,20 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     fi
 
     mkdir -p $tmpdir
-    cp -LR "$(dirname $0)/../${exeName}.app" $tmpdir
-    chmod +w "$tmpdir/${exeName}.app"
-    chmod +w "$tmpdir/${exeName}.app/${exeName}"
+    cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
+    chmod +w "$tmpdir/${executableName}.app"
+    chmod +w "$tmpdir/${executableName}.app/${executableName}"
     # Hack around pure libiconv being used.
     # TODO: Override libraries with stubs from the SDK, so as to link libraries
     # on phone. Or statically link.
     ${nixpkgs.darwin.cctools}/bin/install_name_tool \
       -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
-      $tmpdir/${exeName}.app/${exeName}
-    mkdir -p "$tmpdir/${exeName}.app/config"
+      $tmpdir/${executableName}.app/${executableName}
+    mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
-    /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${exeName}.app"
+    /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
-    "$(nix-build --no-out-link -A nixpkgs.nodePackages.ios-deploy)/bin/ios-deploy" -W -b "$tmpdir/${exeName}.app" "$@"
+    "$(nix-build --no-out-link -A nixpkgs.nodePackages.ios-deploy)/bin/ios-deploy" -W -b "$tmpdir/${executableName}.app" "$@"
   '';
   packageScript = builtins.toFile "package" ''
     #!/usr/bin/env bash
@@ -307,15 +307,15 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     fi
 
     mkdir -p $tmpdir
-    cp -LR "$(dirname $0)/../${exeName}.app" $tmpdir
-    chmod +w "$tmpdir/${exeName}.app"
-    chmod +rw "$tmpdir/${exeName}.app/${exeName}"
-    strip "$tmpdir/${exeName}.app/${exeName}"
-    mkdir -p "$tmpdir/${exeName}.app/config"
+    cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
+    chmod +w "$tmpdir/${executableName}.app"
+    chmod +rw "$tmpdir/${executableName}.app/${executableName}"
+    strip "$tmpdir/${executableName}.app/${executableName}"
+    mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
-    /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${exeName}.app"
+    /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
-    /usr/bin/xcrun -sdk iphoneos ${./PackageApplication} -v "$tmpdir/${exeName}.app" -o "$IPA_DESTINATION" --sign "$signer" --embed "$EMBEDDED_PROVISIONING_PROFILE"
+    /usr/bin/xcrun -sdk iphoneos ${./PackageApplication} -v "$tmpdir/${executableName}.app" -o "$IPA_DESTINATION" --sign "$signer" --embed "$EMBEDDED_PROVISIONING_PROFILE"
     /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support/altool --validate-app -f "$IPA_DESTINATION" -t ios "$@"
   '';
   runInSim = builtins.toFile "run-in-sim" ''
@@ -341,18 +341,18 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     tmpdir=$(mktemp -d)
 
     mkdir -p $tmpdir
-    cp -LR "$(dirname $0)/../${exeName}.app" $tmpdir
-    chmod +w "$tmpdir/${exeName}.app"
-    mkdir -p "$tmpdir/${exeName}.app/config"
-    cp "$1" "$tmpdir/${exeName}.app/config/route"
-    focus/reflex-platform/run-in-ios-sim "$tmpdir/${exeName}.app"
+    cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
+    chmod +w "$tmpdir/${executableName}.app"
+    mkdir -p "$tmpdir/${executableName}.app/config"
+    cp "$1" "$tmpdir/${executableName}.app/config/route"
+    focus/reflex-platform/run-in-ios-sim "$tmpdir/${executableName}.app"
   '';
 }) ''
   set -x
-  mkdir -p "$out/${exeName}.app"
-  ln -s "$infoPlist" "$out/${exeName}.app/Info.plist"
-  ln -s "$resourceRulesPlist" "$out/${exeName}.app/ResourceRules.plist"
-  ln -s "$indexHtml" "$out/${exeName}.app/index.html"
+  mkdir -p "$out/${executableName}.app"
+  ln -s "$infoPlist" "$out/${executableName}.app/Info.plist"
+  ln -s "$resourceRulesPlist" "$out/${executableName}.app/ResourceRules.plist"
+  ln -s "$indexHtml" "$out/${executableName}.app/index.html"
   mkdir -p "$out/bin"
   cp --no-preserve=mode "$deployScript" "$out/bin/deploy"
   chmod +x "$out/bin/deploy"
@@ -360,10 +360,10 @@ nixpkgs.runCommand "${exeName}-app" (rec {
   chmod +x "$out/bin/package"
   cp --no-preserve=mode "$runInSim" "$out/bin/run-in-sim"
   chmod +x "$out/bin/run-in-sim"
-  ln -s "$exePath/${exeName}" "$out/${exeName}.app/"
-  cp -RL "${staticSrc}"/* "$out/${exeName}.app/"
+  ln -s "$exePath/${executableName}" "$out/${executableName}.app/"
+  cp -RL "${staticSrc}"/* "$out/${executableName}.app/"
   for icon in "${staticSrc}"/assets/Icon*.png; do
-    cp -RL "$icon" "$out/${exeName}.app/"
+    cp -RL "$icon" "$out/${executableName}.app/"
   done
   set +x
 ''
