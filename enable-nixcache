@@ -23,9 +23,9 @@ elif ! grep -q "$our_cache" "$nixconf" || ! grep -q "$our_key" "$nixconf" ; then
     echo "backup saved at $backup"
     echo "adding caches"
     if ! grep -q "$our_cache" "$nixconf" ; then
-        sed 's|^binary-caches[ =].*$|\0 '"$our_cache"'|' < "$backup" | sudo tee "$nixconf" > /dev/null
+        sed 's|^\(binary-caches[ =].*\)$|\1 '"$our_cache"'|' < "$backup" | sudo tee "$nixconf" > /dev/null
     fi
     if ! grep -q "$our_key" "$nixconf" ; then
-        sed 's|^binary-cache-public-keys[ =].*$|\0 '"$our_cache"'|' < "$backup" | sudo tee "$nixconf" > /dev/null
+        sed 's|^\(binary-cache-public-keys[ =].*\)$|\1 '"$our_cache"'|' < "$backup" | sudo tee "$nixconf" > /dev/null
     fi
 fi
