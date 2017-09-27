@@ -47,10 +47,10 @@ android {
     ${if releaseKey == null then "" else ''
         signingConfigs {
           release {
-            storeFile file(${releaseKey.storeFile})
-            storePassword ${releaseKey.storePassword}
-            keyAlias ${releaseKey.keyAlias}
-            keyPassword ${releaseKey.keyPassword}
+            storeFile file("${releaseKey.storeFile}")
+            storePassword "${releaseKey.storePassword}"
+            keyAlias "${releaseKey.keyAlias}"
+            keyPassword "${releaseKey.keyPassword}"
           }
         }
       ''
