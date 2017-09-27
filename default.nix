@@ -834,7 +834,7 @@ in let this = rec {
     nixpkgs.closurecompiler
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []) ++ androidDevTools;
+  ] else []) ++ optional (system == "x86_64-linux") androidDevTools;
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -863,7 +863,7 @@ in let this = rec {
   # The systems that we want to build for on the current system
   cacheTargetSystems = [
     "x86_64-linux"
-#    "i686-linux"
+    "i686-linux"
     "x86_64-darwin"
   ];
 
@@ -879,7 +879,7 @@ in let this = rec {
   tryReflexPackages = generalDevTools ghc
     ++ builtins.map reflexEnv platforms
     ++ optional (system == "x86_64-darwin") iosReflexTodomvc
-    ++ optional (system != "x86_64-darwin") androidReflexTodomvc;
+    ++ optional (system == "x86_64-linux") androidReflexTodomvc;
 
   demoVM = (import "${nixpkgs.path}/nixos" {
     configuration = {
