@@ -183,7 +183,7 @@ let all-cabal-hashes = fetchFromGitHub {
       shims = if builtins.pathExists ./shims/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
       ghcjs = if builtins.pathExists ./ghcjs/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
-    inherit (nixpkgs.stdenv.lib) optionals;
+    inherit (nixpkgs.stdenv.lib) optional optionals;
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
     exposeAeson = aeson: overrideCabal aeson (drv: {
@@ -815,6 +815,7 @@ in let this = rec {
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
+    nixpkgs.androidsdk
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
@@ -833,7 +834,7 @@ in let this = rec {
     nixpkgs.closurecompiler
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []) ++ androidDevTools;
+  ] else []) ++ optional (system == "x86_64-linux") androidDevTools;
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -875,7 +876,10 @@ in let this = rec {
         ghcWithStuff = if platform == "ghc" || platform == "ghcjs" then haskellPackages.ghcWithHoogle else haskellPackages.ghcWithPackages;
     in ghcWithStuff (p: import ./packages.nix { haskellPackages = p; inherit platform; });
 
-  tryReflexPackages = generalDevTools ghc ++ builtins.map reflexEnv platforms;
+  tryReflexPackages = generalDevTools ghc
+    ++ builtins.map reflexEnv platforms
+    ++ optional (system == "x86_64-darwin") iosReflexTodomvc
+    ++ optional (system == "x86_64-linux") androidReflexTodomvc;
 
   demoVM = (import "${nixpkgs.path}/nixos" {
     configuration = {
