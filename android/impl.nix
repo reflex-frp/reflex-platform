@@ -77,8 +77,21 @@ in {
           ];
         };
         src = ./src;
-        nativeBuildInputs = [ nixpkgs.rsync ];
+        nativeBuildInputs = [
+          nixpkgs.rsync
+          nixpkgs.patchelf
+        ];
         unpackPhase = "";
+
+        libctype_get_mb_cur_max = nixpkgsCross.android.armv7aImpure.stdenv.mkDerivation {
+          name = "libctype_get_mb_cur_max";
+          src = ./ctype_get_mb_cur_max.c;
+          buildCommand = ''
+            $CC -shared -o "$out" -fPIC "$src"
+          '';
+          nativeBuildInputs = [
+          ];
+        };
       } (''
           cp -r --no-preserve=mode "$src" "$out"
           mkdir -p "$out/src/main"
@@ -113,6 +126,11 @@ in {
           rsync -r --chmod=+w "${resources}"/ "$out/res/"
           [ -d "$out/assets" ]
           [ -d "$out/res" ]
+
+          # Fix missing symbol in libiconv on 32-bit
+          cp "$libctype_get_mb_cur_max" "$out/lib/armeabi-v7a/libctype_get_mb_cur_max.so"
+          patchelf --add-needed libctype_get_mb_cur_max.so $out/lib/armeabi-v7a/libiconv.so
+          patchelf --add-needed libctype_get_mb_cur_max.so $out/lib/armeabi-v7a/libHaskellActivity.so
         '');
     useExtraSupportLibs = true; #TODO: Should this be enabled by default?
     useGoogleAPIs = true; #TODO: Should this be enabled by default?
