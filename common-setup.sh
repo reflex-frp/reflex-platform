@@ -67,7 +67,9 @@ fi
 NEEDED_TO_SOURCE_NIX_SCRIPT=0
 
 if ! type -P nix-shell >/dev/null ; then
+  set +eu
   $SOURCE_NIX_SCRIPT
+  set -eu
   NEEDED_TO_SOURCE_NIX_SCRIPT=1
   if ! type -P nix-shell >/dev/null ; then
     echo "It looks like Nix isn't working.  Please make sure you can run nix-shell, then retry the $0, or submit an issue at $REPO/issues"
