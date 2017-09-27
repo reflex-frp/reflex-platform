@@ -10,7 +10,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
         cat >"$out/bin/deploy" <<EOF
-          $(which adb) install "$out/$(echo $out/*.apk)"
+          $(which adb) install "$(echo $out/*.apk)"
         EOF
         chmod +x "$out/bin/deploy"
       '';
