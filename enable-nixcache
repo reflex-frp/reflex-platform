@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -eu
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+. "$DIR/common-setup.sh"
+
+nixconf="/etc/nix/nix.conf"
+our_cache="https://nixcache.reflex-frp.org"
+caches_line="binary-caches = https://cache.nixos.org $our_cache"
+our_key="JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+keys_line="binary-cache-public-keys = ryantrinkle.com-1:$our_key cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+if [ ! -e "$nixconf" ] || ! grep -q 'binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections' "$nixconf" ; then
+    cat | sudo tee -a "$nixconf" <<EOF
+$caches_line
+$keys_line
+binary-caches-parallel-connections = 40
+EOF
+else
+    echo "$nixconf already exists"
+    if ! grep -q "$our_cache" "$nixconf" ; then
+        echo "error: it does not contain the cache $our_cache"
+        echo "    please add a line like this:"
+        echo "    $caches_line"
+    fi
+    if ! grep -q "$our_key" "$nixconf" ; then
+        echo "error: it does not contain the key for $our_cache"
+        echo "    please add a line like this:"
+        echo "    $keys_line"
+    fi
+fi
