@@ -709,10 +709,12 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
-  androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
-  ios.buildApp = import ./ios {
-    inherit nixpkgs;
-    inherit (nixpkgsCross.ios.arm64) libiconv;
+  androidWithHaskellPackages = assert (system == "x86_64-linux"); { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
+  ios = assert (system == "x86_64-darwin"); {
+    buildApp = import ./ios {
+      inherit nixpkgs ghcIosArm64;
+      inherit (nixpkgsCross.ios.arm64) libiconv;
+    };
   };
 in let this = rec {
   inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android ios androidWithHaskellPackages;
