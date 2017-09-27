@@ -725,13 +725,10 @@ in let this = rec {
     displayName = "Reflex TodoMVC";
   };
   iosReflexTodomvc = ios.buildApp {
-    bundleName = "Reflex TodoMVC";
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
-    bundleVersionString = "1";
-    bundleVersion = "1";
-    exeName = "reflex-todomvc";
-    exePath = ghcIosArm64.reflex-todomvc + "/bin";
-    staticSrc = ./ios/static;
+    bundleName = "Reflex TodoMVC";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
