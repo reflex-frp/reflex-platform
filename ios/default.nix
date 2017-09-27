@@ -1,23 +1,38 @@
-{ nixpkgs
-, host
-}:
+{ nixpkgs, libiconv }:
 
 { #TODO
   bundleName
+
 , #TODO
   bundleIdentifier
+
 , #TODO
   bundleVersionString
+
 , #TODO
   bundleVersion
+
 , #TODO
   exeName
+
 , #TODO
   exePath
+
 , #TODO
   staticSrc
-, #TODO
-  apsEnv
+
+, # Information for push notifications. Is either `"production"` or
+  # `"development"`, if not null.
+  #
+  # Requires the push notification application service to be enabled for this
+  # App ID in your Apple developer account.
+  apsEnv ? null
+
+, # URL patterns for which to handle links. E.g. `[ "*.mywebsite.com" ]`.
+  #
+  # Requires the associated domains application service to be enabled for this
+  # App ID in your Apple developer account.
+  hosts ? []
 }:
 
 nixpkgs.runCommand "${exeName}-app" (rec {
@@ -172,25 +187,26 @@ nixpkgs.runCommand "${exeName}-app" (rec {
       <array>
         <string><team-id/>.${bundleIdentifier}</string>
       </array>
+  ''
+  + nixpkgs.lib.optionalString (apsEnv != null) ''
       <key>aps-environment</key>
       <string>${apsEnv}</string>
   ''
-  + (if host == null then "" else ''
+  + nixpkgs.lib.optionalString (hosts != []) ''
       <key>com.apple.developer.associated-domains</key>
       <array>
-        <string>applinks:${host}</string>
-        <string>applinks:*.${host}</string>
+        ${map (host: "<string>applinks:${host}</string>") hosts}
       </array>
-  '')
+  ''
   + ''
     </dict>
     </plist>
   '');
-  deployScript = builtins.toFile "deploy" ''
+  deployScript = nixpkgs.writeText "deploy" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if (( "$#" != 1 )); then
+    if (( "$#" < 1 )); then
       echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
@@ -215,8 +231,10 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     signer=$(security find-certificate -c "iPhone Developer" -a \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
-      | while read c; do security find-certificate -c "$c" -p \
-      | openssl x509 -subject -noout; done \
+      | while read c; do \
+          security find-certificate -c "$c" -p \
+            | openssl x509 -subject -noout; \
+        done \
       | grep "OU=$TEAM_ID/" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1)
@@ -229,6 +247,13 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${exeName}.app" $tmpdir
     chmod +w "$tmpdir/${exeName}.app"
+    chmod +w "$tmpdir/${exeName}.app/${exeName}"
+    # Hack around pure libiconv being used.
+    # TODO: Override libraries with stubs from the SDK, so as to link libraries
+    # on phone. Or statically link.
+    ${nixpkgs.darwin.cctools}/bin/install_name_tool \
+      -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
+      $tmpdir/${exeName}.app/${exeName}
     mkdir -p "$tmpdir/${exeName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${exeName}.app"
@@ -268,8 +293,10 @@ nixpkgs.runCommand "${exeName}-app" (rec {
     signer=$(security find-certificate -c "iPhone Distribution" -a \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
-      | while read c; do security find-certificate -c "$c" -p \
-      | openssl x509 -subject -noout; done \
+      | while read c; do \
+          security find-certificate -c "$c" -p \
+            | openssl x509 -subject -noout; \
+        done \
       | grep "OU=$TEAM_ID/" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1)

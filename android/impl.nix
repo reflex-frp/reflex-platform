@@ -1,13 +1,26 @@
 env: with env;
-let overrideAndroidCabal = executableName: package: overrideCabal package (drv: {
+let overrideAndroidCabal = package: overrideCabal package (drv: {
       preConfigure = (drv.preConfigure or "") + ''
-        #set -x
-        #mkdir cbits
-        sed -i 's/^executable ${executableName}$/executable lib${executableName}.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/i' *.cabal
+        sed -i 's/^executable \(.*\)$/executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/i' *.cabal
       '';
     });
+    addDeployScript = src: nixpkgs.runCommand "android-app" {
+      inherit src;
+      buildCommand = ''
+        mkdir "$out"
+        cp -r "$src"/* "$out"
+        cat >"$out/deploy" <<EOF
+          $(which adb) install "$out/$(echo $out/*.apk)"
+        EOF
+        chmod +x "$out/deploy"
+      '';
+      buildInputs = with nixpkgs; [
+        androidsdk
+        which
+      ];
+    } "";
 in {
-  buildApp = args: with args; nixpkgs.androidenv.buildGradleApp {
+  buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
     acceptAndroidSdkLicenses = true;
     buildDirectory = "./.";
     # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
@@ -27,7 +40,7 @@ in {
           splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             inherit (myNixpkgs) libiconv;
-            hsApp = overrideAndroidCabal executableName (package myHaskellPackages);
+            hsApp = overrideAndroidCabal (package myHaskellPackages);
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.arm64Impure;
@@ -67,8 +80,6 @@ in {
         nativeBuildInputs = [ nixpkgs.rsync ];
         unpackPhase = "";
       } (''
-          set -x
-
           cp -r --no-preserve=mode "$src" "$out"
           mkdir -p "$out/src/main"
           cp -r --no-preserve=mode "$javaSrc" "$out/src/main/java"
@@ -90,7 +101,12 @@ in {
               cp --no-preserve=mode "${libiconv}/lib/libiconv.so" "$ARCH_LIB"
               cp --no-preserve=mode "${libiconv}/lib/libcharset.so" "$ARCH_LIB"
 
-              cp --no-preserve=mode "${hsApp}/bin/lib${executableName}.so" "$ARCH_LIB/libHaskellActivity.so"
+              local exe="${hsApp}/bin/lib${executableName}.so"
+              if [ ! -f "$exe" ] ; then
+                >&2 echo 'Error: executable "${executableName}" not found'
+                exit 1
+              fi
+              cp --no-preserve=mode "$exe" "$ARCH_LIB/libHaskellActivity.so"
             }
         '') abiVersions) + ''
           rsync -r --chmod=+w "${assets}"/ "$out/assets/"
@@ -103,7 +119,7 @@ in {
 
     # We use the NDK build process
     useNDK = true;
-  };
+  });
 
   intentFilterXml = args: with args; ''
     <intent-filter android:autoVerify="true">

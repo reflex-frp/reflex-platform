@@ -183,7 +183,7 @@ let all-cabal-hashes = fetchFromGitHub {
       shims = if builtins.pathExists ./shims/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
       ghcjs = if builtins.pathExists ./ghcjs/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
-    inherit (nixpkgs.stdenv.lib) optionals;
+    inherit (nixpkgs.stdenv.lib) optional optionals;
 in with lib;
 let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
     exposeAeson = aeson: overrideCabal aeson (drv: {
@@ -352,7 +352,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         ########################################################################
         # Fixes to be upstreamed
         ########################################################################
-        foundation = if system == "i686-linux" then dontCheck super.foundation else super.foundation; # TODO: We should make sure these test failures get fixed
+        foundation = dontCheck super.foundation;
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
@@ -444,9 +444,16 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
       shims = sources.shims;
       stage2 = import stage2Script;
     };
-    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
+    ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghcjsCompiler;
+      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { haskellLib = nixpkgs.haskell.lib; };
+      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { haskellLib = nixpkgs.haskell.lib; };
+      haskellLib = nixpkgs.haskell.lib;
     };
+#    TODO: Figure out why this approach doesn't work; it doesn't seem to evaluate our overridden ghc at all
+#    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
+#      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
+#    };
     ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
     overrideForGhcHEAD = haskellPackages: haskellPackages.override {
       overrides = self: super: {
@@ -703,7 +710,10 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
   androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
-  ios.buildApp = import ./ios { inherit nixpkgs; host = "asdf"; };
+  ios.buildApp = import ./ios {
+    inherit nixpkgs;
+    inherit (nixpkgsCross.ios.arm64) libiconv;
+  };
 in let this = rec {
   inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android ios androidWithHaskellPackages;
   androidReflexTodomvc = android.buildApp {
@@ -720,7 +730,6 @@ in let this = rec {
     exeName = "reflex-todomvc";
     exePath = ghcIosArm64.reflex-todomvc + "/bin";
     staticSrc = ./ios/static;
-    apsEnv = "development";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
@@ -747,8 +756,8 @@ in let this = rec {
     "ghcjs"
     "ghc"
   ] ++ (optionals (system == "x86_64-linux") [
-#    "ghcAndroidArm64"
-#    "ghcAndroidArmv7a"
+    "ghcAndroidArm64"
+    "ghcAndroidArmv7a"
   ]) ++ (optionals nixpkgs.stdenv.isDarwin [
     "ghcIosArm64"
   ]);
@@ -806,6 +815,7 @@ in let this = rec {
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
+    nixpkgs.androidsdk
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
@@ -824,7 +834,7 @@ in let this = rec {
     nixpkgs.closurecompiler
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []) ++ androidDevTools;
+  ] else []) ++ optional (system == "x86_64-linux") androidDevTools;
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -866,7 +876,10 @@ in let this = rec {
         ghcWithStuff = if platform == "ghc" || platform == "ghcjs" then haskellPackages.ghcWithHoogle else haskellPackages.ghcWithPackages;
     in ghcWithStuff (p: import ./packages.nix { haskellPackages = p; inherit platform; });
 
-  tryReflexPackages = generalDevTools ghc ++ builtins.map reflexEnv platforms;
+  tryReflexPackages = generalDevTools ghc
+    ++ builtins.map reflexEnv platforms
+    ++ optional (system == "x86_64-darwin") iosReflexTodomvc
+    ++ optional (system == "x86_64-linux") androidReflexTodomvc;
 
   demoVM = (import "${nixpkgs.path}/nixos" {
     configuration = {
