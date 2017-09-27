@@ -833,7 +833,7 @@ in let this = rec {
     nixpkgs.closurecompiler
   ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []) ++ optional (system == "x86_64-linux") androidDevTools;
+  ] else []) ++ optionals (system == "x86_64-linux") androidDevTools;
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
