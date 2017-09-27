@@ -16,16 +16,16 @@ $caches_line
 $keys_line
 binary-caches-parallel-connections = 40
 EOF
-else
+elif ! grep -q "$our_cache" "$nixconf" || ! grep -q "$our_key" "$nixconf" ; then
+    backup="$nixconf.$(date -u +"%FT%TZ").bak"
+    sudo cp "$nixconf" "$backup"
     echo "$nixconf already exists"
+    echo "backup saved at $backup"
+    echo "adding caches"
     if ! grep -q "$our_cache" "$nixconf" ; then
-        echo "error: it does not contain the cache $our_cache"
-        echo "    please add a line like this:"
-        echo "    $caches_line"
+        sudo sed -i 's|^binary-caches[ =].*$|\0 '"$our_cache"'|' "$nixconf"
     fi
     if ! grep -q "$our_key" "$nixconf" ; then
-        echo "error: it does not contain the key for $our_cache"
-        echo "    please add a line like this:"
-        echo "    $keys_line"
+        sudo sed -i 's|^binary-cache-public-keys[ =].*$|\0 '"$our_cache"'|' "$nixconf"
     fi
 fi
