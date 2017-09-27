@@ -4,8 +4,23 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         sed -i 's/^executable \(.*\)$/executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/i' *.cabal
       '';
     });
+    addDeployScript = src: nixpkgs.runCommand "android-app" {
+      inherit src;
+      buildCommand = ''
+        mkdir "$out"
+        cp -r "$src"/* "$out"
+        cat >"$out/deploy" <<EOF
+          $(which adb) install "$out/$(echo $out/*.apk)"
+        EOF
+        chmod +x "$out/deploy"
+      '';
+      buildInputs = with nixpkgs; [
+        androidsdk
+        which
+      ];
+    } "";
 in {
-  buildApp = args: with args; nixpkgs.androidenv.buildGradleApp {
+  buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
     acceptAndroidSdkLicenses = true;
     buildDirectory = "./.";
     # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
@@ -102,7 +117,7 @@ in {
 
     # We use the NDK build process
     useNDK = true;
-  };
+  });
 
   intentFilterXml = args: with args; ''
     <intent-filter android:autoVerify="true">
