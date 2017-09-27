@@ -1,0 +1,27 @@
+name: android-activity
+version: 0.1
+synopsis: Turn regular Haskell programs into Android Activities
+homepage: https://github.com/obsidiansystems/android-activity
+license: BSD3
+license-file: LICENSE
+author: Obsidian Systems LLC
+maintainer: maintainer@obsidian.systems
+copyright: Obsidian Systems LLC 2017
+category: Mobile
+build-type: Simple
+extra-source-files:
+  java/systems/obsidian/HaskellActivity.java
+cabal-version: >=1.10
+
+library
+  other-extensions: ForeignFunctionInterface
+  build-depends: base >=4.9 && <4.11
+               , data-default == 0.7.*
+  hs-source-dirs: src
+  build-tools: hsc2hs
+  default-language: Haskell2010
+  c-sources: cbits/HaskellActivity.c
+  include-dirs: cbits/include
+  install-includes: HaskellActivity.h
+  exposed-modules:
+    Android.HaskellActivity

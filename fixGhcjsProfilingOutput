@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+sed -i 's/\bh\$\([a-yA-Z0-9]\|z[^u]\)*zu\([a-zA-Z0-9]*zucc\)\b/h$\2/g' "$1"
