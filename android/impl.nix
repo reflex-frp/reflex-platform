@@ -11,11 +11,13 @@ in {
     acceptAndroidSdkLicenses = true;
     buildDirectory = "./.";
     # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
-    gradleTask = "assembleDebug";
-    keyAlias = null;
-    keyAliasPassword = null;
-    keyStore = null;
-    keyStorePassword = null;
+    gradleTask = if releaseKey == null
+      then "assembleDebug"
+      else "assembleRelease";
+    keyAlias = releaseKey.keyAlias or null;
+    keyAliasPassword = releaseKey.keyPassword or null;
+    keyStore = releaseKey.storeFile or null;
+    keyStorePassword = releaseKey.storePassword or null;
     mavenDeps = import ./defaults/deps.nix;
     name = applicationId;
     platformVersions = [ "25" ];
