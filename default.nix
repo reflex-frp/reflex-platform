@@ -8,12 +8,25 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let all-cabal-hashes = fetchFromGitHub {
+let all-cabal-hashes = fetchCabalHashesFromGitHub {
       owner = "commercialhaskell";
       repo = "all-cabal-hashes";
       rev = "adb039bba3bb46941c3ee08bdd68f25bf2aa5c60";
-      sha256 = "0mjkrbifag39gm153v5wn555jq7ckwn8s3f1wwsdw67wmql4gcn7";
+      sha256 = "05l8zsbjwmq3pslc941i1qk66nrmbqpwvf9c4cfav8bgqc8fzr77";
     };
+    fetchCabalHashesZip = nixpkgs.buildPackages.callPackage ./fetchCabalHashesZip { };
+    fetchCabalHashesFromGitHub = {
+      owner, repo, rev, name ? "${repo}-${rev}-src",
+      ... # For hash agility
+    }@args:
+    let
+      baseUrl = "https://github.com/${owner}/${repo}";
+      passthruAttrs = removeAttrs args [ "owner" "repo" "rev" ];
+    in fetchCabalHashesZip ({
+        inherit name;
+        url = "${baseUrl}/archive/${rev}.zip";
+        meta.homepage = "${baseUrl}/";
+      } // passthruAttrs) // { inherit rev; };
     nixpkgs = nixpkgsFunc ({
       inherit system;
       config = {
