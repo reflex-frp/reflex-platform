@@ -361,19 +361,20 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
     };
-    overrideForGhc8_2_1 = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/ghc-8.2.1.nix {
-        inherit haskellLib fetchFromGitHub;
-      };
+    haskellOverlays = import ./haskell-overlays {
+      inherit
+        haskellLib
+        nixpkgs jdk fetchFromGitHub
+        useReflexOptimizer stage2Script;
     };
-    overrideExposeAllUnfoldings = import ./haskell-overlays/expose-all-unfoldings.nix { };
+    overrideForGhc8_2_1 = haskellPackages: haskellPackages.override {
+      overrides = haskellOverlays.ghc-8_2_1;
+    };
     overrideForGhcjs = haskellPackages: haskellPackages.override {
       overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
-        (optionalExtension enableExposeAllUnfoldings overrideExposeAllUnfoldings)
-        (import ./haskell-overlays/ghcjs.nix {
-          inherit haskellLib nixpkgs fetchFromGitHub useReflexOptimizer;
-        })
-        (optionalExtension useTextJSString overridesForTextJSString)
+        (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+        (haskellOverlays.ghcjs)
+        (optionalExtension useTextJSString haskellOverlays.textJSString )
       ];
     };
     stage2Script = nixpkgs.runCommand "stage2.nix" {
@@ -406,40 +407,30 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 #    };
     ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
     overrideForGhcHEAD = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/ghc-head.nix {
-        inherit haskellLib fetchFromGitHub;
-      };
+      overrides = haskellOverlays.ghc-head;
     };
     overrideForGhc = haskellPackages: haskellPackages.override {
       overrides = nixpkgs.lib.composeExtensions
-        (optionalExtension enableExposeAllUnfoldings overrideExposeAllUnfoldings)
-        (import ./haskell-overlays/ghc.nix { inherit haskellLib stage2Script; });
+        (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+        (haskellOverlays.ghc);
     };
     overrideForGhc8 = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/ghc-8.x.y.nix { };
+      overrides = haskellOverlays.ghc-8;
     };
     overrideForGhc7 = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/ghc-7.x.y.nix { inherit haskellLib; };
+      overrides = haskellOverlays.ghc-7;
     };
     overrideForGhc7_8 = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/ghc-7.8.y.nix { inherit haskellLib; };
+      overrides = haskellOverlays.ghc-7_8;
     };
     disableTemplateHaskell = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/disable-template-haskell.nix {
-        inherit haskellLib fetchFromGitHub;
-      };
+      overrides = haskellOverlays.disableTemplateHaskell;
     };
     overrideForGhcAndroid = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/android {
-        inherit haskellLib;
-        inherit (nixpkgs) jdk;
-      };
+      overrides = haskellOverlays.android;
     };
     overrideForGhcIOS = haskellPackages: haskellPackages.override {
-      overrides = import ./haskell-overlays/ios.nix { inherit haskellLib; };
-    };
-    overridesForTextJSString = import ./haskell-overlays/text-jsstring {
-      inherit haskellLib fetchFromGitHub;
+      overrides = haskellOverlays.ios;
     };
   ghcHEAD = overrideForGhcHEAD (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD)));
   ghc8_2_1 = overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821)));
