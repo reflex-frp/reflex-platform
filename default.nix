@@ -172,7 +172,7 @@ let all-cabal-hashes = fetchFromGitHub {
         };
       };
     };
-    inherit (nixpkgs.haskell) lib;
+    haskellLib = nixpkgs.haskell.lib;
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git"]));
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
@@ -184,16 +184,9 @@ let all-cabal-hashes = fetchFromGitHub {
       ghcjs = if builtins.pathExists ./ghcjs/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
     };
     inherit (nixpkgs.stdenv.lib) optional optionals;
-in with lib;
-let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg f;
-    exposeAeson = aeson: overrideCabal aeson (drv: {
-      # Export all modules, and some additional functions
-      preConfigure = ''
-        sed -i '/^library/,/^test-suite/ s/other-modules://' *.cabal
-        sed -i "/^module Data.Aeson.TH/,/) where/ { /^module/b; /) where/ { s/) where/, LookupField (..), parseTypeMismatch, parseTypeMismatch', valueConName) where/; b }; }" Data/Aeson/TH.hs
-        ${drv.preConfigure or ""}
-      '';
-    });
+    optionalExtension = cond: overlay: if cond then overlay else _: _: {};
+in with haskellLib;
+let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
       sha256 = null;
@@ -224,28 +217,8 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     addReflexTraceEventsFlag = if enableTraceReflexEvents
       then drv: appendConfigureFlag drv "-fdebug-trace-events"
       else drv: drv;
-    # This is important to have for jsaddle, reflex, reflex-dom-core, and reflex-dom, at the very least; I suspect it's important for a lot more stuff, as well
-    addExposeAllUnfoldingsToDrvGhc = if enableExposeAllUnfoldings
-      then drv: drv // {
-          configureFlags = (drv.configureFlags or []) ++ [
-            "--ghc-options=-fexpose-all-unfoldings"
-          ];
-        }
-      else drv: drv;
-    addExposeAllUnfoldingsToDrvGhcjs = if enableExposeAllUnfoldings
-      then drv: drv // {
-          configureFlags = (drv.configureFlags or []) ++ [
-            "--ghcjs-options=-fexpose-all-unfoldings"
-          ];
-        }
-      else drv: drv;
     # The gi-libraries, by default, will use lots of overloading features of ghc that are still a bit too slow; this function disables them
     dontUseOverloads = p: appendConfigureFlag p "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
-    dontUseCustomSetup = p: overrideCabal p (drv: {
-      preCompileBuildDriver = assert (drv.preCompileBuildDriver or null) == null; ''
-        rm Setup.hs || rm Setup.lhs
-      '';
-    });
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
@@ -388,56 +361,11 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
     };
-    overrideForGhc8_2_1 = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        ChasingBottoms = dontCheck (self.callHackage "ChasingBottoms" "1.3.1.3" {});
-        base-orphans = self.callHackage "base-orphans" "0.6" {};
-        cabal-install = self.callCabal2nix "cabal-install" ((fetchFromGitHub {
-          owner = "haskell";
-          repo = "cabal";
-          rev = "082cf2066b7206d3b12a9f92d832236e2484b4c1";
-          sha256 = "0xzkwwim3chx9sd94b7n41ii9d51xzjlj48ikgn5dqjnxryz2r4k";
-        }) + "/cabal-install") {};
-        comonad = self.callHackage "comonad" "5.0.2" {};
-        distributive = self.callHackage "distributive" "0.5.3" {};
-        doctest = self.callHackage "doctest" "0.13.0" {};
-        hackage-security = dontCheck (doJailbreak super.hackage-security);
-        haddock = null;
-        haddock-api = null; #dontCheck super.haddock-api;
-        haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
-        hspec-meta = self.callHackage "hspec-meta" "2.4.4" {};
-        primitive = self.callHackage "primitive" "0.6.2.0" {};
-        profunctors = self.callHackage "profunctors" "5.2.1" {};
-        semigroupoids = self.callHackage "semigroupoids" "5.2.1" {};
-        shelly = doJailbreak super.shelly;
-        syb = self.callHackage "syb" "0.7" {};
-        vector = self.callHackage "vector" "0.12.0.1" {};
-      };
-    };
-    overrideForGhcjs = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        mkDerivation = drv: super.mkDerivation (addExposeAllUnfoldingsToDrvGhcjs drv);
-        ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-          inherit (self) llvmPackages;
-          haskellPackages = self;
-          packages = selectFrom self;
-          ${if useReflexOptimizer then "ghcLibdir" else null} = "${ghc.ghcWithPackages (p: [ p.reflex ])}/lib/${ghc.ghc.name}";
-        };
-
-        ghcjs-base = doJailbreak (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
-          owner = "ghcjs";
-          repo = "ghcjs-base";
-          rev = "1f28a93dad380a471a3fd7e00819a88c20fa7f92";
-          sha256 = "1l1mjpb5a0ryamqapm0lirxp58f7w3hk73b18ks62bc9d342zmxm";
-        }) {});
-
-        ghc = super.ghc // {
-          withPackages = self.ghcWithPackages;
-        };
-
-        diagrams-lib = dontCheck super.diagrams-lib;
-
-      } // (if useTextJSString then overridesForTextJSString self super else {});
+    haskellOverlays = import ./haskell-overlays {
+      inherit
+        haskellLib
+        nixpkgs jdk fetchFromGitHub
+        useReflexOptimizer stage2Script;
     };
     stage2Script = nixpkgs.runCommand "stage2.nix" {
       GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
@@ -459,266 +387,89 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
     ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghcjsCompiler;
-      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { haskellLib = nixpkgs.haskell.lib; };
-      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { haskellLib = nixpkgs.haskell.lib; };
-      haskellLib = nixpkgs.haskell.lib;
+      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { inherit haskellLib; };
+      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
+      inherit haskellLib;
     };
 #    TODO: Figure out why this approach doesn't work; it doesn't seem to evaluate our overridden ghc at all
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
 #      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
 #    };
-    ghcjs = overrideForGhcjs (extendHaskellPackages ghcjsPackages);
-    overrideForGhcHEAD = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        th-expand-syns = doJailbreak super.th-expand-syns;
-        ChasingBottoms = doJailbreak super.ChasingBottoms;
-        base-orphans = dontCheck super.base-orphans;
-        bifunctors = dontCheck super.bifunctors;
-        HTTP = doJailbreak super.HTTP;
-        newtype-generics = doJailbreak super.newtype-generics;
-        extra = replaceSrc super.extra (fetchFromGitHub {
-          owner = "ndmitchell";
-          repo = "extra";
-          rev = "22b0e6aa6077b2d969e8b8ac613f5a3455d9e88d";
-          sha256 = "0milbw2azkj22rqacrnd0x4wh65qfrl3nhbmwfxzmdrsc2la3bkh";
-        }) "1.5.2";
-      };
-    };
-    overrideForGhc = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        mkDerivation = drv: super.mkDerivation (addExposeAllUnfoldingsToDrvGhc drv);
-        ########################################################################
-        # Synchronize packages with ghcjs
-        ########################################################################
-        # aeson-0.11.2.0's tests can't build with QuickCheck >= 2.9, because
-        # some instances have been added to QuickCheck which overlap with ones
-        # defined by aeson.  This can probably be removed once ghcjs-boot has
-        # updated to aeson >= 0.11.2.1.
-        aeson = let version = (import stage2Script { ghcjsBoot = null; } { inherit (self) callPackage; }).aeson.version;
-          in dontCheck (self.callPackage (self.hackage2nix "aeson" version) {});
-      };
-    };
-    overrideForGhc8 = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        ghcjs-prim = null;
-        ghcjs-json = null;
-      };
-    };
-    overrideForGhc7 = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
-      };
-    };
-    overrideForGhc7_8 = haskellPackages: (overrideForGhc7 haskellPackages).override {
-      overrides = self: super: {
-        mkDerivation = drv: super.mkDerivation (drv // {
-          enableSplitObjs = false; # Split objects with template haskell doesn't work on ghc 7.8
-        });
-        MemoTrie = addBuildDepend super.MemoTrie self.void;
-        generic-deriving = dontHaddock super.generic-deriving;
-        bifunctors = dontHaddock super.bifunctors;
-        cereal = dontCheck super.cereal; # cereal's test suite requires a newer version of bytestring than this haskell environment provides
-      };
-    };
-    disableTemplateHaskell = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        # Aeson's TH splices refer to names that aren't exported
-        aeson = exposeAeson super.aeson;
-
-        # These custom Setup.lhs files don't work
-        distributive = dontUseCustomSetup super.distributive;
-        comonad = dontUseCustomSetup super.comonad;
-        semigroupoids = dontUseCustomSetup (appendConfigureFlag super.semigroupoids "-f-doctests");
-
-        wai-websockets = appendConfigureFlag super.wai-websockets "-f-example";
-        cryptonite = appendConfigureFlag super.cryptonite "-f-integer-gmp";
-
-        profunctors = overrideCabal super.profunctors (drv: {
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' src/Data/Profunctor/Unsafe.hs
-          '';
-        });
-        fgl = overrideCabal super.fgl (drv: {
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' $(find Data -name '*.hs')
-          '';
-        });
-        lens = overrideCabal super.lens (drv: {
-          preConfigure = ''
-            sed -i 's/^{-# ANN .* #-}$//' $(find src -name '*.hs')
-          '';
-          doCheck = false;
-          jailbreak = true;
-        });
-
-        reflex = super.reflex.override {
-          useTemplateHaskell = false;
-        };
-        reflex-dom-core = appendConfigureFlag super.reflex-dom-core "-f-use-template-haskell";
-        # TODO: this is probably a good idea too
-        #alex = self.ghc.bootPkgs.alex;
-        happy = self.ghc.bootPkgs.happy;
-
-        # Disabled for now (jsaddle-wkwebview will probably be better on iOS)
-        jsaddle-warp = null;
-        # Disable these because these on iOS
-        jsaddle-webkitgtk = null;
-        jsaddle-webkit2gtk = null;
-      };
-    };
-    overrideForGhcAndroid = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        ghc = super.ghc // {
-          bootPkgs = super.ghc.bootPkgs.override {
-            overrides = self: super: {
-              Cabal = appendPatch (self.callHackage "Cabal" "2.0.0.2" {}) ./Cabal-Allow-any-arch-with-linux-for-foreign-libs.patch;
-            };
-          };
-        };
-        android-activity = self.callPackage ./android/android-activity {
-          inherit (nixpkgs) jdk;
-        };
-
-        syb = overrideCabal super.syb (drv: { jailbreak = true; });
-        cabal-doctest = null;
-
-        # Break version bounds on base for GHC HEAD.
-        lifted-async = doJailbreak super.lifted-async;
-        safe-exceptions = doJailbreak super.safe-exceptions;
-
-        mkDerivation = drv: super.mkDerivation (drv // {
-          doHaddock = false;
-          dontStrip = true;
-          enableSharedExecutables = false;
-          configureFlags = (drv.configureFlags or []) ++ [
-            "--ghc-option=-fPIC"
-            "--ghc-option=-optc-fPIC"
-            "--ghc-option=-optc-shared"
-            "--ghc-option=-optl-shared"
-          ];
-        });
-      };
-    };
-    overrideForGhcIOS = haskellPackages: haskellPackages.override {
-      overrides = self: super: {
-        ghcjs-prim = null;
-        ghcjs-json = null;
-        derive = null;
-        focus-http-th = null;
-        th-lift-instances = null;
-        websockets = null;
-        wai = null;
-        warp = null;
-        wai-app-static = null;
-
-        cabal-doctest = null;
-        syb = overrideCabal super.syb (drv: { jailbreak = true; });
-
-        reflex-todomvc = overrideCabal super.reflex-todomvc (drv: {
-            postFixup = ''
-                mkdir $out/reflex-todomvc.app
-                cp reflex-todomvc.app/* $out/reflex-todomvc.app/
-                cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
-            '';
-        });
-        cabal-macosx = null;
-        mkDerivation = drv: super.mkDerivation (drv // {
-          doHaddock = false;
-          enableSharedLibraries = false;
-          enableSharedExecutables = false;
-        });
-      };
-    };
-    overridesForTextJSString = self: super: {
-      text = self.callCabal2nix "text" (fetchFromGitHub {
-        owner = "luigy";
-        repo = "text";
-        rev = "6cc95ebb07c07001666d84ace5c13caefaaa0cad";
-        sha256 = "1zplzy9mfpwjrk5l22gmla1vmk7wmwmgmjfk64b57ysn7madlv19";
-      }) {};
-      jsaddle = overrideCabal super.jsaddle (drv: {
-        patches = (drv.patches or []) ++ [
-          ./jsaddle-text-jsstring.patch
-        ];
-        buildDepends = (drv.buildDepends or []) ++ [
-          self.ghcjs-json
-        ];
-      });
-      ghcjs-json = self.callCabal2nix "ghcjs-json" (fetchFromGitHub {
-        owner = "obsidiansystems";
-        repo = "ghcjs-json";
-        rev = "3a6e1e949aced800d32e0683a107f5387295f3a6";
-        sha256 = "1pjsvyvy6ac3358db19iwgbmsmm0si2hzh2ja1hclq43q6d80yij";
-      }) {};
-      ghcjs-base = overrideCabal super.ghcjs-base (drv: {
-        src = fetchFromGitHub {
-          owner = "luigy";
-          repo = "ghcjs-base";
-          rev = "8569f5d541aa846f2130ff789d19bcd55ea41d2a";
-          sha256 = "1b1fyqgn7jxh4rawgxidacafg6jwfdfcidyh93z6a6lhmm5qaq3n";
-        };
-        libraryHaskellDepends = with self; [
-          base bytestring containers deepseq dlist ghc-prim
-          ghcjs-prim integer-gmp primitive time
-          transformers vector
-        ];
-      });
-      attoparsec = overrideCabal super.attoparsec (drv: {
-        src = fetchFromGitHub {
-          owner = "luigy";
-          repo = "attoparsec";
-          rev = "e766a754811042f061b6b4498137d2ad28e207a8";
-          sha256 = "106fn187hw9z3bidbkp7r4wafmhk7g2iv2k0hybirv63f8727x3x";
-        };
-      });
-      hashable = addBuildDepend (self.callCabal2nix "hashable" (fetchFromGitHub {
-        owner = "luigy";
-        repo = "hashable";
-        rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
-        sha256 = "1rl55p5y0mm8a7hxlfzhhgnnciw2h63ilxdaag3h7ypdx4bfd6rs";
-      }) {}) self.text;
-      conduit-extra = overrideCabal super.conduit-extra (drv: {
-        src = "${fetchFromGitHub {
-          owner = "luigy";
-          repo = "conduit";
-          rev = "aeb20e4eb7f7bfc07ec401c82821cbb04018b571";
-          sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
-        }}/conduit-extra";
-      });
-      double-conversion = overrideCabal super.double-conversion (drv: {
-        src = fetchFromGitHub {
-          owner = "obsidiansystems";
-          repo = "double-conversion";
-          rev = "0f9ddde468687d25fa6c4c9accb02a034bc2f9c3";
-          sha256 = "0sjljf1sbwalw1zycpjf6bqhljag9i1k77b18b0fd1pzrc29wnks";
-        };
-      });
-      say = overrideCabal super.say (drv: {
-        patches = (drv.patches or []) ++ [
-          ./say-text-jsstring.patch
-        ];
-        buildDepends = (drv.buildDepends or []) ++ [
-          self.ghcjs-base
-        ];
-      });
-    };
-  ghcHEAD = overrideForGhcHEAD (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD)));
-  patchGhc8 = haskellPackages: haskellPackages.override {
-    overrides = self: super: {};
-    ghc = haskellPackages.ghc.overrideDerivation (drv: {
-      patches = ([]) ++ [ ./optimize-superclass-constraints.patch ];
-    });
+  ghcjs = (extendHaskellPackages ghcjsPackages).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghcjs
+      (optionalExtension useTextJSString haskellOverlays.textJSString)
+    ];
   };
-  ghc8_2_1 = overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821)));
-  ghc = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802));
-  ghc8_0_1 = overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc801));
-  ghc7 = overrideForGhc7 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103));
-  ghc7_8 = overrideForGhc7_8 (overrideForGhc (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784));
-  ghcIosSimulator64 = overrideForGhcIOS (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821))));
-  ghcAndroidArm64 = overrideForGhcAndroid (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821)))));
-  ghcAndroidArmv7a = overrideForGhcAndroid (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821)))));
-  ghcIosArm64 = overrideForGhcIOS (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821)))));
-  ghcIosArmv7 = overrideForGhcIOS (disableTemplateHaskell (overrideForGhc8_2_1 (overrideForGhc8 (overrideForGhc (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821)))));
+  ghcHEAD = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-head
+    ];
+  };
+  ghc8_2_1 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2_1
+    ];
+  };
+  ghc = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8
+    ];
+  };
+  ghc7 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-7
+    ];
+  };
+  ghc7_8 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-7_8
+    ];
+  };
+  ghcAndroidArm64 = (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2_1
+      haskellOverlays.disableTemplateHaskell
+      haskellOverlays.android
+    ];
+  };
+  ghcAndroidArmv7a = (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2_1
+      haskellOverlays.disableTemplateHaskell
+      haskellOverlays.android
+    ];
+  };
+  ghcIosSimulator64 = (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2_1
+    ];
+  };
+  ghcIosArm64 = (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2_1
+      haskellOverlays.disableTemplateHaskell
+      haskellOverlays.ios
+    ];
+  };
+  ghcIosArmv7 = (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2_1
+      haskellOverlays.disableTemplateHaskell
+      haskellOverlays.ios
+    ];
+  };
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
@@ -730,7 +481,7 @@ let overrideCabal = pkg: f: if pkg == null then null else lib.overrideCabal pkg 
     };
   };
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc8_0_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android ios androidWithHaskellPackages;
+  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android ios androidWithHaskellPackages;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
@@ -903,5 +654,6 @@ in let this = rec {
     };
   }).config.system.build.virtualBoxOVA;
 
-  inherit lib cabal2nixResult sources;
+  lib = haskellLib;
+  inherit cabal2nixResult sources;
 }; in this
