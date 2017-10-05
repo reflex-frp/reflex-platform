@@ -4,6 +4,7 @@
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? true
 , enableTraceReflexEvents ? false
+, useFastWeak ? true
 , useReflexOptimizer ? false
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
@@ -217,6 +218,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     addReflexTraceEventsFlag = if enableTraceReflexEvents
       then drv: appendConfigureFlag drv "-fdebug-trace-events"
       else drv: drv;
+    addFastWeakFlag = if useFastWeak
+      then drv: enableCabalFlag drv "fast-weak"
+      else drv: drv;
     # The gi-libraries, by default, will use lots of overloading features of ghc that are still a bit too slow; this function disables them
     dontUseOverloads = p: appendConfigureFlag p "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
@@ -259,7 +263,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {}));
+        reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
         reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
         reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage ./reflex-todomvc {};
