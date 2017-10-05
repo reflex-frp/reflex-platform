@@ -15,6 +15,5 @@ jobs:
       - run: sudo mkdir -p /nix
       - run: sudo chown $USER /nix
       
-      - run: curl https://nixos.org/nix/install | sh
       - run: ./try-reflex --command "exit 0"
       - run: ./test -j 2
