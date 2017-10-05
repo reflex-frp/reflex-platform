@@ -12,8 +12,5 @@ jobs:
       - run: git config --global user.email "travis-ci@example.com"
       - run: git config --global user.name "Travis-CI"
 
-      - run: sudo mkdir -p /nix
-      - run: sudo chown $USER /nix
-      
       - run: ./try-reflex --command "exit 0"
       - run: ./test -j 2
