@@ -12,8 +12,8 @@
 let all-cabal-hashes = fetchFromGitHub {
       owner = "commercialhaskell";
       repo = "all-cabal-hashes";
-      rev = "adb039bba3bb46941c3ee08bdd68f25bf2aa5c60";
-      sha256 = "0mjkrbifag39gm153v5wn555jq7ckwn8s3f1wwsdw67wmql4gcn7";
+      rev = "6bc86c2d10432de6fe50cb2835e7d01406380c17";
+      sha256 = "1g2jn10cgzxh27v7xnx4il1lngba7a45wyiak4j0rbqs9x57ib6v";
     };
     nixpkgs = nixpkgsFunc ({
       inherit system;
