@@ -1,0 +1,29 @@
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash -p nodejs nodePackages.npm
+set -euo pipefail
+set -x
+
+BENCHMARK=js-framework-benchmark
+PACKAGES=(webdriver-ts vanillajs-keyed)
+
+if [ ! -d "$BENCHMARK" ]; then
+    git clone git@github.com:krausest/js-framework-benchmark.git
+    cd $BENCHMARK
+    npm install
+    for package in $PACKAGES; do
+	      cd $package
+	      npm install
+	      npm run build-prod
+	      cd ..
+    done
+    cd ..
+fi
+
+echo PWD=$PWD
+cp -R $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $BENCHMARK/dist
+cd $BENCHMARK
+npm start &
+cd webdriver-ts
+npm run selenium -- --frameworks reflex --count 1
+npm run results
+kill $!
