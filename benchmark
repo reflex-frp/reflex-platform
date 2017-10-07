@@ -24,6 +24,6 @@ cp -R $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $BENCH
 cd $BENCHMARK
 npm start &
 cd webdriver-ts
-npm run selenium -- --frameworks reflex --count 1
+npm run selenium -- --framework vanillajs-keyed reflex --count 1
 npm run results
 kill $!
