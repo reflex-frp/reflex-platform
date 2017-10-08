@@ -23,7 +23,7 @@ fi
 
 echo PWD=$PWD
 mkdir -p $DIST
-cp -R $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $DIST
+cp -Rf $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $DIST
 cd $BENCHMARK
 
 npm start &
