@@ -8,13 +8,7 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let all-cabal-hashes = fetchFromGitHub {
-      owner = "commercialhaskell";
-      repo = "all-cabal-hashes";
-      rev = "adb039bba3bb46941c3ee08bdd68f25bf2aa5c60";
-      sha256 = "0mjkrbifag39gm153v5wn555jq7ckwn8s3f1wwsdw67wmql4gcn7";
-    };
-    nixpkgs = nixpkgsFunc ({
+let nixpkgs = nixpkgsFunc ({
       inherit system;
       config = {
         allowUnfree = true;
@@ -26,7 +20,6 @@ let all-cabal-hashes = fetchFromGitHub {
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
-          inherit all-cabal-hashes;
         };
       } // config;
     });
@@ -44,9 +37,6 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
         arm64Impure = arm64 // {
           inherit system;
@@ -63,9 +53,6 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
         armv7aImpure = armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
@@ -109,7 +96,6 @@ let all-cabal-hashes = fetchFromGitHub {
                     };
                   }) {};
                 };
-                inherit all-cabal-hashes;
               };
             };
         in nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) {
