@@ -4,7 +4,7 @@ set -euo pipefail
 set -x
 
 BENCHMARK=js-framework-benchmark
-PACKAGES=(webdriver-ts vanillajs-keyed)
+PACKAGES=(webdriver-ts webdriver-ts-results vanillajs-keyed)
 KRAUSEST_REFLEX_DOM=$BENCHMARK/reflex-dom-v0.4-keyed
 
 if [ ! -d "$BENCHMARK" ]; then
