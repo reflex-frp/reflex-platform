@@ -5,6 +5,7 @@ set -x
 
 BENCHMARK=js-framework-benchmark
 PACKAGES=(webdriver-ts vanillajs-keyed)
+KRAUSEST_REFLEX_DOM=$BENCHMARK/reflex-dom-v0.4-keyed
 
 if [ ! -d "$BENCHMARK" ]; then
     git clone git@github.com:krausest/js-framework-benchmark.git
@@ -21,7 +22,7 @@ fi
 
 echo PWD=$PWD
 mkdir -p $BENCHMARK/dist
-cp -R $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $BENCHMARK/dist
+cp -R $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $KRAUSEST_REFLEX_DOM/dist
 cd $BENCHMARK
 npm start &
 cd webdriver-ts
