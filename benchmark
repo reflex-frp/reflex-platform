@@ -24,8 +24,11 @@ echo PWD=$PWD
 mkdir -p $BENCHMARK/dist
 cp -R $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $KRAUSEST_REFLEX_DOM/dist
 cd $BENCHMARK
+
 npm start &
+SERVER_PID=$!
+
 cd webdriver-ts
 npm run selenium -- --framework vanillajs-keyed reflex --count 1
 npm run results
-kill $!
+kill $SERVER_PID
