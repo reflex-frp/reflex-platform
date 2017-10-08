@@ -20,6 +20,7 @@ if [ ! -d "$BENCHMARK" ]; then
 fi
 
 echo PWD=$PWD
+mkdir -p $BENCHMARK/dist
 cp -R $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $BENCHMARK/dist
 cd $BENCHMARK
 npm start &
