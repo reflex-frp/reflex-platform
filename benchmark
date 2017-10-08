@@ -11,7 +11,7 @@ if [ ! -d "$BENCHMARK" ]; then
     git clone git@github.com:krausest/js-framework-benchmark.git
     cd $BENCHMARK
     npm install
-    for package in $PACKAGES; do
+    for package in "${PACKAGES[@]}"; do
 	      cd $package
 	      npm install
 	      npm run build-prod
