@@ -9,7 +9,13 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let nixpkgs = nixpkgsFunc ({
+let all-cabal-hashes = fetchFromGitHub {
+      owner = "commercialhaskell";
+      repo = "all-cabal-hashes";
+      rev = "2b0bf3ddf8b75656582c1e45c51caa59458cd3ad";
+      sha256 = "0zph3siy0fswmgnlqhnkjjg2ji98szm3s1aa7gadvgg8cd8b1jrn";
+    };
+    nixpkgs = nixpkgsFunc ({
       inherit system;
       config = {
         allowUnfree = true;
