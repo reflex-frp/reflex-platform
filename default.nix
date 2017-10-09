@@ -9,13 +9,7 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let all-cabal-hashes = fetchFromGitHub {
-      owner = "commercialhaskell";
-      repo = "all-cabal-hashes";
-      rev = "adb039bba3bb46941c3ee08bdd68f25bf2aa5c60";
-      sha256 = "0mjkrbifag39gm153v5wn555jq7ckwn8s3f1wwsdw67wmql4gcn7";
-    };
-    nixpkgs = nixpkgsFunc ({
+let nixpkgs = nixpkgsFunc ({
       inherit system;
       config = {
         allowUnfree = true;
@@ -27,14 +21,13 @@ let all-cabal-hashes = fetchFromGitHub {
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
-          inherit all-cabal-hashes;
         };
       } // config;
     });
     inherit (nixpkgs) fetchurl fetchgit fetchFromGitHub;
     nixpkgsCross = {
-      android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
-        arm64 = {
+      android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
+        arm64 = if system != "x86_64-linux" then null else {
           inherit system;
           crossSystem = {
             config = "aarch64-unknown-linux-android";
@@ -45,15 +38,12 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
-        arm64Impure = arm64 // {
+        arm64Impure = if system != "x86_64-linux" then null else arm64 // {
           inherit system;
           crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
         };
-        armv7a = {
+        armv7a = if system != "x86_64-linux" then null else {
           inherit system;
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
@@ -64,11 +54,8 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
-        armv7aImpure = armv7a // {
+        armv7aImpure = if system != "x86_64-linux" then null else armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
         };
       };
@@ -110,10 +97,9 @@ let all-cabal-hashes = fetchFromGitHub {
                     };
                   }) {};
                 };
-                inherit all-cabal-hashes;
               };
             };
-        in nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) {
+        in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
           inherit system;
           crossSystem = {
@@ -133,7 +119,7 @@ let all-cabal-hashes = fetchFromGitHub {
           };
           inherit config;
         };
-        arm64 = {
+        arm64 = if system != "x86_64-darwin" then null else {
           inherit system;
           crossSystem = {
             useIosPrebuilt = true;
@@ -148,25 +134,6 @@ let all-cabal-hashes = fetchFromGitHub {
             sdkVer = iosSdkVersion;
             useiOSCross = true;
             openssl.system = "ios64-cross";
-            libc = "libSystem";
-          };
-          inherit config;
-        };
-        armv7 = {
-          inherit system;
-          crossSystem = {
-            useIosPrebuilt = true;
-            # You can change config/arch/isiPhoneSimulator depending on your target:
-            # aarch64-apple-darwin14 | arm64  | false
-            # arm-apple-darwin10     | armv7  | false
-            # i386-apple-darwin11    | i386   | true
-            # x86_64-apple-darwin14  | x86_64 | true
-            config = "arm-apple-darwin10";
-            arch = "armv7";
-            isiPhoneSimulator = false;
-            sdkVer = iosSdkVersion;
-            useiOSCross = true;
-            openssl.system = "ios-cross";
             libc = "libSystem";
           };
           inherit config;

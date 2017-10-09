@@ -1,9 +1,20 @@
 with import ./. {};
-let inputs = builtins.concatLists [
+let inherit (nixpkgs.lib) optionals;
+    inputs = builtins.concatLists [
       (builtins.attrValues sources)
       (map (system: import ./shell.nix { inherit system; }) cacheTargetSystems)
     ];
-    otherDeps = [
-      stage2Script
-    ];
+    getOtherDeps = reflexPlatform: [
+      reflexPlatform.stage2Script
+      reflexPlatform.nixpkgs.cabal2nix
+    ] ++ builtins.concatLists (map
+      (crossPkgs: optionals (crossPkgs != null) [
+        crossPkgs.buildPackages.haskellPackages.cabal2nix
+      ]) [
+        reflexPlatform.nixpkgsCross.ios.arm64
+        reflexPlatform.nixpkgsCross.android.arm64Impure
+        reflexPlatform.nixpkgsCross.android.armv7aImpure
+      ]
+    );
+    otherDeps = builtins.concatLists (map (system: getOtherDeps (import ./. { inherit system; })) cacheTargetSystems);
 in pinBuildInputs "reflex-platform" inputs otherDeps
