@@ -178,6 +178,7 @@ A calculator was promised, I know. We'll start building the calculator by creati
 {-# LANGUAGE OverloadedStrings #-}
 import Reflex
 import Reflex.Dom
+import Data.Map (Map)
 import qualified Data.Map as Map
 
 main = mainWidget $ el "div" $ do
@@ -195,6 +196,7 @@ Let's do more than just take the input value and print it out. First, let's make
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
 import Reflex.Dom
+import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Text (pack, unpack)
 import Text.Read (readMaybe)
@@ -222,6 +224,7 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 {-# LANGUAGE OverloadedStrings #-}
 import Reflex
 import Reflex.Dom
+import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Text (pack, unpack)
 import Text.Read (readMaybe)
@@ -284,6 +287,7 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 {-# LANGUAGE OverloadedStrings #-}
 import Reflex
 import Reflex.Dom
+import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Text (pack, unpack, Text)
 import Text.Read (readMaybe)
@@ -294,7 +298,7 @@ main = mainWidget $ el "div" $ do
   d <- dropdown Times (constDyn ops) def
   ny <- numberInput
   let values = zipDynWith (,) nx ny
-      result = zipDynWith (\o (x,y) -> textToOp o <$> x <*> y) (_dropdown_value d) values
+      result = zipDynWith (\o (x,y) -> runOp o <$> x <*> y) (_dropdown_value d) values
       resultText = fmap (pack . show) result
   text " = "
   dynText resultText
@@ -307,7 +311,7 @@ numberInput = do
 
 data Op = Plus | Minus | Times | Divide deriving (Eq, Ord)
 
-ops :: Map Op String
+ops :: Map Op Text
 ops = Map.fromList [(Plus, "+"), (Minus, "-"), (Times, "*"), (Divide, "/")]
 
 runOp :: Fractional a => Op -> a -> a -> a
@@ -385,6 +389,7 @@ The complete program now looks like this:
 {-# LANGUAGE RecursiveDo       #-}
 import Reflex
 import Reflex.Dom
+import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Text (pack, unpack, Text)
 import Text.Read (readMaybe)
@@ -392,10 +397,10 @@ import Control.Applicative ((<*>), (<$>))
 
 main = mainWidget $ el "div" $ do
   nx <- numberInput
-  d <- dropdown "*" (constDyn ops) def
+  d <- dropdown Times (constDyn ops) def
   ny <- numberInput
   let values = zipDynWith (,) nx ny
-      result = zipDynWith (\o (x,y) -> textToOp o <$> x <*> y) (_dropdown_value d) values
+      result = zipDynWith (\o (x,y) -> runOp o <$> x <*> y) (_dropdown_value d) values
       resultText = fmap (pack . show) result
   text " = "
   dynText resultText
@@ -413,7 +418,7 @@ numberInput = do
 
 data Op = Plus | Minus | Times | Divide deriving (Eq, Ord)
 
-ops :: Map Op String
+ops :: Map Op Text
 ops = Map.fromList [(Plus, "+"), (Minus, "-"), (Times, "*"), (Divide, "/")]
 
 runOp :: Fractional a => Op -> a -> a -> a
