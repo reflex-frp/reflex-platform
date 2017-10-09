@@ -46,8 +46,8 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
     });
     inherit (nixpkgs) fetchurl fetchgit fetchFromGitHub;
     nixpkgsCross = {
-      android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
-        arm64 = {
+      android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
+        arm64 = if system != "x86_64-linux" then null else {
           inherit system;
           crossSystem = {
             config = "aarch64-unknown-linux-android";
@@ -62,11 +62,11 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
             inherit all-cabal-hashes;
           };
         };
-        arm64Impure = arm64 // {
+        arm64Impure = if system != "x86_64-linux" then null else arm64 // {
           inherit system;
           crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
         };
-        armv7a = {
+        armv7a = if system != "x86_64-linux" then null else {
           inherit system;
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
@@ -81,7 +81,7 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
             inherit all-cabal-hashes;
           };
         };
-        armv7aImpure = armv7a // {
+        armv7aImpure = if system != "x86_64-linux" then null else armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
         };
       };
@@ -126,7 +126,7 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
                 inherit all-cabal-hashes;
               };
             };
-        in nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) {
+        in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
           inherit system;
           crossSystem = {
@@ -146,7 +146,7 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
           };
           inherit config;
         };
-        arm64 = {
+        arm64 = if system != "x86_64-darwin" then null else {
           inherit system;
           crossSystem = {
             useIosPrebuilt = true;
