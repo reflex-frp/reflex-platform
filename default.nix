@@ -165,25 +165,6 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
           };
           inherit config;
         };
-        armv7 = {
-          inherit system;
-          crossSystem = {
-            useIosPrebuilt = true;
-            # You can change config/arch/isiPhoneSimulator depending on your target:
-            # aarch64-apple-darwin14 | arm64  | false
-            # arm-apple-darwin10     | armv7  | false
-            # i386-apple-darwin11    | i386   | true
-            # x86_64-apple-darwin14  | x86_64 | true
-            config = "arm-apple-darwin10";
-            arch = "armv7";
-            isiPhoneSimulator = false;
-            sdkVer = iosSdkVersion;
-            useiOSCross = true;
-            openssl.system = "ios-cross";
-            libc = "libSystem";
-          };
-          inherit config;
-        };
       };
     };
     haskellLib = nixpkgs.haskell.lib;
