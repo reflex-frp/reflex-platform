@@ -266,6 +266,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         gi-gtksource = super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
         };
+        ghcjs-base-stub = dontHaddock super.ghcjs-base-stub;
 
         haskell-gi-overloading = super.haskell-gi-overloading_0_0;
 
