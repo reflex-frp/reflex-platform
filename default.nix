@@ -9,26 +9,7 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let all-cabal-hashes = fetchCabalHashesFromGitHub {
-      owner = "commercialhaskell";
-      repo = "all-cabal-hashes";
-      rev = "adb039bba3bb46941c3ee08bdd68f25bf2aa5c60";
-      sha256 = "05l8zsbjwmq3pslc941i1qk66nrmbqpwvf9c4cfav8bgqc8fzr77";
-    };
-    fetchCabalHashesZip = nixpkgs.buildPackages.callPackage ./fetchCabalHashesZip { };
-    fetchCabalHashesFromGitHub = {
-      owner, repo, rev, name ? "${repo}-${rev}-src",
-      ... # For hash agility
-    }@args:
-    let
-      baseUrl = "https://github.com/${owner}/${repo}";
-      passthruAttrs = removeAttrs args [ "owner" "repo" "rev" ];
-    in fetchCabalHashesZip ({
-        inherit name;
-        url = "${baseUrl}/archive/${rev}.zip";
-        meta.homepage = "${baseUrl}/";
-      } // passthruAttrs) // { inherit rev; };
-    nixpkgs = nixpkgsFunc ({
+let nixpkgs = nixpkgsFunc ({
       inherit system;
       config = {
         allowUnfree = true;
@@ -40,7 +21,6 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
-          inherit all-cabal-hashes;
         };
       } // config;
     });
@@ -58,9 +38,6 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
             platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
         arm64Impure = if system != "x86_64-linux" then null else arm64 // {
           inherit system;
@@ -77,9 +54,6 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
             platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
         armv7aImpure = if system != "x86_64-linux" then null else armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
@@ -123,7 +97,6 @@ let all-cabal-hashes = fetchCabalHashesFromGitHub {
                     };
                   }) {};
                 };
-                inherit all-cabal-hashes;
               };
             };
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {

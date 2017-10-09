@@ -360,7 +360,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   chmod +x "$out/bin/package"
   cp --no-preserve=mode "$runInSim" "$out/bin/run-in-sim"
   chmod +x "$out/bin/run-in-sim"
-  ln -s "$exePath/${executableName}" "$out/${executableName}.app/"
+  ln -s "$exePath/bin/${executableName}" "$out/${executableName}.app/"
   cp -RL "${staticSrc}"/* "$out/${executableName}.app/"
   for icon in "${staticSrc}"/assets/Icon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
