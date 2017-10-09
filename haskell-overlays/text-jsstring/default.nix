@@ -42,6 +42,15 @@ self: super: {
       sha256 = "106fn187hw9z3bidbkp7r4wafmhk7g2iv2k0hybirv63f8727x3x";
     };
   });
+  buffer-builder = haskellLib.overrideCabal super.buffer-builder (drv: {
+    doCheck = false;
+    src = fetchFromGitHub {
+      owner = "obsidiansystems";
+      repo = "buffer-builder";
+      rev = "59c730e0dec7ff0efd8068250f4bca9cb74c471d";
+      sha256 = "18dd2ydva3hnsfyrzmi3y3r41g2l4r0kfijaan85y6rc507k6x5c";
+    };
+  });
   hashable = haskellLib.addBuildDepend (self.callCabal2nix "hashable" (fetchFromGitHub {
     owner = "luigy";
     repo = "hashable";
