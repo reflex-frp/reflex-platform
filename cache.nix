@@ -3,7 +3,5 @@ let inputs = builtins.concatLists [
       (builtins.attrValues sources)
       (map (system: import ./shell.nix { inherit system; }) cacheTargetSystems)
     ];
-    otherDeps = [
-      stage2Script
-    ];
-in pinBuildInputs "reflex-platform" inputs otherDeps
+    stage2Scripts = map (system: (import ./. { inherit system; }).stage2Script) cacheTargetSystems;
+in pinBuildInputs "reflex-platform" inputs stage2Scripts
