@@ -13,7 +13,7 @@ trap "rm -rf \"$TMPDIR\"" EXIT
 (
     cd "$DIR"
 
-    nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache.drv" --indirect -E "import ./cache.nix" "$@")"
+    nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache.drv" --indirect ./cache.nix "$@")"
 
     sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"*.narinfo # Get rid of these, because they can vary in apparently-meaningless between systems
 
