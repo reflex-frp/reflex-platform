@@ -188,8 +188,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     addFastWeakFlag = if useFastWeak
       then drv: enableCabalFlag drv "fast-weak"
       else drv: drv;
-    # The gi-libraries, by default, will use lots of overloading features of ghc that are still a bit too slow; this function disables them
-    dontUseOverloads = p: appendConfigureFlag p "-f-overloaded-methods -f-overloaded-signals -f-overloaded-properties";
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
@@ -256,28 +254,20 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         # Tweaks
         ########################################################################
-        gi-atk = dontUseOverloads super.gi-atk;
-        gi-cairo = dontUseOverloads super.gi-cairo;
-        gi-gdk = dontUseOverloads super.gi-gdk;
-        gi-gdkpixbuf = dontUseOverloads super.gi-gdkpixbuf;
-        gi-glib = dontUseOverloads (self.callPackage ./gi-glib.nix {});
-        gi-gio = dontUseOverloads (self.callPackage ./gi-gio.nix {});
-        gi-gtk = dontUseOverloads (self.callPackage ./gi-gtk.nix {
+        gi-glib = self.callPackage ./gi-glib.nix {};
+        gi-gio = self.callPackage ./gi-gio.nix {};
+        gi-gtk = self.callPackage ./gi-gtk.nix {
           gtk3 = nixpkgs.gnome3.gtk;
-        });
-        gi-javascriptcore = dontUseOverloads (self.callPackage ./gi-javascriptcore.nix {});
-        gi-webkit2 = dontUseOverloads (self.callPackage ./gi-webkit2.nix {
+        };
+        gi-javascriptcore = self.callPackage ./gi-javascriptcore.nix {};
+        gi-webkit2 = self.callPackage ./gi-webkit2.nix {
           webkitgtk = nixpkgs.webkitgtk216x;
-        });
-        gi-gobject = dontUseOverloads super.gi-gobject;
-        gi-pango = dontUseOverloads super.gi-pango;
-        gi-soup = dontUseOverloads super.gi-soup;
-        gi-webkit = dontUseOverloads super.gi-webkit;
-        gi-gtksource = dontUseOverloads (super.gi-gtksource.override {
+        };
+        gi-gtksource = super.gi-gtksource.override {
           inherit (nixpkgs.gnome3) gtksourceview;
-        });
+        };
 
-        haskell-gi-overloading = self.callPackage ./haskell-gi-overloading.nix {};
+        haskell-gi-overloading = super.haskell-gi-overloading_0_0;
 
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
           webkitgtk = nixpkgs.webkitgtk216x;
