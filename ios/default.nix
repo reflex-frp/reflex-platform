@@ -33,11 +33,13 @@
   # Requires the associated domains application service to be enabled for this
   # App ID in your Apple developer account.
   hosts ? []
+
+, extraInfoPlistContent ? ""
 }:
 
 nixpkgs.runCommand "${executableName}-app" (rec {
   exePath = package ghcIosArm64;
-  infoPlist = builtins.toFile "Info.plist" ''
+  infoPlist = builtins.toFile "Info.plist" (''
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
     <plist version="1.0">
@@ -134,9 +136,10 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       <string>10.2</string>
       <key>DTPlatformBuild</key>
       <string>14C89</string>
+  '' + extraInfoPlistContent + ''
     </dict>
     </plist>
-  '';
+  '');
   resourceRulesPlist = builtins.toFile "ResourceRules.plist" ''
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
