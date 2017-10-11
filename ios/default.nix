@@ -260,7 +260,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     "$(nix-build --no-out-link -A nixpkgs.nodePackages.ios-deploy)/bin/ios-deploy" -W -b "$tmpdir/${executableName}.app" "$@"
   '';
-  packageScript = builtins.toFile "package" ''
+  packageScript = nixpkgs.writeText "package" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
@@ -311,6 +311,12 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     chmod +w "$tmpdir/${executableName}.app"
     chmod +rw "$tmpdir/${executableName}.app/${executableName}"
     strip "$tmpdir/${executableName}.app/${executableName}"
+    # Hack around pure libiconv being used.
+    # TODO: Override libraries with stubs from the SDK, so as to link libraries
+    # on phone. Or statically link.
+    ${nixpkgs.darwin.cctools}/bin/install_name_tool \
+      -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
+      $tmpdir/${executableName}.app/${executableName}
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
