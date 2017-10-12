@@ -192,6 +192,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
             jsaddlePkgs = import ./jsaddle self;
+            gargoylePkgs = self.callPackage ./gargoyle self;
             ghcjsDom = import ./ghcjs-dom self;
             addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
@@ -250,6 +251,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
         ghcjs-dom = dontHaddock ghcjsDom.ghcjs-dom;
 
+        inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
 
         ########################################################################
         # Tweaks
