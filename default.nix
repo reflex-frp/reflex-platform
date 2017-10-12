@@ -192,6 +192,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
             jsaddlePkgs = import ./jsaddle self;
+            gargoylePkgs = self.callPackage ./gargoyle self;
             ghcjsDom = import ./ghcjs-dom self;
             addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
@@ -250,6 +251,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
         ghcjs-dom = dontHaddock ghcjsDom.ghcjs-dom;
 
+        inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
 
         ########################################################################
         # Tweaks
@@ -500,19 +502,20 @@ in let this = rec {
         mv dist/*.tar.gz "$out/${drv.pname}-${drv.version}.tar.gz"
         exit 0
       '';
+      doHaddock = false;
     });
   };
   sdists = mapSet mkSdist ghc;
   mkHackageDocs = pkg: pkg.override {
     mkDerivation = drv: ghc.mkDerivation (drv // {
       postConfigure = ''
-        ./Setup haddock --hoogle --hyperlink-source --html --html-location='/package/${drv.pname}-${drv.version}/docs' --contents-location='/package/${drv.pname}-${drv.version}' --haddock-option=--built-in-themes
+        ./Setup haddock --hoogle --hyperlink-source --html --for-hackage --haddock-option=--built-in-themes
         cd dist/doc/html
-        mv "${drv.pname}" "${drv.pname}-${drv.version}-docs"
         mkdir "$out"
         tar cz --format=ustar -f "$out/${drv.pname}-${drv.version}-docs.tar.gz" "${drv.pname}-${drv.version}-docs"
         exit 0
       '';
+      doHaddock = false;
     });
   };
   hackageDocs = mapSet mkHackageDocs ghc;
