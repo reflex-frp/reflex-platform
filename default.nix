@@ -45,6 +45,9 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
           };
           config.allowUnfree = true;
+          config.packageOverrides = pkgs: {
+            inherit all-cabal-hashes;
+          };
         };
         arm64Impure = if system != "x86_64-linux" then null else arm64 // {
           inherit system;
@@ -61,6 +64,9 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
           };
           config.allowUnfree = true;
+          config.packageOverrides = pkgs: {
+            inherit all-cabal-hashes;
+          };
         };
         armv7aImpure = if system != "x86_64-linux" then null else armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
@@ -104,6 +110,7 @@ let all-cabal-hashes = fetchFromGitHub {
                     };
                   }) {};
                 };
+                inherit all-cabal-hashes;
               };
             };
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
