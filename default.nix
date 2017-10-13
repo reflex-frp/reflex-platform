@@ -27,6 +27,7 @@ let all-cabal-hashes = fetchFromGitHub {
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
+          inherit all-cabal-hashes;
         };
       } // config;
     });
