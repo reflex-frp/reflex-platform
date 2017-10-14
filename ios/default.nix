@@ -198,7 +198,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   + nixpkgs.lib.optionalString (hosts != []) ''
       <key>com.apple.developer.associated-domains</key>
       <array>
-        ${map (host: "<string>applinks:${host}</string>") hosts}
+        ${nixpkgs.lib.strings.concatStrings (map (host: "<string>applinks:${host}</string>") hosts)}
       </array>
   ''
   + ''
