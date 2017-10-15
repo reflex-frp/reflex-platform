@@ -13,7 +13,7 @@ in self: super: {
   aeson = haskellLib.overrideCabal super.aeson (drv: {
     # Export all modules, and some additional functions
     preConfigure = ''
-      sed -i '/^library/,/^test-suite/ s/other-modules://' *.cabal
+      sed -i '/^library/,/^test-suite/ s/other-modules:/exposed-modules:/' *.cabal
       sed -i "/^module Data.Aeson.TH/,/) where/ { /^module/b; /) where/ { s/) where/, LookupField (..), parseTypeMismatch, parseTypeMismatch', valueConName) where/; b }; }" Data/Aeson/TH.hs
       ${drv.preConfigure or ""}
     '';
