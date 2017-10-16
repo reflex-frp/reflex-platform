@@ -19,56 +19,56 @@ extern StgClosure ZCMain_main_closure;
 
 JavaVM* HaskellActivity_jvm = NULL;
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnCreate (JNIEnv *env, jobject thisObj, long callbacksLong) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnCreate (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onCreate) {
     callbacks->onCreate();
   }
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnStart (JNIEnv *env, jobject thisObj, long callbacksLong) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnStart (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onStart) {
     callbacks->onStart();
   }
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnResume (JNIEnv *env, jobject thisObj, long callbacksLong) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnResume (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onResume) {
     callbacks->onResume();
   }
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnPause (JNIEnv *env, jobject thisObj, long callbacksLong) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnPause (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onPause) {
     callbacks->onPause();
   }
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnStop (JNIEnv *env, jobject thisObj, long callbacksLong) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnStop (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onStop) {
     callbacks->onStop();
   }
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnDestroy (JNIEnv *env, jobject thisObj, long callbacksLong) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnDestroy (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onDestroy) {
     callbacks->onDestroy();
   }
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnRestart (JNIEnv *env, jobject thisObj, long callbacksLong) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnRestart (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onRestart) {
     callbacks->onRestart();
   }
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnNewIntent (JNIEnv *env, jobject thisObj, long callbacksLong, jstring intent, jstring intentdata) {
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnNewIntent (JNIEnv *env, jobject thisObj, jlong callbacksLong, jstring intent, jstring intentdata) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onNewIntent) {
     const char *cstring_intent = (*env)->GetStringUTFChars(env, intent, 0);
