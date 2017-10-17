@@ -9,14 +9,19 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let all-cabal-hashes = fetchFromGitHub {
-      owner = "commercialhaskell";
-      repo = "all-cabal-hashes";
-      rev = "2b0bf3ddf8b75656582c1e45c51caa59458cd3ad";
-      sha256 = "0zph3siy0fswmgnlqhnkjjg2ji98szm3s1aa7gadvgg8cd8b1jrn";
+let globalOverlay = self: super: {
+      all-cabal-hashes = super.all-cabal-hashes.override {
+        src-spec = {
+          owner = "commercialhaskell";
+          repo = "all-cabal-hashes";
+          rev = "2b0bf3ddf8b75656582c1e45c51caa59458cd3ad";
+          sha256 = "0g4nvvgfg9npd0alysd67ckhvx3s66q8b5x0x9am2myjrha3fjgq";
+        };
+      };
     };
     nixpkgs = nixpkgsFunc ({
       inherit system;
+      overlays = [globalOverlay];
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
@@ -27,7 +32,6 @@ let all-cabal-hashes = fetchFromGitHub {
           webkitgtk = pkgs.webkitgtk216x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
-          inherit all-cabal-hashes;
         };
       } // config;
     });
@@ -36,6 +40,7 @@ let all-cabal-hashes = fetchFromGitHub {
       android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         arm64 = if system != "x86_64-linux" then null else {
           inherit system;
+          overlays = [globalOverlay];
           crossSystem = {
             config = "aarch64-unknown-linux-android";
             arch = "arm64";
@@ -45,9 +50,6 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
         arm64Impure = if system != "x86_64-linux" then null else arm64 // {
           inherit system;
@@ -55,6 +57,7 @@ let all-cabal-hashes = fetchFromGitHub {
         };
         armv7a = if system != "x86_64-linux" then null else {
           inherit system;
+          overlays = [globalOverlay];
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
             arch = "armv7";
@@ -64,9 +67,6 @@ let all-cabal-hashes = fetchFromGitHub {
             platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
           };
           config.allowUnfree = true;
-          config.packageOverrides = pkgs: {
-            inherit all-cabal-hashes;
-          };
         };
         armv7aImpure = if system != "x86_64-linux" then null else armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
@@ -110,12 +110,12 @@ let all-cabal-hashes = fetchFromGitHub {
                     };
                   }) {};
                 };
-                inherit all-cabal-hashes;
               };
             };
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
           inherit system;
+          overlays = [globalOverlay];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -135,6 +135,7 @@ let all-cabal-hashes = fetchFromGitHub {
         };
         arm64 = if system != "x86_64-darwin" then null else {
           inherit system;
+          overlays = [globalOverlay];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
