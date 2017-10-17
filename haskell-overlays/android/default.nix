@@ -21,6 +21,14 @@ self: super: {
   lifted-async = doJailbreak super.lifted-async;
   safe-exceptions = doJailbreak super.safe-exceptions;
 
+  # Fix reflex-platform#161
+  #TODO: Upstream this into nixpkgs
+  simple-sendfile = addBuildDepends super.simple-sendfile (with self; [
+    conduit
+    conduit-extra
+    resourcet
+  ]);
+
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;
     dontStrip = true;
