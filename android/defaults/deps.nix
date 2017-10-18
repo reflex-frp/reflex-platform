@@ -450,7 +450,7 @@
   { artifactId = "apache";
     groupId = "org.apache";
     version = "13";
-    repo = "https://repo1.maven.apache.org/maven2/";
+    repo = "https://repo1.maven.org/maven2/";
     jarSha256 = null;
     pomSha256 = "ff513db0361fd41237bef4784968bc15aae478d4ec0a9496f811072ccaf3841d";
     aarSha256 = null; }
