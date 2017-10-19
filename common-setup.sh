@@ -108,7 +108,7 @@ get_git_manifest() {
 
     local GITHUB_PATTERN="^git://github.com/\([^/]*\)/\([^/]*\)$"
     local GITHUB_ARCHIVE_URL="$(echo "$URL" | sed -n "s_${GITHUB_PATTERN}_https://github.com/\1/\2/archive/$REV.tar.gz_p")"
-    if [ -n "$GITHUB_ARCHIVE_URL" ] ; then
+    if [ -n "$GITHUB_ARCHIVE_URL" -a "$(curl -o /dev/null --silent --head --write-out '%{http_code}' "$GITHUB_ARCHIVE_URL")" -ne 404 ] ; then
         OUTPUT_GIT_MANIFEST_TYPE=github
         local GITHUB_OWNER="$(echo "$URL" | sed "s_${GITHUB_PATTERN}_\1_")"
         local GITHUB_REPO="$(echo "$URL" | sed "s_${GITHUB_PATTERN}_\2_")"
