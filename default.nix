@@ -35,7 +35,7 @@ let globalOverlay = self: super: {
         };
       } // config;
     });
-    inherit (nixpkgs) fetchurl fetchgit fetchFromGitHub;
+    inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
       android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         arm64 = if system != "x86_64-linux" then null else {
@@ -156,15 +156,24 @@ let globalOverlay = self: super: {
       };
     };
     haskellLib = nixpkgs.haskell.lib;
-    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git"]));
+    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
+    # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
+    hackGet = p:
+      if builtins.pathExists (p + "/git.json") then (
+        let gitArgs = builtins.fromJSON (builtins.readFile (p + "/git.json"));
+        in if builtins.elem "@" (nixpkgs.lib.stringToCharacters gitArgs.url)
+        then fetchgitPrivate gitArgs
+        else fetchgit gitArgs)
+      else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (builtins.fromJSON (builtins.readFile (p + "/github.json")))
+      else {
+        name = baseNameOf p;
+        outPath = filterGit p;
+      };
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
-      ghcjs-boot = if builtins.pathExists ./ghcjs-boot/git.json then fetchgit (builtins.fromJSON (builtins.readFile ./ghcjs-boot/git.json)) else {
-        name = "ghcjs-boot";
-        outPath = filterGit ./ghcjs-boot;
-      };
-      shims = if builtins.pathExists ./shims/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./shims/github.json)) else filterGit ./shims;
-      ghcjs = if builtins.pathExists ./ghcjs/github.json then fetchFromGitHub (builtins.fromJSON (builtins.readFile ./ghcjs/github.json)) else filterGit ./ghcjs;
+      ghcjs-boot = hackGet ./ghcjs-boot;
+      shims = hackGet ./shims;
+      ghcjs = hackGet ./ghcjs;
     };
     inherit (nixpkgs.stdenv.lib) optional optionals;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
@@ -460,7 +469,28 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     };
   };
 in let this = rec {
-  inherit nixpkgs nixpkgsCross overrideCabal extendHaskellPackages foreignLibSmuggleHeaders stage2Script ghc ghcHEAD ghc8_2_1 ghc7 ghc7_8 ghcIosSimulator64 ghcIosArm64 ghcIosArmv7 ghcAndroidArm64 ghcAndroidArmv7a android ios androidWithHaskellPackages;
+  inherit nixpkgs
+          nixpkgsCross
+          overrideCabal
+          hackGet
+          extendHaskellPackages
+          foreignLibSmuggleHeaders
+          stage2Script
+          ghc
+          ghcHEAD
+          ghc8_2_1
+          ghc8_0_1
+          ghc7
+          ghc7_8
+          ghcIosSimulator64
+          ghcIosArm64
+          ghcIosArmv7
+          ghcAndroidArm64
+          ghcAndroidArmv7a
+          ghcjs
+          android
+          ios
+          androidWithHaskellPackages;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
@@ -493,7 +523,6 @@ in let this = rec {
     };
   };
 
-  inherit ghcjs ghcjsCompiler;
   platforms = [
     "ghcjs"
     "ghc"
