@@ -124,7 +124,7 @@ EOF
 )"
     else
         OUTPUT_GIT_MANIFEST_TYPE=git
-        OUTPUT_GIT_MANIFEST="$($NIX_PREFETCH_SCRIPTS/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | sed "s|$(echo "$PWD/$REPO" | sed 's/|/\\|/g')|$(echo "$URL" | sed 's/|/\\|/g')|" 2>/dev/null)"
+        OUTPUT_GIT_MANIFEST="$($NIX_PREFETCH_SCRIPTS/bin/nix-prefetch-git "$PWD/$REPO" "$REV" 2>/dev/null | sed -e '/^ *"date":/d' -e "s|$(echo "$PWD/$REPO" | sed 's/|/\\|/g')|$(echo "$URL" | sed 's/|/\\|/g')|" 2>/dev/null)"
     fi
 }
 
