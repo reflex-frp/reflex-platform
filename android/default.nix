@@ -89,6 +89,11 @@ in rec {
     , googleServicesJson ? null
 
     , additionalDependencies ? ""
+
+    , universalApk ? true
+      # Set this to false to build one APK per target platform.  This will
+      # automatically transform the version code to 1000 * versionCode + offset
+      # where "offset" is a per-platform constant.
     }: impl.buildApp {
       inherit package
               executableName
@@ -103,6 +108,7 @@ in rec {
               services
               intentFilters
               googleServicesJson
-              additionalDependencies;
+              additionalDependencies
+              universalApk;
     };
 }
