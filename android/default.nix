@@ -20,7 +20,7 @@ in rec {
       # Port number or null
       # E.g.: 8000
 
-    , pathPrefix ? "/"
+    , pathPrefix ? ""
     }: impl.intentFilterXml {
       inherit scheme
               host

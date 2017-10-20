@@ -19,6 +19,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         which
       ];
     } "";
+    inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
     acceptAndroidSdkLicenses = true;
@@ -36,8 +37,7 @@ in {
     platformVersions = [ "25" ];
     release = false;
     src =
-      let inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
-          splitApplicationId = splitString "." applicationId;
+      let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             inherit (myNixpkgs) libiconv;
             hsApp = overrideAndroidCabal (package myHaskellPackages);
