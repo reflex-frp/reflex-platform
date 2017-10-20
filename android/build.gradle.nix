@@ -72,6 +72,32 @@ android {
 
     packagingOptions {
     }
+
+    // see https://developer.android.com/studio/build/configure-apk-splits.html
+    // for information about this and the applicationVariants stuff below
+    splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi-v7a", "arm64-v8a"
+            universalApk false
+        }
+    }
+}
+
+ext.abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2] // This order is important!
+
+import com.android.build.OutputFile
+
+android.applicationVariants.all { variant ->
+  variant.outputs.each { output ->
+    def baseAbiVersionCode =
+      project.ext.abiCodes.get(output.getFilter(OutputFile.ABI))
+
+    if (baseAbiVersionCode != null) {
+      output.versionCodeOverride = baseAbiVersionCode * 1000 + variant.versionCode
+    }
+  }
 }
 
 dependencies {
