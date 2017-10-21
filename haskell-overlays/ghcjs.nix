@@ -11,8 +11,8 @@ self: super: {
   ghcjs-base = haskellLib.doJailbreak (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
     owner = "ghcjs";
     repo = "ghcjs-base";
-    rev = "1f28a93dad380a471a3fd7e00819a88c20fa7f92";
-    sha256 = "1l1mjpb5a0ryamqapm0lirxp58f7w3hk73b18ks62bc9d342zmxm";
+    rev = "43804668a887903d27caada85693b16673283c57";
+    sha256 = "1pqmgkan6xhpvsb64rh2zaxymxk4jg9c3hdxdb2cnn6jpx7jsl44";
   }) {});
 
   ghc = super.ghc // {
