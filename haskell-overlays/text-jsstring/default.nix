@@ -13,6 +13,8 @@ self: super: {
     ];
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-json
+      self.ghcjs-base
+      self.ghcjs-prim
     ];
   });
   ghcjs-json = self.callCabal2nix "ghcjs-json" (fetchFromGitHub {
