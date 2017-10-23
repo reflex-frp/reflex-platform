@@ -13,6 +13,8 @@ self: super: {
     ];
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-json
+      self.ghcjs-base
+      self.ghcjs-prim
     ];
   });
   ghcjs-json = self.callCabal2nix "ghcjs-json" (fetchFromGitHub {
@@ -25,8 +27,8 @@ self: super: {
     src = fetchFromGitHub {
       owner = "luigy";
       repo = "ghcjs-base";
-      rev = "8569f5d541aa846f2130ff789d19bcd55ea41d2a";
-      sha256 = "1b1fyqgn7jxh4rawgxidacafg6jwfdfcidyh93z6a6lhmm5qaq3n";
+      rev = "e287c5752064a2d3b2c4776a1520e4b0189881b0";
+      sha256 = "01k7wj60gmmf9larjm3gqbsyxwb5xhqr4dyz4xswy78ql845qljd";
     };
     libraryHaskellDepends = with self; [
       base bytestring containers deepseq dlist ghc-prim
