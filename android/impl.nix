@@ -54,7 +54,7 @@ in {
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
-          inherit applicationId version additionalDependencies releaseKey;
+          inherit applicationId version additionalDependencies releaseKey universalApk;
           googleServicesClasspath = optionalString (googleServicesJson != null)
             "classpath 'com.google.gms:google-services:3.0.0'";
           googleServicesPlugin = optionalString (googleServicesJson != null)

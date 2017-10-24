@@ -4,6 +4,7 @@
 , additionalDependencies
 , googleServicesClasspath
 , googleServicesPlugin
+, universalApk
 }:
 ''
 buildscript {
@@ -72,6 +73,37 @@ android {
 
     packagingOptions {
     }
+
+    // see https://developer.android.com/studio/build/configure-apk-splits.html
+    // for information about this and the applicationVariants stuff below.
+    // See https://developer.android.com/google/play/publishing/multiple-apks.html#SingleAPK
+    // for reasons you might not want to do this.
+    ${if universalApk then "" else ''
+        splits {
+            abi {
+                enable true
+                reset()
+                include "armeabi-v7a", "arm64-v8a"
+                universalApk false
+            }
+        }
+        ''
+    }
+}
+
+ext.abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2] // This order is important!
+
+import com.android.build.OutputFile
+
+android.applicationVariants.all { variant ->
+  variant.outputs.each { output ->
+    def baseAbiVersionCode =
+      project.ext.abiCodes.get(output.getFilter(OutputFile.ABI))
+
+    if (baseAbiVersionCode != null) { // this will be null if splitting was disabled
+      output.versionCodeOverride = baseAbiVersionCode * 1000 + variant.versionCode
+    }
+  }
 }
 
 dependencies {
