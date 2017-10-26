@@ -467,7 +467,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
   androidWithHaskellPackages = assert (system == "x86_64-linux"); { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
-  ios = assert (system == "x86_64-darwin"); {
+  ios = iosWithHaskellPackages ghcIosArm64;
+  iosWithHaskellPackages = ghcIosArm64: assert (system == "x86_64-darwin"); {
     buildApp = import ./ios {
       inherit nixpkgs ghcIosArm64;
       inherit (nixpkgsCross.ios.arm64) libiconv;
@@ -494,8 +495,9 @@ in let this = rec {
           ghcAndroidArmv7a
           ghcjs
           android
+          androidWithHaskellPackages
           ios
-          androidWithHaskellPackages;
+          iosWithHaskellPackages;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
@@ -670,4 +672,5 @@ in let this = rec {
 
   lib = haskellLib;
   inherit cabal2nixResult sources;
+  project = args: import ./project this (args { pkgs = nixpkgs; });
 }; in this
