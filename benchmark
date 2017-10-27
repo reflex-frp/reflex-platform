@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p nodejs nodePackages.npm
+#!nix-shell -i bash -p nodejs-8_x nodePackages.npm
 set -euo pipefail
 set -x
 
@@ -30,6 +30,6 @@ npm start &
 SERVER_PID=$!
 
 cd webdriver-ts
-npm run selenium -- --framework vanillajs-keyed reflex --count 1
+npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless
 npm run results
-kill $SERVER_PID
+wait $SERVER_PID
