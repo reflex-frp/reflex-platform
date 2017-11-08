@@ -8,12 +8,13 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
+, iosSdkLocation ? "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk"
+, iosSupportForce ? false
+, iosSupport ? if system == "x86_64-darwin" && (iosSupportForce || builtins.pathExists iosSdkLocation)
+    then true
+    else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false
 }:
-let iosSdkLocation = "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk";
-    iosSupport = if nixpkgs.stdenv.isDarwin && builtins.pathExists iosSdkLocation
-      then true
-      else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
-    globalOverlay = self: super: {
+let globalOverlay = self: super: {
       all-cabal-hashes = super.all-cabal-hashes.override {
         src-spec = {
           owner = "commercialhaskell";
@@ -677,4 +678,5 @@ in let this = rec {
   lib = haskellLib;
   inherit cabal2nixResult sources;
   project = args: import ./project this (args { pkgs = nixpkgs; });
+  tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
 }; in this
