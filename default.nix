@@ -9,7 +9,11 @@
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
-let globalOverlay = self: super: {
+let iosSdkLocation = "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk";
+    iosSupport = if nixpkgs.stdenv.isDarwin && builtins.pathExists iosSdkLocation
+      then true
+      else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
+    globalOverlay = self: super: {
       all-cabal-hashes = super.all-cabal-hashes.override {
         src-spec = {
           owner = "commercialhaskell";
@@ -536,7 +540,7 @@ in let this = rec {
   ] ++ (optionals (system == "x86_64-linux") [
     "ghcAndroidArm64"
     "ghcAndroidArmv7a"
-  ]) ++ (optionals nixpkgs.stdenv.isDarwin [
+  ]) ++ (optionals iosSupport [
     "ghcIosArm64"
   ]);
 
@@ -657,7 +661,7 @@ in let this = rec {
 
   tryReflexPackages = generalDevTools ghc
     ++ builtins.map reflexEnv platforms
-    ++ optional (system == "x86_64-darwin") iosReflexTodomvc
+    ++ optional iosSupport iosReflexTodomvc
     ++ optional (system == "x86_64-linux") androidReflexTodomvc;
 
   demoVM = (import "${nixpkgs.path}/nixos" {
