@@ -5,12 +5,14 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 . "$DIR/common-setup.sh"
 
-nixconf="/etc/nix/nix.conf"
+nixconf_dir="/etc/nix"
+nixconf="$nixconf_dir/nix.conf"
 our_cache="https://nixcache.reflex-frp.org"
 caches_line="binary-caches = https://cache.nixos.org $our_cache"
 our_key="JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
-keys_line="binary-cache-public-keys = ryantrinkle.com-1:$our_key cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
 if [ ! -e "$nixconf" ] || ! grep -q 'binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections' "$nixconf" ; then
+    sudo mkdir -p "$nixconf_dir"
     cat | sudo tee -a "$nixconf" <<EOF
 $caches_line
 $keys_line

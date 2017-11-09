@@ -3,7 +3,7 @@
 
 REPO="https://github.com/reflex-frp/reflex-platform"
 
-NIXOPTS="--option extra-binary-caches https://nixcache.reflex-frp.org -j 8"
+NIXOPTS="--option extra-binary-caches https://nixcache.reflex-frp.org"
 
 NIX_CONF="/etc/nix/nix.conf"
 

@@ -2,7 +2,7 @@ with import ./. {};
 let inherit (nixpkgs.lib) optionals;
     inputs = builtins.concatLists [
       (builtins.attrValues sources)
-      (map (system: import ./shell.nix { inherit system; }) cacheTargetSystems)
+      (map (system: (import ./. { inherit system; iosSupportForce = true; }).tryReflexShell) cacheTargetSystems)
     ];
     getOtherDeps = reflexPlatform: [
       reflexPlatform.stage2Script
