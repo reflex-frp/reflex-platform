@@ -13,7 +13,7 @@ our_key="JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
 keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
 if [ ! -e "$nixconf" ] || ! grep -q 'binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections' "$nixconf" ; then
     sudo mkdir -p "$nixconf_dir"
-    cat | sudo tee -a "$nixconf" <<EOF
+    sudo tee -a "$nixconf" <<EOF
 $caches_line
 $keys_line
 binary-caches-parallel-connections = 40
