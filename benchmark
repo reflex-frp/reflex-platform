@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p nodejs nodePackages.npm
+#!nix-shell -i bash -p nodejs-8_x nodePackages.npm
 set -euo pipefail
 set -x
 
