@@ -9,7 +9,7 @@ KRAUSEST_REFLEX_DOM=$BENCHMARK/reflex-dom-v0.4-keyed
 DIST=$KRAUSEST_REFLEX_DOM/dist
 
 if [ ! -d "$BENCHMARK" ]; then
-    git clone git@github.com:krausest/js-framework-benchmark.git
+    git clone https://github.com/krausest/js-framework-benchmark
     cd $BENCHMARK
     npm install
     for package in "${PACKAGES[@]}"; do
