@@ -1,1 +1,4 @@
-with (import ./. {}).nixpkgs; runCommand "shell" { buildInputs = [ nodejs-8_x nodePackages.npm ]; } ""
+{ reflexPlatform ? import ./. {}
+}:
+with reflexPlatform.nixpkgs;
+reflexPlatform.pinBuildInputs "benchmark-shell" [ nodejs-8_x nodePackages.npm chromium ] []

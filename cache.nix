@@ -7,6 +7,7 @@ let inherit (nixpkgs.lib) optionals;
     getOtherDeps = reflexPlatform: [
       reflexPlatform.stage2Script
       reflexPlatform.nixpkgs.cabal2nix
+      (import ./benchmark-shell.nix { inherit reflexPlatform; })
     ] ++ builtins.concatLists (map
       (crossPkgs: optionals (crossPkgs != null) [
         crossPkgs.buildPackages.haskellPackages.cabal2nix
