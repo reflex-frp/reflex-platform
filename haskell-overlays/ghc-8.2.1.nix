@@ -12,6 +12,7 @@ self: super: {
   comonad = self.callHackage "comonad" "5.0.2" {};
   distributive = self.callHackage "distributive" "0.5.3" {};
   doctest = self.callHackage "doctest" "0.13.0" {};
+  gtk2hs-buildtools = self.callHackage "gtk2hs-buildtools" "0.13.3.0" {};
   hackage-security = haskellLib.dontCheck (haskellLib.doJailbreak super.hackage-security);
   haddock = null;
   haddock-api = null; #haskellLib.dontCheck super.haddock-api;
