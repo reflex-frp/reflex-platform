@@ -33,4 +33,4 @@ SERVER_PID=$!
 cd webdriver-ts
 npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless --chromeBinary "$(which chromium)" --chromeDriver "$(which chromedriver)"
 npm run results
-wait $SERVER_PID
+kill $SERVER_PID
