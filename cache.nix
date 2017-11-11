@@ -3,11 +3,11 @@ let inherit (nixpkgs.lib) optionals;
     inputs = builtins.concatLists [
       (builtins.attrValues sources)
       (map (system: (import ./. { inherit system; iosSupportForce = true; }).tryReflexShell) cacheTargetSystems)
+      [(import ./benchmark-shell.nix {})]
     ];
     getOtherDeps = reflexPlatform: [
       reflexPlatform.stage2Script
       reflexPlatform.nixpkgs.cabal2nix
-      (import ./benchmark-shell.nix { inherit reflexPlatform; })
     ] ++ builtins.concatLists (map
       (crossPkgs: optionals (crossPkgs != null) [
         crossPkgs.buildPackages.haskellPackages.cabal2nix
