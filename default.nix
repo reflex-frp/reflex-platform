@@ -10,11 +10,12 @@
 , iosSdkVersion ? "10.2"
 , iosSdkLocation ? "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk"
 , iosSupportForce ? false
-, iosSupport ? if system == "x86_64-darwin" && (iosSupportForce || builtins.pathExists iosSdkLocation)
-    then true
-    else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false
 }:
-let globalOverlay = self: super: {
+let iosSupport =
+      if system != "x86_64-darwin" then false
+      else if iosSupportForce || builtins.pathExists iosSdkLocation then true
+      else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
+    globalOverlay = self: super: {
       all-cabal-hashes = super.all-cabal-hashes.override {
         src-spec = {
           owner = "commercialhaskell";
