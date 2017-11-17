@@ -1,1 +1,1 @@
-import ((import <nixpkgs> {}).fetchFromGitHub (builtins.fromJSON (builtins.readFile ./github.json)))
+import ((import ./fetchNixpkgs.nix) { inherit (builtins.fromJSON (builtins.readFile ./github.json)) rev sha256; })
