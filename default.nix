@@ -221,7 +221,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       overrides = self: super:
         let reflexDom = import ./reflex-dom self nixpkgs;
             jsaddlePkgs = import ./jsaddle self;
-            gargoylePkgs = self.callPackage ./gargoyle self;
+            gargoylePkgs = self.callPackage (hackGet ./gargoyle) self;
             ghcjsDom = import ./ghcjs-dom self;
             addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
@@ -258,11 +258,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
+        reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {})));
         reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
         reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
-        reflex-todomvc = self.callPackage ./reflex-todomvc {};
-        reflex-aeson-orphans = self.callPackage ./reflex-aeson-orphans {};
+        reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
+        reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
         haven = self.callHackage "haven" "0.2.0.0" {};
 
         inherit (jsaddlePkgs) jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
@@ -273,7 +273,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           else jsaddlePkgs.jsaddle;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
 
-        jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
+        jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
           preBuild = ''./setup build || true'';
         });
