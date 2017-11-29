@@ -8,19 +8,17 @@ PACKAGES=(webdriver-ts webdriver-ts-results vanillajs-keyed)
 KRAUSEST_REFLEX_DOM=$BENCHMARK/reflex-dom-v0.4-keyed
 DIST=$KRAUSEST_REFLEX_DOM/dist
 
-if [ ! -d "$BENCHMARK" ]; then
-    git clone https://github.com/alexfmpe/js-framework-benchmark
-    cd $BENCHMARK
-    git checkout 40b5728a805c3eefd19ec537d050508134f16f44
+git clone https://github.com/alexfmpe/js-framework-benchmark
+cd $BENCHMARK
+git checkout 40b5728a805c3eefd19ec537d050508134f16f44
+npm install
+for package in "${PACKAGES[@]}"; do
+    cd $package
     npm install
-    for package in "${PACKAGES[@]}"; do
-	      cd $package
-	      npm install
-	      npm run build-prod
-	      cd ..
-    done
+    npm run build-prod
     cd ..
-fi
+done
+cd ..
 
 echo PWD=$PWD
 mkdir -p $DIST
@@ -34,3 +32,4 @@ cd webdriver-ts
 npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless --chromeBinary "$(which chromium)" --chromeDriver "$(which chromedriver)"
 npm run results
 kill $SERVER_PID
+rm -rf $BENCHMARK
