@@ -112,8 +112,8 @@ in
 
 }:
 let
-  overrides' = nixpkgs.lib.composeExtensions overrides
-    (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages);
+  overrides' = nixpkgs.lib.composeExtensions
+    (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages) overrides;
   mkPkgSet = name: _: this.${name}.override { overrides = overrides'; };
 in makeExtensible (prj: mapAttrs mkPkgSet shells // {
   shells = mapAttrs (name: pnames:
