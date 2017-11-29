@@ -11,7 +11,7 @@ DIST=$KRAUSEST_REFLEX_DOM/dist
 if [ ! -d "$BENCHMARK" ]; then
     git clone https://github.com/alexfmpe/js-framework-benchmark
     cd $BENCHMARK
-    git checkout 7ee92d6ec1b898bc49b37b356be64b1d305d76ae
+    git checkout 40b5728a805c3eefd19ec537d050508134f16f44
     npm install
     for package in "${PACKAGES[@]}"; do
 	      cd $package
