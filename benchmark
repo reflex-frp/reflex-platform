@@ -2,6 +2,8 @@
 #!nix-shell -i bash ./benchmark-shell.nix
 set -euo pipefail
 
+if ! command -v chromedriver &> /dev/null; then echo 'Could not find chromedriver in $PATH'; exit 1; fi;
+
 BENCHMARK=js-framework-benchmark
 PACKAGES=(webdriver-ts webdriver-ts-results vanillajs-keyed)
 KRAUSEST_REFLEX_DOM=$BENCHMARK/reflex-dom-v0.4-keyed

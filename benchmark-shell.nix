@@ -1,9 +1,13 @@
 { reflexPlatform ? import ./. {}
 }:
 with reflexPlatform.nixpkgs;
-reflexPlatform.pinBuildInputs "benchmark-shell" [
-  nodejs-8_x
-  nodePackages.npm
+
+let browserTools = if system == "x86_64-darwin" then [] else [
   chromium
   chromedriver
-] []
+];
+in
+  reflexPlatform.pinBuildInputs "benchmark-shell" ([
+    nodejs-8_x
+    nodePackages.npm
+  ] ++ browserTools) []
