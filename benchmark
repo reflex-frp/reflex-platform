@@ -1,7 +1,6 @@
 #!/usr/bin/env nix-shell
 #!nix-shell -i bash ./benchmark-shell.nix
 set -euo pipefail
-set -x
 
 BENCHMARK=js-framework-benchmark
 PACKAGES=(webdriver-ts webdriver-ts-results vanillajs-keyed)
@@ -20,7 +19,6 @@ for package in "${PACKAGES[@]}"; do
 done
 cd ..
 
-echo PWD=$PWD
 mkdir -p $DIST
 cp -Rf $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $DIST
 cd $BENCHMARK
