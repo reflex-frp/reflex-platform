@@ -4,8 +4,6 @@ set -euo pipefail
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-if ! command -v chromedriver &> /dev/null; then echo 'Could not find chromedriver in $PATH'; exit 1; fi;
-
 CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean') # This crazy workaround ensures that it will work on both Mac OS and Linux; see https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
 trap "rm -rf \"$CLEAN\"" EXIT
 
