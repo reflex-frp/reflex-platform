@@ -142,6 +142,11 @@ try_reflex_shell() {
     nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS "$@"
 }
 
+reset_daemon() {
+    sudo launchctl stop org.nixos.nix-daemon
+    sudo launchctl start org.nixos.nix-daemon
+}
+
 enable_cache() {
     nixconf_dir="/etc/nix"
     nixconf="$nixconf_dir/nix.conf"
@@ -161,6 +166,7 @@ $caches_line
 $keys_line
 binary-caches-parallel-connections = 40
 EOF
+	reset_daemon
     elif ! grep -q "$our_cache" "$nixconf" || ! grep -q "$our_key" "$nixconf" ; then
 	backup="$nixconf.$(date -u +"%FT%TZ").bak"
 	echo "$nixconf already exists: creating backup - $sudo_msg"
@@ -173,6 +179,7 @@ EOF
 	if ! grep -q "$our_key" "$nixconf" ; then
             sudo sed -i.bak 's|^\(binary-cache-public-keys[ =].*\)$|\1 ryantrinkle.com-1:'"$our_key"'|' "$nixconf"
 	fi
+	reset_daemon
     fi
 }
 
