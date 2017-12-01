@@ -156,7 +156,7 @@ enable_cache() {
 	else echo "Adding cache settings to $nixconf - $sudo_msg";
 	fi;
 	sudo mkdir -p "$nixconf_dir"
-	sudo tee -a "$nixconf" <<EOF
+	sudo tee -a "$nixconf" > /dev/null <<EOF
 $caches_line
 $keys_line
 binary-caches-parallel-connections = 40
