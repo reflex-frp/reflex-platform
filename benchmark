@@ -14,7 +14,7 @@ DIST=$KRAUSEST_REFLEX_DOM/dist
 
 git clone -n https://github.com/alexfmpe/js-framework-benchmark "$CLEAN"
 cd $CLEAN
-git checkout 40b5728a805c3eefd19ec537d050508134f16f44
+git checkout c96c74b3cd4660e73806ed6b564502725b5c2ad6
 
 npm install
 for package in "${PACKAGES[@]}"; do
