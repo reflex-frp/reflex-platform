@@ -143,8 +143,10 @@ try_reflex_shell() {
 }
 
 reset_daemon() {
-    sudo launchctl stop org.nixos.nix-daemon
-    sudo launchctl start org.nixos.nix-daemon
+    if [ "$(uname -s)" == 'Darwin' ]; then
+	sudo launchctl stop org.nixos.nix-daemon
+	sudo launchctl start org.nixos.nix-daemon
+    fi;
 }
 
 enable_cache() {
