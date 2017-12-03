@@ -1,0 +1,44 @@
+{ reflex-platform ? import ./. {} }:
+let pkgs = reflex-platform.nixpkgs;
+in pkgs.writeScript "benchmark.sh" ''
+#!/usr/bin/env bash
+set -euo pipefail
+
+PATH="${pkgs.nodejs-8_x}/bin:${pkgs.nodePackages.npm}/bin:${pkgs.chromedriver}/bin:$PATH"
+CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
+  then "${pkgs.chromium}/bin/chromium"
+  else "$(which chromium)"
+}"
+CHROMEDRIVER="${if reflex-platform.system == "x86_64-darwin"
+  then "${pkgs.chromedriver}/bin/chromedriver"
+  else "$(which chromedriver)"
+}"
+
+CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean') # This crazy workaround ensures that it will work on both Mac OS and Linux; see https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
+trap "rm -rf \"$CLEAN\"" EXIT
+
+cd "$CLEAN"
+
+cp -a --no-preserve=mode "${reflex-platform.js-framework-benchmark-src}/"* .
+
+npm install
+for package in webdriver-ts webdriver-ts-results vanillajs-keyed; do
+    cd $package
+    npm install
+    npm run build-prod
+    cd ..
+done
+
+REFLEX_DOM_DIST=reflex-dom-v0.4-keyed/dist
+mkdir -p "$REFLEX_DOM_DIST"
+cp -a --no-preserve=mode "${reflex-platform.ghcjs.reflex-dom}/bin/krausest.jsexe/"* "$REFLEX_DOM_DIST"
+
+npm start &
+SERVER_PID=$!
+
+cd webdriver-ts
+
+npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless --chromeBinary "$CHROME_BINARY" --chromeDriver "$CHROMEDRIVER"
+
+kill "$SERVER_PID"
+''

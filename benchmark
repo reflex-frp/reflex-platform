@@ -1,38 +1,8 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i bash ./benchmark-shell.nix
+#!/usr/bin/env bash
 set -euo pipefail
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean') # This crazy workaround ensures that it will work on both Mac OS and Linux; see https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
-trap "rm -rf \"$CLEAN\"" EXIT
+cd "$DIR"
 
-PACKAGES=(webdriver-ts webdriver-ts-results vanillajs-keyed)
-
-KRAUSEST_REFLEX_DOM=$CLEAN/reflex-dom-v0.4-keyed
-DIST=$KRAUSEST_REFLEX_DOM/dist
-
-git clone -n https://github.com/alexfmpe/js-framework-benchmark "$CLEAN"
-cd $CLEAN
-git checkout c96c74b3cd4660e73806ed6b564502725b5c2ad6
-
-npm install
-for package in "${PACKAGES[@]}"; do
-    cd $package
-    npm install
-    npm run build-prod
-    cd ..
-done
-
-cd $DIR
-mkdir -p $DIST
-cp -Rf $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $DIST
-
-cd $CLEAN
-npm start &
-SERVER_PID=$!
-
-cd $CLEAN/webdriver-ts
-npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless --chromeBinary "$(which chromium)" --chromeDriver "$(which chromedriver)"
-npm run results
-kill $SERVER_PID
+"$(nix-build ./benchmark.nix)"
