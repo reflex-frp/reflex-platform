@@ -7,11 +7,11 @@ set -euo pipefail
 PATH="${pkgs.nodejs-8_x}/bin:${pkgs.nodePackages.npm}/bin:${pkgs.chromedriver}/bin:$PATH"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
-  else "--chromeBinary ${pkgs.chromium}/bin/chromium"
+  else ''--chromeBinary "${pkgs.chromium}/bin/chromium"''
 }"
 CHROMEDRIVER="${if reflex-platform.system == "x86_64-darwin"
   then ""
-  else "--chromeDriver ${pkgs.chromedriver}/bin/chromedriver"
+  else ''--chromeDriver "${pkgs.chromedriver}/bin/chromedriver"''
 }"
 
 CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean') # This crazy workaround ensures that it will work on both Mac OS and Linux; see https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
@@ -39,7 +39,7 @@ SERVER_PID=$!
 
 cd webdriver-ts
 
-npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless "$CHROME_BINARY" "$CHROMEDRIVER"
+npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER
 
 kill "$SERVER_PID"
 ''
