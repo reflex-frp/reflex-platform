@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+import Control.Arrow
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.TH
@@ -14,7 +14,6 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Text (Text)
 import Data.These
-import System.Directory
 import System.Environment
 import System.FilePath
 
@@ -34,22 +33,17 @@ data BenchmarkResult = BenchmarkResult
 
 deriveJSON (defaultOptions { fieldLabelModifier = drop $ length ("_benchmarkResult_" :: String) }) ''BenchmarkResult
 
-loadResult :: FilePath -> IO BenchmarkResult
+loadResult :: FilePath -> IO [BenchmarkResult]
 loadResult p = either error id . eitherDecode <$> LBS.readFile p
 
 main :: IO ()
 main = do
-  [dir1, dir2] <- getArgs
-  let loadDir d = mapM (loadResult . (d </>)) =<< listDirectory d
-      relevant br = _benchmarkResult_framework br == "reflex-dom-v0.4-keyed"
-      resultMap = Map.fromList . fmap (\br -> (_benchmarkResult_benchmark br, _benchmarkResult_geometricMean br))
-      getResults = fmap (resultMap . filter relevant) . loadDir
-  results1 <- getResults dir1
-  results2 <- getResults dir2
-  let showMNum :: Maybe Double -> Text
-      showMNum = \case
-        Just d -> T.pack $ show d
-        Nothing -> "?"
+  [file1, file2] <- getArgs
+  let resultMap = Map.fromList . fmap (_benchmarkResult_benchmark &&& _benchmarkResult_geometricMean)
+      getResults = fmap resultMap . loadResult
+  results1 <- getResults file1
+  results2 <- getResults file2
+  let showMNum = maybe "?" (T.pack . show)
       header = "| Benchmark | Before | After | Ratio |"
       separator = "| --- | --- | --- | --- |"
       formatLine (b, rs) =

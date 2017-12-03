@@ -4,6 +4,9 @@ in pkgs.writeScript "benchmark.sh" ''
 #!/usr/bin/env bash
 set -euo pipefail
 
+exec 3>&1
+exec 1>&2
+
 PATH="${pkgs.nodejs-8_x}/bin:${pkgs.nodePackages.npm}/bin:${pkgs.chromedriver}/bin:$PATH"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
@@ -42,4 +45,10 @@ cd webdriver-ts
 npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER
 
 kill "$SERVER_PID"
+
+exec 1>&3
+
+echo "[";
+paste -d ',' results/reflex-dom*;
+echo "]";
 ''
