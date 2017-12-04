@@ -38,6 +38,57 @@ user_error() {
     exit "$1"
 }
 
+
+reset_daemon() {
+    if [ "$(uname -s)" == 'Darwin' ]; then
+	sudo launchctl stop org.nixos.nix-daemon
+	sudo launchctl start org.nixos.nix-daemon
+    fi;
+}
+
+enable_cache() {
+    if uname -v | grep -i "\bnixos\b"; then
+	echo "Please enable reflex's binary cache by following the instructions at https://github.com/reflex-frp/reflex-platform/blob/develop/notes/NixOS.md"
+	return 0;
+    fi;
+
+    nixconf_dir="/etc/nix"
+    nixconf="$nixconf_dir/nix.conf"
+    our_cache="https://nixcache.reflex-frp.org"
+    caches_line="binary-caches = https://cache.nixos.org $our_cache"
+    our_key="JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+    keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
+    sudo_msg="This requires root access."
+    if [ ! -e "$nixconf" ] || ! grep -q 'binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections' "$nixconf" ; then
+	if [ ! -e "$nixconf" ];
+	then echo "Creating $nixconf - $sudo_msg";
+	else echo "Adding cache settings to $nixconf - $sudo_msg";
+	fi;
+	sudo mkdir -p "$nixconf_dir"
+	sudo tee -a "$nixconf" > /dev/null <<EOF
+$caches_line
+$keys_line
+binary-caches-parallel-connections = 40
+EOF
+	reset_daemon
+    elif ! grep -q "$our_cache" "$nixconf" || ! grep -q "$our_key" "$nixconf" ; then
+	backup="$nixconf.$(date -u +"%FT%TZ").bak"
+	echo "$nixconf already exists: creating backup - $sudo_msg"
+	sudo cp "$nixconf" "$backup"
+	echo "backup saved at $backup"
+	echo "adding caches"
+	if ! grep -q "$our_cache" "$nixconf" ; then
+            sudo sed -i.bak 's|^\(binary-caches[ =].*\)$|\1 '"$our_cache"'|' "$nixconf"
+	fi
+	if ! grep -q "$our_key" "$nixconf" ; then
+            sudo sed -i.bak 's|^\(binary-cache-public-keys[ =].*\)$|\1 ryantrinkle.com-1:'"$our_key"'|' "$nixconf"
+	fi
+	reset_daemon
+    fi
+}
+
+
+
 >&2 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
 
 (
@@ -90,6 +141,8 @@ if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVers
   exit 1
 fi
 
+enable_cache
+
 git_thunk() {
     case "$1" in
         git) echo "import ((import <nixpkgs> {}).fetchgit (builtins.fromJSON (builtins.readFile ./git.json)))" ;;
@@ -141,53 +194,3 @@ try_reflex_shell() {
     prebuild_try_reflex_shell
     nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS "$@"
 }
-
-reset_daemon() {
-    if [ "$(uname -s)" == 'Darwin' ]; then
-	sudo launchctl stop org.nixos.nix-daemon
-	sudo launchctl start org.nixos.nix-daemon
-    fi;
-}
-
-enable_cache() {
-    if uname -v | grep -i "\bnixos\b"; then
-	echo "Please enable reflex's binary cache by following the instructions at https://github.com/reflex-frp/reflex-platform/blob/develop/notes/NixOS.md"
-	return 0;
-    fi;
-
-    nixconf_dir="/etc/nix"
-    nixconf="$nixconf_dir/nix.conf"
-    our_cache="https://nixcache.reflex-frp.org"
-    caches_line="binary-caches = https://cache.nixos.org $our_cache"
-    our_key="JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
-    keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
-    sudo_msg="This requires root access."
-    if [ ! -e "$nixconf" ] || ! grep -q 'binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections' "$nixconf" ; then
-	if [ ! -e "$nixconf" ];
-	then echo "Creating $nixconf - $sudo_msg";
-	else echo "Adding cache settings to $nixconf - $sudo_msg";
-	fi;
-	sudo mkdir -p "$nixconf_dir"
-	sudo tee -a "$nixconf" > /dev/null <<EOF
-$caches_line
-$keys_line
-binary-caches-parallel-connections = 40
-EOF
-	reset_daemon
-    elif ! grep -q "$our_cache" "$nixconf" || ! grep -q "$our_key" "$nixconf" ; then
-	backup="$nixconf.$(date -u +"%FT%TZ").bak"
-	echo "$nixconf already exists: creating backup - $sudo_msg"
-	sudo cp "$nixconf" "$backup"
-	echo "backup saved at $backup"
-	echo "adding caches"
-	if ! grep -q "$our_cache" "$nixconf" ; then
-            sudo sed -i.bak 's|^\(binary-caches[ =].*\)$|\1 '"$our_cache"'|' "$nixconf"
-	fi
-	if ! grep -q "$our_key" "$nixconf" ; then
-            sudo sed -i.bak 's|^\(binary-cache-public-keys[ =].*\)$|\1 ryantrinkle.com-1:'"$our_key"'|' "$nixconf"
-	fi
-	reset_daemon
-    fi
-}
-
-enable_cache
