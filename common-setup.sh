@@ -150,6 +150,11 @@ reset_daemon() {
 }
 
 enable_cache() {
+    if uname -v | grep -i "\bnixos\b"; then
+	echo "Please enable reflex's binary cache by following the instructions at https://github.com/reflex-frp/reflex-platform/blob/develop/notes/NixOS.md"
+	return 0;
+    fi;
+
     nixconf_dir="/etc/nix"
     nixconf="$nixconf_dir/nix.conf"
     our_cache="https://nixcache.reflex-frp.org"
