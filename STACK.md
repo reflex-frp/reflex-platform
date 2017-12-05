@@ -1,6 +1,6 @@
 ### ```reflex, reflex-dom, reflex-dom-contrib and stack```
 
-Though you are encouraged to use nix/nixos and reflex-platform when writing libraries or applications with reflex, many people are interested in using non-nix setups.  This file details some succesful setups using stack.  People are encouraged to detail other succesful setups in this file via PR.
+Although reflex-platform is provided as a reliable way of working with reflex and related packages, many people prefer to integrate individual components into their existing build system instead.  This file details some succesful setups using stack.  People are encouraged to detail other succesful setups in this file via PR.
 
 
 
@@ -10,7 +10,7 @@ Though you are encouraged to use nix/nixos and reflex-platform when writing libr
 
 stack.yaml
 ```
-# For more information, see: 
+# For more information, see:
 # https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
@@ -46,16 +46,16 @@ extra-deps:
    - dependent-map-0.2.1.0
    - dependent-sum-0.3.2.1
    - ref-tf-0.4
-   - these-0.6.2.0	
+   - these-0.6.2.0
    - readable-0.3.1
    - string-conv-0.1
-   
+
 # Override default flag values for local packages and extra-deps
 flags:
   ghcjs-dom:
     jsffi: true
 
-    
+
 # Extra package databases containing global packages
 extra-package-dbs: []
 ```
@@ -101,7 +101,7 @@ packages:
     commit: "a316f84795d8c4a444eb0d0b46a4ff2a4387e104"  # ghcjs-dom-0.2.3.0
 - location:
     git: https://github.com/reflex-frp/reflex-dom-contrib
-    commit: "41c67daf2ad74281f2488cb80ceab7d12292142b"    
+    commit: "41c67daf2ad74281f2488cb80ceab7d12292142b"
 - '.'
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
@@ -109,7 +109,7 @@ extra-deps:
    - dependent-map-0.2.1.0
    - dependent-sum-0.3.2.1
    - ref-tf-0.4
-   - these-0.6.2.0	
+   - these-0.6.2.0
    - readable-0.3.1
    - string-conv-0.1
    - webkitgtk3-0.14.1.1
@@ -117,13 +117,13 @@ extra-deps:
    - haskell-src-exts-1.16.0.1
    - syb-0.5.1
 
-   
+
 # Override default flag values for local packages and extra-deps
 flags:
   ghcjs-dom:
     gtk3: true
     webkit: true
-    
+
 # Extra package databases containing global packages
 extra-package-dbs: []
 ```
