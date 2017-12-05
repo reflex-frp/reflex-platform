@@ -59,7 +59,7 @@ enable_cache() {
     our_key="JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
     keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
     sudo_msg="This requires root access."
-    if [ ! -e "$nixconf" ] || ! grep -q 'binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections' "$nixconf" ; then
+    if [ ! -e "$nixconf" ] || ! grep -q '^(binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections)' "$nixconf" ; then
 	if [ ! -e "$nixconf" ];
 	then echo "Creating $nixconf - $sudo_msg";
 	else echo "Adding cache settings to $nixconf - $sudo_msg";
