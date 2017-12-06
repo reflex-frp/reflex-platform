@@ -96,9 +96,16 @@ enable_cache() {
 	done
     fi;
 
+    sudo_msg="This requires root access."
+    backup="$nixconf.$(date -u +"%FT%TZ").bak"
+    if nixconf_exists; then
+	echo "$nixconf already exists: creating backup - $sudo_msg"
+	sudo cp "$nixconf" "$backup"
+	echo "backup saved at $backup"
+    fi;
+
     caches_line="binary-caches = https://cache.nixos.org $our_cache"
     keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
-    sudo_msg="This requires root access."
     if ! nixconf_has_cache_settings; then
 	if ! nixconf_exists;
 	then echo "Creating $nixconf - $sudo_msg";
@@ -112,11 +119,7 @@ binary-caches-parallel-connections = 40
 EOF
 	reset_daemon
     else
-	backup="$nixconf.$(date -u +"%FT%TZ").bak"
-	echo "$nixconf already exists: creating backup - $sudo_msg"
-	sudo cp "$nixconf" "$backup"
-	echo "backup saved at $backup"
-	echo "adding caches"
+	echo "Adding cache settings to $nixconf - $sudo_msg"
 	if ! nixconf_has_reflex_cache; then
             sudo sed -i.bak 's|^\(binary-caches[ =].*\)$|\1 '"$our_cache"'|' "$nixconf"
 	fi
