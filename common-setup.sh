@@ -46,6 +46,9 @@ reset_daemon() {
     fi;
 }
 
+installing_nix=false
+user_prefs="$HOME/.local/share/reflex-platform"
+skip_cache_setup="$user_prefs/skip_cache_setup"
 nixconf_dir="/etc/nix"
 nixconf="$nixconf_dir/nix.conf"
 our_cache="https://nixcache.reflex-frp.org"
@@ -68,11 +71,29 @@ nixconf_has_reflex_key() {
 }
 
 enable_cache() {
+    if [ -e "$skip_cache_setup" ]; then return 0; fi;
+
     if nixconf_has_reflex_cache && nixconf_has_reflex_key; then return 0; fi;
 
     if uname -v | grep -i "\bnixos\b"; then
 	echo "Please enable reflex's binary cache by following the instructions at https://github.com/reflex-frp/reflex-platform/blob/develop/notes/NixOS.md"
 	return 0;
+    fi;
+
+    $(mkdir -p "$user_prefs")
+    if [ "$installing_nix" = false ]; then
+	read -p "Add binary caches for reflex to $nixconf ?"
+	select yn in "Yes" "No" "Ask again next time"; do
+	    case $yn in
+		"Yes" )
+		    break;;
+		"No" )
+		    touch $skip_cache_setup
+		    return 0;;
+		"Ask next time" )
+		    return 0;;
+	    esac
+	done
     fi;
 
     caches_line="binary-caches = https://cache.nixos.org $our_cache"
@@ -115,6 +136,7 @@ EOF
 cd "$DIR"
 
 if [ ! -d /nix ] ; then
+  installing_nix=true
   if ! type -P curl >/dev/null ; then
     echo "Please make sure that 'curl' is installed and can be run from this shell"
     exit 1
