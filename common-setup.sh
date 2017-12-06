@@ -59,7 +59,7 @@ nixconf_exists() {
 }
 
 nixconf_has_cache_settings() {
-    if nixconf_exists && grep -q '^(binary-caches\|binary-cache-public-keys\|binary-caches-parallel-connections)' "$nixconf" ; then return 0; else return 1; fi;
+    if nixconf_exists && grep -q '^binary-caches\|^binary-cache-public-keys\|^binary-caches-parallel-connections' "$nixconf" ; then return 0; else return 1; fi;
 }
 
 nixconf_has_reflex_cache() {
