@@ -13,6 +13,6 @@ jobs:
       - run: git config --global user.name "Travis-CI"
 
       - run:
-          command: ./try-reflex --command "exit 0"
+          command: echo "Yes" | ./try-reflex --command "exit 0"
           no_output_timeout: 3600
       - run: ./test -j 2
