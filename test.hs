@@ -111,3 +111,9 @@ main = hspec $ parallel $ do
       shelly $ silently $ do
         run "nix-shell" []
       return () :: IO ()
+  describe "benchmark" $ do
+    it "can build and run reflex-dom benchmarks" $ do
+      shelly $ silently $ do
+        d <- pwd
+        run (d </> ("benchmark" :: String)) []
+      return () :: IO ()
