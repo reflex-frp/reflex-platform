@@ -1,4 +1,4 @@
-### -dynamic flag on macOS
+### -dynamic and -threaded flags on macOS
 
 When invoking ghc directly on macOS, you'll need to give it `-dynamic` - otherwise, compiling fails with something like
 
