@@ -251,11 +251,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.1" {};
         gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
 
-        # Newer versions of 'hashable' don't work on the ghc 8.1.* that Android
-        # and iOS are currently using.  Once they're upgraded to 8.2, we should
-        # update 'hashable' to latest.
-        hashable = doJailbreak (self.callHackage "hashable" "1.2.6.1" {});
-
         ########################################################################
         # Reflex packages
         ########################################################################
