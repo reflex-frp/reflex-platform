@@ -37,12 +37,16 @@ REFLEX_DOM_DIST=reflex-dom-v0.4-keyed/dist
 mkdir -p "$REFLEX_DOM_DIST"
 cp -a "${reflex-platform.ghcjs.reflex-dom}/bin/krausest.jsexe/"* "$REFLEX_DOM_DIST"
 
-npm start &
+npm start > server.out &
 SERVER_PID=$!
+
+# ensures that grep will block execution but tail won't
+# https://superuser.com/questions/270529/monitoring-a-file-until-a-string-is-found/900134#900134
+SERVER_PORT="$((tail -f -n0 server.out & ) | grep -m 1 '127.0.0.1' | sed -e 's/.*127.0.0.1://')"
 
 cd webdriver-ts
 
-npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER
+npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
 
 kill "$SERVER_PID"
 
