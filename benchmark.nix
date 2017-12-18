@@ -53,6 +53,6 @@ kill "$SERVER_PID"
 exec 1>&3
 
 echo "[";
-paste -d ',' results/reflex-dom*;
+paste -d ',' results/*;
 echo "]";
 ''
