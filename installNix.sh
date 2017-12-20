@@ -29,15 +29,17 @@ case "$(uname -s).$(uname -m)" in
     *) oops "sorry, there is no binary distribution of Nix for your platform";;
 esac
 
-url="https://nixos.org/releases/nix/nix-1.11.15/nix-1.11.15-$system.tar.bz2"
-
-tarball="$tmpDir/$(basename "$tmpDir/nix-1.11.15-$system.tar.bz2")"
+nix_version="1.11.15"
+nix_versioned="nix-$nix_version"
+nix_tar="$nix_versioned-$system.tar.bz2"
+url="https://nixos.org/releases/nix/$nix_versioned/$nix_tar"
+tarball="$tmpDir/$(basename "$tmpDir/$nix_tar")"
 
 require_util curl "download the binary tarball"
 require_util bzcat "decompress the binary tarball"
 require_util tar "unpack the binary tarball"
 
-echo "downloading Nix 1.11.15 binary tarball for $system from '$url' to '$tmpDir'..."
+echo "downloading Nix $nix_version binary tarball for $system from '$url' to '$tmpDir'..."
 curl -L "$url" -o "$tarball" || oops "failed to download '$url'"
 
 if type sha256sum > /dev/null 2>&1; then
