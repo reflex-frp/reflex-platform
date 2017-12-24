@@ -93,6 +93,10 @@ in
   # package set of the platform we are developing for, allowing you to
   # build tools with the correct Haskell package set.
 
+, withHoogle ? true
+  # Set to false to disable building the hoogle database when entering
+  # the nix-shell.
+
 , android ? throw "No Android config"
   # ::
   # { <app name> ::
@@ -132,7 +136,7 @@ let
 in makeExtensible (prj: mapAttrs mkPkgSet shells // {
   shells = mapAttrs (name: pnames:
     this.workOnMulti' {
-      env = prj.${name}.override { overrides = self: super: {
+      env = prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
         ghcWithPackages = self.ghcWithHoogle;
       }; };
       packageNames = pnames;
