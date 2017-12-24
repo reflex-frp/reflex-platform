@@ -79,6 +79,20 @@ in
   #       }) {};
   #     };
 
+, tools ? _: []
+  # A function returning the list of tools to provide in the
+  # nix-shells.
+  #
+  #     tools = ghc: with ghc; [
+  #       hpack
+  #       pkgs.chromium
+  #     ];
+  #
+  # Some tools, like `ghc-mod`, have to be built with the same GHC as
+  # your project. The argument to the `tools` function is the haskell
+  # package set of the platform we are developing for, allowing you to
+  # build tools with the correct Haskell package set.
+
 , android ? throw "No Android config"
   # ::
   # { <app name> ::
@@ -117,9 +131,14 @@ let
   mkPkgSet = name: _: this.${name}.override { overrides = overrides'; };
 in makeExtensible (prj: mapAttrs mkPkgSet shells // {
   shells = mapAttrs (name: pnames:
-    this.workOnMulti (prj.${name}.override { overrides = self: super: {
-      ghcWithPackages = self.ghcWithHoogle;
-    }; }) pnames) shells;
+    this.workOnMulti' {
+      env = prj.${name}.override { overrides = self: super: {
+        ghcWithPackages = self.ghcWithHoogle;
+      }; };
+      packageNames = pnames;
+      inherit tools;
+    }
+  ) shells;
 
   android = mapAttrs (name: config:
     let

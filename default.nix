@@ -630,11 +630,13 @@ in let this = rec {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
-  workOnMulti = env: packageNames: nixpkgs.runCommand "shell" {
+  workOnMulti' = { env, packageNames, tools ? _: [] }: nixpkgs.runCommand "shell" {
     buildInputs = [
       (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames)))
-    ] ++ generalDevTools env;
+    ] ++ generalDevTools env ++ tools env;
   } "";
+
+  workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 
   # A simple derivation that just creates a file with the names of all of its inputs.  If built, it will have a runtime dependency on all of the given build inputs.
   pinBuildInputs = drvName: buildInputs: otherDeps: nixpkgs.runCommand drvName {
