@@ -678,7 +678,7 @@ in let this = rec {
 
   lib = haskellLib;
   inherit cabal2nixResult sources system;
-  project = args: import ./project this (args { pkgs = nixpkgs; });
+  project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
 }; in this
