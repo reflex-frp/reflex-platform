@@ -4,13 +4,14 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         sed -i 's%^executable *\(.*\)$%executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog%i' *.cabal
       '';
     });
+    #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
     addDeployScript = src: nixpkgs.runCommand "android-app" {
       inherit src;
       buildCommand = ''
         mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
         cat >"$out/bin/deploy" <<EOF
-          $(which adb) install "$(echo $out/*.apk)"
+          $(which adb) install -r "$(echo $out/*.apk)"
         EOF
         chmod +x "$out/bin/deploy"
       '';
