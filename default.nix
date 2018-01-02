@@ -44,8 +44,8 @@ let iosSupport =
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
       android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
-        arm64 = if system != "x86_64-linux" then null else {
-          inherit system;
+        arm64 = {
+          system = "x86_64-linux";
           overlays = [globalOverlay];
           crossSystem = {
             config = "aarch64-unknown-linux-android";
@@ -57,12 +57,11 @@ let iosSupport =
           };
           config.allowUnfree = true;
         };
-        arm64Impure = if system != "x86_64-linux" then null else arm64 // {
-          inherit system;
+        arm64Impure = arm64 // {
           crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
         };
-        armv7a = if system != "x86_64-linux" then null else {
-          inherit system;
+        armv7a = {
+          system = "x86_64-linux";
           overlays = [globalOverlay];
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
@@ -74,7 +73,7 @@ let iosSupport =
           };
           config.allowUnfree = true;
         };
-        armv7aImpure = if system != "x86_64-linux" then null else armv7a // {
+        armv7aImpure = armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
         };
       };
@@ -120,7 +119,7 @@ let iosSupport =
             };
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
-          inherit system;
+          system = "x86_64-darwin";
           overlays = [globalOverlay];
           crossSystem = {
             useIosPrebuilt = true;
@@ -139,8 +138,8 @@ let iosSupport =
           };
           inherit config;
         };
-        arm64 = if system != "x86_64-darwin" then null else {
-          inherit system;
+        arm64 = {
+          system = "x86_64-darwin";
           overlays = [globalOverlay];
           crossSystem = {
             useIosPrebuilt = true;
@@ -472,11 +471,15 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
-  androidWithHaskellPackages = assert (system == "x86_64-linux"); { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
+  androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android {
+    nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
+    inherit nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal;
+  };
   ios = iosWithHaskellPackages ghcIosArm64;
-  iosWithHaskellPackages = ghcIosArm64: assert (system == "x86_64-darwin"); {
+  iosWithHaskellPackages = ghcIosArm64: {
     buildApp = import ./ios {
-      inherit nixpkgs ghcIosArm64;
+      inherit ghcIosArm64;
+      nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
       inherit (nixpkgsCross.ios.arm64) libiconv;
     };
   };
