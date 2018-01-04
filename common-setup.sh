@@ -130,7 +130,19 @@ EOF
     fi
 }
 
-
+osx_freeze_version="10.13.1"
+allow_broken_macos="$HOME/.local/share/reflex-platform/allow-broken-macos"
+if (sw_vers | grep "ProductVersion" | grep "$osx_freeze_version" || false)  &> /dev/null; then
+    if [ ! -d "$allow_broken_macos" ]; then
+	echo ""
+	echo "Running nix on High Sierra $osx_freeze_version can cause system crashes"
+	echo "See https://github.com/NixOS/nix/issues/1583"
+	echo "Please update your system to continue safely"
+	echo "If you still want to try, do:"
+	echo "mkdir -p $allow_broken_macos"
+	exit 1
+    fi;
+fi
 
 >&2 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
 
