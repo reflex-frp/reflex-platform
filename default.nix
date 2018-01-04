@@ -682,7 +682,7 @@ in let this = rec {
   }).config.system.build.virtualBoxOVA;
 
   lib = haskellLib;
-  inherit cabal2nixResult sources system;
+  inherit cabal2nixResult sources system iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
