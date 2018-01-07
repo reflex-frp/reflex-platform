@@ -90,7 +90,7 @@ enable_cache() {
 		"No" )
 		    touch $skip_cache_setup
 		    return 0;;
-		"Ask next time" )
+		"Ask again next time" )
 		    return 0;;
 	    esac
 	done
