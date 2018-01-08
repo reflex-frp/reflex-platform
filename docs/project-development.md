@@ -45,7 +45,7 @@ quickly test things out, but this document only uses it to install
 Nix, so go ahead and `exit` out of this shell.
 
 In Reflex-DOM projects, it's common to have three separate Haskell
-components. The frontend, the backend, and the common code shared
+components: the frontend, the backend, and the common code shared
 between them. It's easiest to have a separate cabal package for each
 of these. We're going to teach Nix how to build them and how to give
 us an environment where they can be built by hand.
