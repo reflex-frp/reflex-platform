@@ -56,7 +56,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
 
 **Don't use** `cabal install` to install libraries while inside the try-reflex shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
 
-`try-reflex` and `ghcjs --make` are not recommended for real-world projects. It's designed as a quick and easy way to install Nix and experiment with `reflex-dom`. The recommended tools are described in [project-development.md](docs/project-development.md).
+`try-reflex` and `ghcjs --make` are not recommended for real-world projects — just as a quick and easy way to install Nix and experiment with `reflex-dom`. If you need to use additional Haskell libraries (e.g. from Hackage), we recommend using the tools described in [project-development.md](docs/project-development.md) instead.
 
 Tutorial
 --------
