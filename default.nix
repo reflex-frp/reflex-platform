@@ -612,7 +612,10 @@ in let this = rec {
     in [
     nativeHaskellPackages.Cabal
     nativeHaskellPackages.cabal-install
+    nativeHaskellPackages.ghc-mod
     nativeHaskellPackages.ghcid
+    nativeHaskellPackages.hasktags
+    nativeHaskellPackages.hdevtools
     nativeHaskellPackages.hlint
     nixpkgs.cabal2nix
     nixpkgs.curl
