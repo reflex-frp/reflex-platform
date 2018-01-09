@@ -636,11 +636,13 @@ in let this = rec {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
-  workOnMulti' = { env, packageNames, tools ? _: [] }: nixpkgs.runCommand "shell" {
-    buildInputs = [
-      (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames)))
-    ] ++ generalDevTools env ++ tools env;
-  } "";
+  workOnMulti' = { env, packageNames, tools ? _: [] }:
+    let ghcEnv = env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames));
+    in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
+      buildInputs = [
+        ghcEnv
+      ] ++ generalDevTools env ++ tools env;
+    }) "";
 
   workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 
