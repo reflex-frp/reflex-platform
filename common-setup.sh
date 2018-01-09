@@ -89,8 +89,11 @@ enable_cache() {
 		    break;;
 		"No" )
 		    touch $skip_cache_setup
+		    echo "To re-enable this prompt do: "
+		    echo "rm $skip_cache_setup"
+		    echo ""
 		    return 0;;
-		"Ask next time" )
+		"Ask again next time" )
 		    return 0;;
 	    esac
 	done
