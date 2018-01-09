@@ -133,7 +133,17 @@ EOF
     fi
 }
 
-
+allow_broken_macos="$HOME/.local/share/reflex-platform/allow-broken-macos"
+if (sw_vers | grep "ProductVersion" | grep "\(10.13.0\|10.13.2\)$" || false)  &> /dev/null; then
+    if [ ! -d "$allow_broken_macos" ]; then
+	echo "Running nix on High Sierra versions prior to 10.13.2 is likely to cause system crashes"
+	echo "See https://github.com/NixOS/nix/issues/1583"
+	echo "Please update your system to continue safely"
+	echo "If you still want to try, do:"
+	echo "mkdir -p $allow_broken_macos"
+	exit 1
+    fi;
+fi
 
 >&2 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
 
