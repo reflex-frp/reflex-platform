@@ -612,7 +612,6 @@ in let this = rec {
     in [
     nativeHaskellPackages.Cabal
     nativeHaskellPackages.cabal-install
-    nativeHaskellPackages.ghc-mod
     nativeHaskellPackages.ghcid
     nativeHaskellPackages.hasktags
     nativeHaskellPackages.hdevtools
@@ -623,7 +622,10 @@ in let this = rec {
     nixpkgs.nodejs
     nixpkgs.pkgconfig
     nixpkgs.closurecompiler
-  ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
+  ] ++ (optionals (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) [
+    # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
+    haskellPackages.ghc-mod
+  ]) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
   ] else []) ++ optionals (system == "x86_64-linux") androidDevTools;
 
