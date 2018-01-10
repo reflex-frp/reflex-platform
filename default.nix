@@ -608,6 +608,7 @@ in let this = rec {
     nativeHaskellPackages.Cabal
     nativeHaskellPackages.cabal-install
     nativeHaskellPackages.ghcid
+    nativeHaskellPackages.hasktags
     nativeHaskellPackages.hlint
     nixpkgs.cabal2nix
     nixpkgs.curl
@@ -615,7 +616,11 @@ in let this = rec {
     nixpkgs.nodejs
     nixpkgs.pkgconfig
     nixpkgs.closurecompiler
-  ] ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
+  ] ++ (optionals (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) [
+    # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
+    haskellPackages.ghc-mod
+    haskellPackages.hdevtools
+  ]) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
   ] else []) ++ optionals (system == "x86_64-linux") androidDevTools;
 
@@ -628,11 +633,13 @@ in let this = rec {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
-  workOnMulti' = { env, packageNames, tools ? _: [] }: nixpkgs.runCommand "shell" {
-    buildInputs = [
-      (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames)))
-    ] ++ generalDevTools env ++ tools env;
-  } "";
+  workOnMulti' = { env, packageNames, tools ? _: [] }:
+    let ghcEnv = env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames));
+    in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
+      buildInputs = [
+        ghcEnv
+      ] ++ generalDevTools env ++ tools env;
+    }) "";
 
   workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 

@@ -1,7 +1,7 @@
 { haskellLib, fetchFromGitHub }:
-
+with haskellLib;
 self: super: {
-  ChasingBottoms = haskellLib.dontCheck (self.callHackage "ChasingBottoms" "1.3.1.3" {});
+  ChasingBottoms = dontCheck (self.callHackage "ChasingBottoms" "1.3.1.3" {});
   base-orphans = self.callHackage "base-orphans" "0.6" {};
   cabal-install = self.callCabal2nix "cabal-install" ((fetchFromGitHub {
     owner = "haskell";
@@ -13,15 +13,15 @@ self: super: {
   distributive = self.callHackage "distributive" "0.5.3" {};
   doctest = self.callHackage "doctest" "0.13.0" {};
   gtk2hs-buildtools = self.callHackage "gtk2hs-buildtools" "0.13.3.0" {};
-  hackage-security = haskellLib.dontCheck (haskellLib.doJailbreak super.hackage-security);
+  hackage-security = dontCheck (doJailbreak super.hackage-security);
   haddock = null;
-  haddock-api = null; #haskellLib.dontCheck super.haddock-api;
-  haddock-library = null; #haskellLib.dontHaddock (haskellLib.dontCheck (self.callPackage ./haddock-library.nix {}));
+  haddock-api = null; #dontCheck super.haddock-api;
+  haddock-library = null; #dontHaddock (dontCheck (self.callPackage ./haddock-library.nix {}));
   hspec-meta = self.callHackage "hspec-meta" "2.4.4" {};
   primitive = self.callHackage "primitive" "0.6.2.0" {};
   profunctors = self.callHackage "profunctors" "5.2.1" {};
   semigroupoids = self.callHackage "semigroupoids" "5.2.1" {};
-  shelly = haskellLib.doJailbreak super.shelly;
+  shelly = doJailbreak super.shelly;
   syb = self.callHackage "syb" "0.7" {};
   vector = self.callHackage "vector" "0.12.0.1" {};
 }
