@@ -20,7 +20,10 @@ self: super: {
   };
 
   diagrams-lib = haskellLib.dontCheck super.diagrams-lib;
-  linear = haskellLib.dontCheck (self.callHackage "linear" "1.20.7" {});
-  bytes = haskellLib.dontCheck (self.callHackage "bytes" "0.15.3" {});
+  linear = haskellLib.dontCheck super.linear;
+  bytes = haskellLib.dontCheck super.bytes;
+
+  # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
+  doctest = builtins.trace "Warning: ignoring dependency on doctest" null;
 
 }
