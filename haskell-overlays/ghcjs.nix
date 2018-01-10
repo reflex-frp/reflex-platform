@@ -20,5 +20,7 @@ self: super: {
   };
 
   diagrams-lib = haskellLib.dontCheck super.diagrams-lib;
+  linear = haskellLib.dontCheck (self.callHackage "linear" "1.20.7" {});
+  bytes = haskellLib.dontCheck (self.callHackage "bytes" "0.15.3" {});
 
 }
