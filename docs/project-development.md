@@ -79,6 +79,19 @@ and `reflex-dom` as Haskell dependencies.
 ...
 ```
 
+Finally, Nix will fail to build `common` if it exports no modules.
+
+```haskell
+-- common/src/Common.hs
+module Common where
+```
+
+```yaml
+...
+  exposed-modules: Common
+...
+```
+
 
 Building with Nix
 ---
