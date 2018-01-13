@@ -17,12 +17,14 @@ main = hspec $ parallel $ do
     forM_ ["ghc", "ghcjs"] $ \platform -> do
       it ("can build hello world with " <> platform) $ do
         shelly $ silently $ do
+          os <- T.stripEnd <$> run "uname" ["-s"]
           d <- pwd
           withTmpDir $ \tmp -> do
             cd tmp
             let helloFilename = "hello.hs"
+                flags = if os == "Darwin" then " -dynamic" else ""
             writefile (fromText helloFilename) "{-# LANGUAGE OverloadedStrings #-}\nimport Reflex.Dom\nmain = mainWidget $ text \"Hello, world!\""
-            run (d </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> " " <> helloFilename <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
+            run (d </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> flags <> " " <> helloFilename <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
         return () :: IO ()
   describe "work-on" $ do
     -- Test that the work-on shell can build the core reflex libraries in a variety of configurations
@@ -110,4 +112,10 @@ main = hspec $ parallel $ do
     it "can be entered using a bare nix-shell" $ do
       shelly $ silently $ do
         run "nix-shell" []
+      return () :: IO ()
+  describe "benchmark" $ do
+    it "can build and run reflex-dom benchmarks" $ do
+      shelly $ silently $ do
+        d <- pwd
+        run (d </> ("benchmark" :: String)) []
       return () :: IO ()

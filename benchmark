@@ -1,36 +1,8 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i bash ./benchmark-shell.nix
+#!/usr/bin/env bash
 set -euo pipefail
-set -x
 
-BENCHMARK=js-framework-benchmark
-PACKAGES=(webdriver-ts webdriver-ts-results vanillajs-keyed)
-KRAUSEST_REFLEX_DOM=$BENCHMARK/reflex-dom-v0.4-keyed
-DIST=$KRAUSEST_REFLEX_DOM/dist
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-if [ ! -d "$BENCHMARK" ]; then
-    git clone https://github.com/alexfmpe/js-framework-benchmark
-    cd $BENCHMARK
-    git checkout 7ee92d6ec1b898bc49b37b356be64b1d305d76ae
-    npm install
-    for package in "${PACKAGES[@]}"; do
-	      cd $package
-	      npm install
-	      npm run build-prod
-	      cd ..
-    done
-    cd ..
-fi
+cd "$DIR"
 
-echo PWD=$PWD
-mkdir -p $DIST
-cp -Rf $(nix-build -A ghcjs.reflex-dom --no-out-link)/bin/krausest.jsexe/* $DIST
-cd $BENCHMARK
-
-npm start &
-SERVER_PID=$!
-
-cd webdriver-ts
-npm run selenium -- --framework vanillajs-keyed reflex --count 1 --headless --chromeBinary "$(which chromium)" --chromeDriver "$(which chromedriver)"
-npm run results
-kill $SERVER_PID
+"$(nix-build ./benchmark.nix)"
