@@ -38,11 +38,12 @@ user_error() {
     exit "$1"
 }
 
+on_darwin_host() { [ "$(uname -s)" == 'Darwin' ]; }
 
 reset_daemon() {
-    if [ "$(uname -s)" == 'Darwin' ]; then
-	sudo launchctl stop org.nixos.nix-daemon
-	sudo launchctl start org.nixos.nix-daemon
+    if on_darwin_host; then
+        sudo launchctl stop org.nixos.nix-daemon
+        sudo launchctl start org.nixos.nix-daemon
     fi;
 }
 
@@ -133,15 +134,17 @@ EOF
     fi
 }
 
-allow_broken_macos="$HOME/.local/share/reflex-platform/allow-broken-macos"
-if (sw_vers | grep "ProductVersion" | grep "\(10.13.0\|10.13.2\)$" || false)  &> /dev/null; then
-    if [ ! -d "$allow_broken_macos" ]; then
-	echo "Running nix on High Sierra versions prior to 10.13.2 is likely to cause system crashes"
-	echo "See https://github.com/NixOS/nix/issues/1583"
-	echo "Please update your system to continue safely"
-	echo "If you still want to try, do:"
-	echo "mkdir -p $allow_broken_macos"
-	exit 1
+if on_darwin_host; then
+    if (sw_vers | grep "ProductVersion" | grep "\(10.13.0\|10.13.1\)$" || false) &> /dev/null; then
+        allow_broken_macos="$HOME/.local/share/reflex-platform/allow-broken-macos"
+        if [ ! -d "$allow_broken_macos" ]; then
+            echo "Running nix on High Sierra versions prior to 10.13.2 is likely to cause system crashes"
+            echo "See https://github.com/NixOS/nix/issues/1583"
+            echo "Please update your system to continue safely"
+            echo "If you still want to try, do:"
+            echo "mkdir -p $allow_broken_macos"
+            exit 1
+        fi;
     fi;
 fi
 
