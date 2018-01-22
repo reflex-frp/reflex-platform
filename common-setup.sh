@@ -83,7 +83,7 @@ enable_cache() {
 
   mkdir -p "$user_prefs"
   if [ "$installing_nix" = false ]; then
-    read -rp "Add binary caches for reflex to $nixconf ?"
+    echo "Add binary caches for reflex to $nixconf ?"
     select yn in "Yes" "No" "Ask again next time"; do
       case $yn in
         "Yes" )
