@@ -264,12 +264,15 @@ To use it, add `jsaddle-warp` and `reflex-dom-core` to your frontend's
 dependencies, and change `main` like so:
 
 ```haskell
-import Language.Javascript.JSaddle.Warp
-import Reflex.Dom.Core (mainWidget)
-import Reflex.Dom hiding (mainWidget)
+import qualified Language.Javascript.JSaddle.Warp as JSaddle
+import           Reflex.Dom                       hiding (mainWidget)
+import           Reflex.Dom.Core                  (mainWidget)
 
 main :: IO ()
-main = run 3911 $ mainWidget app
+main = JSaddle.run 3911 app
+
+app = mainWidget $ el "div" $ do
+ text "My app"
 ```
 
 This will spawn the Warp server on port 3911, which you can connect
