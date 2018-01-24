@@ -1,5 +1,7 @@
 { haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer }:
 
+with haskellLib;
+
 self: super: {
   ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
     inherit (self) llvmPackages;
@@ -8,7 +10,7 @@ self: super: {
     ${if useReflexOptimizer then "ghcLibdir" else null} = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
 
-  ghcjs-base = haskellLib.doJailbreak (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
+  ghcjs-base = doJailbreak (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
     owner = "ghcjs";
     repo = "ghcjs-base";
     rev = "43804668a887903d27caada85693b16673283c57";
@@ -19,11 +21,10 @@ self: super: {
     withPackages = self.ghcWithPackages;
   };
 
-  diagrams-lib = haskellLib.dontCheck super.diagrams-lib;
-  linear = haskellLib.dontCheck super.linear;
-  bytes = haskellLib.dontCheck super.bytes;
+  diagrams-lib = dontCheck super.diagrams-lib;
+  linear = dontCheck super.linear;
+  bytes = dontCheck super.bytes;
 
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = builtins.trace "Warning: ignoring dependency on doctest" null;
-
 }

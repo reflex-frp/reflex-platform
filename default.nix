@@ -16,13 +16,9 @@ let iosSupport =
       else if iosSupportForce || builtins.pathExists iosSdkLocation then true
       else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
     globalOverlay = self: super: {
-      all-cabal-hashes = super.all-cabal-hashes.override {
-        src-spec = {
-          owner = "commercialhaskell";
-          repo = "all-cabal-hashes";
-          rev = "2b0bf3ddf8b75656582c1e45c51caa59458cd3ad";
-          sha256 = "0g4nvvgfg9npd0alysd67ckhvx3s66q8b5x0x9am2myjrha3fjgq";
-        };
+      all-cabal-hashes = fetchurl {
+        url = "https://github.com/commercialhaskell/all-cabal-hashes/archive/f3ed6300a062de13303d4dd8b3a42b8bc2b02744.tar.gz";
+        sha256 = "065388vlnd1f1ylwayn1336idx02ci43rscz2jslpxlshvq2z2y7";
       };
     };
     nixpkgs = nixpkgsFunc ({
@@ -35,7 +31,7 @@ let iosSupport =
           "webkitgtk-2.4.11"
         ];
         packageOverrides = pkgs: {
-          webkitgtk = pkgs.webkitgtk216x;
+          webkitgtk = pkgs.webkitgtk218x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
         };
@@ -247,7 +243,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         }) {};
         quickcheck-instances = doJailbreak super.quickcheck-instances;
 
-        haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.1" {};
         gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
 
         ########################################################################
@@ -285,24 +280,26 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         # Tweaks
         ########################################################################
-        gi-glib = self.callPackage ./gi-glib.nix {};
-        gi-gio = self.callPackage ./gi-gio.nix {};
-        gi-gtk = self.callPackage ./gi-gtk.nix {
-          gtk3 = nixpkgs.gnome3.gtk;
-        };
-        gi-javascriptcore = self.callPackage ./gi-javascriptcore.nix {};
-        gi-webkit2 = self.callPackage ./gi-webkit2.nix {
-          webkitgtk = nixpkgs.webkitgtk216x;
-        };
-        gi-gtksource = super.gi-gtksource.override {
-          inherit (nixpkgs.gnome3) gtksourceview;
-        };
+        # We can't use callHackage on haskell-gi-base, because it has a system
+        # dependency that callHackage doesn't figure out
+        haskell-gi-base = overrideCabal super.haskell-gi-base (drv: {
+          version = "0.21.0";
+          sha256 = "1vrz2vrmvsbahzsp1c06x4qmny5qhbrnz5ybzh5p8z1g3ji9z166";
+          revision = null;
+          editedCabalFile = null;
+        });
+
+        haskell-gi = self.callHackage "haskell-gi" "0.21.0" {};
         ghcjs-base-stub = dontHaddock super.ghcjs-base-stub;
+
+        exception-transformers = doJailbreak super.exception-transformers;
+        haskell-src-exts = self.callHackage "haskell-src-exts" "1.20.1" {};
+        haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.2" {};
 
         haskell-gi-overloading = super.haskell-gi-overloading_0_0;
 
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
-          webkitgtk = nixpkgs.webkitgtk216x;
+          webkitgtk = nixpkgs.webkitgtk218x;
         };
 
         cabal-macosx = overrideCabal super.cabal-macosx (drv: {
@@ -377,9 +374,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       ghcjsBootSrc = sources.ghcjs-boot;
       shims = sources.shims;
       stage2 = import stage2Script;
+      inherit (nixpkgs) cabal-install;
+      patches = [
+        (nixpkgs.path + "/pkgs/development/compilers/ghcjs/ghcjs-head.patch")
+      ];
     };
     ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghcjsCompiler;
+      buildHaskellPackages = ghcjsCompiler.bootPkgs;
       compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { inherit haskellLib; };
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
