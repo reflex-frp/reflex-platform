@@ -247,11 +247,25 @@ cleanup_nix_path() {
   echo "$1" | sed 's@/*$@@'
 }
 
+nix_version_at_least() {
+  if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVersion \"$1\" " )" -gt "-1" ]
+  then echo "true"
+  else echo "false"
+  fi;
+}
+
 prebuild_try_reflex_shell() {
-  nix-build "$DIR/shell.nix" $NIXOPTS --add-root "$DIR/gc-roots/shell.out" >/dev/null
+  if [ $(nix_version_at_least "1.12pre") == "true" ]
+  then nix-build "$DIR/shell.nix" $NIXOPTS --add-root "$DIR/gc-roots/shell.out" >/dev/null
+  else nix-build "$DIR/shell.nix" --drv-link "$DIR/gc-roots/shell.drv" $NIXOPTS --indirect --add-root "$DIR/gc-roots/shell.out" >/dev/null
+  fi;
 }
 
 try_reflex_shell() {
   prebuild_try_reflex_shell
-  nix-shell $NIXOPTS "$@"
+
+  if [ $(nix_version_at_least "1.12pre") == "true" ]
+  then nix-shell $NIXOPTS "$@"
+  else nix-shell "$DIR/gc-roots/shell.drv" $NIXOPTS "$@"
+  fi;
 }
