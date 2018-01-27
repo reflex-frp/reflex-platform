@@ -686,7 +686,16 @@ in let this = rec {
 
   lib = haskellLib;
   inherit cabal2nixResult sources system iosSupport;
-  project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
+
+  project = import ./project this;
+  project-docs = import
+    (nixpkgs.path + /nixos/doc/manual/default.nix)
+    {
+      inherit (this.project ({ ... }: {})) config options;
+      pkgs = nixpkgs;
+      version = "0.1";
+      revision = "0.1";
+    };
 }; in this
