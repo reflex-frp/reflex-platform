@@ -266,7 +266,7 @@ dependencies, and change `main` like so:
 ```haskell
 import Language.Javascript.JSaddle.Warp
 import Reflex.Dom.Core (mainWidget)
-import Reflex.Dom hiding (mainWidget)
+import Reflex.Dom hiding (mainWidget, run)
 
 main :: IO ()
 main = run 3911 $ mainWidget app
