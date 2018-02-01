@@ -26,6 +26,17 @@ JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnCreate (JN
   }
 }
 
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnCreateWithIntent (JNIEnv *env, jobject thisObj, jlong callbacksLong, jstring intent, jstring intentdata) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
+  if(callbacks->onCreateWithIntent) {
+    const char *cstring_intent = (*env)->GetStringUTFChars(env, intent, 0);
+    const char *cstring_intentdata = (*env)->GetStringUTFChars(env, intentdata, 0);
+    callbacks->onCreateWithIntent(cstring_intent, cstring_intentdata);
+    (*env)->ReleaseStringUTFChars(env, intent, cstring_intent);
+    (*env)->ReleaseStringUTFChars(env, intentdata, cstring_intentdata);
+  }
+}
+
 JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnStart (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onStart) {

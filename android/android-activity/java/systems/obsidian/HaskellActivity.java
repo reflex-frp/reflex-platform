@@ -15,6 +15,7 @@ import java.util.concurrent.SynchronousQueue;
 public class HaskellActivity extends Activity {
   public native int haskellStartMain(SynchronousQueue<Long> setCallbacks);
   public native void haskellOnCreate(long callbacks);
+  public native void haskellOnCreateWithIntent(long callbacks, String intent, String intentdata);
   public native void haskellOnStart(long callbacks);
   public native void haskellOnResume(long callbacks);
   public native void haskellOnPause(long callbacks);
@@ -75,6 +76,10 @@ public class HaskellActivity extends Activity {
       finish();
     } else {
       haskellOnCreate(callbacks); //TODO: Pass savedInstanceState as well
+      Intent intent = getIntent();
+      String intentDataString = intent == null || intent.getDataString() == null ? "" : intent.getDataString();
+      String intentAction = intent == null || intent.getAction() == null ? "" : intent.getAction();
+      haskellOnCreateWithIntent(callbacks, intentAction, intentDataString); //TODO: Use a more canonical way of passing this data - i.e. pass the Intent and let the Haskell side get the data out with JNI
     }
   }
 
