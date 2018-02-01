@@ -1,4 +1,6 @@
-{ this, pkgs, config, options, lib }: let
+this:
+{ config, options, lib }: let
+  pkgs = this.nixpkgs;
   inherit (lib) mapAttrs mapAttrsToList escapeShellArg
     optionalString concatStringsSep concatMapStringsSep;
   inherit (config) packages shells overrides tools
@@ -86,4 +88,24 @@
       ${tracedMobileLinks "android" "x86_64-linux" prj.android}
       ${tracedMobileLinks "ios" "x86_64-darwin" prj.ios}
     '';
-in all false
+in {
+  options = {
+    reflex = lib.mkOption {
+      type = lib.types.unspecified;
+      internal = true;
+      visible = false;
+    };
+
+    project = lib.mkOption {
+      type = lib.types.package;
+      internal = true;
+      visible = false;
+    };
+  };
+
+  config = {
+    project = all false;
+    reflex = this;
+    _module.args = { pkgs = this.nixpkgs; inherit (config) project reflex; };
+  };
+}

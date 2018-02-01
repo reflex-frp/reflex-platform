@@ -690,12 +690,4 @@ in let this = rec {
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
 
   project = import ./project this;
-  project-docs = import
-    (nixpkgs.path + /nixos/doc/manual/default.nix)
-    {
-      inherit (this.project ({ ... }: {})) config options;
-      pkgs = nixpkgs;
-      version = "0.1";
-      revision = "0.1";
-    };
 }; in this

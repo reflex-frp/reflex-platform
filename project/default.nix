@@ -119,7 +119,7 @@ let
       android = mkOption {
         description = ''
           Use this argument to configure android apps. The returned
-          derivations will be in `android.&lt;app name&gt;`.
+          derivations will be in `android.<app name>`.
         '';
         type = attrsOf (submodule (_: {
           options = {
@@ -148,7 +148,7 @@ let
             package = mkOption {
               description = ''
                 The Haskell package to get your frontend executable
-                from. Defaults to `&lt;name&gt;`.
+                from. Defaults to `<name>`.
               '';
               type = unspecified;
               example = literalExample "p: p.frontend";
@@ -169,7 +169,7 @@ let
       ios = mkOption {
         description = ''
           Use this argument to configure ios apps. The returned
-          derivations will be in `ios.&lt;app name&gt;`.
+          derivations will be in `ios.<app name>`.
         '';
         type = attrsOf (submodule (_: {
           options = {
@@ -198,7 +198,7 @@ let
             package = mkOption {
               description = ''
                 The Haskell package to get your frontend executable
-                from. Defaults to `&lt;name&gt;`.
+                from. Defaults to `<name>`.
               '';
               type = unspecified;
               example = literalExample "p: p.frontend";
@@ -215,26 +215,9 @@ let
         };
         default = {};
       };
-
-      reflex = mkOption {
-        type = unspecified;
-        internal = true;
-        visible = false;
-      };
-
-      project = mkOption {
-        type = package;
-        internal = true;
-        visible = false;
-      };
     };
-
-    config = {
-      project = import ./impl.nix { pkgs = nixpkgs; inherit this config options lib; };
-      reflex = this;
-      _module.args = { pkgs = nixpkgs; inherit (config) project reflex; };
-    };
+    imports = [(import ./impl.nix this) ./doc.nix f];
   };
 
-  module = nixpkgs.lib.evalModules { modules = [definitions f]; };
+  module = nixpkgs.lib.evalModules { modules = [definitions]; };
 in module.config.project
