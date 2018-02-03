@@ -37,44 +37,34 @@ self: super: {
   hscolour = null;
   cabal-macosx = null;
 
+  #TODO: The following packages' tests fail due to this error:
   # installHandler: not available for GHCJS
   tasty-quickcheck = dontCheck super.tasty-quickcheck;
-  blaze-markup = dontCheck super.blaze-markup;
   scientific = dontCheck super.scientific;
-  cookie = dontCheck super.cookie;
   uuid-types = dontCheck super.uuid-types;
-  cryptohash-sha1 = dontCheck super.cryptohash-sha1;
-  cryptohash-md5 = dontCheck super.cryptohash-md5;
-  http-types = dontCheck super.http-types;
-  wai = dontCheck super.wai;
-  fast-logger = dontCheck super.fast-logger;
-  iproute = dontCheck super.iproute;
-  logging-facade = dontCheck super.logging-facade;
-  streaming-commons = dontCheck super.streaming-commons;
-  memory = dontCheck super.memory;
-  aeson = dontCheck super.aeson;
   these = dontCheck super.these;
 
+  #TODO: These look like real test failures:
+  aeson = dontCheck super.aeson;
+  # Also, pureMD5 is failing
+
+  #TODO: The following packages' tests fail with errors like this:
+  # Error: Cannot find module '/tmp/nix-build-hspec-discover-2.4.4.drv-0/hspec-discover-2.4.4/var h$currentThread = null;'
   hspec-core = dontCheck super.hspec-core;
   hspec-discover = dontCheck super.hspec-discover;
-  hspec-meta-discover = dontCheck super.hspec-meta-discover;
   hspec = dontCheck super.hspec;
   bifunctors = dontCheck super.bifunctors;
   base-compat = dontCheck super.base-compat;
   generic-deriving = dontCheck super.generic-deriving;
   newtype-generics = dontCheck super.newtype-generics;
   lens = disableCabalFlag (dontCheck super.lens) "test-properties";
-  word8 = dontCheck super.word8;
-  mockery = dontCheck super.mockery;
-  http2 = dontCheck super.http2;
-  wai-extra = dontCheck super.wai-extra;
 
-  #TODO: These seem like they might be real failures
-  Glob = dontCheck super.Glob;
-
-  #TODO: Do we need this patch?
+  #TODO: Do we need this patch? it doesn't seem to apply properly
   # hashable = appendPatch super.hashable ../hashable-1.2.6.1.patch;
 
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = builtins.trace "Warning: ignoring dependency on doctest" null;
+
+  # These packages require doctest
+  http-types = dontCheck super.http-types;
 }
