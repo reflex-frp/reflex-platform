@@ -1,0 +1,91 @@
+commit b4e56c00f0988ef5236d1aed5437b3709d340365
+Author: Luigy Leon <luigy@outlook.com>
+Date:   Sun Sep 18 23:52:10 2016 -0400
+
+    Add text-jsstring support.
+
+diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
+index f848d7b..a12894b 100644
+--- a/Data/Hashable/Class.hs
++++ b/Data/Hashable/Class.hs
+@@ -9,6 +9,10 @@
+ {-# LANGUAGE PolyKinds #-} -- For TypeRep instances
+ #endif
+ 
++#ifdef __GHCJS__
++{-# LANGUAGE JavaScriptFFI, UnboxedTuples, GHCForeignImportPrim #-}
++#endif
++
+ #ifdef GENERICS
+ {-# LANGUAGE DefaultSignatures, FlexibleContexts, GADTs,
+     MultiParamTypeClasses, EmptyDataDecls #-}
+@@ -74,7 +78,9 @@ import Data.Int (Int8, Int16, Int32, Int64)
+ import Data.List (foldl')
+ import Data.Ratio (Ratio, denominator, numerator)
+ import qualified Data.Text as T
++#ifndef __GHCJS__
+ import qualified Data.Text.Array as TA
++#endif
+ import qualified Data.Text.Internal as T
+ import qualified Data.Text.Lazy as TL
+ import Data.Version (Version(..))
+@@ -89,6 +95,9 @@ import GHC.Prim (ThreadId#)
+ import System.IO.Unsafe (unsafeDupablePerformIO)
+ import System.Mem.StableName
+ import Data.Unique (Unique, hashUnique)
++#ifdef __GHCJS__
++import Data.JSString (JSString)
++#endif
+ 
+ -- As we use qualified F.Foldable, we don't get warnings with newer base
+ import qualified Data.Foldable as F
+@@ -155,7 +164,11 @@ import qualified Data.ByteString.Short.Internal as BSI
+ #  define MIN_VERSION_integer_gmp_1_0_0
+ # endif
+ 
++#ifndef __GHCJS__
+ import GHC.Exts (Int(..))
++#else
++import GHC.Exts (Int(..), Int#)
++#endif
+ import GHC.Integer.GMP.Internals (Integer(..))
+ # if defined(MIN_VERSION_integer_gmp_1_0_0)
+ import GHC.Exts (sizeofByteArray#)
+@@ -620,9 +633,15 @@ instance Hashable BSI.ShortByteString where
+ #endif
+ 
+ instance Hashable T.Text where
++#ifndef __GHCJS__
+     hashWithSalt salt (T.Text arr off len) =
+         hashByteArrayWithSalt (TA.aBA arr) (off `shiftL` 1) (len `shiftL` 1)
+         salt
++#else
++    hashWithSalt salt (T.Text txt) =
++        let (# ba, len #) = js_textFromJSString txt
++        in hashByteArrayWithSalt ba (0 `shiftL` 1) (I# len `shiftL` 1) salt
++#endif
+ 
+ instance Hashable TL.Text where
+     hashWithSalt = TL.foldlChunks hashWithSalt
+@@ -909,3 +928,8 @@ instance Show1 Hashed where
+ #endif
+ 
+ 
++#ifdef __GHCJS__
++foreign import javascript unsafe
++  "h$textFromString"
++  js_textFromJSString :: JSString -> (# ByteArray#, Int# #)
++#endif
+diff --git a/hashable.cabal b/hashable.cabal
+index c782ea4..0aa1521 100644
+--- a/hashable.cabal
++++ b/hashable.cabal
+@@ -49,6 +49,8 @@ Library
+   Build-depends:     base >= 4.4 && < 4.11,
+                      bytestring >= 0.9 && < 0.11,
+                      deepseq >= 1.3
++  if impl(ghcjs)
++    Build-depends:   ghcjs-base
+   if impl(ghc)
+     Build-depends:   ghc-prim,
+                      text >= 0.11.0.5

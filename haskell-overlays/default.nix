@@ -1,6 +1,8 @@
-{ haskellLib
+{ lib
+, haskellLib
 , nixpkgs, jdk, fetchFromGitHub
-, useReflexOptimizer, stage2Script
+, useReflexOptimizer
+, hackGet
 }:
 
 rec {
@@ -9,10 +11,10 @@ rec {
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
-    inherit haskellLib fetchFromGitHub;
+    inherit lib haskellLib fetchFromGitHub hackGet;
   };
 
-  ghc = import ./ghc.nix { inherit haskellLib stage2Script; };
+  ghc = import ./ghc.nix { inherit haskellLib; };
   ghc-7 = nixpkgs.lib.composeExtensions
     ghc
     (import ./ghc-7.x.y.nix { inherit haskellLib; });
@@ -22,15 +24,15 @@ rec {
   ghc-8 = nixpkgs.lib.composeExtensions
     ghc
     (import ./ghc-8.x.y.nix { });
-  ghc-8_2_1 = nixpkgs.lib.composeExtensions
+  ghc-8_2_2 = nixpkgs.lib.composeExtensions
     ghc-8
-    (import ./ghc-8.2.1.nix { inherit haskellLib fetchFromGitHub; });
+    (import ./ghc-8.2.2.nix { inherit haskellLib fetchFromGitHub; });
   ghc-head = nixpkgs.lib.composeExtensions
     ghc-8
     (import ./ghc-head.nix { inherit haskellLib fetchFromGitHub; });
 
   ghcjs = import ./ghcjs.nix {
-    inherit haskellLib nixpkgs fetchFromGitHub useReflexOptimizer;
+    inherit haskellLib nixpkgs fetchFromGitHub useReflexOptimizer hackGet;
   };
   android = import ./android { inherit haskellLib; inherit (nixpkgs) jdk; };
   ios = import ./ios.nix { inherit haskellLib; };

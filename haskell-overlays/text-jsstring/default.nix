@@ -1,4 +1,7 @@
-{ haskellLib, fetchFromGitHub }:
+{ lib, haskellLib, fetchFromGitHub, hackGet }:
+
+with lib;
+with haskellLib;
 
 self: super: {
   text = self.callCabal2nix "text" (fetchFromGitHub {
@@ -7,23 +10,13 @@ self: super: {
     rev = "6cc95ebb07c07001666d84ace5c13caefaaa0cad";
     sha256 = "1zplzy9mfpwjrk5l22gmla1vmk7wmwmgmjfk64b57ysn7madlv19";
   }) {};
-  jsaddle = haskellLib.overrideCabal super.jsaddle (drv: {
-    patches = (drv.patches or []) ++ [
-      ./jsaddle-text-jsstring.patch
-    ];
+  jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
-      self.ghcjs-json
       self.ghcjs-base
       self.ghcjs-prim
     ];
   });
-  ghcjs-json = self.callCabal2nix "ghcjs-json" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "ghcjs-json";
-    rev = "3a6e1e949aced800d32e0683a107f5387295f3a6";
-    sha256 = "1pjsvyvy6ac3358db19iwgbmsmm0si2hzh2ja1hclq43q6d80yij";
-  }) {};
-  ghcjs-base = haskellLib.overrideCabal super.ghcjs-base (drv: {
+  ghcjs-base = overrideCabal super.ghcjs-base (drv: {
     src = fetchFromGitHub {
       owner = "luigy";
       repo = "ghcjs-base";
@@ -36,7 +29,7 @@ self: super: {
       transformers vector
     ];
   });
-  attoparsec = haskellLib.overrideCabal super.attoparsec (drv: {
+  attoparsec = overrideCabal super.attoparsec (drv: {
     src = fetchFromGitHub {
       owner = "luigy";
       repo = "attoparsec";
@@ -44,7 +37,7 @@ self: super: {
       sha256 = "106fn187hw9z3bidbkp7r4wafmhk7g2iv2k0hybirv63f8727x3x";
     };
   });
-  buffer-builder = haskellLib.overrideCabal super.buffer-builder (drv: {
+  buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {
       owner = "obsidiansystems";
@@ -53,13 +46,19 @@ self: super: {
       sha256 = "18dd2ydva3hnsfyrzmi3y3r41g2l4r0kfijaan85y6rc507k6x5c";
     };
   });
-  hashable = haskellLib.addBuildDepend (self.callCabal2nix "hashable" (fetchFromGitHub {
-    owner = "luigy";
-    repo = "hashable";
-    rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
-    sha256 = "1rl55p5y0mm8a7hxlfzhhgnnciw2h63ilxdaag3h7ypdx4bfd6rs";
-  }) {}) self.text;
-  conduit-extra = haskellLib.overrideCabal super.conduit-extra (drv: {
+  hashable = overrideCabal super.hashable (drv: {
+    revision = null;
+    editedCabalFile = null;
+    jailbreak = true;
+    doCheck = false;
+    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+      self.text
+    ];
+    patches = (drv.patches or []) ++ [
+      ./hashable.patch
+    ];
+  });
+  conduit-extra = overrideCabal super.conduit-extra (drv: {
     src = "${fetchFromGitHub {
       owner = "luigy";
       repo = "conduit";
@@ -67,7 +66,7 @@ self: super: {
       sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
     }}/conduit-extra";
   });
-  double-conversion = haskellLib.overrideCabal super.double-conversion (drv: {
+  double-conversion = overrideCabal super.double-conversion (drv: {
     src = fetchFromGitHub {
       owner = "obsidiansystems";
       repo = "double-conversion";
@@ -75,12 +74,20 @@ self: super: {
       sha256 = "0sjljf1sbwalw1zycpjf6bqhljag9i1k77b18b0fd1pzrc29wnks";
     };
   });
-  say = haskellLib.overrideCabal super.say (drv: {
+  say = overrideCabal super.say (drv: {
     patches = (drv.patches or []) ++ [
-      ./say-text-jsstring.patch
+      ./say.patch
     ];
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
     ];
   });
+  vector = overrideCabal super.vector (drv: {
+    buildDepends = filter (p: p.pname != "semigroups") drv.buildDepends;
+  });
+
+  #TODO: Fix this failure
+  th-lift-instances = dontCheck super.th-lift-instances;
+
+  aeson = appendPatch super.aeson ./aeson.patch;
 }
