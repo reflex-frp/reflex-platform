@@ -71,7 +71,6 @@ self: super: {
 
   #TODO: These seem like they might be real failures
   Glob = dontCheck super.Glob;
-  pureMD5 = dontCheck super.pureMD5;
 
   #TODO: Do we need this patch?
   # hashable = appendPatch super.hashable ../hashable-1.2.6.1.patch;
