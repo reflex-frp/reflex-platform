@@ -260,12 +260,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
         haven = self.callHackage "haven" "0.2.0.0" {};
 
-        inherit (jsaddlePkgs) jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
-        jsaddle = if (self.ghc.isGhcjs or false)
-          then overrideCabal jsaddlePkgs.jsaddle (drv: {
-            libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [self.ghcjs-base self.ghcjs-prim];
-          })
-          else jsaddlePkgs.jsaddle;
+        inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
 
         jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
