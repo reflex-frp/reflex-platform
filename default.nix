@@ -260,7 +260,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
-        haven = self.callHackage "haven" "0.2.0.0" {};
+        haven = doJailbreak (self.callHackage "haven" "0.2.0.0" {});
         ghci-ghcjs = self.callCabal2nix "ghci-ghcjs" (self.ghcjsSrc + "/lib/ghci-ghcjs") {};
         ghcjs-th = self.callCabal2nix "ghcjs-th" (self.ghcjsSrc + "/lib/ghcjs-th") {};
         template-haskell-ghcjs = self.callCabal2nix "template-haskell-ghcjs" (self.ghcjsSrc + "/lib/template-haskell-ghcjs") {};
@@ -456,6 +456,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
 #      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
 #    };
+  ghc = ghc8_2_2;
   ghcjs = (extendHaskellPackages ghcjsPackages).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -475,7 +476,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ghc-8_2_2
     ];
   };
-  ghc = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802).override {
+  ghc8_0_2 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8
