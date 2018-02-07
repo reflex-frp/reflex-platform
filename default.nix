@@ -290,6 +290,10 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           cp -r "$src" "$out"
           chmod -R +w "$out"
           cd "$out/ghc"
+
+          #TODO: Find a better way to avoid impure version numbers
+          sed -i 's/RELEASE=NO/RELEASE=YES/' configure.ac
+
           patchShebangs .
           ./boot
           ./configure
@@ -300,7 +304,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         '';
         ghcjs-test = appendConfigureFlag (doJailbreak (dontHaddock (self.callCabal2nix "ghcjs" self.ghcjsSrc {}))) "-fno-wrapper-install";
         #TODO: makePackages.sh creates impurity by using the ghc development version, which is based on the current time
-        ghcjs-booted = nixpkgs.runCommand "ghcjs-booted" {
+        ghcjs-booted = nixpkgs.runCommand "ghcjs-${self.ghcjs-test.version}" {
           #TODO: Add hscolour, haddock, and hoogle
           nativeBuildInputs = [
             self.ghc
