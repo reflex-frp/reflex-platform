@@ -178,6 +178,15 @@ let iosSupport =
     };
     inherit (nixpkgs.stdenv.lib) optional optionals;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
+    applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
+      inherit src patch;
+    } ''
+      cp -r "$src" "$out"
+
+      cd "$out"
+      chmod -R +w .
+      patch -p1 <"$patch"
+    '';
 in with haskellLib;
 let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
@@ -276,15 +285,17 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           buildInputs = [
             nixpkgs.gmp
           ];
-          src = hackGet ./ghcjs;
+          src = (if useFastWeak then applyPatch ./fast-weak.patch else id) (hackGet ./ghcjs);
         } ''
           cp -r "$src" "$out"
           chmod -R +w "$out"
           cd "$out/ghc"
+          patchShebangs .
           ./boot
           ./configure
           make -j"$NIX_BUILD_CORES"
           cd ..
+          patchShebangs utils
           ./utils/makePackages.sh copy
         '';
         ghcjs-test = appendConfigureFlag (doJailbreak (dontHaddock (self.callCabal2nix "ghcjs" self.ghcjsSrc {}))) "-fno-wrapper-install";
