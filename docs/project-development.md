@@ -1,21 +1,25 @@
 # Project Development
 
 This document describes how to build real-world applications written
-in Reflex. You will see how to:
+in Reflex.
 
-<!-- To generate TOC you need https://github.com/ardumont/markdown-toc -->
-<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-**Table of Contents**
+<!-- TOC can be updated using pandoc:
 
-- [Project Development](#project-development)
-    - [Create a project from scratch](#create-a-project-from-scratch)
-    - [Building with Nix](#building-with-nix)
-    - [Development](#development)
-        - [Incrementally building with Cabal](#incrementally-building-with-cabal)
-        - [Quickly building frontends with GHC](#quickly-building-frontends-with-ghc)
-    - [Building mobile apps](#building-mobile-apps)
+echo '$toc$' > toc.markdown && pandoc --toc --template=toc -o /dev/stdout project-development.md && rm toc.markdown
 
-<!-- markdown-toc end -->
+Then copy and overwrite the TOC below.
+-->
+
+-   [Project Development](#project-development)
+    -   [Create a project from scratch](#create-a-project-from-scratch)
+    -   [Building with Nix](#building-with-nix)
+    -   [Development](#development)
+        -   [Incrementally building with
+            Cabal](#incrementally-building-with-cabal)
+        -   [Quickly building frontends with
+            GHC](#quickly-building-frontends-with-ghc)
+    -   [Building mobile apps](#building-mobile-apps)
+
 
 ## Create a project from scratch
 
