@@ -1,19 +1,6 @@
 flags: -overloaded-methods -overloaded-signals -overloaded-properties
 
-packages:
- jsaddle/jsaddle/
- jsaddle/jsaddle-warp/
- jsaddle/jsaddle-wkwebview/
--- jsaddle/jsaddle-webkitgtk/
- jsaddle/jsaddle-webkit2gtk/
- jsaddle-dom/
- ghcjs-dom/ghcjs-dom/
- ghcjs-dom/ghcjs-dom-jsffi/
- ghcjs-dom/ghcjs-dom-jsaddle/
- reflex/
- reflex-dom/reflex-dom-core/
- reflex-dom/reflex-dom/
- reflex-todomvc/
+optional-packages: *
 
 -- Needed for ios
 -- package reflex
