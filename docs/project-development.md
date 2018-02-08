@@ -1,17 +1,23 @@
-Project Development
----
+# Project Development
 
 This document describes how to build real-world applications written
 in Reflex. You will see how to:
 
-- [Create a project from scratch](#creating-the-project)
-- [Build it with Nix](#building-with-nix)
-- [Develop it incrementally](#building-with-cabal)
-- [Test it quickly](#building-frontends-with-ghc)
-- [Make simple mobile apps](#building-mobile-apps)
+<!-- To generate TOC you need https://github.com/ardumont/markdown-toc -->
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
 
-Creating the Project
----
+- [Project Development](#project-development)
+    - [Create a project from scratch](#create-a-project-from-scratch)
+    - [Building with Nix](#building-with-nix)
+    - [Development](#development)
+        - [Incrementally building with Cabal](#incrementally-building-with-cabal)
+        - [Quickly building frontends with GHC](#quickly-building-frontends-with-ghc)
+    - [Building mobile apps](#building-mobile-apps)
+
+<!-- markdown-toc end -->
+
+## Create a project from scratch
 
 First, create a directory for your project. This will contain all of
 the files needed for the build process and a checkout of
@@ -93,8 +99,7 @@ module Common where
 ```
 
 
-Building with Nix
----
+## Building with Nix
 
 Nix will be used to manage installing dependencies and building the
 project. In the root directory of your project, create this
@@ -150,8 +155,9 @@ $ nix-build -o frontend-result -A ghcjs.frontend
 These commands will create two symlinks (`backend-result` and
 `frontend-result`) that point at the build products in the Nix store.
 
-Building with Cabal
----
+## Development
+
+### Incrementally building with Cabal
 
 `nix-build` is great for release builds since it's deterministic and
 sandboxed, but it is not an incremental build system. Changing one
@@ -228,8 +234,7 @@ it.` This can be ignored since we are using Nix instead of Cabal's own
 package manager. Nix uses a package snapshot similar to a Stackage
 LTS.
 
-Building frontends with GHC
----
+### Quickly building frontends with GHC
 
 GHCJS can be quite slow, especially if you are using Template
 Haskell. Building the frontend with GHC can drastically speed up build
@@ -285,8 +290,7 @@ desktops running the GHCJS backend. GHCJS is quite fast, especially
 considering all it has to do; but native Haskell is simply much faster
 than a JS VM for what Reflex is doing.
 
-Building mobile apps
----
+## Building mobile apps
 
 The project Nix expression also supports defining mobile apps.
 
