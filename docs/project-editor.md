@@ -2,10 +2,7 @@
 
 ## Spacemacs
 
-The following features are known to work in Emacs /
-[Spacemacs](https://github.com/syl20bnr/spacemacs) for developing Reflex
-applications structured around reflex-platform's
-[project](project-development.md) setup:
+The following features are known to work in Emacs / [Spacemacs](https://github.com/syl20bnr/spacemacs) for developing Reflex applications structured around reflex-platform's [project](project-development.md) setup:
 
 - Syntax highlighting
 - All of dante functionality
@@ -13,10 +10,7 @@ applications structured around reflex-platform's
 - GHCi repl
 - Error navigation
 
-Firstly, Emacs must be launched from the GHC `nix-shell` so that it knows where
-to find `runghc` (a
-[limitation](https://github.com/flycheck/flycheck-haskell/issues/65) of
-flycheck-haskell):
+Firstly, Emacs must be launched from the GHC `nix-shell` so that it knows where to find `runghc` (a [limitation](https://github.com/flycheck/flycheck-haskell/issues/65) of flycheck-haskell):
 
 ```
 nix-shell -A shells.ghc --run emacs &
@@ -33,18 +27,10 @@ nix-shell -A shells.ghc --run emacs &
    ```
 1. Restart Emacs, and access your project sources.
 
-After editing a source file you can compile and load it into ghci using
-`, s b` (see [Spacemacs
-keybindings](https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Blang/haskell#key-bindings)
-for Haskell). This automatically launches GHCi in an Emacs buffer unless it was
-already running.
+After editing a source file you can compile and load it into ghci using `, s b` (see [Spacemacs keybindings](https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Blang/haskell#key-bindings) for Haskell). This automatically launches GHCi in an Emacs buffer unless it was already running.
 
-Compile errors are displayed in the GHCi buffer. Use `SPC e` (and `SPC E`) to
-navigate between the corresponding source lines which produced the errors.
+Compile errors are displayed in the GHCi buffer. Use `SPC e` (and `SPC E`) to navigate between the corresponding source lines which produced the errors.
 
-Flycheck also works, which means you get immediate feedback on type errors thus
-obviating compiling and loading modules more often.
+Flycheck also works, which means you get immediate feedback on type errors thus obviating compiling and loading modules more often.
  
-Moreover you may simultaneously edit the backend and frontend sources. There
-will be two ghci buffers corresponding to each. Dante too will start independent
-ghci sessions for them.
+Moreover you may simultaneously edit the backend and frontend sources. There will be two ghci buffers corresponding to each. Dante too will start independent ghci sessions for them.
