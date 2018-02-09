@@ -19,8 +19,7 @@ to find `runghc` (a
 flycheck-haskell):
 
 ```
-nix-shell -A shells.ghc
-> emacs
+nix-shell -A shells.ghc --run emacs &
 ```
 
 1. Configure Spacemacs by adding the following to your `dotspacemacs-configuration-layers`:
