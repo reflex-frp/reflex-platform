@@ -16,6 +16,7 @@ Important Notes
 
 If you're using one of these platforms, please take a look at notes before you begin:
 
+* [macOS](notes/macOS.md)
 * [NixOS](notes/NixOS.md)
 * [Arch Linux](notes/ArchLinux.md)
 * [Linux Mint](notes/LinuxMint.md)

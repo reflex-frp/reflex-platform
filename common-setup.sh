@@ -38,6 +38,100 @@ user_error() {
     exit "$1"
 }
 
+
+reset_daemon() {
+    if [ "$(uname -s)" == 'Darwin' ]; then
+	sudo launchctl stop org.nixos.nix-daemon
+	sudo launchctl start org.nixos.nix-daemon
+    fi;
+}
+
+installing_nix=false
+user_prefs="$HOME/.local/share/reflex-platform"
+skip_cache_setup="$user_prefs/skip_cache_setup"
+nixconf_dir="/etc/nix"
+nixconf="$nixconf_dir/nix.conf"
+our_cache="https://nixcache.reflex-frp.org"
+our_key="JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+
+nixconf_exists() {
+    if [ -e "$nixconf" ]; then return 0; else return 1; fi;
+}
+
+nixconf_has_cache_settings() {
+    if nixconf_exists && grep -q '^binary-caches\|^binary-cache-public-keys\|^binary-caches-parallel-connections' "$nixconf" ; then return 0; else return 1; fi;
+}
+
+nixconf_has_reflex_cache() {
+    if nixconf_has_cache_settings && grep -q "$our_cache" "$nixconf"; then return 0; else return 1; fi;
+}
+
+nixconf_has_reflex_key() {
+    if nixconf_has_cache_settings && grep -q "$our_key" "$nixconf"; then return 0; else return 1; fi;
+}
+
+enable_cache() {
+    if [ -e "$skip_cache_setup" ]; then return 0; fi;
+
+    if nixconf_has_reflex_cache && nixconf_has_reflex_key; then return 0; fi;
+
+    if uname -v | grep -i "\bnixos\b"; then
+	echo "Please enable reflex's binary cache by following the instructions at https://github.com/reflex-frp/reflex-platform/blob/develop/notes/NixOS.md"
+	return 0;
+    fi;
+
+    $(mkdir -p "$user_prefs")
+    if [ "$installing_nix" = false ]; then
+	read -p "Add binary caches for reflex to $nixconf ?"
+	select yn in "Yes" "No" "Ask again next time"; do
+	    case $yn in
+		"Yes" )
+		    break;;
+		"No" )
+		    touch $skip_cache_setup
+		    return 0;;
+		"Ask next time" )
+		    return 0;;
+	    esac
+	done
+    fi;
+
+    sudo_msg="This requires root access."
+    backup="$nixconf.$(date -u +"%FT%TZ").bak"
+    if nixconf_exists; then
+	echo "$nixconf already exists: creating backup - $sudo_msg"
+	sudo cp "$nixconf" "$backup"
+	echo "backup saved at $backup"
+    fi;
+
+    caches_line="binary-caches = https://cache.nixos.org $our_cache"
+    keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
+    if ! nixconf_has_cache_settings; then
+	if ! nixconf_exists;
+	then echo "Creating $nixconf - $sudo_msg";
+	else echo "Adding cache settings to $nixconf - $sudo_msg";
+	fi;
+	sudo mkdir -p "$nixconf_dir"
+	sudo tee -a "$nixconf" > /dev/null <<EOF
+$caches_line
+$keys_line
+binary-caches-parallel-connections = 40
+EOF
+	reset_daemon
+    else
+	echo "Adding cache settings to $nixconf - $sudo_msg"
+	if ! nixconf_has_reflex_cache; then
+            sudo sed -i.bak 's|^\(binary-caches[ =].*\)$|\1 '"$our_cache"'|' "$nixconf"
+	fi
+	if ! nixconf_has_reflex_key; then
+            sudo sed -i.bak 's|^\(binary-cache-public-keys[ =].*\)$|\1 ryantrinkle.com-1:'"$our_key"'|' "$nixconf"
+	fi
+	reset_daemon
+    fi
+}
+
+
+
 >&2 echo "If you have any trouble with this script, please submit an issue at $REPO/issues"
 
 (
@@ -45,6 +139,7 @@ user_error() {
 cd "$DIR"
 
 if [ ! -d /nix ] ; then
+  installing_nix=true
   if ! type -P curl >/dev/null ; then
     echo "Please make sure that 'curl' is installed and can be run from this shell"
     exit 1
@@ -89,6 +184,8 @@ if [ "$(nix-instantiate --eval --expr "builtins.compareVersions builtins.nixVers
   echo "If you're on NixOS, you may need to upgrade your OS to a later version.  See https://nixos.org/nixos/manual/sec-upgrading.html"
   exit 1
 fi
+
+enable_cache
 
 git_thunk() {
     case "$1" in

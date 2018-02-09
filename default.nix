@@ -10,11 +10,12 @@
 , iosSdkVersion ? "10.2"
 , iosSdkLocation ? "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk"
 , iosSupportForce ? false
-, iosSupport ? if system == "x86_64-darwin" && (iosSupportForce || builtins.pathExists iosSdkLocation)
-    then true
-    else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false
 }:
-let globalOverlay = self: super: {
+let iosSupport =
+      if system != "x86_64-darwin" then false
+      else if iosSupportForce || builtins.pathExists iosSdkLocation then true
+      else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
+    globalOverlay = self: super: {
       all-cabal-hashes = super.all-cabal-hashes.override {
         src-spec = {
           owner = "commercialhaskell";
@@ -43,8 +44,8 @@ let globalOverlay = self: super: {
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
       android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
-        arm64 = if system != "x86_64-linux" then null else {
-          inherit system;
+        arm64 = {
+          system = "x86_64-linux";
           overlays = [globalOverlay];
           crossSystem = {
             config = "aarch64-unknown-linux-android";
@@ -56,12 +57,11 @@ let globalOverlay = self: super: {
           };
           config.allowUnfree = true;
         };
-        arm64Impure = if system != "x86_64-linux" then null else arm64 // {
-          inherit system;
+        arm64Impure = arm64 // {
           crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
         };
-        armv7a = if system != "x86_64-linux" then null else {
-          inherit system;
+        armv7a = {
+          system = "x86_64-linux";
           overlays = [globalOverlay];
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
@@ -73,7 +73,7 @@ let globalOverlay = self: super: {
           };
           config.allowUnfree = true;
         };
-        armv7aImpure = if system != "x86_64-linux" then null else armv7a // {
+        armv7aImpure = armv7a // {
           crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
         };
       };
@@ -119,7 +119,7 @@ let globalOverlay = self: super: {
             };
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
-          inherit system;
+          system = "x86_64-darwin";
           overlays = [globalOverlay];
           crossSystem = {
             useIosPrebuilt = true;
@@ -138,8 +138,8 @@ let globalOverlay = self: super: {
           };
           inherit config;
         };
-        arm64 = if system != "x86_64-darwin" then null else {
-          inherit system;
+        arm64 = {
+          system = "x86_64-darwin";
           overlays = [globalOverlay];
           crossSystem = {
             useIosPrebuilt = true;
@@ -219,10 +219,10 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       else drv: drv;
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
-        let reflexDom = import ./reflex-dom self nixpkgs;
-            jsaddlePkgs = import ./jsaddle self;
-            gargoylePkgs = self.callPackage ./gargoyle self;
-            ghcjsDom = import ./ghcjs-dom self;
+        let reflexDom = import (hackGet ./reflex-dom) self nixpkgs;
+            jsaddlePkgs = import (hackGet ./jsaddle) self;
+            gargoylePkgs = self.callPackage (hackGet ./gargoyle) self;
+            ghcjsDom = import (hackGet ./ghcjs-dom) self;
             addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
               else drv: drv;
@@ -258,11 +258,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage ./reflex {})));
+        reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {})));
         reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
         reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
-        reflex-todomvc = self.callPackage ./reflex-todomvc {};
-        reflex-aeson-orphans = self.callPackage ./reflex-aeson-orphans {};
+        reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
+        reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
         haven = self.callHackage "haven" "0.2.0.0" {};
 
         inherit (jsaddlePkgs) jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
@@ -273,7 +273,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           else jsaddlePkgs.jsaddle;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
 
-        jsaddle-dom = overrideCabal (self.callPackage ./jsaddle-dom {}) (drv: {
+        jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
           preBuild = ''./setup build || true'';
         });
@@ -471,11 +471,15 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
-  androidWithHaskellPackages = assert (system == "x86_64-linux"); { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android { inherit nixpkgs nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal; };
+  androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android {
+    nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
+    inherit nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal;
+  };
   ios = iosWithHaskellPackages ghcIosArm64;
-  iosWithHaskellPackages = ghcIosArm64: assert (system == "x86_64-darwin"); {
+  iosWithHaskellPackages = ghcIosArm64: {
     buildApp = import ./ios {
-      inherit nixpkgs ghcIosArm64;
+      inherit ghcIosArm64;
+      nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
       inherit (nixpkgsCross.ios.arm64) libiconv;
     };
   };
@@ -629,11 +633,13 @@ in let this = rec {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
-  workOnMulti = env: packageNames: nixpkgs.runCommand "shell" {
+  workOnMulti' = { env, packageNames, tools ? _: [] }: nixpkgs.runCommand "shell" {
     buildInputs = [
       (env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames)))
-    ] ++ generalDevTools env;
+    ] ++ generalDevTools env ++ tools env;
   } "";
+
+  workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 
   # A simple derivation that just creates a file with the names of all of its inputs.  If built, it will have a runtime dependency on all of the given build inputs.
   pinBuildInputs = drvName: buildInputs: otherDeps: nixpkgs.runCommand drvName {
@@ -676,7 +682,8 @@ in let this = rec {
   }).config.system.build.virtualBoxOVA;
 
   lib = haskellLib;
-  inherit cabal2nixResult sources;
-  project = args: import ./project this (args { pkgs = nixpkgs; });
+  inherit cabal2nixResult sources system iosSupport;
+  project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
+  js-framework-benchmark-src = hackGet ./js-framework-benchmark;
 }; in this
