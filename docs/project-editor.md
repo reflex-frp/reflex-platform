@@ -29,11 +29,10 @@ nix-shell -A shells.ghc
    (haskell :variables haskell-completion-backend 'dante)
    ```
 1. Create project specific Emacs configuration by creating a `.dir-locals.el`
-   file in the root directory of your Reflex project (FIXME: hardcoding):
+   file in the root directory of your Reflex project:
    ```
    ((nil . (
      (setq haskell-process-type 'cabal-new-repl)
-     (setq dante-project-root "/home/srid/code/slownews")
      (setq dante-repl-command-line '("nix-shell" "-A" "shells.ghc" "--run" "cabal new-repl frontend"))
    )))
    ```
