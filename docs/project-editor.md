@@ -23,23 +23,22 @@ nix-shell -A shells.ghc
 > emacs
 ```
 
-To configure Spacemacs:
-
-1. Add the following to your `dotspacemacs-configuration-layers`:
+1. Configure Spacemacs by adding the following to your `dotspacemacs-configuration-layers`:
    ```
    syntax-checking
    (haskell :variables haskell-completion-backend 'dante)
    ```
-1. configure `haskell-mode` to use `cabal new-repl` by adding the following to
-   the `dotspacemacs/user-config` function of your `.spacemacs` file:
+1. Create project specific Emacs configuration by creating a `.dir-locals.el`
+   file in the root directory of your Reflex project (FIXME: hardcoding):
    ```
-   (setq haskell-process-type 'cabal-new-repl)
+   ((nil . (
+     (setq haskell-process-type 'cabal-new-repl)
+     (setq dante-project-root "/home/srid/code/slownews")
+     (setq dante-repl-command-line '("nix-shell" "-A" "shells.ghc" "--run" "cabal new-repl frontend"))
+   )))
    ```
-1. Configure dante to use the frontend by adding this to the `dotspacemacs/user-config` function (FIXME: avoid hardcoding paths and project)
-   ```
-   (setq dante-project-root "/home/srid/code/slownews")
-   (setq dante-repl-command-line '("nix-shell" "-A" "shells.ghc" "--run" "cabal new-repl frontend"))
-   ```
+
+Restart Emacs, and access your project sources.
 
 After editing a source file you can compile and load it into ghci using
 `, s b`. This automatically launches GHCi in an Emacs buffer unless it was
