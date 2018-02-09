@@ -27,15 +27,16 @@ nix-shell -A shells.ghc --run emacs &
    syntax-checking
    (haskell :variables haskell-completion-backend 'dante)
    ```
-1. Configure haskell-mode to use new-style cabal commands by adding the following to the `dotspacemacs/user-config` function ;
+1. Configure haskell-mode to use new-style cabal commands by adding the following to the `dotspacemacs/user-config` function:
    ```
    (setq haskell-process-type 'cabal-new-repl)
    ```
-
-Restart Emacs, and access your project sources.
+1. Restart Emacs, and access your project sources.
 
 After editing a source file you can compile and load it into ghci using
-`, s b`. This automatically launches GHCi in an Emacs buffer unless it was
+`, s b` (see [Spacemacs
+keybindings](https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Blang/haskell#key-bindings)
+for Haskell). This automatically launches GHCi in an Emacs buffer unless it was
 already running.
 
 Compile errors are displayed in the GHCi buffer. Use `SPC e` (and `SPC E`) to
