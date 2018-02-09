@@ -28,13 +28,9 @@ nix-shell -A shells.ghc
    syntax-checking
    (haskell :variables haskell-completion-backend 'dante)
    ```
-1. Create project specific Emacs configuration by creating a `.dir-locals.el`
-   file in the root directory of your Reflex project:
+1. Configure haskell-mode to use new-style cabal commands by adding the following to the `dotspacemacs/user-config` function ;
    ```
-   ((nil . (
-     (setq haskell-process-type 'cabal-new-repl)
-     (setq dante-repl-command-line '("nix-shell" "-A" "shells.ghc" "--run" "cabal new-repl frontend"))
-   )))
+   (setq haskell-process-type 'cabal-new-repl)
    ```
 
 Restart Emacs, and access your project sources.
@@ -49,3 +45,6 @@ navigate between the corresponding source lines which produced the errors.
 Flycheck also works, which means you get immediate feedback on type errors thus
 obviating compiling and loading modules more often.
  
+Moreover you may simultaneously edit the backend and frontend sources. There
+will be two ghci buffers corresponding to each. Dante too will start independent
+ghci sessions for them.
