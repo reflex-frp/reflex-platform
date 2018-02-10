@@ -16,7 +16,7 @@ The following features are known to work in Emacs / [Spacemacs](https://github.c
    git clone -b develop https://github.com/syl20bnr/spacemacs ~/.emacs.d
    ```
 1. Launch Emacs and complete Spacemacs's setup as instructed (select Vim style keybindings).
-1. Open the .spacemacs file using `SPC f e d`.   Look at the definition block for `dotspacemacs-configuration-layers`, and find `syntax-checking` within it; in a freshly generated `.spacemacs`, `syntax-checking` will be commented out.  Uncomment `syntax-checking` if it is commented out, then add this line below it:
+1. Open the .spacemacs file using `SPC f e d`.   Look at the definition block for `dotspacemacs-configuration-layers`, and find `syntax-checking` within it; in a freshly generated `.spacemacs`, `syntax-checking` will be commented out.  Uncomment `syntax-checking` if it is commented out. Likewise, find `auto-completion` and uncomment it out as well. Then add this line below it:
    ```elisp
    (haskell :variables haskell-completion-backend 'dante)
    ```
