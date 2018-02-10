@@ -16,8 +16,9 @@ The following features are known to work in Emacs / [Spacemacs](https://github.c
    git clone -b develop https://github.com/syl20bnr/spacemacs ~/.emacs.d
    ```
 1. Launch Emacs and complete Spacemacs's setup as instructed (select Vim style keybindings).
-1. Open the .spacemacs file using `SPC f e d`.   Look at the definition block for `dotspacemacs-configuration-layers`, and find `syntax-checking` within it; in a freshly generated `.spacemacs`, `syntax-checking` will be commented out.  Uncomment `syntax-checking` if it is commented out. Likewise, find `auto-completion` and uncomment it out as well. Then add this line below it:
+1. Open the .spacemacs file using `SPC f e d`.   Look at the definition block for `dotspacemacs-configuration-layers`, and find `auto-completion` within it; in a freshly generated `.spacemacs`, `auto-completion` will be commented out.  Uncomment `auto-completion` if it is commented out, and add these lines below it:
    ```elisp
+   (syntax-checking :variables syntax-checking-enable-by-default nil)
    (haskell :variables haskell-completion-backend 'dante)
    ```
 1. We need `nix-sandbox`; add it to the `dotspacemacs-additional-packages` list. It should look like this:
@@ -84,7 +85,7 @@ Now you are ready to start editing the source files.
 
 - Opening a Haskell file should automatically start the [dante](https://github.com/jyp/dante)'s GHCi in background. Play around with the dante functions (eg: `, h t` with cursor under an identifier) and make sure that they work.
 
-- Feedback on compile errors should appear instantaneously (without explicitly compiling) in the UI--via red squiggle underlines and mouseover popups--thanks to Flycheck.
+- Flycheck has been disabled by default as it is generally slow. Enable it with `SPC t s` while a Haskell file is open. Now feedback on compile errors should appear instantaneously (without explicitly compiling) in the UI--via red squiggle underlines and mouseover popups.
 
 - Start a GHCi repl (which is different from that of dante) using `, s B` (see [Spacemacs keybindings](https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Blang/haskell#key-bindings) for Haskell). 
 
@@ -94,4 +95,4 @@ Now you are ready to start editing the source files.
 
 ### Flycheck's performance
 
-Flycheck can cause sluggishness. If this is the case [disable it by default](https://github.com/syl20bnr/spacemacs/tree/develop/layers/%2Bcheckers/syntax-checking#disabling-by-default) and enable when needed.
+Flycheck can cause sluggishness. In this guide we leave it [disabled by default](https://github.com/syl20bnr/spacemacs/tree/develop/layers/%2Bcheckers/syntax-checking#disabling-by-default) but you may enable it only when needed (`SPC t s`) or permanently.
