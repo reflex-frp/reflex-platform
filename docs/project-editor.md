@@ -59,7 +59,7 @@ Before editing the sources you should configure your Reflex project:
 1. Create a `shell.nix` so the `nix-sandbox` elisp package (see above) knows to use GHC:
    ```
    cd /my/reflex-project
-   echo '(import ./.).shells.ghc' > shell.nix
+   echo '(import ./. {}).shells.ghc' > shell.nix
    ```
 1. Tell dante how to manage the frontend/ sources, by creating a `frontend/.dir-locals.el` file:
    ```elisp
