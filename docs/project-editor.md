@@ -18,7 +18,7 @@ The following features are known to work in Emacs / [Spacemacs](https://github.c
 1. Launch Emacs and complete Spacemacs's setup as instructed (select Vim style keybindings).
 1. Open the .spacemacs file using `SPC f e d`.   Look at the definition block for `dotspacemacs-configuration-layers`, and find `auto-completion` within it; in a freshly generated `.spacemacs`, `auto-completion` will be commented out.  Uncomment `auto-completion` if it is commented out, and add these lines below it:
    ```elisp
-   (syntax-checking :variables syntax-checking-enable-by-default nil)
+   (syntax-checking :variables syntax-checking-enable-by-default nil)  ;; Disabled by default for performance reasons
    (haskell :variables haskell-completion-backend 'dante)
    ```
 1. We need `nix-sandbox`; add it to the `dotspacemacs-additional-packages` list. It should look like this:
@@ -78,6 +78,8 @@ Before editing the sources you should configure your Reflex project:
      (dante-repl-command-line . ("nix-shell" "--run" (concat "cabal new-repl " dante-target " --builddir=dist/dante")))
    )))
    ```
+   
+1. Run `nix-shell` once from the project root, let it download and build stuff, and then exit it (otherwise Emacs may hang later when opening a Haskell file).
 
 Now you are ready to start editing the source files.
 
