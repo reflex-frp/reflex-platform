@@ -1,16 +1,20 @@
 package systems.obsidian;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.app.PendingIntent;
+import android.app.Notification;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
-import android.webkit.CookieManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
 import java.util.concurrent.SynchronousQueue;
+import android.content.pm.PackageManager;
+import android.Manifest;
+import android.webkit.PermissionRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Arrays;
+import android.annotation.TargetApi;
+import android.os.Build;
 
 public class HaskellActivity extends Activity {
   public native int haskellStartMain(SynchronousQueue<Long> setCallbacks);
@@ -33,6 +37,7 @@ public class HaskellActivity extends Activity {
 
   public HaskellActivity() throws InterruptedException {
     final SynchronousQueue<Long> setCallbacks = new SynchronousQueue<Long>();
+    permissionRequests = new HashMap<Integer, PermissionRequest>();
     new Thread() {
       public void run() {
         final int exitCode = haskellStartMain(setCallbacks);
@@ -135,4 +140,90 @@ public class HaskellActivity extends Activity {
       haskellOnNewIntent(callbacks, intent.getAction(), intent.getDataString()); //TODO: Use a more canonical way of passing this data - i.e. pass the Intent and let the Haskell side get the data out with JNI
     }
   }
+
+  // Proper separation of concerns is really a whole lot of work in Java, so
+  // we simply handle PermissionRequests directly here - it is just sooo much
+  // easier. Java makes it really hard to write good code.
+  public void requestWebViewPermissions(final PermissionRequest request) {
+      try {
+        String[] resources = request.getResources();
+        ArrayList<String> sysResourcesToRequestList = new ArrayList<String>();
+        for(int i=0; i < resources.length; i++) {
+            String manifestRequest = null;
+            switch(resources[i]) {
+                case PermissionRequest.RESOURCE_AUDIO_CAPTURE:
+                    manifestRequest =  Manifest.permission.RECORD_AUDIO;
+                    break;
+                case PermissionRequest.RESOURCE_VIDEO_CAPTURE:
+                    manifestRequest = Manifest.permission.CAMERA;
+                    break;
+            }
+            if(manifestRequest == null)
+                continue;
+            if(checkSelfPermission(manifestRequest) != PackageManager.PERMISSION_GRANTED)
+                sysResourcesToRequestList.add(manifestRequest);
+        }
+        String[] sysResourcesToRequest = sysResourcesToRequestList.toArray(new String[0]);
+        if(sysResourcesToRequest.length > 0) {
+            permissionRequests.put(nextRequestCode, request);
+            requestPermissions(sysResourcesToRequest, nextRequestCode++);
+        }
+        else {
+            runOnUiThread(new Runnable() {
+                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                    @Override
+                    public void run() {
+                        request.grant(request.getResources());
+                    }
+                });
+        }
+      } catch (NoSuchMethodError e) { // Compatibility for older Android versions (Android 5 and below)
+          runOnUiThread(new Runnable() {
+                  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                  @Override
+                  public void run() {
+                      request.grant(request.getResources());
+                  }
+              });
+      }
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode,
+                                         String permissions[], int[] grantResults) {
+      final PermissionRequest request = permissionRequests.get(requestCode);
+      permissionRequests.remove(requestCode);
+      final ArrayList<String> grantedPermissions = new ArrayList<String>();
+      // We assume grantResults and permissions have same length ... obviously.
+      for(int i = 0; i< permissions.length; i++) {
+          if(grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+              String permission = null;
+              switch(permissions[i]) {
+                  case Manifest.permission.RECORD_AUDIO:
+                      permission = PermissionRequest.RESOURCE_AUDIO_CAPTURE;
+                      break;
+                  case Manifest.permission.CAMERA:
+                      permission = PermissionRequest.RESOURCE_VIDEO_CAPTURE;
+                      break;
+              }
+              if(permission != null && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+                  grantedPermissions.add(permission);
+          }
+      }
+      runOnUiThread(new Runnable() {
+              @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+              @Override
+              public void run() {
+                if(grantedPermissions.size() > 0) {
+                    request.grant(grantedPermissions.toArray(new String[0]));
+                }
+                else {
+                    request.deny();
+                }
+              }
+          });
+  }
+
+  private HashMap<Integer, PermissionRequest> permissionRequests;
+  private int nextRequestCode = 0;
 }
