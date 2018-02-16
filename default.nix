@@ -20,8 +20,8 @@ let iosSupport =
         src-spec = {
           owner = "commercialhaskell";
           repo = "all-cabal-hashes";
-          rev = "2b0bf3ddf8b75656582c1e45c51caa59458cd3ad";
-          sha256 = "0g4nvvgfg9npd0alysd67ckhvx3s66q8b5x0x9am2myjrha3fjgq";
+          rev = "82a8a1a49240a1b465c95de6fa6bf56323ee858f";
+          sha256 = "1jdzl5fyp1qcsi1anjig6kglq4jjsdll53nissjcnxpy3jscmarm";
         };
       };
     };
@@ -317,6 +317,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
+        miso = addBuildDepend (self.callHackage "miso" "0.12.0.0" {}) self.ghcjs-base;
 
         ########################################################################
         # Packages not in hackage
