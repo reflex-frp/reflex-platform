@@ -129,6 +129,12 @@ public class HaskellActivity extends Activity {
   }
 
   @Override
+  public void onBackPressed() {
+    // TODO: Pass to app somehow.
+    return;
+  }
+
+  @Override
   public void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
     if(callbacks != 0 && intent != null && intent.getData() != null && intent.getAction() != null) {
