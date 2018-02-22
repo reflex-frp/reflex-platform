@@ -13,6 +13,7 @@ import android.webkit.PermissionRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.HashSet;
 import android.annotation.TargetApi;
 import android.os.Build;
 
@@ -158,9 +159,7 @@ public class HaskellActivity extends Activity {
                     manifestRequest = Manifest.permission.CAMERA;
                     break;
             }
-            if(manifestRequest == null)
-                continue;
-            if(checkSelfPermission(manifestRequest) != PackageManager.PERMISSION_GRANTED)
+            if(manifestRequest != null && checkSelfPermission(manifestRequest) != PackageManager.PERMISSION_GRANTED)
                 sysResourcesToRequestList.add(manifestRequest);
         }
         String[] sysResourcesToRequest = sysResourcesToRequestList.toArray(new String[0]);
@@ -193,21 +192,26 @@ public class HaskellActivity extends Activity {
                                          String permissions[], int[] grantResults) {
       final PermissionRequest request = permissionRequests.get(requestCode);
       permissionRequests.remove(requestCode);
-      final ArrayList<String> grantedPermissions = new ArrayList<String>();
+
+      String[] requestedPermissions = request.getResources();
+      final HashSet<String> grantedPermissions = new HashSet<String>(Arrays.asList(requestedPermissions));
+
       // We assume grantResults and permissions have same length ... obviously.
       for(int i = 0; i< permissions.length; i++) {
           if(grantResults[i] == PackageManager.PERMISSION_GRANTED) {
               String permission = null;
               switch(permissions[i]) {
                   case Manifest.permission.RECORD_AUDIO:
+                      Log.d("HaskellActivity", "Granting RESOURCE_AUDIO_CAPTURE!");
                       permission = PermissionRequest.RESOURCE_AUDIO_CAPTURE;
                       break;
                   case Manifest.permission.CAMERA:
+                      Log.d("HaskellActivity", "Granting RESOURCE_VIDEO_CAPTURE!");
                       permission = PermissionRequest.RESOURCE_VIDEO_CAPTURE;
                       break;
               }
-              if(permission != null && grantResults[i] == PackageManager.PERMISSION_GRANTED)
-                  grantedPermissions.add(permission);
+              if(permission != null && grantResults[i] != PackageManager.PERMISSION_GRANTED)
+                  grantedPermissions.remove(permission);
           }
       }
       runOnUiThread(new Runnable() {
@@ -215,6 +219,7 @@ public class HaskellActivity extends Activity {
               @Override
               public void run() {
                 if(grantedPermissions.size() > 0) {
+                    Log.d("HaskellActivity", "Granting permissions!");
                     request.grant(grantedPermissions.toArray(new String[0]));
                 }
                 else {
