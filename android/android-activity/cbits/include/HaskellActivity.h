@@ -16,4 +16,6 @@ typedef struct ActivityCallbacks {
 
 extern JavaVM* HaskellActivity_jvm;
 
+extern jobject HaskellActivity_get();
+
 #endif
