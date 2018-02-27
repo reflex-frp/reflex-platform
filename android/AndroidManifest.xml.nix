@@ -1,4 +1,5 @@
 { applicationId
+, activityAttributes
 , version
 , iconPath
 , intentFilters
@@ -17,7 +18,9 @@
         <activity android:name="systems.obsidian.HaskellActivity"
                   android:label="@string/app_name"
                   android:configChanges="orientation|screenSize"
-                  android:windowSoftInputMode="adjustResize">
+                  android:windowSoftInputMode="adjustResize"
+                  ${activityAttributes}
+                  >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
