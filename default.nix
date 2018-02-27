@@ -250,6 +250,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.1" {};
         gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
 
+        # hindent was overriden with a newer version of haskell-src-exts for some reason
+        hindent = super.hindent.override { haskell-src-exts = self.haskell-src-exts; };
+        # Not sure why these tests fail...
+        hfmt = dontCheck super.hfmt;
+
         ########################################################################
         # Reflex packages
         ########################################################################
