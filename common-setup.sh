@@ -254,5 +254,5 @@ prebuild_try_reflex_shell() {
 
 try_reflex_shell() {
   prebuild_try_reflex_shell
-  nix-shell -E '{path}: import path' --arg path "$(readlink -f "$DIR/gc-roots/shell.drv")" $NIXOPTS "$@"
+  nix-shell -E '{path}: import path' --arg path "$(readlink "$DIR/gc-roots/shell.drv")" $NIXOPTS "$@"
 }
