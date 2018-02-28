@@ -44,14 +44,14 @@ peekMaybeCString str =
 -- to the app should be stored. Note that 'Nothing' is returned if the activity
 -- is not fully initalized. In practice this means you probably need to call
 -- this inside the main widget.
-getFilesDir :: HaskellActivity -> IO (Maybe String)
+getFilesDir :: HaskellActivity -> IO (Maybe FilePath)
 getFilesDir = getFilesDirCString >=> peekMaybeCString
 
 -- | Get the cache storage directory for the app. Android may delete this data
 -- at any time. Note that 'Nothing' is returned if the activity is not fully
 -- initalized. In practice this means you probably need to call this inside the
 -- main widget.
-getCacheDir :: HaskellActivity -> IO (Maybe String)
+getCacheDir :: HaskellActivity -> IO (Maybe FilePath)
 getCacheDir = getCacheDirCString >=> peekMaybeCString
 
 -- | Allow the HaskellActivity to proceed.  The given callbacks will be invoked
