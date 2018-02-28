@@ -39,6 +39,7 @@ data ActivityCallbacks = ActivityCallbacks
   , _activityCallbacks_onStop :: IO ()
   , _activityCallbacks_onDestroy :: IO ()
   , _activityCallbacks_onRestart :: IO ()
+  , _activityCallbacks_onBackPressed :: IO ()
   , _activityCallbacks_onNewIntent :: String -> String -> IO ()
   }
 
@@ -51,6 +52,7 @@ instance Default ActivityCallbacks where
     , _activityCallbacks_onStop = return ()
     , _activityCallbacks_onDestroy = return ()
     , _activityCallbacks_onRestart = return ()
+    , _activityCallbacks_onBackPressed = return ()
     , _activityCallbacks_onNewIntent = \_ _ -> return ()
     }
 
@@ -82,6 +84,7 @@ activityCallbacksToPtrs ac = ActivityCallbacksPtrs
   <*> wrapIO (_activityCallbacks_onStop ac)
   <*> wrapIO (_activityCallbacks_onDestroy ac)
   <*> wrapIO (_activityCallbacks_onRestart ac)
+  <*> wrapIO (_activityCallbacks_onBackPressed ac)
   <*> wrapCStringCStringIO (\a b -> do
                                a' <- peekCString a
                                b' <- peekCString b
@@ -95,6 +98,7 @@ data ActivityCallbacksPtrs = ActivityCallbacksPtrs
   , _activityCallbacksPtrs_onStop :: FunPtr (IO ())
   , _activityCallbacksPtrs_onDestroy :: FunPtr (IO ())
   , _activityCallbacksPtrs_onRestart :: FunPtr (IO ())
+  , _activityCallbacksPtrs_onBackPressed :: FunPtr (IO ())
   , _activityCallbacksPtrs_onNewIntent :: FunPtr (CString -> CString -> IO ())
   }
 
@@ -109,6 +113,7 @@ instance Storable ActivityCallbacksPtrs where
     #{poke ActivityCallbacks, onStop} p $ _activityCallbacksPtrs_onStop ac
     #{poke ActivityCallbacks, onDestroy} p $ _activityCallbacksPtrs_onDestroy ac
     #{poke ActivityCallbacks, onRestart} p $ _activityCallbacksPtrs_onRestart ac
+    #{poke ActivityCallbacks, onBackPressed} p $ _activityCallbacksPtrs_onBackPressed ac
     #{poke ActivityCallbacks, onNewIntent} p $ _activityCallbacksPtrs_onNewIntent ac
   peek p = ActivityCallbacksPtrs
     <$> #{peek ActivityCallbacks, onCreate} p
@@ -118,4 +123,5 @@ instance Storable ActivityCallbacksPtrs where
     <*> #{peek ActivityCallbacks, onStop} p
     <*> #{peek ActivityCallbacks, onDestroy} p
     <*> #{peek ActivityCallbacks, onRestart} p
+    <*> #{peek ActivityCallbacks, onBackPressed} p
     <*> #{peek ActivityCallbacks, onNewIntent} p

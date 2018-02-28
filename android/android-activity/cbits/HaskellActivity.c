@@ -68,6 +68,13 @@ JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnRestart (J
   }
 }
 
+JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnBackPressed (JNIEnv *env, jobject thisObj, jlong callbacksLong) {
+  const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
+  if(callbacks->onBackPressed) {
+    callbacks->onBackPressed();
+  }
+}
+
 JNIEXPORT void JNICALL Java_systems_obsidian_HaskellActivity_haskellOnNewIntent (JNIEnv *env, jobject thisObj, jlong callbacksLong, jstring intent, jstring intentdata) {
   const ActivityCallbacks *callbacks = (const ActivityCallbacks *)callbacksLong;
   if(callbacks->onNewIntent) {
