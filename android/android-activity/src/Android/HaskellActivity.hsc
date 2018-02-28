@@ -3,11 +3,14 @@ module Android.HaskellActivity
   ( ActivityCallbacks (..)
   , HaskellActivity (..)
   , getHaskellActivity
+  , getFilesDir
+  , getCacheDir
   , continueWithCallbacks
   , traceActivityCallbacks
   ) where
 
 import Control.Exception
+import Control.Monad
 import Data.Default
 import Data.Monoid
 import Debug.Trace
@@ -21,6 +24,35 @@ import Foreign.Storable
 newtype HaskellActivity = HaskellActivity { unHaskellActivity :: Ptr HaskellActivity }
 
 foreign import ccall unsafe "HaskellActivity_get" getHaskellActivity :: IO HaskellActivity
+
+foreign import ccall unsafe "HaskellActivity_getFilesDir" getFilesDirCString
+  :: HaskellActivity
+  -> IO CString
+
+foreign import ccall unsafe "HaskellActivity_getCacheDir" getCacheDirCString
+  :: HaskellActivity
+  -> IO CString
+
+-- | Copy a C string into Haskell returning 'Nothing' if it is NULL.
+peekMaybeCString :: CString -> IO (Maybe String)
+peekMaybeCString str =
+  if str == nullPtr
+  then return Nothing
+  else Just <$> peekCString str
+
+-- | Get the "internal" storage directory for the app. This is where data local
+-- to the app should be stored. Note that 'Nothing' is returned if the activity
+-- is not fully initalized. In practice this means you probably need to call
+-- this inside the main widget.
+getFilesDir :: HaskellActivity -> IO (Maybe String)
+getFilesDir = getFilesDirCString >=> peekMaybeCString
+
+-- | Get the cache storage directory for the app. Android may delete this data
+-- at any time. Note that 'Nothing' is returned if the activity is not fully
+-- initalized. In practice this means you probably need to call this inside the
+-- main widget.
+getCacheDir :: HaskellActivity -> IO (Maybe String)
+getCacheDir = getCacheDirCString >=> peekMaybeCString
 
 -- | Allow the HaskellActivity to proceed.  The given callbacks will be invoked
 -- at the appropriate times in the Android Activity lifecycle.

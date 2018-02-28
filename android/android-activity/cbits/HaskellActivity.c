@@ -99,14 +99,68 @@ jobject HaskellActivity_get() {
   return haskellActivity;
 }
 
+JNIEnv *getJNIEnv() {
+  JNIEnv *env;
+  jint attachResult = (*HaskellActivity_jvm)->AttachCurrentThread(HaskellActivity_jvm, &env, NULL);
+  assert(attachResult == JNI_OK);
+  return env;
+}
+
+// Return a copied C string which must be freed by the caller with free().
+char *copyToCString(JNIEnv *env, jobject str) {
+  char *cstr = (*env)->GetStringUTFChars(env, (jstring)str, NULL);
+  assert(cstr);
+
+  char *result = malloc(strlen(cstr) + 1);
+  strcpy(result, cstr);
+
+  (*env)->ReleaseStringUTFChars(env, str, cstr);
+  return result;
+}
+
+jobject java_io_File_getPath(JNIEnv *env, jobject file) {
+  jclass cls = (*env)->GetObjectClass(env, file);
+  jmethodID getPath = (*env)->GetMethodID(env, cls, "getPath", "()Ljava/lang/String;");
+  assert(getPath);
+
+  jobject result = (*env)->CallObjectMethod(env, file, getPath);
+  assert(result);
+  return result;
+}
+
+char *HaskellActivity_getFilesDir(jobject haskellActivity) {
+  assert(haskellActivity);
+  JNIEnv *env = getJNIEnv();
+
+  jclass haskellActivityClass = (*env)->GetObjectClass(env, haskellActivity);
+  jmethodID getFilesDir = (*env)->GetMethodID(env, haskellActivityClass, "getFilesDir", "()Ljava/io/File;");
+  assert(getFilesDir);
+
+  jobject filesDir = (*env)->CallObjectMethod(env, haskellActivity, getFilesDir);
+  if (!filesDir) return NULL;
+
+  return copyToCString(env, java_io_File_getPath(env, filesDir));
+}
+
+char *HaskellActivity_getCacheDir(jobject haskellActivity) {
+  assert(haskellActivity);
+  JNIEnv *env = getJNIEnv();
+
+  jclass haskellActivityClass = (*env)->GetObjectClass(env, haskellActivity);
+  jmethodID getCacheDir = (*env)->GetMethodID(env, haskellActivityClass, "getCacheDir", "()Ljava/io/File;");
+  assert(getCacheDir);
+
+  jobject cacheDir = (*env)->CallObjectMethod(env, haskellActivity, getCacheDir);
+  if (!cacheDir) return NULL;
+
+  return copyToCString(env, java_io_File_getPath(env, cacheDir));
+}
+
 // Continue constructing the HaskellActivity.
 // WARNING: This may only be invoked once per Haskell 'main' invocation
 void HaskellActivity_continueWithCallbacks(const ActivityCallbacks *callbacks) {
   assert(haskellActivity);
-
-  JNIEnv *env;
-  jint attachResult = (*HaskellActivity_jvm)->AttachCurrentThread(HaskellActivity_jvm, &env, NULL);
-  assert(attachResult == JNI_OK);
+  JNIEnv *env = getJNIEnv();
 
   jclass cls = (*env)->GetObjectClass(env, haskellActivity);
   jmethodID continueWithCallbacks = (*env)->GetStaticMethodID(env, cls, "continueWithCallbacks", "(Ljava/util/concurrent/SynchronousQueue;J)V");
