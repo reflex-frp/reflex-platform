@@ -323,6 +323,12 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
         miso = addBuildDepend (self.callHackage "miso" "0.12.0.0" {}) self.ghcjs-base;
+        direct-sqlite = self.callCabal2nix "direct-sqlite" (fetchFromGitHub {
+          owner = "obsidiansystems";
+          repo = "direct-sqlite";
+          rev = "cd96a9ae47c9921ab98379a812c99d5d9a365732";
+          sha256 = "1r3msr5j862kvng5xv2b6vgpjc39kd5aygylx9lcvd6rzl8jglfw";
+        }) {};
 
         ########################################################################
         # Packages not in hackage
