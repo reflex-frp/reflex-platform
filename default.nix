@@ -323,12 +323,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
         miso = addBuildDepend (self.callHackage "miso" "0.12.0.0" {}) self.ghcjs-base;
-        direct-sqlite = self.callCabal2nix "direct-sqlite" (fetchFromGitHub {
-          owner = "obsidiansystems";
-          repo = "direct-sqlite";
-          rev = "cd96a9ae47c9921ab98379a812c99d5d9a365732";
-          sha256 = "1r3msr5j862kvng5xv2b6vgpjc39kd5aygylx9lcvd6rzl8jglfw";
-        }) {};
 
         ########################################################################
         # Packages not in hackage
@@ -345,6 +339,12 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
           sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
         }) {}));
+        direct-sqlite = self.callCabal2nix "direct-sqlite" (fetchFromGitHub {
+          owner = "IreneKnapp";
+          repo = "direct-sqlite";
+          rev = "cd1ab3c0ee7894d888be826fc653b75813fd53c9";
+          sha256 = "13i6lz99x0jb9fgns7brlqnv5s5w4clp26l8c3kxd318r1krvr6w";
+        }) {};
 
         superconstraints =
           # Remove override when assertion fails
