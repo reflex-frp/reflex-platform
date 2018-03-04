@@ -4,7 +4,7 @@ Hacking on the Reflex Platform
 To work on a particular package, use the work-on script **instead of** `./try-reflex`:
 
 ```
-~/reflex-platform/work-on ghcjs ./your-project
+~/reflex-platform/scripts/work-on ghcjs ./your-project
 ```
 
 This will use your package's cabal file to determine dependencies.  If you have a default.nix, it will use that instead.  Note that your project's path must include at least one slash ('/') so that work-on can detect that it is a path, rather than a package name.
@@ -33,7 +33,7 @@ Checking out a sub-repo
 The `hack-on` script is provided for conveniently checking out a sub-repository.
 
 ```
-./hack-on reflex
+./scripts/hack-on reflex
 ```
 
 This will check out the same version of `reflex` currently being used by the Reflex Platform.  Note that `reflex`, here, is a path relative to the current directory, so you must be in this folder when you execute this.
@@ -43,7 +43,7 @@ Once the repository is checked out, you can make modifications to it, which will
 When you have completed some work hacking on the sub-repository, you can use the `hack-add` script to check your changes into this repository without needing to delete the repository, like so:
 
 ```
-./hack-add reflex
+./scripts/hack-add reflex
 ```
 
 You can then commit and push reflex-platform without needing to delete the sub-repository.
@@ -51,7 +51,7 @@ You can then commit and push reflex-platform without needing to delete the sub-r
 When you are completely done with a sub-repository, you can remove it using `hack-off`:
 
 ```
-./hack-off reflex
+./scripts/hack-off reflex
 ```
 
 This will remove the repository and replace the `default.nix` and `git.json` files that were pointing to it before running `hack-on`.

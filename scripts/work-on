@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
 if [ "$#" -lt 2 ] ; then
   echo "Usage: $0 PLATFORM PACKAGE ..."
@@ -13,7 +13,7 @@ if [ "$#" -lt 2 ] ; then
   exit 1
 fi
 
-. "$DIR/common-setup.sh"
+. "$DIR/scripts/common-setup.sh"
 
 PLATFORM="$1"
 shift

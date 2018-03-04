@@ -99,7 +99,7 @@ let iosSupport =
                     configurePhase = "true";
                     buildPhase     = "true";
                     target_prefix = stdenv.lib.replaceStrings ["-"] ["_"] p.targetPlatform.config;
-                    setupHook = ./setup-hook-ios.sh;
+                    setupHook = ./scripts/setup-hook-ios.sh;
 
                     installPhase = ''
                       mkdir -p $out/

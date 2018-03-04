@@ -1,8 +1,8 @@
-with import ./. {};
+with import ./.. {};
 let inherit (nixpkgs.lib) optionals;
     inputs = builtins.concatLists [
       (builtins.attrValues sources)
-      (map (system: (import ./. { inherit system; iosSupportForce = true; }).tryReflexShell) cacheTargetSystems)
+      (map (system: (import ./.. { inherit system; iosSupportForce = true; }).tryReflexShell) cacheTargetSystems)
     ];
     getOtherDeps = reflexPlatform: [
       reflexPlatform.stage2Script
@@ -17,6 +17,6 @@ let inherit (nixpkgs.lib) optionals;
       ]
     );
     otherDeps = builtins.concatLists (
-      map (system: getOtherDeps (import ./. { inherit system; })) cacheTargetSystems
+      map (system: getOtherDeps (import ./.. { inherit system; })) cacheTargetSystems
     ) ++ [(import ./benchmark.nix {})];
 in pinBuildInputs "reflex-platform" inputs otherDeps

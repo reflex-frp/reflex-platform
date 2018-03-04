@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
-. "$DIR/common-setup.sh"
+. "$DIR/scripts/common-setup.sh"
 
 REPO="$(echo "$1" | sed 's_/$__')"
 

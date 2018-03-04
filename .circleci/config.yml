@@ -16,5 +16,5 @@ jobs:
           command: echo "Yes" | ./try-reflex --command "exit 0"
           no_output_timeout: 3600
 
-      - run: ./benchmark
-      - run: ./test -j 2
+      - run: ./scripts/benchmark
+      - run: ./scripts/test -j 2

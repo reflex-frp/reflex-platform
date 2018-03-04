@@ -1,4 +1,4 @@
-{ reflex-platform ? import ./. {} }:
+{ reflex-platform ? import ./.. {} }:
 let pkgs = reflex-platform.nixpkgs;
 in pkgs.writeScript "benchmark.sh" ''
 #!/usr/bin/env bash
