@@ -230,6 +230,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         base-compat = self.callHackage "base-compat" "0.9.2" {};
         constraints = self.callHackage "constraints" "0.9" {};
+        servant-auth-server = self.callHackage "servant-auth-server" "0.3.1.0" {};
         vector = doJailbreak super.vector;
         these = doJailbreak super.these;
         aeson-compat = doJailbreak super.aeson-compat;
