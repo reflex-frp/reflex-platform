@@ -29,9 +29,8 @@
         </activity>
         ${services}
     </application>
-    <uses-sdk android:minSdkVersion="25" />
+    <uses-sdk android:minSdkVersion="21" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     ${permissions}
 </manifest>
 ''
