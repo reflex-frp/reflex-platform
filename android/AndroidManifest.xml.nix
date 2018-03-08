@@ -29,7 +29,6 @@
         </activity>
         ${services}
     </application>
-    <uses-sdk android:minSdkVersion="21" />
     <uses-permission android:name="android.permission.INTERNET" />
     ${permissions}
 </manifest>
