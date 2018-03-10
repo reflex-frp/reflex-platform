@@ -5,6 +5,7 @@
 
 typedef struct ActivityCallbacks {
   void (*onCreate) (); //TODO: Support savedInstanceState
+  void (*onCreateWithIntent) (const char*, const char*); //TODO: Support savedInstanceState
   void (*onStart) ();
   void (*onResume) ();
   void (*onPause) ();
