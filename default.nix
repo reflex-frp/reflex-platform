@@ -20,8 +20,8 @@ let iosSupport =
         src-spec = {
           owner = "commercialhaskell";
           repo = "all-cabal-hashes";
-          rev = "2b0bf3ddf8b75656582c1e45c51caa59458cd3ad";
-          sha256 = "0g4nvvgfg9npd0alysd67ckhvx3s66q8b5x0x9am2myjrha3fjgq";
+          rev = "c0b5f5acc21d2fd0af797b88f6f18772b8d1add4";
+          sha256 = "1arqfyaqs2ga1wg96naz2kps3v4v94i953hc0dp2n07m797gl1bq";
         };
       };
     };
@@ -262,6 +262,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
+        warp = dontCheck (self.callHackage "warp" "3.2.17" {});
+        gauge = self.callHackage "gauge" "0.2.1" {};
 
         jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
