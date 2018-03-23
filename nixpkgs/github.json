@@ -1,7 +1,6 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "syslogng-smtp-obsidian",
   "rev": "45d62a48b5f1310dc0c58054110261ffc2f6baab",
   "sha256": "1cg9bgqsncsf52v8n9k9s7plfqwc11j9ga11dddc9vzr4zwz1y5z"
 }
