@@ -19,6 +19,26 @@ self: super: {
   lifted-async = haskellLib.doJailbreak super.lifted-async;
   safe-exceptions = haskellLib.doJailbreak super.safe-exceptions;
 
+  simple-sendfile = haskellLib.overrideCabal super.simple-sendfile (dep: {
+    preConfigure = (dep.preConfigure or "") + ''
+      sed -i 's/os(linux)/os(linux-android)/g' *.cabal
+    '';
+  });
+
+  streaming-commons = haskellLib.overrideCabal super.streaming-commons (drv: {
+    libraryHaskellDepends = builtins.filter (x: (x.pname or "") != "zlib") drv.libraryHaskellDepends;
+    testHaskellDepends = builtins.filter (x: (x.pname or "") != "zlib") drv.testHaskellDepends;
+    preConfigure = (drv.preConfigure or "") + ''
+      sed -i -e 's@cbits/zlib-helper.c@@' -e '/^.*[Zz]lib.*$/d' *.cabal
+    '';
+  });
+
+  zlib = { pname = "zlib"; outPath = throw "zlib is not supported on Android"; };
+
+  wai-websockets = haskellLib.overrideCabal (haskellLib.disableCabalFlag super.wai-websockets "example") (drv: {
+    executableHaskellDepends = [];
+  });
+
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;
     dontStrip = true;
