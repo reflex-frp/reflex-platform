@@ -33,11 +33,11 @@ main = mainWidget $ do
       -- gameEv :: (Reflex t) => Event t GameEvent
       gameEv = leftmost [newGame, move1, move2, move3, move4]
 
-      newGame = const NewGame <$> newGameEv
-      move1 = const (DoTurn "Move 1" 1) <$> m1
-      move2 = const (DoTurn "Move 2" 20) <$> m2
-      move3 = const (DoTurn "Move 3" 10) <$> m3
-      move4 = const (DoTurn "Move 4" 5) <$> m4
+      newGame = NewGame <$ newGameEv
+      move1 = (DoTurn "Move 1" 1) <$ m1
+      move2 = (DoTurn "Move 2" 20) <$ m2
+      move3 = (DoTurn "Move 3" 10) <$ m3
+      move4 = (DoTurn "Move 4" 5) <$ m4
 
   -- Capture the score, in a Dynamic independent of ScoreCard
   -- This will maintain its value irrespective of the state of ScoreCard

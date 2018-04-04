@@ -6,7 +6,9 @@
 Welcome to Reflex-FRP documentation!
 ==================================
 
-This is a work-in progress, so many sections are incomplete or empty...
+If you are new to reflex, then check out some :ref:`tutorials`
+
+This documentation is a work-in-progress, so some of the sections are incomplete or empty.
 
 Please feel free to contribute to this Documentation by opening a pull-request
 `here <https://github.com/reflex-frp/reflexfrp.org>`_
@@ -17,26 +19,21 @@ Contents:
    :maxdepth: 3
 
    installation
-   architecture
-   guide_to_dom_creation
-   guide_to_event_management
-   guide_to_ajax
-   debugging
-   advanced_topics
+   overview
+   reflex_docs
+   reflex_dom_docs
+   app_devel_docs
+   non_dom_reflex
+   resources
+
+
+..
+   Indices and tables
+   ==================
+
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
+
 
 .. todo:: Add Haddock documentation
-
-          Reflex API reference
-
-          Reflex-dom API reference
-
-          Can we preview the API from haddock here directly ?
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

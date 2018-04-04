@@ -43,6 +43,10 @@ You need to serve ``index.html``, ``rts.js``, ``lib.js``, ``out.js`` and
 Simplest way is to copy these files to the *static* directory of your backend
 project. This can be automated using simple shell script.
 
+https://github.com/ghcjs/ghcjs/wiki/Deployment
+
+-dedupe flag https://www.reddit.com/r/haskell/comments/54knub/ghcjs_dedupe/
+
 Client Side Routing
 ~~~~~~~~~~~~~~~~~~~
 
@@ -79,4 +83,3 @@ Design of project for both ghc and ghcjs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create both desktop app and web app from same project
-
