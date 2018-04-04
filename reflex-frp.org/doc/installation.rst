@@ -167,7 +167,7 @@ You need to modify the ``main`` like the code below. Then you can run it via ``g
   
   main = run 3911 $ mainWidget $ text "hello"
 
-In my experience this works fine on Chrome/Chromium, but doesnt`t work with firefox.
+This should works fine on Chrome/Chromium, but might not work with firefox.
 
 IDE tools support
 -----------------
