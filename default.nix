@@ -643,7 +643,18 @@ in let this = rec {
   })).env;
 
   workOnMulti' = { env, packageNames, tools ? _: [] }:
-    let ghcEnv = env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames));
+    let ghcEnv =
+      let inherit (builtins) filter all concatLists;
+          dependenciesOf = x: (x.buildDepends or [])
+                           ++ (x.libraryHaskellDepends or [])
+                           ++ (x.executableHaskellDepends or [])
+                           ++ (x.testHaskellDepends or []);
+          elemByPname = p: all (pname: (p.pname or "") != pname) packageNames;
+          overiddenOut  = pkgEnv: n: (pkgEnv.${n}.override {
+            mkDerivation = x: {out = filter elemByPname (dependenciesOf x); };
+          }).out;
+      in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
+
     in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
       buildInputs = [
         ghcEnv
