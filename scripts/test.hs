@@ -30,6 +30,20 @@ main = hspec $ parallel $ do
             writefile (fromText helloFilename) "{-# LANGUAGE OverloadedStrings #-}\nimport Reflex.Dom\nmain = mainWidget $ text \"Hello, world!\""
             run (r </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> flags <> " " <> helloFilename <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
         return () :: IO ()
+  describe "readme" $ do
+    forM_ ["ghc", "ghcjs"] $ \platform -> do
+      forM_ [0..8] $ \i -> do
+        it ("snippet_" <> show i <> " can be built by " <> platform) $ do
+          shelly $ silently $ do
+            os <- T.stripEnd <$> run "uname" ["-s"]
+            d <- pwd
+            let flags = if os == "Darwin" then " -dynamic" else ""
+                filename = "README.lhs" :: String
+            withTmpDir $ \tmp -> do
+              cp (d </> filename) tmp
+              cd tmp
+              run (d </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> flags <> " README.lhs -cpp -DSNIPPET_" <> fromString (show i)]
+          return () :: IO ()
   describe "work-on" $ do
     -- Test that the work-on shell can build the core reflex libraries in a variety of configurations
     forM_ ["ghc", "ghcjs"] $ \platform -> do
