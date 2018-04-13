@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
-. "$DIR/common-setup.sh"
+. "$DIR/scripts/common-setup.sh"
 
 HACKAGE_USER="$1"
 PKG="$2"
 
 #TODO: Check that this build corresponds to the one on hackage
-RC="$(nix-build --no-out-link -A "releaseCandidates.$PKG")"
+RC="$(nix-build $DIR --no-out-link -A "releaseCandidates.$PKG")"
 PKGNAME="$(cat "$RC/pkgname")"
 
 echo -n "Hackage password: "

@@ -9,6 +9,10 @@ import Data.Monoid
 import Data.String
 import qualified Data.Text as T
 
+repos    = pwd
+root     = pwd
+scripts  = fmap (</> ("scripts"  :: String)) pwd
+
 main :: IO ()
 main = hspec $ parallel $ do
   let silently = id -- Temporarily disable 'silently'
@@ -17,14 +21,14 @@ main = hspec $ parallel $ do
     forM_ ["ghc", "ghcjs"] $ \platform -> do
       it ("can build hello world with " <> platform) $ do
         shelly $ silently $ do
+          r <- root
           os <- T.stripEnd <$> run "uname" ["-s"]
-          d <- pwd
           withTmpDir $ \tmp -> do
             cd tmp
             let helloFilename = "hello.hs"
                 flags = if os == "Darwin" then " -dynamic" else ""
             writefile (fromText helloFilename) "{-# LANGUAGE OverloadedStrings #-}\nimport Reflex.Dom\nmain = mainWidget $ text \"Hello, world!\""
-            run (d </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> flags <> " " <> helloFilename <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
+            run (r </> ("try-reflex" :: String)) ["--pure", "--command", fromString platform <> flags <> " " <> helloFilename <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
         return () :: IO ()
   describe "work-on" $ do
     -- Test that the work-on shell can build the core reflex libraries in a variety of configurations
@@ -33,18 +37,19 @@ main = hspec $ parallel $ do
         forM_ [False, True] $ \workOnPath -> do
           it ("can build " <> package <> " with " <> platform <> " by importing the " <> (if workOnPath then "package" else "path")) $ do
             shelly $ silently $ do
-              d <- pwd
+              r <- repos
+              s <- scripts
               withTmpDir $ \tmp -> do
-                cp_r (d </> package) $ tmp </> package
+                cp_r (r </> package) (tmp </> package)
                 cd tmp
                 run "chmod" ["-R", "u+w", "."]
                 run "git" ["init"]
                 run "git" ["add", "-A"]
                 run "git" ["commit", "-m", "Initial commit"]
-                run (d </> ("hack-on" :: String)) [T.pack package]
+                run (s </> ("hack-on" :: String)) [T.pack package]
                 cd $ fromString package
                 let packageSpec = if workOnPath then "./." else fromString package
-                run (d </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
+                run (s </> ("work-on" :: String)) [fromString platform, packageSpec, "--pure", "--command", "cabal configure" <> (if platform == "ghcjs" then " --ghcjs" else "") <> " ; exit $?"] -- The "exit $?" will no longer be needed when we can assume users will have this patch: https://github.com/NixOS/nix/commit/7ba0e9cb481f00baca02f31393ad49681fc48a5d
             return () :: IO ()
   let checkThatRepoIsNotAlreadyBeingHackedOn repo = shelly $ silently $ do
         d <- pwd
@@ -60,20 +65,21 @@ main = hspec $ parallel $ do
       before_ (checkThatRepoIsNotAlreadyBeingHackedOn repo) $ do
         let withSetup a = do
               shelly $ silently $ do
-                d <- pwd
+                s <- scripts
+                r <- repos
                 withTmpDir $ \tmp -> do
                   cd tmp
-                  cp_r (d </> repo) tmp
+                  cp_r (r </> repo) tmp
                   run "git" ["init"]
                   run "git" ["add", "-A"]
                   run "git" ["commit", "-m", "Initial commit"]
-                  a d tmp
+                  a s tmp
               return () :: IO ()
-            writefileTest filename = withSetup $ \d tmp -> do
+            writefileTest filename = withSetup $ \s tmp -> do
               let fileToChange = repo </> (filename :: String)
                   contents = "test"
               writefile fileToChange contents
-              True <- (liftM (const False) $ run (d </> ("hack-on" :: String)) [fromString repo]) `catchany_sh` (\_ -> return True)
+              True <- (liftM (const False) $ run (s </> ("hack-on" :: String)) [fromString repo]) `catchany_sh` (\_ -> return True)
               newContents <- readfile fileToChange
               when (newContents /= contents) $ fail $ "hack-on changed the contents of " <> show fileToChange
               return ()
@@ -93,7 +99,7 @@ main = hspec $ parallel $ do
         ignoredFilename = "ignored"
         writefileTest filename = do
           shelly $ silently $ flip catchany_sh (\_ -> return True) $ liftM (const False) $ do
-            d <- pwd
+            s <- scripts
             withTmpDir $ \tmp1 -> withTmpDir $ \tmp2 -> do
               cd tmp1
               run "git" ["init"]
@@ -103,7 +109,7 @@ main = hspec $ parallel $ do
               run "git" ["commit", "-m", "Initial commit"]
               run "git" ["clone", toTextArg tmp1, toTextArg tmp2]
               writefile (tmp2 </> fromText filename) "testcontents"
-              run (d </> ("hack-off" :: String)) [toTextArg tmp2]
+              run (s </> ("hack-off" :: String)) [toTextArg tmp2]
           return () :: IO ()
     it "won't trample changes" $ writefileTest existingFilename
     it "won't trample new files" $ writefileTest newFilename
@@ -111,11 +117,12 @@ main = hspec $ parallel $ do
   describe "shell.nix" $ do
     it "can be entered using a bare nix-shell" $ do
       shelly $ silently $ do
+        root >>= cd
         run "nix-shell" []
       return () :: IO ()
   describe "benchmark" $ do
     it "can build and run reflex-dom benchmarks" $ do
       shelly $ silently $ do
-        d <- pwd
-        run (d </> ("benchmark" :: String)) []
+        s <- scripts
+        run (s </> ("benchmark" :: String)) []
       return () :: IO ()

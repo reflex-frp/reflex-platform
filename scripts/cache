@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
-. "$DIR/common-setup.sh"
+. "$DIR/scripts/common-setup.sh"
 
 CONFIG_DIR="$HOME/.reflex-platform"
 
@@ -13,7 +13,8 @@ trap "rm -rf \"$TMPDIR\"" EXIT
 (
     cd "$DIR"
 
-    nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache.drv" --indirect ./cache.nix "$@")"
+    # TODO: Rewrite this for Nix 2.0; nix-push is gone
+    nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache.drv" --indirect ./scripts/cache.nix "$@")"
 
     sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"*.narinfo # Get rid of these, because they can vary in apparently-meaningless between systems
 

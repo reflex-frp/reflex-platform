@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-./test-staged
-./cache
-git push

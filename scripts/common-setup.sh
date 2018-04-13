@@ -163,7 +163,7 @@ if [ ! -d /nix ]; then
   fi
 
   echo "In order to continue, $0 must install the Nix package manager.  This requires root access, so you will be prompted for your password.  If you do not wish to continue, just hit Ctrl-C at the password prompt."
-  ./installNix.sh
+  ./scripts/installNix.sh
 fi
 
 )
