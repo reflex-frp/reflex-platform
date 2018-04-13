@@ -1,4 +1,4 @@
-{ haskellLib, jdk }:
+{ haskellLib, jdk, androidActivity }:
 
 self: super: {
   ghc = super.ghc // {
@@ -8,7 +8,7 @@ self: super: {
       };
     };
   };
-  android-activity = self.callPackage ../../android/android-activity {
+  android-activity = self.callPackage androidActivity {
     inherit jdk;
   };
 

@@ -367,6 +367,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         haskellLib
         nixpkgs jdk fetchFromGitHub
         useReflexOptimizer stage2Script;
+      androidActivity = hackGet ./android-activity;
     };
     stage2Script = nixpkgs.runCommand "stage2.nix" {
       GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
