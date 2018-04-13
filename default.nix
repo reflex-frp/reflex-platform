@@ -545,12 +545,7 @@ in let this = rec {
   platforms = [
     "ghcjs"
     "ghc"
-  ] ++ (optionals (system == "x86_64-linux") [
-    "ghcAndroidArm64"
-    "ghcAndroidArmv7a"
-  ]) ++ (optionals iosSupport [
-    "ghcIosArm64"
-  ]);
+  ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
@@ -631,7 +626,7 @@ in let this = rec {
     haskellPackages.hdevtools
   ]) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []) ++ optionals (system == "x86_64-linux") androidDevTools;
+  ] else []);
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -689,9 +684,22 @@ in let this = rec {
     in ghcWithStuff (p: import ./packages.nix { haskellPackages = p; inherit platform; });
 
   tryReflexPackages = generalDevTools ghc
-    ++ builtins.map reflexEnv platforms
-    ++ optional iosSupport iosReflexTodomvc
-    ++ optional (system == "x86_64-linux") androidReflexTodomvc;
+    ++ builtins.map reflexEnv platforms;
+
+  cachePackages =
+    let otherPlatforms = optionals (system == "x86_64-linux") [
+          "ghcAndroidArm64"
+          "ghcAndroidArmv7a"
+        ] ++ optional iosSupport "ghcIosArm64";
+    in tryReflexPackages
+      ++ builtins.map reflexEnv otherPlatforms
+      ++ optionals (system == "x86_64-linux") [
+        androidDevTools
+        androidReflexTodomvc
+      ] ++ optionals iosSupport [
+        iosReflexTodomvc
+      ];
+
 
   demoVM = (import "${nixpkgs.path}/nixos" {
     configuration = {
