@@ -265,16 +265,8 @@ following to `default.nix` (right below its shells section):
 
 ```nix
   overrides = self: super: { 
-    reflex-dom = pkgs.haskell.lib.addExtraLibrary (pkgs.haskell.lib.appendConfigureFlag super.reflex-dom "-fuse-warp") self.jsaddle-warp;
+    reflex-dom = pkgs.haskell.lib.addBuildDepend (pkgs.haskell.lib.enableCabalFlag super.reflex-dom "use-warp") self.jsaddle-warp;
   };
-```
-
-And in your `frontend.cabal` add this under the build-depends section:
-
-```cabal
-  if !impl(ghcjs) 
-    build-depends:
-      jsaddle-warp
 ```
 
 This will spawn the Warp server on port 3003, which you can connect
