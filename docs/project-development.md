@@ -269,6 +269,14 @@ following to `default.nix` (right below its shells section):
   };
 ```
 
+And in your `frontend.cabal` add this under the build-depends section:
+
+```cabal
+  if !impl(ghcjs) 
+    build-depends:
+      jsaddle-warp
+```
+
 This will spawn the Warp server on port 3003, which you can connect
 your browser to to run the app. It will also compile under GHCJS as
 is, automatically defaulting back to the GHCJS backend. Both
