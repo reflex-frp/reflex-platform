@@ -83,7 +83,7 @@ Reflex's companion library, Reflex-DOM, contains a number of functions used to b
 -->
 
 
-Saving this file as `source.hs` and compiling it produces a `source.jsexe` folder (the name of the jsexe folder is based on the name of the hs file). Inside the `source.jsexe` folder you'll find `index.html`. Opening that in your browser will reveal a webpage with a single div containing the text "Welcome to Reflex".
+Save this file as `source.hs` and compile it by running `ghcjs source.hs`. If you've entered everything correctly, this will produce a folder named `source.jsexe` in the same directory as `source.hs`. Navigate to this folder in your file manager and open `index.html` using your browser. The browser should show a page with the text "Welcome to Reflex".
 
 Most Reflex apps will start the same way: a call to `mainWidget` with a starting `Widget`. A `Widget` is some DOM wrapped up for easy use with Reflex. In our example, we are building the argument to `mainWidget`, (in other words, our starting `Widget`) on the same line.
 
