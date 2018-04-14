@@ -260,19 +260,16 @@ Haskell process. This is recommended to allow testing different
 browsers, and to make use of a browser's significantly better
 developer tools.
 
-To use it, add `jsaddle-warp` and `reflex-dom-core` to your frontend's
-dependencies, and change `main` like so:
+To use it, enable the `use-warp` flag in `reflex-dom` by adding the 
+following to `default.nix` (right below its shells section):
 
-```haskell
-import Language.Javascript.JSaddle.Warp
-import Reflex.Dom.Core (mainWidget)
-import Reflex.Dom hiding (mainWidget, run)
-
-main :: IO ()
-main = run 3911 $ mainWidget app
+```nix
+  overrides = self: super: { 
+    reflex-dom = pkgs.haskell.lib.addExtraLibrary (pkgs.haskell.lib.appendConfigureFlag super.reflex-dom "-fuse-warp") self.jsaddle-warp;
+  };
 ```
 
-This will spawn the Warp server on port 3911, which you can connect
+This will spawn the Warp server on port 3003, which you can connect
 your browser to to run the app. It will also compile under GHCJS as
 is, automatically defaulting back to the GHCJS backend. Both
 `jsaddle-warp` and `jsaddle-webkit2gtk` are safe to use from GHCi, so
