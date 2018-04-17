@@ -26,5 +26,4 @@ aliases: &build
 version: 2
 
 jobs:
-  latest: *build
-  pinned: *build
+  build: *build
