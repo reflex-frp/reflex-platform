@@ -1,20 +1,35 @@
+aliases: &build
+  environment:
+    BASH_ENV: "~/.nix-profile/etc/profile.d/nix.sh"
+
+  machine: true
+
+  steps:
+    - checkout
+
+    - run: git config --global user.email "travis-ci@example.com"
+    - run: git config --global user.name "Travis-CI"
+
+    - run: if [ $CIRCLE_JOB = "latest" ]; then curl https://nixos.org/nix/install | sh; fi;
+
+    - run:
+        command: echo "Yes" | ./try-reflex --command "exit 0"
+        no_output_timeout: 3600
+
+    - run: ./scripts/benchmark
+
+    # Runs out of disk space
+    - run: ./scripts/test -j 2
+
 version: 2
+
+workflows:
+  version: 2
+  both_nix:
+    jobs:
+      - pinned
+      - latest
+
 jobs:
-  build:
-    environment:
-      BASH_ENV: "~/.nix-profile/etc/profile.d/nix.sh"
-      
-    machine: true
-
-    steps:
-      - checkout
-
-      - run: git config --global user.email "travis-ci@example.com"
-      - run: git config --global user.name "Travis-CI"
-
-      - run:
-          command: echo "Yes" | ./try-reflex --command "exit 0"
-          no_output_timeout: 3600
-
-      - run: ./scripts/benchmark
-      - run: ./scripts/test -j 2
+  pinned: *build
+  latest: *build
