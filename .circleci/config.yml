@@ -4,7 +4,7 @@ aliases: &build
 
   machine: true
 
-  paralellism: 2
+  parallelism: 2
 
   steps:
     - checkout
