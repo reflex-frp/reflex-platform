@@ -4,7 +4,7 @@ aliases: &build
 
   machine: true
 
-  parallelism: 2
+  parallelism: 3
 
   steps:
     - checkout
@@ -12,7 +12,12 @@ aliases: &build
     - run: git config --global user.email "travis-ci@example.com"
     - run: git config --global user.name "Travis-CI"
 
-    - run: if [ $CIRCLE_NODE_INDEX = 0 ]; then curl https://nixos.org/nix/install | sh; fi;
+    - run: |
+        case $CIRCLE_NODE_INDEX in
+        0 ) curl https://nixos.org/nix/install | sh;;
+        1 ) ./scripts/bump-nix-installer.sh;;
+        2 ) break;;
+        esac
 
     - run:
         command: echo "Yes" | ./try-reflex --command "exit 0"
