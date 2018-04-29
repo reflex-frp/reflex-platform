@@ -652,7 +652,7 @@ in let this = rec {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
   });
 
-  generalDevTools = haskellPackages: builtins.attrValues (generalDevTools haskellPackages);
+  generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
