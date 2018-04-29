@@ -2,6 +2,7 @@
 , haskellLib
 , nixpkgs, jdk, fetchFromGitHub
 , useReflexOptimizer
+, androidActivity
 , hackGet
 }:
 
@@ -27,6 +28,9 @@ rec {
   ghc-8_2_2 = nixpkgs.lib.composeExtensions
     ghc-8
     (import ./ghc-8.2.2.nix { inherit haskellLib fetchFromGitHub; });
+  ghc-8_4_2 = nixpkgs.lib.composeExtensions
+    ghc-8
+    (import ./ghc-8.4.2.nix { inherit haskellLib fetchFromGitHub; });
   ghc-head = nixpkgs.lib.composeExtensions
     ghc-8
     (import ./ghc-head.nix { inherit haskellLib fetchFromGitHub; });
@@ -34,6 +38,10 @@ rec {
   ghcjs = import ./ghcjs.nix {
     inherit haskellLib nixpkgs fetchFromGitHub useReflexOptimizer hackGet;
   };
-  android = import ./android { inherit haskellLib; inherit (nixpkgs) jdk; };
+  android = import ./android {
+    inherit haskellLib;
+    inherit androidActivity;
+    inherit (nixpkgs) jdk;
+  };
   ios = import ./ios.nix { inherit haskellLib; };
 }

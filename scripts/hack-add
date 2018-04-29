@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+REPO="$1"
+
+DIFF="$(git -C "$REPO/.." diff --cached -- "$REPO/git.json")"
+DIFF_ERR=$?
+
+if [ "$DIFF_ERR" -ne 0 ] ; then
+    >&2 echo "Error: could not determine whether $REPO/git.json already has pending modifications"
+    exit 1
+elif [ -n "$DIFF" ] ; then
+    >&2 echo -n "$DIFF"
+    >&2 echo "Error: $REPO/git.json has pending modifications"
+    exit 1
+fi
+
+get_git_manifest "$REPO"
+GIT_MANIFEST="$OUTPUT_GIT_MANIFEST"
+GIT_MANIFEST_TYPE="$OUTPUT_GIT_MANIFEST_TYPE"
+
+diff -u --label "a/$REPO/$GIT_MANIFEST_TYPE.json" --label "b/$REPO/$GIT_MANIFEST_TYPE.json" <(git -C "$REPO/.." show "HEAD:$REPO/$GIT_MANIFEST_TYPE.json") <(echo "$GIT_MANIFEST") | git apply --cached

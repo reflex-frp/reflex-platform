@@ -2,7 +2,6 @@
 
 self: super: {
   ghcjs-prim = null;
-  ghcjs-json = null;
   derive = null;
   focus-http-th = null;
   th-lift-instances = null;

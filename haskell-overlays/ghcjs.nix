@@ -59,12 +59,12 @@ self: super: {
   newtype-generics = dontCheck super.newtype-generics;
   lens = disableCabalFlag (dontCheck super.lens) "test-properties";
 
-  #TODO: Do we need this patch? it doesn't seem to apply properly
-  # hashable = appendPatch super.hashable ../hashable-1.2.6.1.patch;
-
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = builtins.trace "Warning: ignoring dependency on doctest" null;
 
   # These packages require doctest
   http-types = dontCheck super.http-types;
+
+  #TODO: Fix this; it seems like it might indicate a bug in ghcjs
+  parsec = dontCheck super.parsec;
 }

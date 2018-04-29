@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+PLATFORM="$1"
+shift
+
+if echo "$PLATFORM" | grep -q '^(.*)$' ; then
+    EFFECTIVE_PLATFORM="$PLATFORM"
+elif echo "$PLATFORM" | grep -q / ; then
+    PLATFORM_PATH="$(cleanup_nix_path "$PLATFORM")"
+    EFFECTIVE_PLATFORM="(import $PLATFORM { reflex-platform = this; try-reflex = builtins.trace \"WARNING: the try-reflex parameter is deprecated; please update your script to refer to reflex-platform instead\" this; })"
+else
+    EFFECTIVE_PLATFORM="this.$PLATFORM"
+fi
+
+terminate_logging
+nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOnMulti $EFFECTIVE_PLATFORM [ $(printf "\"%s\" " "$@") ]" --show-trace

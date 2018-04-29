@@ -17,8 +17,8 @@ let iosSupport =
       else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
     globalOverlay = self: super: {
       all-cabal-hashes = fetchurl {
-        url = "https://github.com/commercialhaskell/all-cabal-hashes/archive/f3ed6300a062de13303d4dd8b3a42b8bc2b02744.tar.gz";
-        sha256 = "065388vlnd1f1ylwayn1336idx02ci43rscz2jslpxlshvq2z2y7";
+        url = https://github.com/commercialhaskell/all-cabal-hashes/archive/c7af4479644dd1657df956dd7575b070c1e30d83.tar.gz;
+        sha256 = "1aw6lcyjlfcpk74al489gds4vr4709d0rpchrr0lysrpk7mk2a7g";
       };
     };
     nixpkgs = nixpkgsFunc ({
@@ -31,7 +31,7 @@ let iosSupport =
           "webkitgtk-2.4.11"
         ];
         packageOverrides = pkgs: {
-          webkitgtk = pkgs.webkitgtk218x;
+          webkitgtk = pkgs.webkitgtk220x;
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
         };
@@ -75,6 +75,7 @@ let iosSupport =
       };
       ios =
         let config = {
+              crossSystem = { config = "aarch64-apple-ios"; useiOSPrebuilt = true; sdkVer = "10.2"; };
               allowUnfree = true;
               packageOverrides = p: {
                 darwin = p.darwin // {
@@ -95,7 +96,7 @@ let iosSupport =
                     configurePhase = "true";
                     buildPhase     = "true";
                     target_prefix = stdenv.lib.replaceStrings ["-"] ["_"] p.targetPlatform.config;
-                    setupHook = ./setup-hook-ios.sh;
+                    setupHook = ./scripts/setup-hook-ios.sh;
 
                     installPhase = ''
                       mkdir -p $out/
@@ -172,9 +173,8 @@ let iosSupport =
       };
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
-      ghcjs-boot = hackGet ./ghcjs-boot;
-      shims = hackGet ./shims;
       ghcjs = hackGet ./ghcjs;
+      ghcjs8_4_2 = hackGet ./ghcjs-8.4.2;
     };
     inherit (nixpkgs.stdenv.lib) optional optionals;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
@@ -222,6 +222,98 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     addFastWeakFlag = if useFastWeak
       then drv: enableCabalFlag drv "fast-weak"
       else drv: drv;
+    ghcjsPkgs = version: src: self: super:
+      let ghcjsSrc = nixpkgs.runCommand "ghcjs-src" {
+            nativeBuildInputs = [
+              nixpkgs.perl
+              nixpkgs.autoconf
+              nixpkgs.automake
+              nixpkgs.python3
+              nixpkgs.gcc
+              self.ghc
+              self.happy
+              self.alex
+              self.cabal-install
+            ];
+            buildInputs = [
+              nixpkgs.gmp
+            ];
+            src = (if useFastWeak then applyPatch ./fast-weak.patch else id) src;
+          } ''
+            cp -r "$src" "$out"
+            chmod -R +w "$out"
+            cd "$out/ghc"
+
+            #TODO: Find a better way to avoid impure version numbers
+            sed -i 's/RELEASE=NO/RELEASE=YES/' configure.ac
+
+            patchShebangs .
+            ./boot
+            ./configure
+            make -j"$NIX_BUILD_CORES"
+            cd ..
+            patchShebangs utils
+            ./utils/makePackages.sh copy
+          '';
+          libexecdir = if builtins.compareVersions version "8.2" <= 0
+            then "bin"
+            else "libexec/${system}-${self.ghc.name}/${ghcjs-unbooted.name}";
+          ghcjs-unbooted = appendConfigureFlag (doJailbreak (dontHaddock (self.callCabal2nix "ghcjs" ghcjsSrc {}))) "-fno-wrapper-install";
+          #TODO: makePackages.sh creates impurity by using the ghc development version, which is based on the current time
+          ghcjs-booted = nixpkgs.runCommand "ghcjs-${ghcjs-unbooted.version}" {
+            #TODO: Add hscolour, haddock, and hoogle
+            nativeBuildInputs = [
+              self.ghc
+              self.cabal-install
+              nixpkgs.nodejs
+              nixpkgs.pkgconfig #TODO: This doesn't seem to actually do anything
+            ];
+            buildInputs = [
+              nixpkgs.gmp #TODO: Remove once ghcjs's integer-gmp stops depending on gmp.h
+            ];
+            inherit ghcjsSrc;
+            ghcjs = ghcjs-unbooted;
+            passthru = {
+              bootPkgs = ghc8_2_2;
+              isGhcjs = true;
+              stage1Packages = []; #TODO
+              mkStage2 = _: {};
+              version = ghcjs-unbooted.version;
+              meta.platforms = self.ghc.meta.platforms;
+              targetPrefix = "";
+              haskellCompilerName = "ghcjs";
+              socket-io = nixpkgs.nodePackages."socket.io";
+            };
+          } ''
+            mkdir -p "$out/bin"
+            for x in $(ls "$ghcjsSrc"/data/bin | sed -n 's/\(.*\)\.sh/\1/p') ; do
+              sed -e "s|{topdir}|$out/lib/${ghcjs-unbooted.name}|" -e "s|{libexecdir}|$ghcjs/${libexecdir}|" <"$ghcjsSrc/data/bin/$x.sh" >"$out/bin/$x"
+              chmod +x "$out/bin/$x"
+            done
+            for x in $(ls "$ghcjs/${libexecdir}") ; do
+              if [ ! -f "$out/bin/$x" ] ; then
+                ln -s "$ghcjs/${libexecdir}/$x" "$out/bin/$x"
+              fi
+            done
+            PATH="$out/bin:$PATH"
+            HOME="$out"
+            "$ghcjs/${libexecdir}/ghcjs-boot" -j "$NIX_BUILD_CORES"
+          '';
+      in {
+      ghcjs = ghcjs-booted;
+      ghci-ghcjs = self.callCabal2nix "ghci-ghcjs" (ghcjsSrc + "/lib/ghci-ghcjs") {};
+      ghcjs-th = self.callCabal2nix "ghcjs-th" (ghcjsSrc + "/lib/ghcjs-th") {};
+      template-haskell-ghcjs = self.callCabal2nix "template-haskell-ghcjs" (ghcjsSrc + "/lib/template-haskell-ghcjs") {};
+      ghc-api-ghcjs = overrideCabal (self.callCabal2nix "ghc-api-ghcjs" (ghcjsSrc + "/lib/ghc-api-ghcjs") {}) (drv: {
+        libraryToolDepends = (drv.libraryToolDepends or []) ++ [
+          ghc8_2_2.alex
+          ghc8_2_2.happy
+        ];
+      });
+      haddock-api-ghcjs = self.callCabal2nix "haddock-api-ghcjs" (ghcjsSrc + "/lib/haddock-api-ghcjs") {};
+      haddock-library-ghcjs = dontHaddock (self.callCabal2nix "haddock-library-ghcjs" (ghcjsSrc + "/lib/haddock-library-ghcjs") {});
+    };
+
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
         let reflexDom = import (hackGet ./reflex-dom) self nixpkgs;
@@ -233,6 +325,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
               else drv: drv;
         in {
 
+        servant-auth-server = self.callHackage "servant-auth-server" "0.3.1.0" {};
         vector = doJailbreak super.vector;
         these = doJailbreak super.these;
         aeson-compat = doJailbreak super.aeson-compat;
@@ -252,6 +345,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
 
+        # hindent was overriden with a newer version of haskell-src-exts for some reason
+        hindent = super.hindent.override { haskell-src-exts = self.haskell-src-exts; };
+        # Not sure why these tests fail...
+        hfmt = dontCheck super.hfmt;
+
         ########################################################################
         # Reflex packages
         ########################################################################
@@ -261,100 +359,15 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
         haven = doJailbreak (self.callHackage "haven" "0.2.0.0" {});
-        ghci-ghcjs = self.callCabal2nix "ghci-ghcjs" (self.ghcjsSrc + "/lib/ghci-ghcjs") {};
-        ghcjs-th = self.callCabal2nix "ghcjs-th" (self.ghcjsSrc + "/lib/ghcjs-th") {};
-        template-haskell-ghcjs = self.callCabal2nix "template-haskell-ghcjs" (self.ghcjsSrc + "/lib/template-haskell-ghcjs") {};
-        ghc-api-ghcjs = overrideCabal (self.callCabal2nix "ghc-api-ghcjs" (self.ghcjsSrc + "/lib/ghc-api-ghcjs") {}) (drv: {
-          libraryToolDepends = (drv.libraryToolDepends or []) ++ [
-            ghc8_2_2.alex
-            ghc8_2_2.happy
-          ];
-        });
-        haddock-api-ghcjs = self.callCabal2nix "haddock-api-ghcjs" (self.ghcjsSrc + "/lib/haddock-api-ghcjs") {};
-        haddock-library-ghcjs = dontHaddock (self.callCabal2nix "haddock-library-ghcjs" (self.ghcjsSrc + "/lib/haddock-library-ghcjs") {});
-        ghcjsSrc = nixpkgs.runCommand "ghcjs-src" {
-          nativeBuildInputs = [
-            nixpkgs.perl
-            nixpkgs.autoconf
-            nixpkgs.automake
-            self.ghc
-            self.happy
-            self.alex
-            self.cabal-install
-          ];
-          buildInputs = [
-            nixpkgs.gmp
-          ];
-          src = (if useFastWeak then applyPatch ./fast-weak.patch else id) (hackGet ./ghcjs);
-        } ''
-          cp -r "$src" "$out"
-          chmod -R +w "$out"
-          cd "$out/ghc"
-
-          #TODO: Find a better way to avoid impure version numbers
-          sed -i 's/RELEASE=NO/RELEASE=YES/' configure.ac
-
-          patchShebangs .
-          ./boot
-          ./configure
-          make -j"$NIX_BUILD_CORES"
-          cd ..
-          patchShebangs utils
-          ./utils/makePackages.sh copy
-        '';
-        ghcjs-test = appendConfigureFlag (doJailbreak (dontHaddock (self.callCabal2nix "ghcjs" self.ghcjsSrc {}))) "-fno-wrapper-install";
-        #TODO: makePackages.sh creates impurity by using the ghc development version, which is based on the current time
-        ghcjs-booted = nixpkgs.runCommand "ghcjs-${self.ghcjs-test.version}" {
-          #TODO: Add hscolour, haddock, and hoogle
-          nativeBuildInputs = [
-            self.ghc
-            self.cabal-install
-            nixpkgs.nodejs
-            nixpkgs.pkgconfig #TODO: This doesn't seem to actually do anything
-          ];
-          buildInputs = [
-            nixpkgs.gmp #TODO: Remove once ghcjs's integer-gmp stops depending on gmp.h
-          ];
-          inherit (self) ghcjsSrc;
-          ghcjs = self.ghcjs-test;
-          passthru = {
-            bootPkgs = ghc8_2_2;
-            isGhcjs = true;
-            stage1Packages = []; #TODO
-            mkStage2 = _: {};
-            version = self.ghcjs-test.version;
-            meta.platforms = self.ghc.meta.platforms;
-            targetPrefix = "";
-            haskellCompilerName = "ghcjs";
-            socket-io = nixpkgs.nodePackages."socket.io";
-          };
-        } ''
-          mkdir -p "$out/bin"
-          for x in $(ls "$ghcjsSrc"/data/bin | sed -n 's/\(.*\)\.sh/\1/p') ; do
-            sed -e "s|{topdir}|$out/lib/${self.ghcjs-test.name}|" -e "s|{libexecdir}|$ghcjs/bin|" <"$ghcjsSrc/data/bin/$x.sh" >"$out/bin/$x"
-            chmod +x "$out/bin/$x"
-          done
-          for x in $(ls "$ghcjs/bin") ; do
-            if [ ! -f "$out/bin/$x" ] ; then
-              ln -s "$ghcjs/bin/$x" "$out/bin/$x"
-            fi
-          done
-          PATH="$out/bin:$PATH"
-          HOME="$out"
-          "$ghcjs/bin/ghcjs-boot" -j "$NIX_BUILD_CORES"
-        '';
 
         inherit (jsaddlePkgs) jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
-        jsaddle = if (self.ghc.isGhcjs or false)
-          then overrideCabal jsaddlePkgs.jsaddle (drv: {
-            libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [self.ghcjs-base self.ghcjs-prim];
-          })
-          else jsaddlePkgs.jsaddle;
+        jsaddle = doJailbreak jsaddlePkgs.jsaddle;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
 
         jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
           preBuild = ''./setup build || true'';
+          jailbreak = true;
         });
 
         inherit (ghcjsDom) ghcjs-dom-jsffi;
@@ -366,40 +379,23 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
 
+        ${if system == "i686-linux" then "language-nix" else null} = dontCheck super.language-nix;
+
         ########################################################################
         # Tweaks
         ########################################################################
-        # We can't use callHackage on haskell-gi-base, because it has a system
-        # dependency that callHackage doesn't figure out
-        haskell-gi-base = overrideCabal super.haskell-gi-base (drv: {
-          version = "0.21.0";
-          sha256 = "1vrz2vrmvsbahzsp1c06x4qmny5qhbrnz5ybzh5p8z1g3ji9z166";
-          revision = null;
-          editedCabalFile = null;
-        });
-
-        haskell-gi = self.callHackage "haskell-gi" "0.21.0" {};
+        haskell-gi = dontCheck super.haskell-gi;
         ghcjs-base-stub = dontHaddock super.ghcjs-base-stub;
 
         exception-transformers = doJailbreak super.exception-transformers;
         haskell-src-exts = self.callHackage "haskell-src-exts" "1.20.1" {};
         haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.2" {};
 
-        haskell-gi-overloading = super.haskell-gi-overloading_0_0;
+        haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
         webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
-          webkitgtk = nixpkgs.webkitgtk218x;
+          webkitgtk = nixpkgs.webkitgtk220x;
         };
-
-        cabal-macosx = overrideCabal super.cabal-macosx (drv: {
-          src = fetchFromGitHub {
-            owner = "obsidiansystems";
-            repo = "cabal-macosx";
-            rev = "b1e22331ffa91d66da32763c0d581b5d9a61481b";
-            sha256 = "1y2qk61ciflbxjm0b1ab3h9lk8cm7m6ln5ranpf1lg01z1qk28m8";
-          };
-          doCheck = false;
-        });
 
         ########################################################################
         # Fixes to be upstreamed
@@ -408,6 +404,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
+        miso = addBuildDepend (self.callHackage "miso" "0.12.0.0" {}) self.ghcjs-base;
 
         ########################################################################
         # Packages not in hackage
@@ -424,6 +421,12 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
           sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
         }) {}));
+        direct-sqlite = self.callCabal2nix "direct-sqlite" (fetchFromGitHub {
+          owner = "IreneKnapp";
+          repo = "direct-sqlite";
+          rev = "cd1ab3c0ee7894d888be826fc653b75813fd53c9";
+          sha256 = "13i6lz99x0jb9fgns7brlqnv5s5w4clp26l8c3kxd318r1krvr6w";
+        }) {};
 
         superconstraints =
           # Remove override when assertion fails
@@ -447,21 +450,35 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         useReflexOptimizer
         hackGet;
       inherit (nixpkgs) lib;
+      androidActivity = hackGet ./android-activity;
     };
-    ghcjsCompiler = ghc8_2_2.ghcjs-booted;
     ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
-      ghc = ghcjsCompiler;
-      buildHaskellPackages = ghcjsCompiler.bootPkgs;
+      ghc = ghc.ghcjs;
+      buildHaskellPackages = ghc.ghcjs.bootPkgs;
+      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { inherit haskellLib; };
+      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
+      inherit haskellLib;
+    };
+    ghcjs8_4_2Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
+      ghc = ghc8_4_2.ghcjs;
+      buildHaskellPackages = ghc8_4_2.ghcjs.bootPkgs;
       compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { inherit haskellLib; };
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
     };
 #    TODO: Figure out why this approach doesn't work; it doesn't seem to evaluate our overridden ghc at all
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
-#      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
+#      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghc.ghcjs;
 #    };
   ghc = ghc8_2_2;
   ghcjs = (extendHaskellPackages ghcjsPackages).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghcjs
+      (optionalExtension useTextJSString haskellOverlays.textJSString)
+    ];
+  };
+  ghcjs8_4_2 = (extendHaskellPackages ghcjs8_4_2Packages).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghcjs
@@ -474,9 +491,17 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ghc-head
     ];
   };
+  ghc8_4_2 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc842).override {
+    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      (ghcjsPkgs "8.4" sources.ghcjs8_4_2)
+      haskellOverlays.ghc-8_4_2
+    ];
+  };
   ghc8_2_2 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc822).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      (ghcjsPkgs "8.2" sources.ghcjs)
       haskellOverlays.ghc-8_2_2
     ];
   };
@@ -561,6 +586,7 @@ in let this = rec {
           stage2Script
           ghc
           ghcHEAD
+          ghc8_4_2
           ghc8_2_2
           ghc8_0_1
           ghc7
@@ -571,6 +597,7 @@ in let this = rec {
           ghcAndroidArm64
           ghcAndroidArmv7a
           ghcjs
+          ghcjs8_4_2
           android
           androidWithHaskellPackages
           ios
@@ -610,12 +637,7 @@ in let this = rec {
   platforms = [
     "ghcjs"
     "ghc"
-  ] ++ (optionals (system == "x86_64-linux") [
-    "ghcAndroidArm64"
-    "ghcAndroidArmv7a"
-  ]) ++ (optionals iosSupport [
-    "ghcIosArm64"
-  ]);
+  ];
 
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
@@ -696,7 +718,7 @@ in let this = rec {
     haskellPackages.hdevtools
   ]) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
     nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []) ++ optionals (system == "x86_64-linux") androidDevTools;
+  ] else []);
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -708,7 +730,18 @@ in let this = rec {
   })).env;
 
   workOnMulti' = { env, packageNames, tools ? _: [] }:
-    let ghcEnv = env.ghc.withPackages (packageEnv: builtins.concatLists (map (n: (packageEnv.${n}.override { mkDerivation = x: { out = builtins.filter (p: builtins.all (nameToAvoid: (p.pname or "") != nameToAvoid) packageNames) ((x.buildDepends or []) ++ (x.libraryHaskellDepends or []) ++ (x.executableHaskellDepends or []) ++ (x.testHaskellDepends or [])); }; }).out) packageNames));
+    let ghcEnv =
+      let inherit (builtins) filter all concatLists;
+          dependenciesOf = x: (x.buildDepends or [])
+                           ++ (x.libraryHaskellDepends or [])
+                           ++ (x.executableHaskellDepends or [])
+                           ++ (x.testHaskellDepends or []);
+          elemByPname = p: all (pname: (p.pname or "") != pname) packageNames;
+          overiddenOut  = pkgEnv: n: (pkgEnv.${n}.override {
+            mkDerivation = x: {out = filter elemByPname (dependenciesOf x); };
+          }).out;
+      in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
+
     in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
       buildInputs = [
         ghcEnv
@@ -743,9 +776,22 @@ in let this = rec {
     in ghcWithStuff (p: import ./packages.nix { haskellPackages = p; inherit platform; });
 
   tryReflexPackages = generalDevTools ghc
-    ++ builtins.map reflexEnv platforms
-    ++ optional iosSupport iosReflexTodomvc
-    ++ optional (system == "x86_64-linux") androidReflexTodomvc;
+    ++ builtins.map reflexEnv platforms;
+
+  cachePackages =
+    let otherPlatforms = optionals (system == "x86_64-linux") [
+#          "ghcAndroidArm64"
+#          "ghcAndroidArmv7a"
+        ] ++ optional iosSupport "ghcIosArm64";
+    in tryReflexPackages
+      ++ builtins.map reflexEnv otherPlatforms
+      ++ optionals (system == "x86_64-linux") [
+#        androidDevTools
+#        androidReflexTodomvc
+      ] ++ optionals iosSupport [
+        iosReflexTodomvc
+      ];
+
 
   demoVM = (import "${nixpkgs.path}/nixos" {
     configuration = {
