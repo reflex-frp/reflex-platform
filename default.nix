@@ -75,15 +75,8 @@ let iosSupport =
       };
       ios =
         let config = {
-              crossSystem = { config = "aarch64-apple-ios"; useiOSPrebuilt = true; sdkVer = "10.2"; };
               allowUnfree = true;
               packageOverrides = p: {
-                darwin = p.darwin // {
-                  ios-cross = p.darwin.ios-cross.override {
-                    # Depending on where ghcHEAD is in your nixpkgs checkout, you may need llvm 39 here instead
-                    inherit (p.llvmPackages_39) llvm clang;
-                  };
-                };
                 buildPackages = p.buildPackages // {
                   osx_sdk = p.buildPackages.callPackage ({ stdenv }:
                     let version = "10";
@@ -139,14 +132,14 @@ let iosSupport =
           system = "x86_64-darwin";
           overlays = [globalOverlay];
           crossSystem = {
-            useIosPrebuilt = true;
+            useiOSPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
             # aarch64-apple-darwin14 | arm64  | false
             # arm-apple-darwin10     | armv7  | false
             # i386-apple-darwin11    | i386   | true
             # x86_64-apple-darwin14  | x86_64 | true
-            config = "aarch64-apple-darwin14";
-            arch = "arm64";
+            config = "aarch64-apple-ios";
+#            arch = "arm64";
             isiPhoneSimulator = false;
             sdkVer = iosSdkVersion;
             useiOSCross = true;
