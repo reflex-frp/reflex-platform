@@ -501,7 +501,8 @@ in let this = rec {
           android
           androidWithHaskellPackages
           ios
-          iosWithHaskellPackages;
+          iosWithHaskellPackages
+          filterGit;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
