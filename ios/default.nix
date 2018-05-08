@@ -354,8 +354,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     chmod +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
 
-    # focus????
-    focus/reflex-platform/scripts/run-in-ios-sim "$tmpdir/${executableName}.app"
+    (cd "$(dirname $0)/../../reflex-platform/scripts" && ./run-in-ios-sim "$tmpdir/${executableName}.app")
   '';
 }) ''
   set -x
