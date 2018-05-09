@@ -2,7 +2,8 @@
 set -euo pipefail
 
 function cleanup {
-  if [ -n "$uuid" ]; then
+  # alternative to [ -v ] for bash prior to 4.2
+  if [ -n "${uuid-}" ]; then
     echo "Cleaning up simulator" >&2
     xcrun simctl shutdown $uuid 2>/dev/null
     xcrun simctl delete $uuid
