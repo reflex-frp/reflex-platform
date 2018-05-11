@@ -34,9 +34,23 @@
   # App ID in your Apple developer account.
   hosts ? []
 
+# Function taking set of plist keys-value pairs and returns a new set with changes applied.
+#
+# For example: (super: super // { AnotherKey: "<string>value</string>"; })
+, overrideInfoPlistByKey ? (super: super)
+
 , extraInfoPlistContent ? ""
 }:
+let
+  inherit (nixpkgs.lib) mapAttrsToList concatStringsSep;
 
+  # TODO: Move more things into this overridable default set.
+  defaultPliskByKey = {
+    NSPhotoLibraryUsageDescription = "<string>Allow access to photo library.</string>";
+    NSCameraUsageDescription = "<string>Allow access to camera.</string>";
+  };
+
+in
 nixpkgs.runCommand "${executableName}-app" (rec {
   exePath = package ghcIosArm64;
   infoPlist = builtins.toFile "Info.plist" (''
@@ -66,10 +80,6 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       </array>
       <key>LSRequiresIPhoneOS</key>
       <true/>
-      <key>NSPhotoLibraryUsageDescription</key>
-      <string>Allow access to photo library.</string>
-      <key>NSCameraUsageDescription</key>
-      <string>Allow access to camera.</string>
       <key>UILaunchStoryboardName</key>
       <string>LaunchScreen</string>
       <key>UIRequiredDeviceCapabilities</key>
@@ -136,7 +146,13 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       <string>10.2</string>
       <key>DTPlatformBuild</key>
       <string>14C89</string>
-  '' + extraInfoPlistContent + ''
+
+      ${concatStringsSep "\n" (mapAttrsToList
+        (k: v: "<key>${k}</key>${v}")
+        (overrideInfoPlistByKey defaultPliskByKey)
+      )}
+
+      ${extraInfoPlistContent}
     </dict>
     </plist>
   '');
