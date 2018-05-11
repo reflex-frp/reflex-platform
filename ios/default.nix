@@ -1,4 +1,4 @@
-{ nixpkgs, libiconv, ghcIosArm64 }:
+{ nixpkgs, libiconv, ghcIosAarch64 }:
 
 { #TODO
   bundleName
@@ -38,7 +38,7 @@
 }:
 
 nixpkgs.runCommand "${executableName}-app" (rec {
-  exePath = package ghcIosArm64;
+  exePath = package ghcIosAarch64;
   infoPlist = builtins.toFile "Info.plist" (''
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

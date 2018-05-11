@@ -40,38 +40,21 @@ let iosSupport =
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
       android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
-        arm64 = {
+        aarch64 = {
           system = "x86_64-linux";
           overlays = [globalOverlay];
-          crossSystem = {
-            config = "aarch64-unknown-linux-android";
-            arch = "arm64";
-            libc = "bionic";
-            withTLS = true;
-            openssl.system = "linux-generic64";
-            platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
-          };
+          crossSystem = nixpkgs.lib.systems.examples.aarch64-android-prebuilt;
           config.allowUnfree = true;
         };
-        arm64Impure = arm64 // {
-          crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
-        };
-        armv7a = {
+        aarch32 = {
           system = "x86_64-linux";
           overlays = [globalOverlay];
-          crossSystem = {
-            config = "arm-unknown-linux-androideabi";
-            arch = "armv7";
-            libc = "bionic";
-            withTLS = true;
-            openssl.system = "linux-generic32";
-            platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
-          };
+          crossSystem = nixpkgs.lib.systems.examples.armv7a-android-prebuilt;
           config.allowUnfree = true;
         };
-        armv7aImpure = armv7a // {
-          crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
-        };
+        # Back compat
+        arm64Impure = aarch64;
+        armv7aImpure = aarch32;
       };
       ios =
         let config = {
@@ -107,47 +90,34 @@ let iosSupport =
                 };
               };
             };
-        in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
+        in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
           overlays = [globalOverlay];
-          crossSystem = {
-            useIosPrebuilt = true;
-            # You can change config/arch/isiPhoneSimulator depending on your target:
-            # aarch64-apple-darwin14 | arm64  | false
-            # arm-apple-darwin10     | armv7  | false
-            # i386-apple-darwin11    | i386   | true
-            # x86_64-apple-darwin14  | x86_64 | true
-            config = "x86_64-apple-darwin14";
-            arch = "x86_64";
-            isiPhoneSimulator = true;
+          crossSystem = nixpkgs.lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
-            useiOSCross = true;
-            openssl.system = "darwin64-x86_64-cc";
-            libc = "libSystem";
           };
           inherit config;
         };
-        arm64 = {
+        aarch64 = {
           system = "x86_64-darwin";
           overlays = [globalOverlay];
-          crossSystem = {
-            useiOSPrebuilt = true;
-            # You can change config/arch/isiPhoneSimulator depending on your target:
-            # aarch64-apple-darwin14 | arm64  | false
-            # arm-apple-darwin10     | armv7  | false
-            # i386-apple-darwin11    | i386   | true
-            # x86_64-apple-darwin14  | x86_64 | true
-            config = "aarch64-apple-ios";
-#            arch = "arm64";
-            isiPhoneSimulator = false;
+          crossSystem = nixpkgs.lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
-            useiOSCross = true;
-            openssl.system = "ios64-cross";
-            libc = "libSystem";
           };
           inherit config;
         };
+        aarch32 = {
+          system = "x86_64-darwin";
+          overlays = [globalOverlay];
+          crossSystem = nixpkgs.lib.systems.examples.iphone32 // {
+            sdkVer = iosSdkVersion;
+          };
+          inherit config;
+        };
+        # Back compat
+        arm64 = aarch64;
+        armv7 = aarch32;
       };
     };
     haskellLib = nixpkgs.haskell.lib;
@@ -516,7 +486,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ghc-7_8
     ];
   };
-  ghcAndroidArm64 = (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc822).override {
+  ghcAndroidAarch64 = (extendHaskellPackages nixpkgsCross.android.aarch64.pkgs.haskell.packages.ghc822).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_2
@@ -524,7 +494,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.android
     ];
   };
-  ghcAndroidArmv7a = (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc822).override {
+  ghcAndroidAarch32 = (extendHaskellPackages nixpkgsCross.android.aarch32.pkgs.haskell.packages.ghc822).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_2
@@ -538,7 +508,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ghc-8_4_2
     ];
   };
-  ghcIosArm64 = (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc842).override {
+  ghcIosAarch64 = (extendHaskellPackages nixpkgsCross.ios.aarch64.pkgs.haskell.packages.ghc842).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_4_2
@@ -546,7 +516,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
     ];
   };
-  ghcIosArmv7 = (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc842).override {
+  ghcIosAarch32 = (extendHaskellPackages nixpkgsCross.ios.aarch32.pkgs.haskell.packages.ghc842).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_4_2
@@ -554,19 +524,24 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
     ];
   };
+  # Back compat
+  ghcAndroidArm64 = ghcAndroidAarch64;
+  ghcAndroidArmv7a = ghcAndroidAarch32;
+  ghcIosArm64 = ghcIosAarch64;
+  ghcIosArmv7 = ghcIosAarch32;
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
-  android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
-  androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android {
+  android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
+  androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
-    inherit nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal;
+    inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
-  ios = iosWithHaskellPackages ghcIosArm64;
-  iosWithHaskellPackages = ghcIosArm64: {
+  ios = iosWithHaskellPackages ghcIosAarch64;
+  iosWithHaskellPackages = ghcIosAarch64: {
     buildApp = import ./ios {
-      inherit ghcIosArm64;
+      inherit ghcIosAarch64;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
-      inherit (nixpkgsCross.ios.arm64) libiconv;
+      inherit (nixpkgsCross.ios.aarch64) libiconv;
     };
   };
 in let this = rec {
@@ -585,10 +560,10 @@ in let this = rec {
           ghc7
           ghc7_8
           ghcIosSimulator64
-          ghcIosArm64
-          ghcIosArmv7
-          ghcAndroidArm64
-          ghcAndroidArmv7a
+          ghcIosAarch64
+          ghcIosAarch32
+          ghcAndroidAarch64
+          ghcAndroidAarch32
           ghcjs
           ghcjs8_4_2
           android
@@ -773,9 +748,9 @@ in let this = rec {
 
   cachePackages =
     let otherPlatforms = optionals (system == "x86_64-linux") [
-#          "ghcAndroidArm64"
-#          "ghcAndroidArmv7a"
-        ] ++ optional iosSupport "ghcIosArm64";
+#          "ghcAndroidAarch64"
+#          "ghcAndroidAarch32"
+        ] ++ optional iosSupport "ghcIosAarch64";
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
       ++ optionals (system == "x86_64-linux") [

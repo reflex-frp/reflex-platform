@@ -154,16 +154,16 @@ let
     android =
       mapAttrs (name: config:
         let
-          ghcAndroidArm64 = this.ghcAndroidArm64.override { overrides = overrides'; };
-          ghcAndroidArmv7a = this.ghcAndroidArmv7a.override { overrides = overrides'; };
-        in (this.androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; }).buildApp
+          ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
+          ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
+        in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
           ({ package = p: p.${name}; } // config)
       ) android;
 
     ios =
       mapAttrs (name: config:
-        let ghcIosArm64 = this.ghcIosArm64.override { overrides = overrides'; };
-        in (this.iosWithHaskellPackages ghcIosArm64).buildApp
+        let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
+        in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
           ({ package = p: p.${name}; } // config)
       ) ios;
 
