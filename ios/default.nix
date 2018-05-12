@@ -1,4 +1,6 @@
-{ nixpkgs, libiconv, ghcIosArm64 }:
+{ nixpkgs, libiconv, ghcIosArm64
+, plistLib # Set of functions for generating plist files from nix types
+}:
 
 { #TODO
   bundleName
@@ -37,152 +39,85 @@
 # Function taking set of plist keys-value pairs and returns a new set with changes applied.
 #
 # For example: (super: super // { AnotherKey: "<string>value</string>"; })
-, overrideInfoPlistByKey ? (super: super)
+, overrideInfoPlist ? (super: super)
 
 , extraInfoPlistContent ? ""
 }:
 let
-  inherit (nixpkgs.lib) mapAttrsToList concatStringsSep;
-
-  # TODO: Move more things into this overridable default set.
-  defaultPliskByKey = {
-    NSPhotoLibraryUsageDescription = "<string>Allow access to photo library.</string>";
-    NSCameraUsageDescription = "<string>Allow access to camera.</string>";
+  defaultInfoPlist = {
+    CFBundleDevelopmentRegion = "en";
+    CFBundleExecutable = executableName;
+    CFBundleIdentifier = bundleIdentifier;
+    CFBundleInfoDictionaryVersion = "6.0";
+    CFBundleName = bundleName;
+    CFBundlePackageType = "APPL";
+    CFBundleShortVersionString = bundleVersionString;
+    CFBundleVersion = bundleVersion;
+    CFBundleSupportedPlatforms = [ "iPhoneOS" ];
+    LSRequiresIPhoneOS = true;
+    UILaunchStoryboardName = "LaunchScreen";
+    UIRequiredDeviceCapabilities = [ "arm64" ];
+    UIDeviceFamily = [ 1 2 ];
+    UISupportedInterfaceOrientations = [
+      "UIInterfaceOrientationPortrait"
+      "UIInterfaceOrientationLandscapeLeft"
+      "UIInterfaceOrientationLandscapeRight"
+    ];
+    ${"UISupportedInterfaceOrientations~ipad"} = [
+      "UIInterfaceOrientationPortrait"
+      "UIInterfaceOrientationPortraitUpsideDown"
+      "UIInterfaceOrientationLandscapeLeft"
+      "UIInterfaceOrientationLandscapeRight"
+    ];
+    ${"CFBundleIcons~ipad"} = {
+      CFBundlePrimaryIcon = {
+        CFBundleIconFiles = [
+          "Icon-60"
+          "Icon-76"
+          "Icon-83.5"
+        ];
+      };
+    };
+    CFBundleIcons = {
+      CFBundlePrimaryIcon = {
+        CFBundleIconFiles = [
+          "Icon-60"
+        ];
+      };
+    };
+    DTSDKName = "iphoneos10.2";
+    DTXcode = "0821";
+    DTSDKBuild = "14C89";
+    BuildMachineOSBuild = "16D32";
+    DTPlatformName = "iphoneos";
+    DTCompiler = "com.apple.compilers.llvm.clang.1_0";
+    MinimumOSVersion = "10.2";
+    DTXcodeBuild = "8C1002";
+    DTPlatformVersion = "10.2";
+    DTPlatformBuild = "14C89";
+    NSPhotoLibraryUsageDescription = "Allow access to photo library.";
+    NSCameraUsageDescription = "Allow access to camera.";
   };
-
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
   exePath = package ghcIosArm64;
-  infoPlist = builtins.toFile "Info.plist" (''
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>CFBundleDevelopmentRegion</key>
-      <string>en</string>
-      <key>CFBundleExecutable</key>
-      <string>${executableName}</string>
-      <key>CFBundleIdentifier</key>
-      <string>${bundleIdentifier}</string>
-      <key>CFBundleInfoDictionaryVersion</key>
-      <string>6.0</string>
-      <key>CFBundleName</key>
-      <string>${bundleName}</string>
-      <key>CFBundlePackageType</key>
-      <string>APPL</string>
-      <key>CFBundleShortVersionString</key>
-      <string>${bundleVersionString}</string>
-      <key>CFBundleVersion</key>
-      <string>${bundleVersion}</string>
-      <key>CFBundleSupportedPlatforms</key>
-      <array>
-        <string>iPhoneOS</string>
-      </array>
-      <key>LSRequiresIPhoneOS</key>
-      <true/>
-      <key>UILaunchStoryboardName</key>
-      <string>LaunchScreen</string>
-      <key>UIRequiredDeviceCapabilities</key>
-      <array>
-        <string>arm64</string>
-      </array>
-      <key>UIDeviceFamily</key>
-      <array>
-        <integer>1</integer>
-        <integer>2</integer>
-      </array>
-      <key>UISupportedInterfaceOrientations</key>
-      <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-      </array>
-      <key>UISupportedInterfaceOrientations~ipad</key>
-      <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationPortraitUpsideDown</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-      </array>
-      <key>CFBundleIcons~ipad</key>
-      <dict>
-        <key>CFBundlePrimaryIcon</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>Icon-60</string>
-            <string>Icon-76</string>
-            <string>Icon-83.5</string>
-          </array>
-        </dict>
-      </dict>
-      <key>CFBundleIcons</key>
-      <dict>
-        <key>CFBundlePrimaryIcon</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>Icon-60</string>
-          </array>
-        </dict>
-      </dict>
-      <key>DTSDKName</key>
-      <string>iphoneos10.2</string>
-      <key>DTXcode</key>
-      <string>0821</string>
-      <key>DTSDKBuild</key>
-      <string>14C89</string>
-      <key>BuildMachineOSBuild</key>
-      <string>16D32</string>
-      <key>DTPlatformName</key>
-      <string>iphoneos</string>
-      <key>DTCompiler</key>
-      <string>com.apple.compilers.llvm.clang.1_0</string>
-      <key>MinimumOSVersion</key>
-      <string>10.2</string>
-      <key>DTXcodeBuild</key>
-      <string>8C1002</string>
-      <key>DTPlatformVersion</key>
-      <string>10.2</string>
-      <key>DTPlatformBuild</key>
-      <string>14C89</string>
-
-      ${concatStringsSep "\n" (mapAttrsToList
-        (k: v: "<key>${k}</key>${v}")
-        (overrideInfoPlistByKey defaultPliskByKey)
-      )}
-
-      ${extraInfoPlistContent}
-    </dict>
-    </plist>
+  infoPlist = builtins.toFile "Info.plist" (plistLib.inPLISTDocument ''
+    ${plistLib.pprExpr "" (overrideInfoPlist defaultInfoPlist)}
+    ${extraInfoPlistContent}
   '');
-  resourceRulesPlist = builtins.toFile "ResourceRules.plist" ''
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>rules</key>
-      <dict>
-        <key>.*</key>
-        <true/>
-        <key>Info.plist</key>
-        <dict>
-          <key>omit</key>
-          <true/>
-          <key>weight</key>
-          <real>10</real>
-        </dict>
-        <key>ResourceRules.plist</key>
-        <dict>
-          <key>omit</key>
-          <true/>
-          <key>weight</key>
-          <real>100</real>
-        </dict>
-      </dict>
-    </dict>
-    </plist>
-  '';
+  resourceRulesPlist = builtins.toFile "ResourceRules.plist" (plistLib.toPLIST {
+    rules = {
+      ${".*"} = true;
+      ${"Info.plist"} = {
+        omit = true;
+        weight = plistLib.types.real 10;
+      };
+      ${"ResourceRules.plist"} = {
+        omit = true;
+        weight = plistLib.types.real 100;
+      };
+    };
+  });
   indexHtml = builtins.toFile "index.html" ''
     <html>
       <head>
@@ -191,36 +126,15 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       </body>
     </html>
   '';
-  xcent = builtins.toFile "xcent" (''
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>application-identifier</key>
-      <string><team-id/>.${bundleIdentifier}</string>
-      <key>com.apple.developer.team-identifier</key>
-      <string><team-id/></string>
-      <key>get-task-allow</key>
-      <true/>
-      <key>keychain-access-groups</key>
-      <array>
-        <string><team-id/>.${bundleIdentifier}</string>
-      </array>
-  ''
-  + nixpkgs.lib.optionalString (apsEnv != null) ''
-      <key>aps-environment</key>
-      <string>${apsEnv}</string>
-  ''
-  + nixpkgs.lib.optionalString (hosts != []) ''
-      <key>com.apple.developer.associated-domains</key>
-      <array>
-        ${map (host: "<string>applinks:${host}</string>") hosts}
-      </array>
-  ''
-  + ''
-    </dict>
-    </plist>
-  '');
+  xcent = builtins.toFile "xcent" (plistLib.toPLIST {
+    application-identifier = "<team-id/>.${bundleIdentifier}";
+    ${"com.apple.developer.team-identifier"} = "<team-id/>";
+    get-task-allow = true;
+    keychain-access-groups = [ "<team-id/>.${bundleIdentifier}" ];
+    aps-environment = apsEnv;
+    ${"com.apple.developer.associated-domains"} =
+      if hosts == [] then null else map (host: "applinks:${host}") hosts;
+  });
   deployScript = nixpkgs.writeText "deploy" ''
     #!/usr/bin/env bash
     set -eo pipefail

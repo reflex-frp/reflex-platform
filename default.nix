@@ -470,10 +470,20 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
     inherit nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal;
   };
+
+  nix-darwin = fetchFromGitHub {
+    owner = "3noch"; # TODO: Update to LnL7 once PR is merged: https://github.com/LnL7/nix-darwin/pull/78
+    repo = "nix-darwin";
+    rev = "adfe63988d8e0f07739bc7dafd7249c3a78faf96";
+    sha256 = "0rca00lajdzf8lf2hgwn6mbmii656dnw725y6nnraz4qf87907zq";
+  };
+  # TODO: This should probably be upstreamed to nixpkgs.
+  plistLib = import (nix-darwin + /modules/launchd/lib.nix) { lib = nixpkgs.lib; };
+
   ios = iosWithHaskellPackages ghcIosArm64;
   iosWithHaskellPackages = ghcIosArm64: {
     buildApp = import ./ios {
-      inherit ghcIosArm64;
+      inherit ghcIosArm64 plistLib;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
       inherit (nixpkgsCross.ios.arm64) libiconv;
     };
