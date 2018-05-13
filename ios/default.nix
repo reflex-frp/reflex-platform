@@ -38,10 +38,8 @@
 
 # Function taking set of plist keys-value pairs and returns a new set with changes applied.
 #
-# For example: (super: super // { AnotherKey: "<string>value</string>"; })
+# For example: (super: super // { AnotherKey: "value"; })
 , overrideInfoPlist ? (super: super)
-
-, extraInfoPlistContent ? ""
 }:
 let
   defaultInfoPlist = {
@@ -101,10 +99,7 @@ let
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
   exePath = package ghcIosArm64;
-  infoPlist = builtins.toFile "Info.plist" (plistLib.inPLISTDocument ''
-    ${plistLib.pprExpr "" (overrideInfoPlist defaultInfoPlist)}
-    ${extraInfoPlistContent}
-  '');
+  infoPlist = builtins.toFile "Info.plist" (plistLib.toPLIST (overrideInfoPlist defaultInfoPlist));
   resourceRulesPlist = builtins.toFile "ResourceRules.plist" (plistLib.toPLIST {
     rules = {
       ${".*"} = true;
