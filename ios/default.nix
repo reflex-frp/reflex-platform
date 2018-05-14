@@ -40,6 +40,9 @@
 #
 # For example: (super: super // { AnotherKey: "value"; })
 , overrideInfoPlist ? (super: super)
+
+# REMOVED
+, extraInfoPlistContent ? null
 }:
 let
   defaultInfoPlist = {
@@ -96,10 +99,16 @@ let
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
   };
+
+  infoPlistData = if extraInfoPlistContent == null
+    then overrideInfoPlist defaultInfoPlist
+    else abort ''
+      `extraInfoPlistContent` has been removed. Instead use `overrideInfoPlist` to provide an override function that modifies the default info.plist data as a nix attrset. For example: `(x: x // {NSCameraUsageDescription = "We need your camera.";})`
+    '';
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
   exePath = package ghcIosArm64;
-  infoPlist = builtins.toFile "Info.plist" (plistLib.toPLIST (overrideInfoPlist defaultInfoPlist));
+  infoPlist = builtins.toFile "Info.plist" (plistLib.toPLIST infoPlistData);
   resourceRulesPlist = builtins.toFile "ResourceRules.plist" (plistLib.toPLIST {
     rules = {
       ${".*"} = true;
