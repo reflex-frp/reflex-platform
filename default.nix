@@ -717,4 +717,5 @@ in let this = rec {
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
+  ghcjsExternsJs = ./ghcjs.externs.js;
 }; in this
