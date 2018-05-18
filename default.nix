@@ -646,9 +646,11 @@ in let this = rec {
                            ++ (x.executableHaskellDepends or [])
                            ++ (x.testHaskellDepends or []);
           elemByPname = p: all (pname: (p.pname or "") != pname) packageNames;
-          overiddenOut  = pkgEnv: n: (pkgEnv.${n}.override {
-            mkDerivation = x: {out = filter elemByPname (dependenciesOf x); };
-          }).out;
+          overiddenOut  = pkgEnv: n: (overrideCabal pkgEnv.${n} (args: {
+            passthru = (args.passthru or {}) // {
+              out = filter elemByPname (dependenciesOf args);
+            };
+          })).out;
       in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
 
     in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
