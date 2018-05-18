@@ -3,11 +3,15 @@ package systems.obsidian;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
+import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import java.util.concurrent.SynchronousQueue;
@@ -26,6 +30,9 @@ public class HaskellActivity extends Activity {
   // Apparently 'long' is the right way to store a C pointer in Java
   // See https://stackoverflow.com/questions/337268/what-is-the-correct-way-to-store-a-native-pointer-inside-a-java-object
   final long callbacks;
+
+  private static final int REQUEST_CODE_FILE_PICKER = 51426;
+  private ValueCallback<Uri[]> fileUploadCallback;
 
   static {
     System.loadLibrary("HaskellActivity");
@@ -133,6 +140,78 @@ public class HaskellActivity extends Activity {
     super.onNewIntent(intent);
     if(callbacks != 0 && intent != null && intent.getData() != null && intent.getAction() != null) {
       haskellOnNewIntent(callbacks, intent.getAction(), intent.getDataString()); //TODO: Use a more canonical way of passing this data - i.e. pass the Intent and let the Haskell side get the data out with JNI
+    }
+  }
+
+  // File uploads don't work out of the box.
+  // You have to start an 'Intent' from 'onShowFileChooser', and handle the result here.
+  @Override
+  public void onActivityResult(final int requestCode, final int resultCode, final Intent intent) {
+    if (requestCode == REQUEST_CODE_FILE_PICKER) {
+      if (resultCode == Activity.RESULT_OK) {
+        if (intent != null) {
+          if (fileUploadCallback != null) {
+            Uri[] dataUris = null;
+
+            try {
+              if (intent.getDataString() != null) {
+                dataUris = new Uri[] { Uri.parse(intent.getDataString()) };
+              }
+              else {
+                if (intent.getClipData() != null) {
+                  final int numSelectedFiles = intent.getClipData().getItemCount();
+
+                  dataUris = new Uri[numSelectedFiles];
+
+                  for (int i = 0; i < numSelectedFiles; i++) {
+                    dataUris[i] = intent.getClipData().getItemAt(i).getUri();
+                  }
+                }
+              }
+            }
+            catch (Exception ignored) { }
+
+            fileUploadCallback.onReceiveValue(dataUris);
+            fileUploadCallback = null;
+          }
+        }
+      }
+      else if (fileUploadCallback != null) {
+        fileUploadCallback.onReceiveValue(null);
+        fileUploadCallback = null;
+      }
+    }
+  }
+
+  private class JSaddleWebChromeClient extends WebChromeClient {
+    @Override
+    public boolean onConsoleMessage(ConsoleMessage cm) {
+      Log.d("JSADDLEJS", String.format("%s @ %d: %s", cm.message(), cm.lineNumber(), cm.sourceId()));
+      return true;
+    }
+
+    // file upload callback (Android 5.0 (API level 21) -- current)
+    @Override
+    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+      final boolean allowMultiple = fileChooserParams.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE;
+
+      if (fileUploadCallback != null) {
+        fileUploadCallback.onReceiveValue(null);
+      }
+      fileUploadCallback = filePathCallback;
+
+      Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+      i.addCategory(Intent.CATEGORY_OPENABLE);
+
+      if (allowMultiple) {
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+      }
+
+      i.setType("*/*");
+
+      startActivityForResult(Intent.createChooser(i, "Choose a File"), REQUEST_CODE_FILE_PICKER);
+
+      return true;
     }
   }
 }
