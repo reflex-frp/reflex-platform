@@ -1,5 +1,4 @@
-# { reflex-platform-prs }:
-{}:
+{ prs }:
 
 let
   pkgs = import ./nixpkgs {};
@@ -53,8 +52,8 @@ let
       };
     };
   };
-  # prs = mapAttrs' makePr (builtins.fromJSON (builtins.readFile reflex-platform-prs));
-  jobsetsAttrs = # prs //
+  processedPrs = mapAttrs' makePr (builtins.fromJSON (builtins.readFile reflex-platform-prs));
+  jobsetsAttrs = processedPrs //
     genAttrs ["switch-to-hydra"] branchJobset;
 in {
   jobsets = pkgs.writeText "spec.json" (builtins.toJSON jobsetsAttrs);

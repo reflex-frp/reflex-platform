@@ -19,6 +19,11 @@
       "type": "git",
       "value": "https://github.com/NixOS/nixpkgs-channels nixos-unstable",
       "emailresponsible": false
+    },
+    "prs": {
+      "type": "githubpulls",
+      "value": "reflex-frp reflex-platform",
+      "emailresponsible": false
     }
   }
 }
