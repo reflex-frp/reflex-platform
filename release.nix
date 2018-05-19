@@ -24,5 +24,5 @@ in nixpkgs.lib.genAttrs cacheTargetSystems (system:
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflexPlatform))
 ) // {
   benchmark = import ./scripts/benchmark.nix {};
-  sources = builtins.attrValues sources;
+  inherit sources;
 }
