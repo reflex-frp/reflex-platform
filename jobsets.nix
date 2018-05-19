@@ -54,7 +54,7 @@ let
   };
   processedPrs = mapAttrs' makePr (builtins.fromJSON (builtins.readFile reflex-platform-prs));
   jobsetsAttrs = processedPrs //
-    genAttrs ["switch-to-hydra"] branchJobset;
+    genAttrs ["develop"] branchJobset;
 in {
   jobsets = pkgs.writeText "spec.json" (builtins.toJSON jobsetsAttrs);
 }

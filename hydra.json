@@ -12,7 +12,7 @@
   "inputs": {
     "src": {
       "type": "git",
-      "value": "https://github.com/reflex-frp/reflex-platform.git switch-to-hydra",
+      "value": "https://github.com/reflex-frp/reflex-platform.git develop",
       "emailresponsible": false
     },
     "nixpkgs": {
