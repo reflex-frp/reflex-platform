@@ -23,6 +23,6 @@ in nixpkgs.lib.genAttrs cacheTargetSystems (system:
   } // nixpkgs.lib.listToAttrs
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflexPlatform))
 ) // {
-  benchmark = import ./benchmark.nix {};
+  benchmark = import ./scripts/benchmark.nix {};
   sources = builtins.attrValues sources;
 }
