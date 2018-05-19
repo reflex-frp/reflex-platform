@@ -52,7 +52,7 @@ let
       };
     };
   };
-  processedPrs = mapAttrs' makePr (builtins.fromJSON (builtins.readFile reflex-platform-prs));
+  processedPrs = mapAttrs' makePr (builtins.fromJSON (builtins.readFile prs));
   jobsetsAttrs = processedPrs //
     genAttrs ["develop"] branchJobset;
 in {
