@@ -49,7 +49,7 @@ navMenu = do
   where sections = [ ("Home", "/")
                  , ("Tutorial", "/")
                  , ("Examples", "/")
-                 , ("Documentation", "http://reflex-frp.readthedocs.io")
+                 , ("Documentation", "/doc/")
                  , ("FAQ", "/")]
 
 

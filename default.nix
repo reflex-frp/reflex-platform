@@ -723,5 +723,11 @@ in let this = rec {
   reflex-frp-org = {
     readthedocs = nixpkgs.callPackage ./reflex-frp.org/doc {};
     homepageJS = ghcjs.callCabal2nix "reflex-frp-org" ./reflex-frp.org {};
+    homepage = nixpkgs.runCommand "reflex-frp-org" { nativeBuildInputs = [nixpkgs.xorg.lndir]; } ''
+      mkdir -p $out/doc
+      lndir ${this.reflex-frp-org.homepageJS}/bin/reflex-frp-org.jsexe $out
+      lndir ${this.reflex-frp-org.readthedocs}/dirhtml $out/doc
+      ln -s ${./reflex-frp.org/reflex-frp-logo.jpg} $out/reflex-frp-logo.jpg
+    '';
   };
 }; in this
