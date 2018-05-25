@@ -718,4 +718,10 @@ in let this = rec {
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
   ghcjsExternsJs = ./ghcjs.externs.js;
+
+
+  reflex-frp-org = {
+    readthedocs = nixpkgs.callPackage ./reflex-frp.org/doc {};
+    homepageJS = ghcjs.callCabal2nix "reflex-frp-org" ./reflex-frp.org {};
+  };
 }; in this
