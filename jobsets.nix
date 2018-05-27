@@ -45,7 +45,7 @@ let
       description = "#${num}: ${info.title}";
       inputs = {
         reflex-platform = {
-          value = "https://github.com/${info.head.repo.owner.login}/${info.head.repo.name}.git refs/pull/${num}/merge";
+          value = "https://github.com/${info.head.repo.owner.login}/${info.head.repo.name}.git pull/${num}/merge";
           type = "git";
           emailresponsible = false;
         };
