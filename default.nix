@@ -331,8 +331,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         servant-reflex = self.callCabal2nix "servant-reflex" (fetchFromGitHub {
           owner = "imalsogreg";
           repo = "servant-reflex";
-          rev = "bd6e66fe00e131f8d1003201873258a5f3b06797";
-          sha256 = "025y346jimh7ki8q3zrkh3xsx6ddc3zf95qxmbnpy1ww3h0i2wq4";
+          rev = "5cd3098880741e6ade52ef4477422d9c776e5478";
+          sha256 = "18yjfamx3k9xd8pz251jsmvhlj4riw0brk2fyvjq00r87cx67a6f";
         }) {};
         concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
           owner = "conal";
