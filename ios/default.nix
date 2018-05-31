@@ -45,6 +45,7 @@
 , extraInfoPlistContent ? null
 }:
 let
+  lib = nixpkgs.lib;
   defaultInfoPlist = {
     CFBundleDevelopmentRegion = "en";
     CFBundleExecutable = executableName;
@@ -185,12 +186,6 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
     chmod +w "$tmpdir/${executableName}.app"
     chmod +w "$tmpdir/${executableName}.app/${executableName}"
-    # Hack around pure libiconv being used.
-    # TODO: Override libraries with stubs from the SDK, so as to link libraries
-    # on phone. Or statically link.
-    ${nixpkgs.darwin.cctools}/bin/install_name_tool \
-      -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
-      $tmpdir/${executableName}.app/${executableName}
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
@@ -248,12 +243,6 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     chmod +w "$tmpdir/${executableName}.app"
     chmod +rw "$tmpdir/${executableName}.app/${executableName}"
     strip "$tmpdir/${executableName}.app/${executableName}"
-    # Hack around pure libiconv being used.
-    # TODO: Override libraries with stubs from the SDK, so as to link libraries
-    # on phone. Or statically link.
-    ${nixpkgs.darwin.cctools}/bin/install_name_tool \
-      -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
-      $tmpdir/${executableName}.app/${executableName}
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
@@ -305,7 +294,27 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   chmod +x "$out/bin/package"
   cp --no-preserve=mode "$runInSim" "$out/bin/run-in-sim"
   chmod +x "$out/bin/run-in-sim"
-  ln -s "$exePath/bin/${executableName}" "$out/${executableName}.app/"
+  cp --no-preserve=mode "$exePath/bin/${executableName}" "$out/${executableName}.app/"
+  chmod +x "$out/${executableName}.app/${executableName}"
+  # Hack around pure libiconv being used.
+  # TODO: Override libraries with stubs from the SDK, so as to link libraries
+  # on phone. Or statically link.
+  mkdir -p "$out/${executableName}.app/Frameworks"
+  cp --no-preserve=mode "${libiconv}/lib/"*.dylib "$out/${executableName}.app/Frameworks/"
+  for x in \
+    "$out/${executableName}.app/${executableName}" \
+    "$out/${executableName}.app/Frameworks/"*.dylib
+  do
+    for y in "$out/${executableName}.app/Frameworks/"*.dylib
+    do
+      dylib=$(basename $y)
+      ${nixpkgs.darwin.cctools}/bin/install_name_tool \
+        -change "${libiconv}/lib/$dylib" @executable_path/../Frameworks/$dylib \
+        "$x"
+      sed -i "$x" -e \
+        "s|${libiconv}/lib/$dylib|@executable_path/../Frameworks/${ lib.concatStrings (builtins.genList (_: "/") ((lib.strings.stringLength (toString libiconv)) - 31 + 4)) }/$dylib|"
+    done
+  done
   cp -RL "${staticSrc}"/* "$out/${executableName}.app/"
   for icon in "${staticSrc}"/assets/Icon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
