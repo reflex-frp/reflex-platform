@@ -551,7 +551,6 @@ in let this = rec {
           hackGet
           extendHaskellPackages
           foreignLibSmuggleHeaders
-          stage2Script
           ghc
           ghcHEAD
           ghc8_4_2

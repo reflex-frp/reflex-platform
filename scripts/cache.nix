@@ -5,7 +5,6 @@ let inherit (nixpkgs.lib) optionals;
       (map (system: (import ./.. { inherit system; iosSupportForce = true; }).cachePackages) cacheTargetSystems)
     ];
     getOtherDeps = reflexPlatform: [
-      reflexPlatform.stage2Script
       reflexPlatform.nixpkgs.cabal2nix
     ] ++ builtins.concatLists (map
       (crossPkgs: optionals (crossPkgs != null) [
