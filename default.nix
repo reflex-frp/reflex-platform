@@ -375,8 +375,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         servant-reflex = self.callCabal2nix "servant-reflex" (fetchFromGitHub {
           owner = "imalsogreg";
           repo = "servant-reflex";
-          rev = "bd6e66fe00e131f8d1003201873258a5f3b06797";
-          sha256 = "025y346jimh7ki8q3zrkh3xsx6ddc3zf95qxmbnpy1ww3h0i2wq4";
+          rev = "5cd3098880741e6ade52ef4477422d9c776e5478";
+          sha256 = "18yjfamx3k9xd8pz251jsmvhlj4riw0brk2fyvjq00r87cx67a6f";
         }) {};
         concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
           owner = "conal";
@@ -530,10 +530,18 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
     inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
+  nix-darwin = fetchFromGitHub {
+    owner = "3noch"; # TODO: Update to LnL7 once PR is merged: https://github.com/LnL7/nix-darwin/pull/78
+    repo = "nix-darwin";
+    rev = "adfe63988d8e0f07739bc7dafd7249c3a78faf96";
+    sha256 = "0rca00lajdzf8lf2hgwn6mbmii656dnw725y6nnraz4qf87907zq";
+  };
+  # TODO: This should probably be upstreamed to nixpkgs.
+  plistLib = import (nix-darwin + /modules/launchd/lib.nix) { lib = nixpkgs.lib; };
   ios = iosWithHaskellPackages ghcIosAarch64;
   iosWithHaskellPackages = ghcIosAarch64: {
     buildApp = import ./ios {
-      inherit ghcIosAarch64;
+      inherit ghcIosAarch64 plistLib;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
       inherit (nixpkgsCross.ios.aarch64) libiconv;
     };
@@ -561,7 +569,8 @@ in let this = rec {
           android
           androidWithHaskellPackages
           ios
-          iosWithHaskellPackages;
+          iosWithHaskellPackages
+          filterGit;
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
@@ -697,9 +706,11 @@ in let this = rec {
                            ++ (x.executableHaskellDepends or [])
                            ++ (x.testHaskellDepends or []);
           elemByPname = p: all (pname: (p.pname or "") != pname) packageNames;
-          overiddenOut  = pkgEnv: n: (pkgEnv.${n}.override {
-            mkDerivation = x: {out = filter elemByPname (dependenciesOf x); };
-          }).out;
+          overiddenOut  = pkgEnv: n: (overrideCabal pkgEnv.${n} (args: {
+            passthru = (args.passthru or {}) // {
+              out = filter elemByPname (dependenciesOf args);
+            };
+          })).out;
       in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
 
     in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
@@ -769,4 +780,5 @@ in let this = rec {
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
+  ghcjsExternsJs = ./ghcjs.externs.js;
 }; in this

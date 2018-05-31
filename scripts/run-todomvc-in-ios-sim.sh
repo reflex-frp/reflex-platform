@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 function cleanup {
   if [ -n "$uuid" ]; then
