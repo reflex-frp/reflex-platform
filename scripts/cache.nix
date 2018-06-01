@@ -1,7 +1,6 @@
 with import ./.. {};
 let inherit (nixpkgs.lib) optionals;
     inputs = builtins.concatLists [
-      (builtins.attrValues sources)
       (map (system: (import ./.. { inherit system; iosSupportForce = true; }).cachePackages) cacheTargetSystems)
     ];
     getOtherDeps = reflexPlatform: [

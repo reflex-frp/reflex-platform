@@ -134,11 +134,6 @@ let iosSupport =
         name = baseNameOf p;
         outPath = filterGit p;
       };
-    # All imports of sources need to go here, so that they can be explicitly cached
-    sources = {
-      ghcjs = hackGet ./ghcjs;
-      ghcjs8_4_2 = hackGet ./ghcjs-8.4.2;
-    };
     inherit (nixpkgs.stdenv.lib) optional optionals;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
@@ -185,85 +180,20 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     addFastWeakFlag = if useFastWeak
       then drv: enableCabalFlag drv "fast-weak"
       else drv: drv;
-    ghcjsPkgs = version: src: self: super:
-      let ghcjsSrc = nixpkgs.runCommand "ghcjs-src" {
-            nativeBuildInputs = [
-              nixpkgs.perl
-              nixpkgs.autoconf
-              nixpkgs.automake
-              nixpkgs.python3
-              nixpkgs.gcc
-              self.ghc
-              self.happy
-              self.alex
-              self.cabal-install
-            ];
-            buildInputs = [
-              nixpkgs.gmp
-            ];
-            src = (if useFastWeak then applyPatch ./fast-weak.patch else id) src;
-          } ''
-            cp -r "$src" "$out"
-            chmod -R +w "$out"
-            cd "$out/ghc"
-
-            #TODO: Find a better way to avoid impure version numbers
-            sed -i 's/RELEASE=NO/RELEASE=YES/' configure.ac
-
-            patchShebangs .
-            ./boot
-            ./configure
-            make -j"$NIX_BUILD_CORES"
-            cd ..
-            patchShebangs utils
-            ./utils/makePackages.sh copy
-          '';
-          libexecdir = if builtins.compareVersions version "8.2" <= 0
-            then "bin"
-            else "libexec/${system}-${self.ghc.name}/${ghcjs-unbooted.name}";
-          ghcjs-unbooted = appendConfigureFlag (doJailbreak (dontHaddock (self.callCabal2nix "ghcjs" ghcjsSrc {}))) "-fno-wrapper-install";
-          #TODO: makePackages.sh creates impurity by using the ghc development version, which is based on the current time
-          ghcjs-booted = nixpkgs.runCommand "ghcjs-${ghcjs-unbooted.version}" {
-            #TODO: Add hscolour, haddock, and hoogle
-            nativeBuildInputs = [
-              self.ghc
-              self.cabal-install
-              nixpkgs.nodejs
-              nixpkgs.pkgconfig #TODO: This doesn't seem to actually do anything
-            ];
-            buildInputs = [
-              nixpkgs.gmp #TODO: Remove once ghcjs's integer-gmp stops depending on gmp.h
-            ];
-            inherit ghcjsSrc;
-            ghcjs = ghcjs-unbooted;
-            passthru = {
-              bootPkgs = ghc8_2_2;
-              isGhcjs = true;
-              stage1Packages = []; #TODO
-              mkStage2 = _: {};
-              version = ghcjs-unbooted.version;
-              meta.platforms = self.ghc.meta.platforms;
-              targetPrefix = "";
-              haskellCompilerName = "ghcjs";
-              socket-io = nixpkgs.nodePackages."socket.io";
-            };
-          } ''
-            mkdir -p "$out/bin"
-            for x in $(ls "$ghcjsSrc"/data/bin | sed -n 's/\(.*\)\.sh/\1/p') ; do
-              sed -e "s|{topdir}|$out/lib/${ghcjs-unbooted.name}|" -e "s|{libexecdir}|$ghcjs/${libexecdir}|" <"$ghcjsSrc/data/bin/$x.sh" >"$out/bin/$x"
-              chmod +x "$out/bin/$x"
-            done
-            for x in $(ls "$ghcjs/${libexecdir}") ; do
-              if [ ! -f "$out/bin/$x" ] ; then
-                ln -s "$ghcjs/${libexecdir}/$x" "$out/bin/$x"
-              fi
-            done
-            PATH="$out/bin:$PATH"
-            HOME="$out"
-            "$ghcjs/${libexecdir}/ghcjs-boot" -j "$NIX_BUILD_CORES"
-          '';
-      in {
-      ghcjs = ghcjs-booted;
+    ghcjsPkgs = ghcjs: self: super: {
+      ghcjs = ghcjs.overrideAttrs (o: {
+        patches = (o.patches or []) ++ optional useFastWeak ./fast-weak.patch;
+      }) // {
+        bootPkgs = ghc8_2_2;
+        isGhcjs = true;
+        stage1Packages = []; #TODO
+        mkStage2 = _: {};
+        meta.platforms = self.ghc.meta.platforms;
+        version = ghcjs.version;
+        targetPrefix = "";
+        haskellCompilerName = "ghcjs";
+        socket-io = nixpkgs.nodePackages."socket.io";
+      };
       ghci-ghcjs = self.callCabal2nix "ghci-ghcjs" (ghcjsSrc + "/lib/ghci-ghcjs") {};
       ghcjs-th = self.callCabal2nix "ghcjs-th" (ghcjsSrc + "/lib/ghcjs-th") {};
       template-haskell-ghcjs = self.callCabal2nix "template-haskell-ghcjs" (ghcjsSrc + "/lib/template-haskell-ghcjs") {};
@@ -457,14 +387,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   ghc8_4_2 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc842).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      (ghcjsPkgs "8.4" sources.ghcjs8_4_2)
+      (ghcjsPkgs nixpkgs.pkgs.haskell.compiler.ghcjs84)
       haskellOverlays.ghc-8_4_2
     ];
   };
   ghc8_2_2 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc822).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      (ghcjsPkgs "8.2" sources.ghcjs)
+      (ghcjsPkgs nixpkgs.pkgs.haskell.compiler.ghcjs82)
       haskellOverlays.ghc-8_2_2
     ];
   };
@@ -776,7 +706,7 @@ in let this = rec {
   }).config.system.build.virtualBoxOVA;
 
   lib = haskellLib;
-  inherit cabal2nixResult sources system iosSupport;
+  inherit cabal2nixResult system iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
