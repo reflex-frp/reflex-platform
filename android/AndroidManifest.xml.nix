@@ -13,6 +13,8 @@
       android:versionName="${version.name}">
     <application android:label="@string/app_name"
                  android:icon="${iconPath}"
+                 android:allowBackup="false"
+                 android:fullBackupContent="false"
                  android:hardwareAccelerated="true">
         <activity android:name="systems.obsidian.HaskellActivity"
                   android:label="@string/app_name"
