@@ -505,7 +505,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     buildApp = import ./ios {
       inherit ghcIosArm64 plistLib;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
-      inherit (nixpkgsCross.ios.arm64) libiconv;
     };
   };
 in let this = rec {
