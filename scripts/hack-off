@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+REPO="$1"
+
+if [ ! -d "$REPO" ] ; then
+    echo "Error: no such directory: $REPO"
+    exit 1
+fi
+
+DIFF="$(git -C "$REPO" diff HEAD)"
+DIFF_ERR=$?
+STATUS="$(git -C "$REPO" status --porcelain --ignored)"
+STATUS_ERR=$?
+
+if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
+    >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
+    exit 1
+elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
+    >&2 echo "$DIFF"
+    >&2 echo "$STATUS"
+    >&2 echo "Error: $REPO contains unsaved modifications"
+    exit 1
+fi
+
+git -C "$REPO" fetch --all
+
+for b in $(git -C "$REPO" for-each-ref --format='%(refname:short)' refs/heads/) ; do
+    LOCAL_REV="$(git -C "$REPO" rev-parse "$b")"
+    [ $? -eq 0 ] || exit 1
+    for r in $(git -C "$REPO" remote) ; do
+        REMOTE_MERGE_REV="$(git -C "$REPO" merge-base "$LOCAL_REV" "remotes/$r/$b")"
+        if [ $? -ne 0 ] ; then
+            >&2 echo "Error: problem retrieving branch \"$r\" from remote \"$r\""
+            exit 1
+        elif [ "$REMOTE_MERGE_REV" != "$LOCAL_REV" ] ; then
+            >&2 echo "Error: branch \"$b\" has not been pushed to remote \"$r\""
+            exit 1
+        fi
+    done
+done
+
+# If we've gotten here, we're pretty sure this is safe
+get_git_manifest "$REPO"
+GIT_MANIFEST="$OUTPUT_GIT_MANIFEST"
+GIT_MANIFEST_TYPE="$OUTPUT_GIT_MANIFEST_TYPE"
+
+NEEDS_DEFAULT_NIX="$(if [ -f "$REPO/default.nix" ] ; then echo 1 ; fi)"
+rm -rf "$REPO"
+mkdir "$REPO"
+if [ -n "$NEEDS_DEFAULT_NIX" ] ; then
+    git_thunk "$GIT_MANIFEST_TYPE" >"$REPO/default.nix"
+fi
+echo "$GIT_MANIFEST" >"$REPO/$GIT_MANIFEST_TYPE.json"

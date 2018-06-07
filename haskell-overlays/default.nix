@@ -1,6 +1,7 @@
 { haskellLib
 , nixpkgs, jdk, fetchFromGitHub
 , useReflexOptimizer, stage2Script
+, androidActivity
 }:
 
 rec {
@@ -32,6 +33,10 @@ rec {
   ghcjs = import ./ghcjs.nix {
     inherit haskellLib nixpkgs fetchFromGitHub useReflexOptimizer;
   };
-  android = import ./android { inherit haskellLib; inherit (nixpkgs) jdk; };
+  android = import ./android {
+    inherit haskellLib;
+    inherit androidActivity;
+    inherit (nixpkgs) jdk;
+  };
   ios = import ./ios.nix { inherit haskellLib; };
 }

@@ -20,7 +20,7 @@ in rec {
       # Port number or null
       # E.g.: 8000
 
-    , pathPrefix ? "/"
+    , pathPrefix ? ""
     }: impl.intentFilterXml {
       inherit scheme
               host
@@ -77,6 +77,9 @@ in rec {
 
     , iconPath ? defaultIconPath
 
+    , activityAttributes ? ""
+      # Additional activity attributes like: android:launchMode="singleInstance"
+
     , permissions ? ""
       # Manifest XML for additional permissions
 
@@ -89,7 +92,14 @@ in rec {
     , googleServicesJson ? null
 
     , additionalDependencies ? ""
-    }: impl.buildApp {
+
+    , universalApk ? true
+      # Set this to false to build one APK per target platform.  This will
+      # automatically transform the version code to 1000 * versionCode + offset
+      # where "offset" is a per-platform constant.
+    }:
+    assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
+    impl.buildApp {
       inherit package
               executableName
               applicationId
@@ -99,10 +109,12 @@ in rec {
               resources
               assets
               iconPath
+              activityAttributes
               permissions
               services
               intentFilters
               googleServicesJson
-              additionalDependencies;
+              additionalDependencies
+              universalApk;
     };
 }

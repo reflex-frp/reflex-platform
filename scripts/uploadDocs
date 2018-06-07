@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+HACKAGE_USER="$1"
+PKG="$2"
+
+#TODO: Check that this build corresponds to the one on hackage
+RC="$(nix-build $DIR --no-out-link -A "releaseCandidates.$PKG")"
+PKGNAME="$(cat "$RC/pkgname")"
+
+echo -n "Hackage password: "
+read -s password
+echo
+
+HACKAGE_CREDS="$HACKAGE_USER:$password"
+
+curl -X PUT -K <(echo "-u $HACKAGE_CREDS") -H 'Content-Type: application/x-tar' -H 'Content-Encoding: gzip' --data-binary @"$RC/$PKGNAME-docs.tar.gz" "https://hackage.haskell.org/package/$PKGNAME/docs"

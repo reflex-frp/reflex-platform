@@ -1,16 +1,17 @@
 env: with env;
 let overrideAndroidCabal = package: overrideCabal package (drv: {
       preConfigure = (drv.preConfigure or "") + ''
-        sed -i 's/^executable \(.*\)$/executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog/i' *.cabal
+        sed -i 's%^executable *\(.*\)$%executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog%i' *.cabal
       '';
     });
+    #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
     addDeployScript = src: nixpkgs.runCommand "android-app" {
       inherit src;
       buildCommand = ''
         mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
         cat >"$out/bin/deploy" <<EOF
-          $(which adb) install "$(echo $out/*.apk)"
+          $(which adb) install -r "$(echo $out/*.apk)"
         EOF
         chmod +x "$out/bin/deploy"
       '';
@@ -19,6 +20,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         which
       ];
     } "";
+    inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
     acceptAndroidSdkLicenses = true;
@@ -36,8 +38,7 @@ in {
     platformVersions = [ "25" ];
     release = false;
     src =
-      let inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
-          splitApplicationId = splitString "." applicationId;
+      let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             inherit (myNixpkgs) libiconv;
             hsApp = overrideAndroidCabal (package myHaskellPackages);
@@ -54,14 +55,14 @@ in {
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
-          inherit applicationId version additionalDependencies releaseKey;
+          inherit applicationId version additionalDependencies releaseKey universalApk;
           googleServicesClasspath = optionalString (googleServicesJson != null)
             "classpath 'com.google.gms:google-services:3.0.0'";
           googleServicesPlugin = optionalString (googleServicesJson != null)
             "apply plugin: 'com.google.gms.google-services'";
         });
         androidManifestXml = builtins.toFile "AndroidManifest.xml" (import ./AndroidManifest.xml.nix {
-          inherit applicationId version iconPath intentFilters services permissions;
+          inherit applicationId version iconPath intentFilters services permissions activityAttributes;
         });
         stringsXml = builtins.toFile "strings.xml" (import ./strings.xml.nix {
           inherit displayName;
