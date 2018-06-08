@@ -9,7 +9,7 @@ let inherit (nixpkgs.lib) optionals;
       (crossPkgs: optionals (crossPkgs != null) [
         crossPkgs.buildPackages.haskellPackages.cabal2nix
       ]) [
-        reflexPlatform.nixpkgsCross.ios.aarch4
+        reflexPlatform.nixpkgsCross.ios.aarch64
         reflexPlatform.nixpkgsCross.android.aarch64
         reflexPlatform.nixpkgsCross.android.aarch32
       ]

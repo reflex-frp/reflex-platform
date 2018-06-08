@@ -2,7 +2,6 @@
 with import ./. {};
 let inherit (nixpkgs.lib) optionals;
     getOtherDeps = reflexPlatform: [
-      reflexPlatform.stage2Script
       reflexPlatform.nixpkgs.cabal2nix
       reflexPlatform.ghc.cabal2nix
     ] ++ builtins.concatLists (map
@@ -24,5 +23,5 @@ in nixpkgs.lib.genAttrs cacheTargetSystems (system:
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflexPlatform))
 ) // {
   benchmark = import ./scripts/benchmark.nix {};
-  inherit sources iosReflexTodomvc androidReflexTodomvc;
+  inherit iosReflexTodomvc androidReflexTodomvc;
 }
