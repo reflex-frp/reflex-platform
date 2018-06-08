@@ -21,6 +21,17 @@ let iosSupport =
         sha256 = "1aw6lcyjlfcpk74al489gds4vr4709d0rpchrr0lysrpk7mk2a7g";
       };
     };
+    appleLibiconvHack = self: super: {
+      darwin = super.darwin // {
+        libiconv =
+          if self.hostPlatform == self.buildPlatform
+          then super.darwin.libiconv
+          else super.darwin.libiconv.overrideAttrs (o: {
+            postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
+            configureFlags = ["--disable-shared" "--enable-static"];
+        });
+      };
+    };
     nixpkgs = nixpkgsFunc ({
       inherit system;
       overlays = [globalOverlay];
@@ -93,7 +104,7 @@ let iosSupport =
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay];
+          overlays = [globalOverlay appleLibiconvHack];
           crossSystem = nixpkgs.lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
           };
@@ -101,7 +112,7 @@ let iosSupport =
         };
         aarch64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay];
+          overlays = [globalOverlay appleLibiconvHack];
           crossSystem = nixpkgs.lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
           };
@@ -109,7 +120,7 @@ let iosSupport =
         };
         aarch32 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay];
+          overlays = [globalOverlay appleLibiconvHack ];
           crossSystem = nixpkgs.lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
           };
@@ -473,7 +484,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     buildApp = import ./ios {
       inherit ghcIosAarch64 plistLib;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
-      inherit (nixpkgsCross.ios.aarch64) libiconv;
     };
   };
 in let this = rec {

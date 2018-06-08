@@ -1,4 +1,4 @@
-{ nixpkgs, libiconv, ghcIosAarch64
+{ nixpkgs, ghcIosAarch64
 , plistLib # Set of functions for generating plist files from nix types
 }:
 
@@ -185,12 +185,6 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
     chmod +w "$tmpdir/${executableName}.app"
     chmod +w "$tmpdir/${executableName}.app/${executableName}"
-    # Hack around pure libiconv being used.
-    # TODO: Override libraries with stubs from the SDK, so as to link libraries
-    # on phone. Or statically link.
-    ${nixpkgs.darwin.cctools}/bin/install_name_tool \
-      -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
-      $tmpdir/${executableName}.app/${executableName}
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
@@ -248,12 +242,6 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     chmod +w "$tmpdir/${executableName}.app"
     chmod +rw "$tmpdir/${executableName}.app/${executableName}"
     strip "$tmpdir/${executableName}.app/${executableName}"
-    # Hack around pure libiconv being used.
-    # TODO: Override libraries with stubs from the SDK, so as to link libraries
-    # on phone. Or statically link.
-    ${nixpkgs.darwin.cctools}/bin/install_name_tool \
-      -change "${libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.2.dylib \
-      $tmpdir/${executableName}.app/${executableName}
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
