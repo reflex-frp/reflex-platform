@@ -86,11 +86,11 @@ in
   #       }) {};
   #     };
 
-, toolOverrides ? _: _: {}
+, shellToolOverrides ? _: _: {}
   # A function returning a record of tools to provide in the
   # nix-shells.
   #
-  #     toolOverrides = ghc: super: {
+  #     shellToolOverrides = ghc: super: {
   #       inherit (ghc) hpack;
   #       inherit (pkgs) chromium;
   #       ghc-mod = null;
@@ -109,7 +109,7 @@ in
   # to null.
 
 , tools ? _: []
-  # An older, obsolete version of `toolOverrides`.
+  # An older, obsolete version of `shellToolOverrides`.
   #
   #     tools = ghc: with ghc; [ hpack pkgs.chromium ];
 
@@ -160,7 +160,7 @@ let
           ghcWithPackages = self.ghcWithHoogle;
         }; };
         packageNames = pnames;
-        inherit tools toolOverrides;
+        inherit tools shellToolOverrides;
       }
     ) shells;
 

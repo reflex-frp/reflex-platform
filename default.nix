@@ -663,7 +663,7 @@ in let this = rec {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
-  workOnMulti' = { env, packageNames, tools ? _: [], toolOverrides ? _: _: {} }:
+  workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
     let ghcEnv =
       let inherit (builtins) filter all concatLists;
           dependenciesOf = x: (x.buildDepends or [])
@@ -678,7 +678,7 @@ in let this = rec {
           })).out;
       in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
     baseTools = generalDevToolsAttrs env;
-    overriddenTools = baseTools // toolOverrides env baseTools;
+    overriddenTools = baseTools // shellToolOverrides env baseTools;
 
     in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
       buildInputs = [
