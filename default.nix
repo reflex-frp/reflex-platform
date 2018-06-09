@@ -309,6 +309,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
         process-extras = dontCheck super.process-extras;
         miso = addBuildDepend (self.callHackage "miso" "0.12.0.0" {}) self.ghcjs-base;
+        hasktags = dontCheck super.hasktags;
 
         ########################################################################
         # Packages not in hackage
