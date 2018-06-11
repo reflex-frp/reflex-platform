@@ -264,9 +264,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
         haven = doJailbreak (self.callHackage "haven" "0.2.0.0" {});
 
-        inherit (jsaddlePkgs) jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
+        inherit (jsaddlePkgs) jsaddle-clib jsaddle-webkit2gtk jsaddle-webkitgtk;
         jsaddle = doJailbreak jsaddlePkgs.jsaddle;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
+
+        jsaddle-wkwebview = overrideCabal jsaddlePkgs.jsaddle-wkwebview (drv: {
+          libraryFrameworkDepends = optional nixpkgs.stdenv.isDarwin nixpkgs.darwin.cf-private
+                                  ++ (drv.libraryFrameworkDepends or []);
+        });
 
         jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
