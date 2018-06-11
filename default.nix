@@ -25,6 +25,17 @@ let iosSupport =
         };
       };
     };
+    appleLibiconvHack = self: super: {
+      darwin = super.darwin // {
+        libiconv =
+          if self.hostPlatform == self.buildPlatform
+          then super.darwin.libiconv
+          else super.darwin.libiconv.overrideAttrs (o: {
+            postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
+            configureFlags = ["--disable-shared" "--enable-static"];
+        });
+      };
+    };
     nixpkgs = nixpkgsFunc ({
       inherit system;
       overlays = [globalOverlay];
@@ -120,7 +131,7 @@ let iosSupport =
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay];
+          overlays = [globalOverlay appleLibiconvHack];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -140,7 +151,7 @@ let iosSupport =
         };
         arm64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay];
+          overlays = [globalOverlay appleLibiconvHack];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -494,7 +505,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     buildApp = import ./ios {
       inherit ghcIosArm64 plistLib;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
-      inherit (nixpkgsCross.ios.arm64) libiconv;
     };
   };
 in let this = rec {
