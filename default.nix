@@ -145,7 +145,7 @@ let iosSupport =
         name = baseNameOf p;
         outPath = filterGit p;
       };
-    inherit (nixpkgs.stdenv.lib) optional optionals;
+    inherit (nixpkgs.stdenv.lib) optional optionals optionalAttrs;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
       inherit src patch;
@@ -268,10 +268,20 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         jsaddle = doJailbreak jsaddlePkgs.jsaddle;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
 
-        jsaddle-wkwebview = overrideCabal jsaddlePkgs.jsaddle-wkwebview (drv: {
-          libraryFrameworkDepends = optional nixpkgs.stdenv.isDarwin nixpkgs.darwin.cf-private
-                                  ++ (drv.libraryFrameworkDepends or []);
-        });
+        # HACK(mbauer): Can’t figure out why cf-private framework is
+        #               not getting pulled in. This override gives us
+        #               a fake CoreFoundation directory that mimics
+        #               the framework behavior.
+        jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview.overrideAttrs (drv:
+          optionalAttrs (nixpkgs.targetPlatform.isDarwin && !nixpkgs.targetPlatform.isiOS) {
+            libraryFrameworkDepends = [ nixpkgs.darwin.apple_sdk.frameworks.Cocoa ];
+            preSetupCompilerEnvironment = ''
+              ${drv.preSetupCompilerEnvironment or ""}
+              mkdir include
+              ln -s ${nixpkgs.darwin.cf-private}/Library/Frameworks/CoreFoundation.framework/Headers include/CoreFoundation
+              export NIX_CFLAGS_COMPILE="-I$PWD/include $NIX_CFLAGS_COMPILE"
+            '';
+          });
 
         jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
           # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
