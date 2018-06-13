@@ -68,39 +68,7 @@ let iosSupport =
         armv7aImpure = aarch32;
       };
       ios =
-        let config = {
-              allowUnfree = true;
-              packageOverrides = p: {
-                buildPackages = p.buildPackages // {
-                  osx_sdk = p.buildPackages.callPackage ({ stdenv }:
-                    let version = "10";
-                    in stdenv.mkDerivation rec {
-                    name = "iOS.sdk";
-
-                    src = p.stdenv.cc.sdk;
-
-                    unpackPhase    = "true";
-                    configurePhase = "true";
-                    buildPhase     = "true";
-                    target_prefix = stdenv.lib.replaceStrings ["-"] ["_"] p.targetPlatform.config;
-                    setupHook = ./scripts/setup-hook-ios.sh;
-
-                    installPhase = ''
-                      mkdir -p $out/
-                      echo "Source is: $src"
-                      cp -r $src/* $out/
-                    '';
-
-                    meta = with stdenv.lib; {
-                      description = "The IOS OS ${version} SDK";
-                      maintainers = with maintainers; [ copumpkin ];
-                      platforms   = platforms.darwin;
-                      license     = licenses.unfree;
-                    };
-                  }) {};
-                };
-              };
-            };
+        let config = { allowUnfree = true; };
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
