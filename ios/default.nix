@@ -298,5 +298,8 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   for icon in "${staticSrc}"/assets/Icon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
   done
+  for splash in "${staticSrc}"/assets/Default*.png; do
+    cp -RL "$splash" "$out/${executableName}.app/"
+  done
   set +x
 ''
