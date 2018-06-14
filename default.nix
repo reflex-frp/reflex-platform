@@ -414,6 +414,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   ghcIosSimulator64 = (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc842).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.disableTemplateHaskell
       haskellOverlays.ghc-8_4_2
     ];
   };
