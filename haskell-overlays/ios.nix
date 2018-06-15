@@ -13,6 +13,12 @@ self: super: {
   cabal-doctest = null;
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
 
+  # HACK(matthewbauer):
+  # Temporary fix for https://github.com/ekmett/free/issues/176
+  # Optimizations are broken on iOS for some modules.
+  free = haskellLib.appendConfigureFlag super.free "--enable-optimization=0";
+  jsaddle = haskellLib.appendConfigureFlag super.jsaddle "--enable-optimization=0";
+
   reflex-todomvc = haskellLib.overrideCabal super.reflex-todomvc (drv: {
     postFixup = ''
       mkdir $out/reflex-todomvc.app
