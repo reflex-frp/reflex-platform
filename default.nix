@@ -330,9 +330,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       inherit (nixpkgs) lib;
       androidActivity = hackGet ./android-activity;
     };
-    ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
-      ghc = ghc.ghcjs;
-      buildHaskellPackages = ghc.ghcjs.bootPkgs;
+    ghcjs8_2_2Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
+      ghc = ghc8_2_2.ghcjs;
+      buildHaskellPackages = ghc8_2_2.ghcjs.bootPkgs;
       compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { inherit haskellLib; };
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
@@ -344,12 +344,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
     };
-#    TODO: Figure out why this approach doesn't work; it doesn't seem to evaluate our overridden ghc at all
-#    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
-#      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghc.ghcjs;
-#    };
   ghc = ghc8_4_2;
-  ghcjs = (extendHaskellPackages ghcjsPackages).override {
+  ghcjs8_2_2 = (extendHaskellPackages ghcjs8_2_2Packages).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghcjs
@@ -363,6 +359,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       (optionalExtension useTextJSString haskellOverlays.textJSString)
     ];
   };
+  ghcjs = ghcjs8_4_2;
   ghcHEAD = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
