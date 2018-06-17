@@ -265,7 +265,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ghcjs-base-stub = dontHaddock super.ghcjs-base-stub;
 
         exception-transformers = doJailbreak super.exception-transformers;
-        haskell-src-exts = self.callHackage "haskell-src-exts" "1.20.1" {};
+        # haskell-src-exts = self.callHackage "haskell-src-exts" "1.20.1" {};
         haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.2" {};
 
         haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
