@@ -67,4 +67,12 @@ self: super: {
 
   #TODO: Fix this; it seems like it might indicate a bug in ghcjs
   parsec = dontCheck super.parsec;
+
+  # Need newer version of colour for some reason.
+  colour = dontCheck (super.colour.overrideAttrs (drv: {
+    src = nixpkgs.fetchurl {
+      url = "http://hackage.haskell.org/package/colour-2.3.4/colour-2.3.4.tar.gz";
+      sha256 = "1sy51nz096sv91nxqk6yk7b92b5a40axv9183xakvki2nc09yhqg";
+    };
+  }));
 }
