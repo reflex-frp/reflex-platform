@@ -283,6 +283,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         process-extras = dontCheck super.process-extras;
         miso = addBuildDepend (self.callHackage "miso" "0.12.0.0" {}) self.ghcjs-base;
         hasktags = dontCheck super.hasktags;
+        fast-logger = dontCheck super.fast-logger;
 
         ########################################################################
         # Packages not in hackage
