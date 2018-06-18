@@ -13,6 +13,7 @@ rec {
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
     inherit lib haskellLib fetchFromGitHub hackGet;
+    inherit (nixpkgs) fetchpatch;
   };
 
   ghc = import ./ghc.nix { inherit haskellLib; };

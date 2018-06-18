@@ -1,14 +1,14 @@
-{ lib, haskellLib, fetchFromGitHub, hackGet }:
+{ lib, haskellLib, fetchFromGitHub, hackGet, fetchpatch }:
 
 with lib;
 with haskellLib;
 
 self: super: {
   text = self.callCabal2nix "text" (fetchFromGitHub {
-    owner = "luigy";
-    repo = "text";
-    rev = "3f2de34fae6da19cdd92f1bc6b722d4537b92010";
-    sha256 = "15rahd7dip5gyckh06rm5q2q230wk4snbfnf3rkcr7qr37h2qzgd";
+     owner = "obsidiansystems";
+     repo = "text";
+     rev = "9b5646358d4d562db610de5fa51a1853b6161e08";
+     sha256 = "0hybnzmp38jvz9289si6x6ciayjiay84sw7mgba2hwrb5x54zzr4";
   }) {};
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
@@ -17,12 +17,13 @@ self: super: {
     ];
   });
   ghcjs-base = overrideCabal super.ghcjs-base (drv: {
-    src = fetchFromGitHub {
-      owner = "luigy";
-      repo = "ghcjs-base";
-      rev = "e287c5752064a2d3b2c4776a1520e4b0189881b0";
-      sha256 = "01k7wj60gmmf9larjm3gqbsyxwb5xhqr4dyz4xswy78ql845qljd";
-    };
+    patches = (drv.patches or []) ++ [
+      ./ghcjs-base-text-jsstring.patch
+      (fetchpatch {
+        url = "https://patch-diff.githubusercontent.com/raw/ghcjs/ghcjs-base/pull/106.patch";
+        sha256 = "0hdagclc6hkd0kc3cjcy61xz99qvv55yrgc4szgmknkl5lq8y3yd";
+      })
+    ];
     libraryHaskellDepends = with self; [
       base bytestring containers deepseq dlist ghc-prim
       ghcjs-prim integer-gmp primitive time
