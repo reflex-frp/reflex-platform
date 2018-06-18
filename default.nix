@@ -414,6 +414,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.ghc-8_4_2
+      haskellOverlays.ios
     ];
   };
   ghcIosAarch64 = (extendHaskellPackages nixpkgsCross.ios.aarch64.pkgs.haskell.packages.ghc842).override {
@@ -478,6 +479,7 @@ in let this = rec {
           ghcAndroidAarch64
           ghcAndroidAarch32
           ghcjs
+          ghcjs8_2_2
           ghcjs8_4_2
           android
           androidWithHaskellPackages
