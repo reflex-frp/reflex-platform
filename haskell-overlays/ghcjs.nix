@@ -19,6 +19,13 @@ self: super: {
     jailbreak = true;
     doCheck = false; #TODO: This should be unnecessary
 
+    patches = [
+      (nixpkgs.fetchpatch {
+        url = "https://patch-diff.githubusercontent.com/raw/ghcjs/ghcjs-base/pull/107.patch";
+        sha256 = "1ajsy3yl8mbrdvfw0xskpq3h51m4fphjz3dsvqa10g4hxl0kwcrq";
+      })
+    ];
+
     #TODO: This should be unnecessary
     preConfigure = (drv.preConfigure or "") + ''
       sed -i -e '/jsbits\/export.js/d' -e '/GHCJS\.Foreign\.Export/d' *.cabal
