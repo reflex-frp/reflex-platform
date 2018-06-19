@@ -19,6 +19,8 @@ in nixpkgs.lib.genAttrs cacheTargetSystems (system:
     reflexPlatform = (import ./. { inherit system; iosSupportForce = true; });
   in {
     tryReflexShell = reflexPlatform.tryReflexShell;
+    ghcjsReflexTodomvc = ghcjs.reflex-todomvc;
+    ghcReflexTodomvc = ghc.reflex-todomvc;
   } // nixpkgs.lib.listToAttrs
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflexPlatform))
 ) // {
