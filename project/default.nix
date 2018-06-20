@@ -86,19 +86,32 @@ in
   #       }) {};
   #     };
 
-, tools ? _: []
-  # A function returning the list of tools to provide in the
+, shellToolOverrides ? _: _: {}
+  # A function returning a record of tools to provide in the
   # nix-shells.
   #
-  #     tools = ghc: with ghc; [
-  #       hpack
-  #       pkgs.chromium
-  #     ];
+  #     shellToolOverrides = ghc: super: {
+  #       inherit (ghc) hpack;
+  #       inherit (pkgs) chromium;
+  #       ghc-mod = null;
+  #       cabal-install = ghc.callHackage "cabal-install" "2.0.0.1" {};
+  #       ghcid = pkgs.haskell.lib.justStaticExecutables super.ghcid;
+  #     };
   #
   # Some tools, like `ghc-mod`, have to be built with the same GHC as
   # your project. The argument to the `tools` function is the haskell
   # package set of the platform we are developing for, allowing you to
   # build tools with the correct Haskell package set.
+  #
+  # The second argument, `super`, is the record of tools provided by
+  # default. You can override these defaults by returning values with
+  # the same name in your record. They can be disabled by setting them
+  # to null.
+
+, tools ? _: []
+  # An older, obsolete version of `shellToolOverrides`.
+  #
+  #     tools = ghc: with ghc; [ hpack pkgs.chromium ];
 
 , withHoogle ? true
   # Set to false to disable building the hoogle database when entering
@@ -157,7 +170,7 @@ let
           ghcWithPackages = self.ghcWithHoogle;
         }; };
         packageNames = pnames;
-        inherit tools;
+        inherit tools shellToolOverrides;
       }
     ) shells;
 

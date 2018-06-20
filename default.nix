@@ -191,7 +191,7 @@ let iosSupport =
       shims = hackGet ./shims;
       ghcjs = hackGet ./ghcjs;
     };
-    inherit (nixpkgs.stdenv.lib) optional optionals;
+    inherit (nixpkgs.stdenv.lib) optional optionals optionalAttrs;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
 in with haskellLib;
 let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
@@ -627,28 +627,32 @@ in let this = rec {
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
-  generalDevTools = haskellPackages:
+  generalDevToolsAttrs = haskellPackages:
     let nativeHaskellPackages = ghc;
-    in [
-    nativeHaskellPackages.Cabal
-    nativeHaskellPackages.cabal-install
-    nativeHaskellPackages.ghcid
-    nativeHaskellPackages.hasktags
-    nativeHaskellPackages.hlint
-    nixpkgs.cabal2nix
-    nixpkgs.curl
-    nixpkgs.nix-prefetch-scripts
-    nixpkgs.nodejs
-    nixpkgs.pkgconfig
-    nixpkgs.closurecompiler
-  ] ++ (optionals (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) [
+    in {
+    inherit (nativeHaskellPackages)
+      Cabal
+      cabal-install
+      ghcid
+      hasktags
+      hlint;
+    inherit (nixpkgs)
+      cabal2nix
+      curl
+      nix-prefetch-scripts
+      nodejs
+      pkgconfig
+      closurecompiler;
+  } // (optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
-    (nixpkgs.haskell.lib.justStaticExecutables nativeHaskellPackages.ghc-mod)
-    haskellPackages.hdevtools
-  ]) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
-    nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []);
+    ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables nativeHaskellPackages.ghc-mod);
+    inherit (haskellPackages) hdevtools;
+  }) // (optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
+    inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
+  });
+
+  generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -659,7 +663,7 @@ in let this = rec {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
-  workOnMulti' = { env, packageNames, tools ? _: [] }:
+  workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
     let ghcEnv =
       let inherit (builtins) filter all concatLists;
           dependenciesOf = x: (x.buildDepends or [])
@@ -673,11 +677,13 @@ in let this = rec {
             };
           })).out;
       in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
+    baseTools = generalDevToolsAttrs env;
+    overriddenTools = baseTools // shellToolOverrides env baseTools;
 
     in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
       buildInputs = [
         ghcEnv
-      ] ++ generalDevTools env ++ tools env;
+      ] ++ builtins.attrValues overriddenTools ++ tools env;
     }) "";
 
   workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
