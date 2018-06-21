@@ -477,7 +477,7 @@ in let this = rec {
           foreignLibSmuggleHeaders
           ghc
           ghcHEAD
-          ghc8_4
+          ghc8_4_3
           ghc8_2_2
           ghc8_0_2
           ghc7
