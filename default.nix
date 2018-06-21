@@ -224,7 +224,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         reflex = dontHaddock (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {}))));
         reflex-dom = addReflexOptimizerFlag (dontHaddock (doJailbreak reflexDom.reflex-dom));
-        reflex-dom-core = addReflexOptimizerFlag (dontHaddock (doJailbreak reflexDom.reflex-dom-core));
+        reflex-dom-core = addReflexOptimizerFlag (dontHaddock (dontCheck (doJailbreak reflexDom.reflex-dom-core)));
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
         haven = doJailbreak (self.callHackage "haven" "0.2.0.0" {});
