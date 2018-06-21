@@ -257,7 +257,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
 
-        ${if system == "i686-linux" then "language-nix" else null} = dontCheck super.language-nix;
+        language-nix = dontCheck super.language-nix;
 
         ########################################################################
         # Tweaks
