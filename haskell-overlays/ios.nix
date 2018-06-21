@@ -19,6 +19,8 @@ self: super: {
   free = haskellLib.appendConfigureFlag super.free "--enable-optimization=0";
   jsaddle = haskellLib.appendConfigureFlag super.jsaddle "--enable-optimization=0";
 
+  blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+
   reflex-todomvc = haskellLib.overrideCabal super.reflex-todomvc (drv: {
     postFixup = ''
       mkdir $out/reflex-todomvc.app

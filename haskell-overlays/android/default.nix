@@ -19,6 +19,8 @@ self: super: {
   lifted-async = haskellLib.doJailbreak super.lifted-async;
   safe-exceptions = haskellLib.doJailbreak super.safe-exceptions;
 
+  blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;
     dontStrip = true;
