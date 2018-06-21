@@ -117,6 +117,9 @@ in
   # Set to false to disable building the hoogle database when entering
   # the nix-shell.
 
+, useWarp ? false
+  # Configure `reflex-dom` to use `jsaddle-warp`.
+
 , android ? {}
   # ::
   # { <app name> ::
@@ -150,8 +153,15 @@ in
 
 }:
 let
-  overrides' = nixpkgs.lib.composeExtensions
-    (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages) overrides;
+  overrides' = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+    (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages)
+    (self: super: {
+      reflex-dom = if useWarp && (with self.ghc.stdenv; hostPlatform == targetPlatform) && !(self.ghc.isGhcjs or false)
+        then nixpkgs.haskell.lib.addBuildDepend (nixpkgs.haskell.lib.enableCabalFlag super.reflex-dom "use-warp") self.jsaddle-warp
+        else super.reflex-dom;
+    })
+    overrides
+  ];
   mkPkgSet = name: _: this.${name}.override { overrides = overrides'; };
   prj = mapAttrs mkPkgSet shells // {
     shells = mapAttrs (name: pnames:
