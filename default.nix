@@ -450,6 +450,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
+    hostPkgs = nixpkgsFunc { inherit system; };
     inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
   nix-darwin = fetchFromGitHub {
