@@ -82,4 +82,6 @@ self: super: {
       sha256 = "1sy51nz096sv91nxqk6yk7b92b5a40axv9183xakvki2nc09yhqg";
     };
   }));
+
+  primitive = doJailbreak (self.callHackage "primitive" "0.6.3.0" {});
 }
