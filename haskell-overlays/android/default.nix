@@ -25,6 +25,7 @@ self: super: {
     doHaddock = false;
     dontStrip = true;
     enableSharedExecutables = false;
+    enableSharedLibraries = false;
   });
 
   ref-tf = haskellLib.dontHaddock super.ref-tf;
