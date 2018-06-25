@@ -1,7 +1,7 @@
 with import ./.. {};
 let inherit (nixpkgs.lib) optionals;
     inputs = builtins.concatLists [
-      (map (system: (import ./.. { inherit system; iosSupportForce = true; }).cachePackages) cacheTargetSystems)
+      (map (system: (import ./.. { inherit system; }).cachePackages) cacheTargetSystems)
     ];
     getOtherDeps = reflexPlatform: [
       reflexPlatform.nixpkgs.cabal2nix

@@ -8,13 +8,8 @@
 , useReflexOptimizer ? false
 , useTextJSString ? false
 , iosSdkVersion ? "10.2"
-, iosSdkLocation ? "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk"
-, iosSupportForce ? false
 }:
-let iosSupport =
-      if system != "x86_64-darwin" then false
-      else if iosSupportForce || builtins.pathExists iosSdkLocation then true
-      else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
+let iosSupport = system != "x86_64-darwin";
     globalOverlay = self: super: {
       all-cabal-hashes = fetchurl {
         url = https://github.com/commercialhaskell/all-cabal-hashes/archive/c7af4479644dd1657df956dd7575b070c1e30d83.tar.gz;

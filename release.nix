@@ -16,7 +16,7 @@ let inherit (nixpkgs.lib) optionals;
 
 in nixpkgs.lib.genAttrs cacheTargetSystems (system:
   let
-    reflexPlatform = (import ./. { inherit system; iosSupportForce = true; });
+    reflexPlatform = (import ./. { inherit system; });
   in {
     tryReflexShell = reflexPlatform.tryReflexShell;
     ghcjsReflexTodomvc = ghcjs.reflex-todomvc;
