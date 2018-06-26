@@ -27,6 +27,17 @@ let iosSupport = system != "x86_64-darwin";
         });
       };
     };
+    androidPICPatches = self: super: {
+      haskell = super.haskell // {
+        compiler = super.haskell.compiler // {
+          integer-simple = super.haskell.compiler.integer-simple // {
+            ghc843 = super.haskell.compiler.integer-simple.ghc843.overrideAttrs (drv: {
+              patches = (drv.patches or []) ++ [ ./android/patches/force-relocation.patch ];
+            });
+          };
+        };
+      };
+    };
     nixpkgs = nixpkgsFunc ({
       inherit system;
       overlays = [globalOverlay];
@@ -48,13 +59,13 @@ let iosSupport = system != "x86_64-darwin";
       android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         aarch64 = {
           system = "x86_64-linux";
-          overlays = [globalOverlay];
+          overlays = [globalOverlay androidPICPatches];
           crossSystem = nixpkgs.lib.systems.examples.aarch64-android-prebuilt;
           config.allowUnfree = true;
         };
         aarch32 = {
           system = "x86_64-linux";
-          overlays = [globalOverlay];
+          overlays = [globalOverlay androidPICPatches];
           crossSystem = nixpkgs.lib.systems.examples.armv7a-android-prebuilt;
           config.allowUnfree = true;
         };

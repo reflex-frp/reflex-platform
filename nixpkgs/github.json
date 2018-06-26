@@ -1,6 +1,6 @@
 {
-  "owner": "obsidiansystems",
+  "owner": "NixOS",
   "repo": "nixpkgs",
-  "rev": "ba2b572763d67e444e797c4cd5645f8bc67efcab",
-  "sha256": "1hhq7ppij898myqqiighlifplvl7a9wr93z64d2k0fh1lqr2w566"
+  "rev": "b8ad7ec94b472afa146bfd8c707d60cab84e6dfd",
+  "sha256": "13hzqrkx8xjbsznd3xwabv9cafcfapdd7gk9qrxm0zrzyx5dnb3r"
 }
