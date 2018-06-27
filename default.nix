@@ -37,8 +37,6 @@ let iosSupport = system != "x86_64-darwin";
       inherit system;
       overlays = [globalOverlay];
       config = {
-        allowUnfree = true;
-        allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
         permittedInsecurePackages = [
           "webkitgtk-2.4.11"
         ];
@@ -47,6 +45,9 @@ let iosSupport = system != "x86_64-darwin";
           # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
         };
+
+        # XCode needed for native macOS app
+        allowUnfree = (system == "x86_64-darwin");
       } // config;
     });
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
@@ -68,16 +69,14 @@ let iosSupport = system != "x86_64-darwin";
         arm64Impure = aarch64;
         armv7aImpure = aarch32;
       };
-      ios =
-        let config = { allowUnfree = true; };
-        in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
+      ios = nixpkgs.lib.mapAttrs (_: args:
+      nixpkgsFunc (args // { config = { allowUnfree = true; }; })) rec {
         simulator64 = {
           system = "x86_64-darwin";
           overlays = [globalOverlay appleLibiconvHack];
           crossSystem = nixpkgs.lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
           };
-          inherit config;
         };
         aarch64 = {
           system = "x86_64-darwin";
@@ -85,7 +84,6 @@ let iosSupport = system != "x86_64-darwin";
           crossSystem = nixpkgs.lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
           };
-          inherit config;
         };
         aarch32 = {
           system = "x86_64-darwin";
@@ -93,7 +91,6 @@ let iosSupport = system != "x86_64-darwin";
           crossSystem = nixpkgs.lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
           };
-          inherit config;
         };
         # Back compat
         arm64 = aarch64;
