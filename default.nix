@@ -10,12 +10,7 @@
 , iosSdkVersion ? "10.2"
 }:
 let iosSupport = system != "x86_64-darwin";
-    globalOverlay = self: super: {
-      all-cabal-hashes = fetchurl {
-        url = https://github.com/commercialhaskell/all-cabal-hashes/archive/c7af4479644dd1657df956dd7575b070c1e30d83.tar.gz;
-        sha256 = "1aw6lcyjlfcpk74al489gds4vr4709d0rpchrr0lysrpk7mk2a7g";
-      };
-    };
+    globalOverlay = self: super: { };
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv =
@@ -200,31 +195,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
               else drv: drv;
         in {
 
-        servant-auth-server = self.callHackage "servant-auth-server" "0.3.1.0" {};
-        vector = doJailbreak super.vector;
-        these = doJailbreak super.these;
-        aeson-compat = doJailbreak super.aeson-compat;
-        timezone-series = self.callCabal2nix "timezone-series" (fetchFromGitHub {
-          owner = "ygale";
-          repo = "timezone-series";
-          rev = "9f42baf542c54ad554bd53582819eaa454ed633d";
-          sha256 = "1axrx8lziwi6pixws4lq3yz871vxi81rib6cpdl62xb5bh9y03j6";
-        }) {};
-        timezone-olson = self.callCabal2nix "timezone-olson" (fetchFromGitHub {
-          owner = "ygale";
-          repo = "timezone-olson";
-          rev = "aecec86be48580f23145ffb3bf12a4ae191d12d3";
-          sha256 = "1xxbwb8z27qbcscbg5qdyzlc2czg5i3b0y04s9h36hfcb07hasnz";
-        }) {};
-        quickcheck-instances = doJailbreak super.quickcheck-instances;
-
-        gtk2hs-buildtools = doJailbreak super.gtk2hs-buildtools;
-
-        # hindent was overriden with a newer version of haskell-src-exts for some reason
-        hindent = super.hindent.override { haskell-src-exts = self.haskell-src-exts; };
-        # Not sure why these tests fail...
-        hfmt = dontCheck super.hfmt;
-
         ########################################################################
         # Reflex packages
         ########################################################################
@@ -233,70 +203,18 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-dom-core = addReflexOptimizerFlag (dontCheck (dontHaddock reflexDom.reflex-dom-core));
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
-        haven = doJailbreak (self.callHackage "haven" "0.2.0.0" {});
 
-        inherit (jsaddlePkgs) jsaddle-clib jsaddle-webkit2gtk jsaddle-webkitgtk;
-        jsaddle = doJailbreak jsaddlePkgs.jsaddle;
-        jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
+        inherit (jsaddlePkgs) jsaddle jsaddle-warp jsaddle-clib
+                              jsaddle-webkit2gtk jsaddle-webkitgtk
+                              jsaddle-wkwebview;
 
-        # HACK(mbauer): Can’t figure out why cf-private framework is
-        #               not getting pulled in. This override gives us
-        #               a fake CoreFoundation directory that mimics
-        #               the framework behavior.
-        jsaddle-wkwebview = jsaddlePkgs.jsaddle-wkwebview.overrideAttrs (drv:
-          optionalAttrs (nixpkgs.targetPlatform.isDarwin && !nixpkgs.targetPlatform.isiOS) {
-            libraryFrameworkDepends = [ nixpkgs.darwin.apple_sdk.frameworks.Cocoa ];
-            preSetupCompilerEnvironment = ''
-              ${drv.preSetupCompilerEnvironment or ""}
-              mkdir include
-              ln -s ${nixpkgs.darwin.cf-private}/Library/Frameworks/CoreFoundation.framework/Headers include/CoreFoundation
-              export NIX_CFLAGS_COMPILE="-I$PWD/include $NIX_CFLAGS_COMPILE"
-            '';
-          });
-
-        jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
-          # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
-          preBuild = ''./setup build || true'';
-          jailbreak = true;
-        });
+        jsaddle-dom = self.callPackage (hackGet ./jsaddle-dom) {};
 
         inherit (ghcjsDom) ghcjs-dom-jsffi;
-
-        # TODO: Fix this in Cabal
-        # When building a package with no haskell files, cabal haddock shouldn't fail
-        ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
-        ghcjs-dom = dontHaddock ghcjsDom.ghcjs-dom;
 
         inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
 
         language-nix = dontCheck super.language-nix;
-
-        ########################################################################
-        # Tweaks
-        ########################################################################
-        haskell-gi = dontCheck super.haskell-gi;
-        ghcjs-base-stub = dontHaddock super.ghcjs-base-stub;
-
-        exception-transformers = doJailbreak super.exception-transformers;
-        # haskell-src-exts = self.callHackage "haskell-src-exts" "1.20.1" {};
-        # haskell-src-meta = self.callHackage "haskell-src-meta" "0.8.0.2" {};
-
-        haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-
-        webkit2gtk3-javascriptcore = super.webkit2gtk3-javascriptcore.override {
-          webkitgtk = nixpkgs.webkitgtk220x;
-        };
-
-        ########################################################################
-        # Fixes to be upstreamed
-        ########################################################################
-        foundation = dontCheck super.foundation;
-        MonadCatchIO-transformers = doJailbreak super.MonadCatchIO-transformers;
-        blaze-builder-enumerator = doJailbreak super.blaze-builder-enumerator;
-        process-extras = dontCheck super.process-extras;
-        miso = addBuildDepend (self.callHackage "miso" "0.12.0.0" {}) self.ghcjs-base;
-        hasktags = dontCheck super.hasktags;
-        fast-logger = dontCheck super.fast-logger;
 
         ########################################################################
         # Packages not in hackage
@@ -320,20 +238,10 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           sha256 = "13i6lz99x0jb9fgns7brlqnv5s5w4clp26l8c3kxd318r1krvr6w";
         }) {};
 
-        superconstraints =
-          # Remove override when assertion fails
-          assert (super.superconstraints or null) == null;
-          self.callPackage (self.haskellSrc2nix {
-            name = "superconstraints";
-            src = fetchurl {
-              url = "https://hackage.haskell.org/package/superconstraints-0.0.1/superconstraints.cabal";
-              sha256 = "0bgc8ldml3533522gp1x2bjiazllknslpl2rvdkd1k1zfdbh3g9m";
-            };
-            sha256 = "1gx9p9i5jli91dnvvrc30j04h1v2m3d71i8sxli6qrhplq5y63dk";
-          }) {};
-      } // (if enableLibraryProfiling then {
-        mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
-      } else {});
+        mkDerivation = expr: super.mkDerivation (expr // {
+          inherit enableLibraryProfiling;
+        });
+      };
     };
     haskellOverlays = import ./haskell-overlays {
       inherit
