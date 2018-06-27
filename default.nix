@@ -49,36 +49,34 @@ let iosSupport = system != "x86_64-darwin";
         };
 
         # XCode needed for native macOS app
-        allowUnfree = (system == "x86_64-darwin");
+        allowUnfree = system == "x86_64-darwin";
       } // config;
     });
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
-      android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
+      android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
         aarch64 = {
           system = "x86_64-linux";
           overlays = [globalOverlay androidPICPatches];
           crossSystem = nixpkgs.lib.systems.examples.aarch64-android-prebuilt;
-          config.allowUnfree = true;
         };
         aarch32 = {
           system = "x86_64-linux";
           overlays = [globalOverlay androidPICPatches];
           crossSystem = nixpkgs.lib.systems.examples.armv7a-android-prebuilt;
-          config.allowUnfree = true;
         };
         # Back compat
         arm64Impure = aarch64;
         armv7aImpure = aarch32;
       };
-      ios = nixpkgs.lib.mapAttrs (_: args:
-      nixpkgsFunc (args // { config = { allowUnfree = true; }; })) rec {
+      ios = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
           overlays = [globalOverlay appleLibiconvHack];
           crossSystem = nixpkgs.lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
           };
+          config.allowUnfree = true;
         };
         aarch64 = {
           system = "x86_64-darwin";
@@ -86,6 +84,7 @@ let iosSupport = system != "x86_64-darwin";
           crossSystem = nixpkgs.lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
           };
+          config.allowUnfree = true;
         };
         aarch32 = {
           system = "x86_64-darwin";
@@ -93,6 +92,7 @@ let iosSupport = system != "x86_64-darwin";
           crossSystem = nixpkgs.lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
           };
+          config.allowUnfree = true;
         };
         # Back compat
         arm64 = aarch64;
@@ -362,7 +362,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
-    nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
+    nixpkgs = nixpkgsFunc { system = "x86_64-linux"; config.allowUnfree = true; };
     hostPkgs = nixpkgsFunc { inherit system; };
     inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
