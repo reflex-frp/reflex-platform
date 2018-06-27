@@ -26,8 +26,10 @@ let iosSupport = system != "x86_64-darwin";
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
           integer-simple = super.haskell.compiler.integer-simple // {
-            ghc843 = super.haskell.compiler.integer-simple.ghc843.overrideAttrs (drv: {
-              patches = (drv.patches or []) ++ [ ./android/patches/force-relocation.patch ];
+            ghc843 = super.haskell.compiler.integer-simple.ghc843
+                     .overrideAttrs (drv: {
+              patches = (drv.patches or [])
+                      ++ [ ./android/patches/force-relocation.patch ];
             });
           };
         };
@@ -485,7 +487,8 @@ in let this = rec {
       ln -s "$sdist" "$docs" "$out"
     '';
 
-    # 'checked' isn't used, but it is here so that the build will fail if tests fail
+    # 'checked' isn't used, but it is here so that the build will fail
+    # if tests fail
     checked = overrideCabal pkg (drv: {
       doCheck = true;
       src = sdist;
@@ -561,7 +564,9 @@ in let this = rec {
 
   workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 
-  # A simple derivation that just creates a file with the names of all of its inputs.  If built, it will have a runtime dependency on all of the given build inputs.
+  # A simple derivation that just creates a file with the names of all
+  # of its inputs. If built, it will have a runtime dependency on all
+  # of the given build inputs.
   pinBuildInputs = drvName: buildInputs: otherDeps: nixpkgs.runCommand drvName {
     buildCommand = ''
       mkdir "$out"
@@ -583,8 +588,13 @@ in let this = rec {
 
   reflexEnv = platform:
     let haskellPackages = builtins.getAttr platform this;
-        ghcWithStuff = if platform == "ghc" || platform == "ghcjs" then haskellPackages.ghcWithHoogle else haskellPackages.ghcWithPackages;
-    in ghcWithStuff (p: import ./packages.nix { haskellPackages = p; inherit platform; });
+        ghcWithStuff = if platform == "ghc" || platform == "ghcjs"
+                       then haskellPackages.ghcWithHoogle
+                       else haskellPackages.ghcWithPackages;
+    in ghcWithStuff (p: import ./packages.nix {
+      haskellPackages = p;
+      inherit platform;
+    });
 
   tryReflexPackages = generalDevTools ghc
     ++ builtins.map reflexEnv platforms;

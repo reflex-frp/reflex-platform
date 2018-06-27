@@ -5,9 +5,9 @@ with haskellLib;
 self: super: {
   ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
     inherit (self) llvmPackages;
-#    haskellPackages = self;
     packages = selectFrom self;
-    ${if useReflexOptimizer then "ghcLibdir" else null} = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
+  } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
+    ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
 
   ghcjs-base = overrideCabal (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
