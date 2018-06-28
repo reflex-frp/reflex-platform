@@ -224,7 +224,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         language-nix = dontCheck super.language-nix;
         hasktags = dontCheck super.hasktags;
         http-reverse-proxy = dontCheck super.http-reverse-proxy;
-        xmlhtml = dontCheck xmlhtml;
+        xmlhtml = dontCheck super.xmlhtml;
 
         ########################################################################
         # Packages not in hackage

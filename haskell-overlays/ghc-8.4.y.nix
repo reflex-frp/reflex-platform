@@ -6,6 +6,6 @@ self: super: {
   haddock-library-ghcjs = dontCheck super.haddock-library-ghcjs;
   haddock-api-ghcjs = dontCheck super.haddock-api-ghcjs;
 
-  testing-feat = doJailbreak testing-feat;
-  snap-server = doJailbreak snap-server;
+  testing-feat = doJailbreak super.testing-feat;
+  snap-server = doJailbreak super.snap-server;
 }
