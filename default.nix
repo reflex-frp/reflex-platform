@@ -49,7 +49,8 @@ let iosSupport = system != "x86_64-darwin";
         };
 
         # XCode needed for native macOS app
-        allowUnfree = system == "x86_64-darwin";
+        # Obelisk needs it to for some reason
+        allowUnfree = true;
       } // config;
     });
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
