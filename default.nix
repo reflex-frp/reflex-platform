@@ -214,6 +214,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
 
         language-nix = dontCheck super.language-nix;
+        hasktags = dontCheck super.hasktags;
 
         ########################################################################
         # Packages not in hackage
