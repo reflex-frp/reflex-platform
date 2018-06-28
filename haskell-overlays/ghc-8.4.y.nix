@@ -46,10 +46,10 @@ self: super: {
 
   # Broken in master
   # PR is https://github.com/vincenthz/hit/pull/37
-  hit = self.callCabal2nix "hit" (fetchFromGitHub {
+  hit = dontCheck (self.callCabal2nix "hit" (fetchFromGitHub {
     owner = "vincenthz";
     repo = "hit";
     rev = "e93b01a295d5b4ca51b32b928b37ae040366e317";
     sha256 = "1vfxqc3kffls11dzxq0gk62ky8rjm455cnh0nv31x43g3pmhh7sp";
-  }) {};
+  }) {});
 }
