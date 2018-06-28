@@ -6,7 +6,12 @@ self: super: {
   haddock-library-ghcjs = dontCheck super.haddock-library-ghcjs;
   haddock-api-ghcjs = dontCheck super.haddock-api-ghcjs;
 
-  testing-feat = dontCheck (doJailbreak super.testing-feat);
+  testing-feat = self.callCabal2nix "testing-feat" (fetchFromGitHub {
+    owner = "JonasDuregard";
+    repo = "testing-feat";
+    rev = "a1b32842a8cc8ab467d93a9f97f2365330a02113";
+    sha256 = "1pxafc7rdd25j0m0dxgxqhw3vnxb3lw9gv6n885x2lag9mcdkpax";
+  }) {};
   snap-server = self.callCabal2nix "snap-server" (fetchFromGitHub {
     owner = "snapframework";
     repo = "snap-server";
