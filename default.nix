@@ -610,18 +610,17 @@ in let this = rec {
 
   cachePackages =
     let otherPlatforms = optionals (system == "x86_64-linux") [
-#          "ghcAndroidAarch64"
-#          "ghcAndroidAarch32"
+          "ghcAndroidAarch64"
+          "ghcAndroidAarch32"
         ] ++ optional iosSupport "ghcIosAarch64";
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
       ++ optionals (system == "x86_64-linux") [
-#        androidDevTools
-#        androidReflexTodomvc
+        androidDevTools
+        androidReflexTodomvc
       ] ++ optionals iosSupport [
         iosReflexTodomvc
       ];
-
 
   demoVM = (import "${nixpkgs.path}/nixos" {
     configuration = {
