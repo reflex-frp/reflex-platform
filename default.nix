@@ -203,7 +203,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
 
-        inherit (jsaddlePkgs) jsaddle jsaddle-warp jsaddle-clib
+        inherit (jsaddlePkgs) jsaddle jsaddle-clib
                               jsaddle-webkit2gtk jsaddle-webkitgtk
                               jsaddle-wkwebview;
 
@@ -215,6 +215,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         language-nix = dontCheck super.language-nix;
         hasktags = dontCheck super.hasktags;
+        jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
 
         ########################################################################
         # Packages not in hackage
