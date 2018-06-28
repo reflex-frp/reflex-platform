@@ -189,7 +189,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
             jsaddlePkgs = import (hackGet ./jsaddle) self;
             gargoylePkgs = self.callPackage (hackGet ./gargoyle) self;
             ghcjsDom = import (hackGet ./ghcjs-dom) self;
-            addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
+            addReflexOptimizerFlag = if useReflexOptimizer
               then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
               else drv: drv;
         in {
