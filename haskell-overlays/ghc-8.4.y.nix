@@ -37,4 +37,19 @@ self: super: {
     rev = "acebcf0a83ee639e1a0c49850b9c85821d53f621";
     sha256 = "076knpvls1489gish9z30lhb21vqx44k366vc2i3kdql815v1vqv";
   }) {};
+  logging-effect = self.callCabal2nix "logging-effect" (fetchFromGitHub {
+    owner = "ocharles";
+    repo = "logging-effect";
+    rev = "bd65c0d0d54f096ab90810b8c3604dd9c110a4ab";
+    sha256 = "1zlh8h4gq4kb8j9cgxsaas3h0havq23rrg0pl63d2ii1vghi9181";
+  }) {};
+
+  # Broken in master
+  # PR is https://github.com/vincenthz/hit/pull/37
+  hit = self.callCabal2nix "hit" (fetchFromGitHub {
+    owner = "vincenthz";
+    repo = "hit";
+    rev = "e93b01a295d5b4ca51b32b928b37ae040366e317";
+    sha256 = "1vfxqc3kffls11dzxq0gk62ky8rjm455cnh0nv31x43g3pmhh7sp";
+  }) {};
 }
