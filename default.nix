@@ -198,14 +198,22 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         # Reflex packages
         ########################################################################
         reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {})));
-        reflex-dom = addReflexOptimizerFlag (dontHaddock reflexDom.reflex-dom);
-        reflex-dom-core = addReflexOptimizerFlag (dontCheck (dontHaddock reflexDom.reflex-dom-core));
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
+
+        # Broken Haddock - Please fix!
+        # : error is: haddock: internal error: internal: extractDecl
+        # No idea where it hits?
+        reflex-dom = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom);
+        reflex-dom-core = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core);
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib
                               jsaddle-webkit2gtk jsaddle-webkitgtk
                               jsaddle-wkwebview;
+
+        # another broken test
+        # phantomjs has issues with finding the right port
+        jsaddle-warp = dontCheck (addTestToolDepend jsaddlePkgs.jsaddle-warp nixpkgs.phantomjs);
 
         jsaddle-dom = self.callPackage (hackGet ./jsaddle-dom) {};
 
@@ -215,7 +223,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         language-nix = dontCheck super.language-nix;
         hasktags = dontCheck super.hasktags;
-        jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
 
         ########################################################################
         # Packages not in hackage
