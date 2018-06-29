@@ -43,6 +43,7 @@ self: super: {
     rev = "bd65c0d0d54f096ab90810b8c3604dd9c110a4ab";
     sha256 = "1zlh8h4gq4kb8j9cgxsaas3h0havq23rrg0pl63d2ii1vghi9181";
   }) {};
+  algebraic-graphs = doJailbreak super.algebraic-graphs;
 
   # Broken in master
   # PR is https://github.com/vincenthz/hit/pull/37
