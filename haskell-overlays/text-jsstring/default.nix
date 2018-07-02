@@ -19,10 +19,6 @@ self: super: {
   ghcjs-base = overrideCabal super.ghcjs-base (drv: {
     patches = (drv.patches or []) ++ [
       ./ghcjs-base-text-jsstring.patch
-      (fetchpatch {
-        url = "https://patch-diff.githubusercontent.com/raw/ghcjs/ghcjs-base/pull/106.patch";
-        sha256 = "0hdagclc6hkd0kc3cjcy61xz99qvv55yrgc4szgmknkl5lq8y3yd";
-      })
     ];
     libraryHaskellDepends = with self; [
       base bytestring containers deepseq dlist ghc-prim

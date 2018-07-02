@@ -13,19 +13,11 @@ self: super: {
   ghcjs-base = overrideCabal (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
     owner = "ghcjs";
     repo = "ghcjs-base";
-    rev = "4560541fbab5b77ee34d0348ec04bb1dda8e5db3";
-    sha256 = "0n7m46f32iass89ww4f2c126k4yqhfp95km7c9l6klsh93lp1i8p";
+    rev = "b4a8d578758613e5c7db88891f444ff5e6f3edb9";
+    sha256 = "117i9fwm1chym812zs1v2shxz0zl3s0p6hpc4sv0lnqgsribdrbn";
   }) {}) (drv: {
     jailbreak = true;
     doCheck = false; #TODO: This should be unnecessary
-
-    patches = [
-      (nixpkgs.fetchpatch {
-        url = "https://patch-diff.githubusercontent.com/raw/ghcjs/ghcjs-base/pull/107.patch";
-        sha256 = "1ajsy3yl8mbrdvfw0xskpq3h51m4fphjz3dsvqa10g4hxl0kwcrq";
-      })
-    ];
-
     #TODO: This should be unnecessary
     preConfigure = (drv.preConfigure or "") + ''
       sed -i -e '/jsbits\/export.js/d' -e '/GHCJS\.Foreign\.Export/d' *.cabal
