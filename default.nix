@@ -6,7 +6,7 @@
 , enableTraceReflexEvents ? false
 , useFastWeak ? true
 , useReflexOptimizer ? false
-, useTextJSString ? false
+, useTextJSString ? true
 , iosSdkVersion ? "10.2"
 }:
 let iosSupport = system != "x86_64-darwin";

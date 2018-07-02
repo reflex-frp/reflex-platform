@@ -18,6 +18,7 @@ self: super: {
   }) {}) (drv: {
     jailbreak = true;
     doCheck = false; #TODO: This should be unnecessary
+    patches = (drv.patches or []) ++ [./ghcjs-base.patch];
     #TODO: This should be unnecessary
     preConfigure = (drv.preConfigure or "") + ''
       sed -i -e '/jsbits\/export.js/d' -e '/GHCJS\.Foreign\.Export/d' *.cabal

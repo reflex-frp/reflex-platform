@@ -7,8 +7,8 @@ self: super: {
   text = self.callCabal2nix "text" (fetchFromGitHub {
      owner = "obsidiansystems";
      repo = "text";
-     rev = "9b5646358d4d562db610de5fa51a1853b6161e08";
-     sha256 = "0hybnzmp38jvz9289si6x6ciayjiay84sw7mgba2hwrb5x54zzr4";
+     rev = "083230324ed55475ce1c3da303b1076b9bf5617f";
+     sha256 = "0fg06pdpdi8rcmg83raj9b77s0y74ky585pibw0brv6m8krkn0kw";
   }) {};
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [

@@ -1,0 +1,13 @@
+diff --git a/Data/JSString.hs b/Data/JSString.hs
+index 84f3319..60e138e 100644
+--- a/Data/JSString.hs
++++ b/Data/JSString.hs
+@@ -1831,7 +1831,7 @@ foreign import javascript unsafe
+ --  "h$jsstringAppend" js_append :: JSString -> JSString -> JSString -- debug
+   "$1+$2" js_append :: JSString -> JSString -> JSString
+ foreign import javascript unsafe
+-  "h$jsstringCompare" js_compare :: JSString -> JSString -> Int#
++  "h$jsstringCompare($1,$2)" js_compare :: JSString -> JSString -> Int#
+ --  "($1<$2)?-1:(($1>$2)?1:0)" js_compare :: JSString -> JSString -> Int#
+ foreign import javascript unsafe
+   "h$jsstringSingleton" js_singleton :: Char -> JSString
