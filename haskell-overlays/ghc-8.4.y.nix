@@ -25,12 +25,12 @@ self: super: {
     rev = "b2a888230e107046404b047ff3b8690a592f124c";
     sha256 = "05zbc4lyyphsrkj5h043rgx9gjsgmcd8zahzjz69npd9cf91aa6w";
   }) {};
-  heist = addTestToolDepend (self.callCabal2nix "heist" (fetchFromGitHub {
+  heist = self.callCabal2nix "heist" (fetchFromGitHub {
     owner = "snapframework";
     repo = "heist";
     rev = "3ccbec548830abce7ed7eba42c1c294b02b6cd52";
     sha256 = "14sd4d4an7fj8yb4mr8cdallsv69x5jb1hd330sg10ahi1ryzspr";
-  }) {}) pkgs.pandoc;
+  }) {};
   map-syntax = self.callCabal2nix "map-syntax" (fetchFromGitHub {
     owner = "mightybyte";
     repo = "map-syntax";
