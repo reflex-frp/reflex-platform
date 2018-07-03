@@ -14,9 +14,9 @@ let iosSupport = system != "x86_64-darwin";
 
       # need to override cabal2nix to avoid evaluation errors on Android.
       # https://github.com/NixOS/cabal2nix/pull/344
-      haskellPackages = super.haskellPackages.override {
-        overrides = self_: super_: {
-          cabal2nix = super_.cabal2nix.overrideAttrs (drv: {
+      haskellPackages = super.haskellPackages.override (old: {
+        overrides = super.lib.composeExtensions (old.overrides or (_: _: {})) (self_: super_: {
+          cabal2nix = super.haskell.lib.overrideCabal super_.cabal2nix (drv: {
             src = super.fetchFromGitHub {
               owner = "NixOS";
               repo = "cabal2nix";
@@ -25,8 +25,8 @@ let iosSupport = system != "x86_64-darwin";
             };
             doCheck = false;
           });
-        };
-      };
+        });
+      });
 
     };
     appleLibiconvHack = self: super: {
