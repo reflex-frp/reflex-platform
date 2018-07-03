@@ -67,8 +67,8 @@ let iosSupport = system != "x86_64-darwin";
           crossSystem = nixpkgs.lib.systems.examples.armv7a-android-prebuilt;
         };
         # Back compat
-        arm64Impure = aarch64;
-        armv7aImpure = aarch32;
+        arm64Impure = builtins.trace "Warning: nixpkgsCross.android.arm64Impure has been deprecated, using nixpkgsCross.android.aarch64 instead." aarch64;
+        armv7aImpure = builtins.trace "Warning: nixpkgsCross.android.armv7aImpure has been deprecated, using nixpkgsCross.android.aarch32 instead." aarch32;
       };
       ios = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
         simulator64 = {
@@ -96,8 +96,7 @@ let iosSupport = system != "x86_64-darwin";
           config.allowUnfree = true;
         };
         # Back compat
-        arm64 = aarch64;
-        armv7 = aarch32;
+        arm64 = builtins.trace "Warning: nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
       };
     };
     haskellLib = nixpkgs.haskell.lib;
@@ -367,10 +366,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     ];
   };
   # Back compat
-  ghcAndroidArm64 = ghcAndroidAarch64;
-  ghcAndroidArmv7a = ghcAndroidAarch32;
-  ghcIosArm64 = ghcIosAarch64;
-  ghcIosArmv7 = ghcIosAarch32;
+  ghcAndroidArm64 = builtins.trace "Warning: ghcAndroidArm64 has been deprecated, using ghcAndroidAarch64 instead." ghcAndroidAarch64;
+  ghcAndroidArmv7a = builtins.trace "Warning: ghcAndroidArmv7a has been deprecated, using ghcAndroidAarch32 instead." ghcAndroidAarch32;
+  ghcIosArm64 = builtins.trace "Warning: ghcIosArm64 has been deprecated, using ghcIosAarch64 instead." ghcIosAarch64;
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
