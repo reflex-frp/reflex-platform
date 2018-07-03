@@ -560,7 +560,7 @@ in let this = rec {
     baseTools = generalDevToolsAttrs env;
     overriddenTools = baseTools // shellToolOverrides env baseTools;
 
-    in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
+    in nixpkgs.runCommand "shell" ((ghcEnv.ghcEnvVars or {}) // {
       buildInputs = [
         ghcEnv
       ] ++ builtins.attrValues overriddenTools ++ tools env;
