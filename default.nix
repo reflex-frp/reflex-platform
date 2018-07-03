@@ -218,7 +218,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         jsaddle-dom = self.callPackage (hackGet ./jsaddle-dom) {};
 
-        haskell-gi-overloading = super.haskell-gi-overloading_0_0;
+        haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
         inherit (ghcjsDom) ghcjs-dom-jsffi;
 
