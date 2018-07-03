@@ -5,10 +5,10 @@ with haskellLib;
 
 self: super: {
   text = self.callCabal2nix "text" (fetchFromGitHub {
-     owner = "obsidiansystems";
-     repo = "text";
-     rev = "083230324ed55475ce1c3da303b1076b9bf5617f";
-     sha256 = "0fg06pdpdi8rcmg83raj9b77s0y74ky585pibw0brv6m8krkn0kw";
+    owner = "obsidiansystems";
+    repo = "text";
+    rev = "083230324ed55475ce1c3da303b1076b9bf5617f";
+    sha256 = "0fg06pdpdi8rcmg83raj9b77s0y74ky585pibw0brv6m8krkn0kw";
   }) {};
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [

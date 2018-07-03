@@ -29,7 +29,7 @@ self: super: {
 
   # HACK(matthewbauer):
   # Temporary fix for https://github.com/ekmett/free/issues/176
-  # Optimizations are broken on iOS for some modules.
+  # Optimizations are broken on some ARM-based systems for some reason.
   free = haskellLib.appendConfigureFlag super.free "--enable-optimization=0";
   jsaddle = haskellLib.appendConfigureFlag super.jsaddle "--enable-optimization=0";
 }
