@@ -579,11 +579,12 @@ in let this = rec {
     baseTools = generalDevToolsAttrs env;
     overriddenTools = baseTools // shellToolOverrides env baseTools;
 
-    in nixpkgs.runCommand "shell" ((ghcEnv.ghcEnvVars or {}) // {
+    in nixpkgs.stdenv.mkDerivation ((ghcEnv.ghcEnvVars or {}) // {
+      name = "name";
       buildInputs = [
         ghcEnv
       ] ++ builtins.attrValues overriddenTools ++ tools env;
-    }) "";
+    });
 
   workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 
