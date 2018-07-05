@@ -26,7 +26,7 @@ rec {
   ghc-8 = nixpkgs.lib.composeExtensions
     ghc
     (import ./ghc-8.x.y.nix { });
-  ghc-8_2_2 = nixpkgs.lib.composeExtensions
+  ghc-8_2 = nixpkgs.lib.composeExtensions
     ghc-8
     (import ./ghc-8.2.2.nix { inherit haskellLib fetchFromGitHub; });
   ghc-8_4 = nixpkgs.lib.composeExtensions
