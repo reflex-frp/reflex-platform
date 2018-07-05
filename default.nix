@@ -243,6 +243,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         hasktags = dontCheck super.hasktags;
         http-reverse-proxy = dontCheck super.http-reverse-proxy;
         xmlhtml = dontCheck super.xmlhtml;
+        haven = doJailbreak super.haven;
 
         ########################################################################
         # Packages not in hackage
