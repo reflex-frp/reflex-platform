@@ -53,9 +53,7 @@ let iosSupport = system != "x86_64-darwin";
         };
       };
     };
-    nixpkgs = nixpkgsFunc ({
-      inherit system;
-      overlays = [globalOverlay];
+    nixpkgsArgs = {
       config = {
         permittedInsecurePackages = [
           "webkitgtk-2.4.11"
@@ -70,10 +68,12 @@ let iosSupport = system != "x86_64-darwin";
         # Obelisk needs it to for some reason
         allowUnfree = true;
       } // config;
-    });
+      overlays = [globalOverlay];
+    };
+    nixpkgs = nixpkgsFunc (nixpkgsArgs // { inherit system; });
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
-      android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
+      android = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
           system = "x86_64-linux";
           overlays = [globalOverlay androidPICPatches];
@@ -88,14 +88,13 @@ let iosSupport = system != "x86_64-darwin";
         arm64Impure = builtins.trace "Warning: nixpkgsCross.android.arm64Impure has been deprecated, using nixpkgsCross.android.aarch64 instead." aarch64;
         armv7aImpure = builtins.trace "Warning: nixpkgsCross.android.armv7aImpure has been deprecated, using nixpkgsCross.android.aarch32 instead." aarch32;
       };
-      ios = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc args) rec {
+      ios = nixpkgs.lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         simulator64 = {
           system = "x86_64-darwin";
           overlays = [globalOverlay appleLibiconvHack];
           crossSystem = nixpkgs.lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
           };
-          config.allowUnfree = true;
         };
         aarch64 = {
           system = "x86_64-darwin";
@@ -103,7 +102,6 @@ let iosSupport = system != "x86_64-darwin";
           crossSystem = nixpkgs.lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
           };
-          config.allowUnfree = true;
         };
         aarch32 = {
           system = "x86_64-darwin";
@@ -111,7 +109,6 @@ let iosSupport = system != "x86_64-darwin";
           crossSystem = nixpkgs.lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
           };
-          config.allowUnfree = true;
         };
         # Back compat
         arm64 = builtins.trace "Warning: nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
@@ -389,15 +386,15 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
-    nixpkgs = nixpkgsFunc { system = "x86_64-linux"; config.allowUnfree = true; };
-    hostPkgs = nixpkgsFunc { inherit system; };
+    nixpkgs = nixpkgsFunc (nixpkgsArgs // { system = "x86_64-linux"; });
+    hostPkgs = nixpkgs;
     inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
   ios = iosWithHaskellPackages ghcIosAarch64;
   iosWithHaskellPackages = ghcIosAarch64: {
     buildApp = import ./ios {
       inherit ghcIosAarch64;
-      nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
+      nixpkgs = nixpkgsFunc (nixpkgsArgs // { system = "x86_64-darwin"; });
     };
   };
 in let this = rec {
