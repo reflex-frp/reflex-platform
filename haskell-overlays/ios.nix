@@ -33,5 +33,8 @@ self: super: {
     doHaddock = false;
     enableSharedLibraries = false;
     enableSharedExecutables = false;
+    configureFlags = (drv.configureFlags or []) ++ [
+      "--ghc-option=-save-splices=my-splices"
+    ];
   });
 }
