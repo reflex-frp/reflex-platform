@@ -244,6 +244,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         http-reverse-proxy = dontCheck super.http-reverse-proxy;
         xmlhtml = dontCheck super.xmlhtml;
         haven = doJailbreak super.haven;
+        mmorph = doJailbreak super.mmorph;
+        async = self.callHackage "async" "2.2.1" {};
+        lifted-async = self.callHackage "lifted-async" "0.10.0.2" {};
+        hinotify = self.callHackage "hinotify" "0.3.10" {};
+        fsnotify = self.callHackage "fsnotify" "0.3.0.1" {};
 
         ########################################################################
         # Packages not in hackage
