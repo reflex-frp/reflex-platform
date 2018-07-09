@@ -38,7 +38,12 @@ let iosSupport = system != "x86_64-darwin";
             inherit (bootPkgs) alex happy hscolour;
           }).overrideAttrs (drv: {
             nativeBuildInputs = (drv.nativeBuildInputs or []) ++ [self.git];
-            src = ../../ghc;
+            src = self.fetchgit {
+              url = "https://git.haskell.org/ghc.git";
+              rev = "7df589608abb178efd6499ee705ba4eebd0cf0d1";
+              sha256 = "08dis5ny8ldxlfsip2b6gw4abcp9x911r838b9hyckvlk693pbwd";
+            };
+            patches = (drv.patches or []) ++ [ ./splices.patch ];
           });
         };
       };
@@ -293,7 +298,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
     };
-  ghc = ghc8_4_3;
+  ghc = ghcHEAD;
   ghcjs8_2_2 = (extendHaskellPackages ghcjs8_2_2Packages).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -369,7 +374,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
     ];
   };
-  ghcIosAarch32 = (extendHaskellPackages nixpkgsCross.ios.aarch32.pkgs.haskell.packages.integer-simple.ghc843).override {
+  ghcIosAarch32 = (extendHaskellPackages nixpkgsCross.ios.aarch32.pkgs.haskell.packages.ghcHEAD).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_4
