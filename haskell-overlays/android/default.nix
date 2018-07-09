@@ -35,4 +35,10 @@ self: super: {
   # Optimizations are broken on some ARM-based systems for some reason.
   free = haskellLib.appendConfigureFlag super.free "--enable-optimization=0";
   jsaddle = haskellLib.appendConfigureFlag super.jsaddle "--enable-optimization=0";
+
+  # Disabled for now (jsaddle-wkwebview will probably be better on iOS)
+  jsaddle-warp = null;
+  # Disable these because these on iOS
+  jsaddle-webkitgtk = null;
+  jsaddle-webkit2gtk = null;
 }
