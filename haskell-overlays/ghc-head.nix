@@ -16,12 +16,12 @@ self: super: {
   pointed = haskellLib.doJailbreak super.pointed;
   exception-transformers = haskellLib.doJailbreak super.exception-transformers;
   async = haskellLib.doJailbreak super.async;
+  th-abstraction = haskellLib.doJailbreak super.th-abstraction;
+  integer-logarithms = haskellLib.doJailbreak super.integer-logarithms;
 
   aeson = super.aeson_1_4_0_0;
 
-  integer-logarithms = haskellLib.doJailbreak super.integer-logarithms;
   tagged = self.callHackage "tagged" "0.8.6" {};
-  th-abstraction = self.callHackage "th-abstraction" "0.2.8.0" {};
   exceptions = self.callHackage "exceptions" "0.10.0" {};
   contravariant = self.callHackage "contravariant" "1.5" {};
 
