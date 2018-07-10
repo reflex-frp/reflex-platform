@@ -13,4 +13,16 @@ self: super: {
   #   rev = "22b0e6aa6077b2d969e8b8ac613f5a3455d9e88d";
   #   sha256 = "0milbw2azkj22rqacrnd0x4wh65qfrl3nhbmwfxzmdrsc2la3bkh";
   # }) "1.5.2";
+
+
+  mkDerivation = expr: super.mkDerivation (expr // {
+    preConfigure = ''
+      ${expr.preConfigure or ""}
+
+      spliceDir=$out/lib/ghc-8.5/${expr.pname}-${expr.version}/splices/
+      mkdir -p $spliceDir
+      configureFlags+=--ghc-option=-save-splices=$spliceDir
+    '';
+  });
+
 }
