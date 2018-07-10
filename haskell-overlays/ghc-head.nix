@@ -15,14 +15,11 @@ self: super: {
   # }) "1.5.2";
 
 
-  mkDerivation = expr: super.mkDerivation (expr // {
+  mkDerivation = drv: super.mkDerivation (drv // {
     preConfigure = ''
-      ${expr.preConfigure or ""}
-
-      spliceDir=$out/lib/ghc-8.5/${expr.pname}-${expr.version}/splices/
-      mkdir -p $spliceDir
-      configureFlags+=--ghc-option=-save-splices=$spliceDir
+      ${drv.preConfigure or ""}
+      configureFlags+=" --ghc-option=-save-splices=$out/lib/ghc-8.5/${drv.pname}-${drv.version}"
     '';
+    hyperlinkSource = false;
   });
-
 }
