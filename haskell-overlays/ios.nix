@@ -33,6 +33,8 @@ self: super: {
     doHaddock = false;
     enableSharedLibraries = false;
     enableSharedExecutables = false;
+
+    # Add some flags to load splices from nativeHaskellPackages
     configureFlags = let
       attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
     in (drv.configureFlags or []) ++
@@ -42,5 +44,6 @@ self: super: {
         builtins.getAttr attrName nativeHaskellPackages
       }/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
     ]);
+
   });
 }
