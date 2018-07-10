@@ -28,7 +28,7 @@ self: super: {
     configureFlags = let
       nativeDrv = nativeHaskellPackages.${drv.pname} or null;
     in (drv.configureFlags or []) ++ (lib.optional (nativeDrv != null)
-      "--ghc-option=-load-splices=${nativeDrv}/lib/${nativeGhc.name}/${drv.pname}-${drv.version}/splices"
+      "--ghc-option=-load-splices=${nativeDrv}/lib/${nativeGhc.name}/${drv.pname}-${drv.version}/splices/"
     );
   });
 

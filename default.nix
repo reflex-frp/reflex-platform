@@ -274,8 +274,12 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         mkDerivation = expr: super.mkDerivation (expr // {
           inherit enableLibraryProfiling;
+          preConfigure = ''
+            ${expr.preConfigure or ""}
+            mkdir -p $out/lib/ghc-8.5/${expr.pname}-${expr.version}/splices
+          '';
           configureFlags = (expr.configureFlags or []) ++ [
-            "--ghc-option=-save-splices=$out/lib/${nixpkgs.haskell.compiler.ghcHEAD.name}/${expr.pname}-${expr.version}/splices"
+            "--ghc-option=-save-splices=$out/lib/ghc-8.5/${expr.pname}-${expr.version}/splices/"
           ];
         });
       };
