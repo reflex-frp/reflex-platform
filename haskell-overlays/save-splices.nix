@@ -24,7 +24,11 @@ self: super: {
     # ./src
     preConfigure = ''
       ${drv.preConfigure or ""}
-      if [ -d $(pwd)/src ]; then
+      if [ "${drv.pname}" = "reflection" ]; then
+        spliceDir="$(pwd)/fast"
+      elif [ -d $(pwd)/lib ]; then
+        spliceDir="$(pwd)/lib"
+      elif [ -d $(pwd)/src ]; then
         spliceDir="$(pwd)/src"
       else
         spliceDir="$(pwd)"

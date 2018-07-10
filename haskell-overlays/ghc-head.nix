@@ -17,10 +17,18 @@ self: super: {
   exception-transformers = haskellLib.doJailbreak super.exception-transformers;
   async = haskellLib.doJailbreak super.async;
   th-abstraction = haskellLib.doJailbreak super.th-abstraction;
+  th-lift = haskellLib.doJailbreak super.th-lift;
   integer-logarithms = haskellLib.doJailbreak super.integer-logarithms;
   vault = haskellLib.doJailbreak super.vault;
+  unliftio-core = haskellLib.doJailbreak super.unliftio-core;
+  unix-compat = haskellLib.doJailbreak super.unix-compat;
+  bsb-http-chunked = haskellLib.doJailbreak super.bsb-http-chunked;
+  parsec = haskellLib.doJailbreak super.parsec;
+  lens = haskellLib.doJailbreak super.lens;
+  jsaddle = haskellLib.doJailbreak super.jsaddle;
 
   aeson = super.aeson_1_4_0_0;
+  entropy = super.entropy_0_4_1_1;
 
   tagged = self.callHackage "tagged" "0.8.6" {};
   exceptions = self.callHackage "exceptions" "0.10.0" {};
