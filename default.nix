@@ -44,6 +44,10 @@ let iosSupport = system != "x86_64-darwin";
               sha256 = "08dis5ny8ldxlfsip2b6gw4abcp9x911r838b9hyckvlk693pbwd";
             };
             patches = (drv.patches or []) ++ [ ./splices.patch ];
+            preConfigure = (drv.preConfigure or "")
+            + self.lib.optionalString self.targetPlatform.useAndroidPrebuilt ''
+              sed -i -e '5i ,("armv7a-unknown-linux-androideabi", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "cortex-a8", ""))' llvm-targets
+            '';
           });
         };
       };
