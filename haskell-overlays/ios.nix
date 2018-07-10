@@ -34,9 +34,13 @@ self: super: {
     enableSharedLibraries = false;
     enableSharedExecutables = false;
     configureFlags = let
-      nativeDrv = nativeHaskellPackages.${drv.pname} or null;
-    in (drv.configureFlags or []) ++ (lib.optional (nativeDrv != null)
-      "--ghc-option=-load-splices=${nativeDrv}/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
-    );
+      attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
+    in (drv.configureFlags or []) ++
+    (lib.optionals builtins.hasAttr attrName nativeHaskellPackages [
+      "--ghc-option=-ddump-splices"
+      "--ghc-option=-load-splices=${
+        builtins.getAttr attrName nativeHaskellPackages
+      }/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
+    ]);
   });
 }

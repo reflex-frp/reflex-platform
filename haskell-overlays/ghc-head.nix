@@ -1,12 +1,13 @@
 { haskellLib, fetchFromGitHub }:
 
 self: super: {
-  th-expand-syns = haskellLib.doJailbreak super.th-expand-syns;
-  ChasingBottoms = haskellLib.doJailbreak super.ChasingBottoms;
-  base-orphans = haskellLib.dontCheck super.base-orphans;
-  bifunctors = haskellLib.dontCheck super.bifunctors;
-  HTTP = haskellLib.doJailbreak super.HTTP;
-  newtype-generics = haskellLib.doJailbreak super.newtype-generics;
+  # th-expand-syns = haskellLib.doJailbreak super.th-expand-syns;
+  # ChasingBottoms = haskellLib.doJailbreak super.ChasingBottoms;
+  # base-orphans = haskellLib.dontCheck super.base-orphans;
+  # bifunctors = haskellLib.dontCheck super.bifunctors;
+  # HTTP = haskellLib.doJailbreak super.HTTP;
+  # newtype-generics = haskellLib.doJailbreak super.newtype-generics;
+
   # extra = haskellLib.replaceSrc super.extra (fetchFromGitHub {
   #   owner = "ndmitchell";
   #   repo = "extra";
@@ -14,16 +15,47 @@ self: super: {
   #   sha256 = "0milbw2azkj22rqacrnd0x4wh65qfrl3nhbmwfxzmdrsc2la3bkh";
   # }) "1.5.2";
 
+  integer-logarithms = haskellLib.doJailbreak super.integer-logarithms;
+  tagged = self.callHackage "tagged" "0.8.6" {};
+  vector = haskellLib.doJailbreak super.vector;
+  th-abstraction = self.callHackage "th-abstraction" "0.2.8.0" {};
+
+  stm = haskellLib.overrideCabal super.stm (drv: {
+    src = fetchFromGitHub {
+      owner = "haskell";
+      repo = "stm";
+      rev = "c107caefc08606f231dd6e8b9e0f1295e44bd846";
+      sha256 = "07m4bkizsbv2gclrydja3dkjjgyhaqnzgh9zfsp9dm5y7hz8xlj9";
+    };
+  });
+
+
+  # -save-splices assumes that all of the sources are in the same
+  # -directory. Aeson has two directories: ./. & attoparsec-iso8601.
+  # The only way I know how to fix this is to just copy everything to
+  # the same directory.
+  aeson = haskellLib.overrideCabal super.aeson_1_4_0_0 (drv: {
+    postConfigure = ''
+      (cd attoparsec-iso8601 && find . -type f -exec install -D '{}' "$spliceDir/{}" \;)
+    '';
+  });
 
   mkDerivation = drv: super.mkDerivation (drv // {
     preConfigure = ''
       ${drv.preConfigure or ""}
-      configureFlags+=" --ghc-option=-ddump-splices --ghc-option=-save-splices=$(pwd)"
+      if [ -d $(pwd)/src ]; then
+        spliceDir="$(pwd)/src"
+      else
+        spliceDir="$(pwd)"
+      fi
+      configureFlags+=" --ghc-option=-ddump-splices"
+      configureFlags+=" --ghc-option=-save-splices=$spliceDir"
     '';
     postInstall = ''
       ${drv.postInstall or ""}
-      find . -name '*.hs-splice' -exec install -D '{}' "$out/lib/ghc-8.5/${drv.pname}-${drv.version}/{}" \;
+      (cd $spliceDir && find . -name '*.hs-splice' -exec install -D '{}' "$out/lib/ghc-8.5/${drv.pname}-${drv.version}/{}" \;)
     '';
     hyperlinkSource = false;
+    doCheck = false;
   });
 }
