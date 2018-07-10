@@ -1,4 +1,4 @@
-{ haskellLib }:
+{ haskellLib, nativeHaskellPackages, nativeGhc, lib }:
 
 self: super: {
   ghcjs-prim = null;
@@ -33,8 +33,10 @@ self: super: {
     doHaddock = false;
     enableSharedLibraries = false;
     enableSharedExecutables = false;
-    configureFlags = (drv.configureFlags or []) ++ [
-      "--ghc-option=-save-splices=my-splices"
-    ];
+    configureFlags = let
+      nativeDrv = nativeHaskellPackages.${drv.pname} or null;
+    in (drv.configureFlags or []) ++ (lib.optional (nativeDrv != null)
+      "--ghc-option=-load-splices=${nativeDrv}/lib/${nativeGhc.name}/${drv.pname}-${drv.version}/splices"
+    );
   });
 }

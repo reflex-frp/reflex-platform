@@ -4,6 +4,7 @@
 , useReflexOptimizer
 , androidActivity
 , hackGet
+, nativeHaskellPackages, nativeGhc
 }:
 
 rec {
@@ -39,7 +40,12 @@ rec {
   android = import ./android {
     inherit haskellLib;
     inherit androidActivity;
-    inherit (nixpkgs) jdk;
+    inherit (nixpkgs) jdk lib;
+    inherit nativeHaskellPackages nativeGhc;
   };
-  ios = import ./ios.nix { inherit haskellLib; };
+  ios = import ./ios.nix {
+    inherit haskellLib;
+    inherit (nixpkgs) lib;
+    inherit nativeHaskellPackages nativeGhc;
+  };
 }

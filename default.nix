@@ -274,6 +274,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         mkDerivation = expr: super.mkDerivation (expr // {
           inherit enableLibraryProfiling;
+          configureFlags = (expr.configureFlags or []) ++ [
+            "--ghc-option=-save-splices=$out/lib/${nixpkgs.haskell.compiler.ghcHEAD.name}/${expr.pname}-${expr.version}/splices"
+          ];
         });
       };
     };
@@ -283,6 +286,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         nixpkgs jdk fetchFromGitHub
         useReflexOptimizer
         hackGet;
+      nativeHaskellPackages = ghcHEAD;
+      nativeGhc = nixpkgs.haskell.compiler.ghcHEAD;
       inherit (nixpkgs) lib;
       androidActivity = hackGet ./android-activity;
     };
