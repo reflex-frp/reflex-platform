@@ -13,6 +13,9 @@ self: super: {
         builtins.getAttr attrName nativeHaskellPackages
       }/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
     ]);
+
+    # Disable a few things that are broken wtih splices.patch
+    hyperlinkSource = false;
   });
 
 }
