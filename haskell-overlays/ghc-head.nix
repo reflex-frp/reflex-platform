@@ -15,6 +15,7 @@ self: super: {
   vector = haskellLib.doJailbreak super.vector;
   pointed = haskellLib.doJailbreak super.pointed;
   exception-transformers = haskellLib.doJailbreak super.exception-transformers;
+  async = haskellLib.doJailbreak super.async;
 
   aeson = super.aeson_1_4_0_0;
 
