@@ -18,7 +18,11 @@ self: super: {
   mkDerivation = drv: super.mkDerivation (drv // {
     preConfigure = ''
       ${drv.preConfigure or ""}
-      configureFlags+=" --ghc-option=-save-splices=$out/lib/ghc-8.5/${drv.pname}-${drv.version}"
+      configureFlags+=" --ghc-option=-ddump-splices --ghc-option=-save-splices=$(pwd)"
+    '';
+    postInstall = ''
+      ${drv.postInstall or ""}
+      find . -name '*.hs-splice' -exec install -D '{}' "$out/lib/ghc-8.5/${drv.pname}-${drv.version}/{}" \;
     '';
     hyperlinkSource = false;
   });

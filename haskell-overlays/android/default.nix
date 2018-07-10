@@ -27,9 +27,10 @@ self: super: {
     enableSharedExecutables = false;
     configureFlags = let
       nativeDrv = nativeHaskellPackages.${drv.pname} or null;
-    in (drv.configureFlags or []) ++ (lib.optional (nativeDrv != null)
+    in (drv.configureFlags or []) ++ (lib.optionals (nativeDrv != null) [
+      "--ghc-option=-ddump-splices"
       "--ghc-option=-load-splices=${nativeDrv}/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
-    );
+    ]);
   });
 
   # HACK(matthewbauer):
