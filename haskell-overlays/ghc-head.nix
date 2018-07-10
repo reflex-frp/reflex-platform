@@ -18,6 +18,7 @@ self: super: {
   async = haskellLib.doJailbreak super.async;
   th-abstraction = haskellLib.doJailbreak super.th-abstraction;
   integer-logarithms = haskellLib.doJailbreak super.integer-logarithms;
+  vault = haskellLib.doJailbreak super.vault;
 
   aeson = super.aeson_1_4_0_0;
 
