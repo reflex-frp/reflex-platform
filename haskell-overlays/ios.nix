@@ -1,4 +1,4 @@
-{ haskellLib, nativeHaskellPackages, nativeGhc, lib }:
+{ haskellLib, lib }:
 
 self: super: {
   ghcjs-prim = null;
@@ -33,17 +33,5 @@ self: super: {
     doHaddock = false;
     enableSharedLibraries = false;
     enableSharedExecutables = false;
-
-    # Add some flags to load splices from nativeHaskellPackages
-    configureFlags = let
-      attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
-    in (drv.configureFlags or []) ++
-    (lib.optionals builtins.hasAttr attrName nativeHaskellPackages [
-      "--ghc-option=-ddump-splices"
-      "--ghc-option=-load-splices=${
-        builtins.getAttr attrName nativeHaskellPackages
-      }/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
-    ]);
-
   });
 }

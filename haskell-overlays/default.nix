@@ -14,6 +14,14 @@ rec {
     inherit (nixpkgs) fetchpatch;
   };
 
+  saveSplices = import ./save-splices.nix {
+    inherit lib haskellLib fetchFromGitHub;
+  };
+
+  loadSplices = import ./load-splices.nix {
+    inherit lib haskellLib fetchFromGitHub;
+  };
+
   ghc = import ./ghc.nix { inherit haskellLib; };
   ghc-7 = nixpkgs.lib.composeExtensions
     ghc

@@ -1,4 +1,4 @@
-{ haskellLib, jdk, androidActivity, nativeHaskellPackages, nativeGhc, lib }:
+{ haskellLib, jdk, androidActivity, lib }:
 
 self: super: {
   ghc = super.ghc // {
@@ -25,18 +25,6 @@ self: super: {
     doHaddock = false;
     dontStrip = true;
     enableSharedExecutables = false;
-
-    # Add some flags to load splices from nativeHaskellPackages
-    configureFlags = let
-      attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
-    in (drv.configureFlags or []) ++
-    (lib.optionals builtins.hasAttr attrName nativeHaskellPackages [
-      "--ghc-option=-ddump-splices"
-      "--ghc-option=-load-splices=${
-        builtins.getAttr attrName nativeHaskellPackages
-      }/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
-    ]);
-
   });
 
   # HACK(matthewbauer):
