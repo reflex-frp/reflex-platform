@@ -7,7 +7,7 @@ self: super: {
     configureFlags = let
       attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
     in (drv.configureFlags or []) ++
-    (lib.optionals builtins.hasAttr attrName nativeHaskellPackages [
+    (lib.optionals (builtins.hasAttr attrName nativeHaskellPackages) [
       "--ghc-option=-ddump-splices"
       "--ghc-option=-load-splices=${
         builtins.getAttr attrName nativeHaskellPackages

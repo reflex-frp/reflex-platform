@@ -4,7 +4,7 @@
 , useReflexOptimizer
 , androidActivity
 , hackGet
-, nativeHaskellPackages, nativeGhc
+, ghcHEAD
 }:
 
 rec {
@@ -20,6 +20,8 @@ rec {
 
   loadSplices = import ./load-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
+    nativeHaskellPackages = ghcHEAD;
+    nativeGhc = nixpkgs.haskell.compiler.ghcHEAD;
   };
 
   ghc = import ./ghc.nix { inherit haskellLib; };
@@ -49,11 +51,9 @@ rec {
     inherit haskellLib;
     inherit androidActivity;
     inherit (nixpkgs) jdk lib;
-    inherit nativeHaskellPackages nativeGhc;
   };
   ios = import ./ios.nix {
     inherit haskellLib;
     inherit (nixpkgs) lib;
-    inherit nativeHaskellPackages nativeGhc;
   };
 }
