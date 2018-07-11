@@ -849,14 +849,15 @@ index 109e9814e5..701151bbea 100644
                                     OutputableBndrId (GhcPass p),
 diff --git a/compiler/hsSyn/HsExprBin.hs b/compiler/hsSyn/HsExprBin.hs
 new file mode 100644
-index 0000000000..d305587d97
+index 0000000000..e369759f4d
 --- /dev/null
 +++ b/compiler/hsSyn/HsExprBin.hs
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,94 @@
 +module HsExprBin
 +  ( getModuleSplicesPath
 +  , whenSet
 +  , HsSpliceData(..)
++  , nonEmptyHsSpliceData
 +  , emptyHsSpliceData
 +  , SpliceResult(..)
 +  , recordSpliceResult
@@ -899,6 +900,9 @@ index 0000000000..d305587d97
 +
 +emptyHsSpliceData :: HsSpliceData
 +emptyHsSpliceData = HsSpliceData Map.empty
++
++nonEmptyHsSpliceData :: HsSpliceData -> Bool
++nonEmptyHsSpliceData = not . Map.null . hsSpliceMap
 +
 +data SpliceResult
 +  = SRExpr  (LHsExpr GhcSe)
@@ -3699,7 +3703,7 @@ index 73b15a5252..50744e06e1 100644
  
  -- NB: topModIdentity, not topModSemantic!
 diff --git a/compiler/typecheck/TcSplice.hs b/compiler/typecheck/TcSplice.hs
-index 5bef07f369..456de1b336 100644
+index 5bef07f369..dda8d449a5 100644
 --- a/compiler/typecheck/TcSplice.hs
 +++ b/compiler/typecheck/TcSplice.hs
 @@ -26,6 +26,7 @@ module TcSplice(
@@ -3766,7 +3770,7 @@ index 5bef07f369..456de1b336 100644
  
  defaultRunMeta :: MetaHook TcM
  defaultRunMeta (MetaE r)
-@@ -694,29 +714,94 @@ defaultRunMeta (MetaAW r)
+@@ -694,29 +714,101 @@ defaultRunMeta (MetaAW r)
      -- the toAnnotationWrapper function that we slap around the user's code
  
  ----------------
@@ -3778,13 +3782,17 @@ index 5bef07f369..456de1b336 100644
 +  if exists
 +    then do bh <- Bin.readBinMem hsSpliceFile
 +            getWithUserData ncu bh
-+    else panic (".hs-splice file does not exist: " ++ hsSpliceFile)
++    else pure emptyHsSpliceData
 +
 +writeHsSpliceData :: FilePath -> HsSpliceData -> TcM ()
-+writeHsSpliceData hsSpliceFile hs_splice_data = liftIO $ do
-+  bh <- Bin.openBinMem (100 * 1024) -- FIXME???
-+  putWithUserData (putStrLn . showSDocUnsafe) bh hs_splice_data
-+  Bin.writeBinMem bh hsSpliceFile
++writeHsSpliceData hsSpliceFile hsSpliceData =
++  when (nonEmptyHsSpliceData hsSpliceData) $ do
++    dflags <- getDynFlags
++    liftIO $ do
++      bh <- Bin.openBinMem (100 * 1024)
++      --  ^^^ FIXME: how should we compute an approximation of size?
++      putWithUserData (debugTraceMsg dflags 3) bh hsSpliceData
++      Bin.writeBinMem bh hsSpliceFile
 +
 +-- | Update the splice data from the TcGblEnv using the given
 +--   function. Used when -save-splices is passed, to record
@@ -3799,7 +3807,6 @@ index 5bef07f369..456de1b336 100644
 +--   represented by the first argument.
 +addSpliceExprResult :: LHsExpr GhcTc -> LHsExpr GhcPs -> TcM ()
 +addSpliceExprResult (L l _) resultE = do
-+  liftIO $ putStrLn ("Recording expression splice result from location: " ++ showSDocUnsafe (ppr l))
 +  serialExpr <- exprPS2SE resultE
 +  modifyHsSpliceData (recordSpliceResult l (SRExpr serialExpr))
 +
@@ -3807,7 +3814,6 @@ index 5bef07f369..456de1b336 100644
 +--   represented by the first argument.
 +addSpliceDeclsResult :: LHsExpr GhcTc -> [LHsDecl GhcPs] -> TcM ()
 +addSpliceDeclsResult (L l _) resultDs = do
-+  liftIO $ putStrLn ("Recording declaration splice result from location: " ++ showSDocUnsafe (ppr l))
 +  serialDecls <- traverse declPS2SE resultDs
 +  modifyHsSpliceData (recordSpliceResult l (SRDecls serialDecls))
 +
@@ -3816,7 +3822,6 @@ index 5bef07f369..456de1b336 100644
 +--   the result in question (when found).
 +getSpliceResult :: LHsExpr GhcTc -> (SpliceResult -> TcM a) -> TcM a
 +getSpliceResult (L l _) f = do
-+  liftIO $ putStrLn ("Looking up splice result for location: " ++ showSDocUnsafe (ppr l))
 +  gblEnv <- getGblEnv
 +  hs_splice_data <- readTcRef (tcg_hs_splice_data gblEnv)
 +  case lookupSpliceResult l hs_splice_data of
@@ -3837,8 +3842,9 @@ index 5bef07f369..456de1b336 100644
 +
  runMetaAW :: LHsExpr GhcTc         -- Of type AnnotationWrapper
            -> TcM Serialized
--runMetaAW = runMeta metaRequestAW
-+runMetaAW = runMeta metaRequestAW undefined undefined
+ runMetaAW = runMeta metaRequestAW
++  (panic "runMetaAW doesn't support splice caching (read)")
++  (panic "runMetaAW doesn't support splice caching (write)")
  
  runMetaE :: LHsExpr GhcTc          -- Of type (Q Exp)
           -> TcM (LHsExpr GhcPs)
@@ -3847,13 +3853,15 @@ index 5bef07f369..456de1b336 100644
  
  runMetaP :: LHsExpr GhcTc          -- Of type (Q Pat)
           -> TcM (LPat GhcPs)
--runMetaP = runMeta metaRequestP
-+runMetaP = runMeta metaRequestP undefined undefined
+ runMetaP = runMeta metaRequestP
++  (panic "runMetaP doesn't support splice caching (read)")
++  (panic "runMetaP doesn't support splice caching (write)")
  
  runMetaT :: LHsExpr GhcTc          -- Of type (Q Type)
           -> TcM (LHsType GhcPs)
--runMetaT = runMeta metaRequestT
-+runMetaT = runMeta metaRequestT undefined undefined
+ runMetaT = runMeta metaRequestT
++  (panic "runMetaT doesn't support splice caching (read)")
++  (panic "runMetaT doesn't support splice caching (write)")
  
  runMetaD :: LHsExpr GhcTc          -- Of type Q [Dec]
           -> TcM [LHsDecl GhcPs]
@@ -3867,7 +3875,7 @@ index 5bef07f369..456de1b336 100644
           -> (SrcSpan -> ForeignHValue -> TcM (Either MsgDoc hs_syn))        -- How to run x
           -> LHsExpr GhcTc        -- Of type x; typically x = Q TH.Exp, or
                                   --    something like that
-@@ -727,7 +812,7 @@ runMeta' show_code ppr_hs run_and_convert expr
+@@ -727,7 +819,7 @@ runMeta' show_code ppr_hs run_and_convert expr
                              -- we catch all kinds of splices and annotations.
  
          -- Check that we've had no errors of any sort so far.
