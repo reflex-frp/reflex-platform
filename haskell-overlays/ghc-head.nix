@@ -29,7 +29,6 @@ self: super: {
   exceptions = haskellLib.doJailbreak super.exceptions;
 
   aeson = super.aeson_1_4_0_0;
-  entropy = super.entropy_0_4_1_1;
 
   tagged = self.callHackage "tagged" "0.8.6" {};
   contravariant = self.callHackage "contravariant" "1.5" {};
@@ -40,6 +39,15 @@ self: super: {
       repo = "stm";
       rev = "c107caefc08606f231dd6e8b9e0f1295e44bd846";
       sha256 = "07m4bkizsbv2gclrydja3dkjjgyhaqnzgh9zfsp9dm5y7hz8xlj9";
+    };
+  });
+
+  entropy = haskellLib.overrideCabal super.entropy (drv: {
+    src = fetchFromGitHub {
+      owner = "TomMD";
+      repo = "entropy";
+      rev = "c682fcd6cc2bcaa5cab9f6e59a93faf8c9938221";
+      sha256 = "162pazw91zp3kzvivxdn3n8ffsdxi9bfwm24vwkp96sgds59xs31";
     };
   });
 
