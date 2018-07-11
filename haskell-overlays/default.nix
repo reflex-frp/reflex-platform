@@ -16,6 +16,7 @@ rec {
 
   saveSplices = import ./save-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
+    ghc = nixpkgs.haskell.compiler.ghcHEAD;
   };
 
   loadSplices = import ./load-splices.nix {
