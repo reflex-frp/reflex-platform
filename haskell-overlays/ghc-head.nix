@@ -26,12 +26,12 @@ self: super: {
   parsec = haskellLib.doJailbreak super.parsec;
   lens = haskellLib.doJailbreak super.lens;
   jsaddle = haskellLib.doJailbreak super.jsaddle;
+  exceptions = haskellLib.doJailbreak super.exceptions;
 
   aeson = super.aeson_1_4_0_0;
   entropy = super.entropy_0_4_1_1;
 
   tagged = self.callHackage "tagged" "0.8.6" {};
-  exceptions = self.callHackage "exceptions" "0.10.0" {};
   contravariant = self.callHackage "contravariant" "1.5" {};
 
   stm = haskellLib.overrideCabal super.stm (drv: {
