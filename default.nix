@@ -54,7 +54,7 @@ let iosSupport = system != "x86_64-darwin";
         };
         packages = super.haskell.packages // {
           ghcSplices = (super.haskell.packages.ghcHEAD.override {
-            buildHaskellPackages = self.buildPackages.haskell.packages.ghcHEAD;
+            buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices;
             ghc = self.buildPackages.haskell.compiler.ghcSplices;
           });
         };
