@@ -1,21 +1,23 @@
-{ haskellLib, fetchFromGitHub, ghc, lib }:
+{ haskellLib, fetchFromGitHub, lib }:
 
 self: super: {
-  mkDerivation = drv: super.mkDerivation (drv // {
+  mkDerivation = attrs: let
+    drv = (super.mkDerivation (attrs // {
+      # ANN is unimplemented in splices.patch
+      postPatch = ''
+        ${attrs.postPatch or ""}
+        find . -name '*.hs' -exec sed -i 's/^{-# ANN .* #-}$//' '{}' \;
+      '';
 
-    # ANN is unimplemented in splices.patch
-    postPatch = ''
-      ${drv.postPatch or ""}
-      find . -name '*.hs' -exec sed -i 's/^{-# ANN .* #-}$//' '{}' \;
-    '';
+      preConfigure = ''
+        ${attrs.preConfigure or ""}
+        configureFlags+=" --ghc-option=-save-splices=$out$SPLICE_DIR"
+      '';
+    }));
 
-    preConfigure = ''
-      ${drv.preConfigure or ""}
-      spliceDir="$out/lib/${ghc.name}/${drv.pname}-${drv.version}"
-      configureFlags+=" --ghc-option=-save-splices=$spliceDir"
-    '';
+    SPLICE_DIR = "/lib/${drv.compiler.name}/${drv.name}";
 
-    # Disable a few things that are broken wtih splices.patch
-    hyperlinkSource = false;
-  });
+  in (drv.overrideAttrs (_: { inherit SPLICE_DIR; }))
+     // { inherit SPLICE_DIR; };
+
 }

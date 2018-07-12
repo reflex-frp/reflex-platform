@@ -1,4 +1,4 @@
-{ haskellLib, fetchFromGitHub, lib, nativeHaskellPackages, nativeGhc }:
+{ haskellLib, fetchFromGitHub, lib, nativeHaskellPackages }:
 
 self: super: {
 
@@ -6,15 +6,11 @@ self: super: {
   mkDerivation = drv: super.mkDerivation (drv // {
     configureFlags = let
       attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
+      pkg = builtins.getAttr attrName nativeHaskellPackages;
     in (drv.configureFlags or []) ++
-    (lib.optionals (builtins.hasAttr attrName nativeHaskellPackages) [
-      "--ghc-option=-load-splices=${
-        builtins.getAttr attrName nativeHaskellPackages
-      }/lib/${nativeGhc.name}/${drv.pname}-${drv.version}"
-    ]);
-
-    # Disable a few things that are broken wtih splices.patch
-    hyperlinkSource = false;
+      (lib.optionals (builtins.hasAttr attrName nativeHaskellPackages) [
+        "--ghc-option=-load-splices=${pkg}${pkg.SPLICE_DIR}"
+      ]);
   });
 
 }

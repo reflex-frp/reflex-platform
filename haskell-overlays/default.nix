@@ -4,7 +4,7 @@
 , useReflexOptimizer
 , androidActivity
 , hackGet
-, ghcHEAD
+, ghcSavedSplices
 }:
 
 rec {
@@ -16,13 +16,11 @@ rec {
 
   saveSplices = import ./save-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
-    ghc = nixpkgs.haskell.compiler.ghcHEAD;
   };
 
   loadSplices = import ./load-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
-    nativeHaskellPackages = ghcHEAD;
-    nativeGhc = nixpkgs.haskell.compiler.ghcHEAD;
+    nativeHaskellPackages = ghcSavedSplices;
   };
 
   ghc = import ./ghc.nix { inherit haskellLib; };
