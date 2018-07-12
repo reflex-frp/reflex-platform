@@ -3703,7 +3703,7 @@ index 73b15a5252..50744e06e1 100644
  
  -- NB: topModIdentity, not topModSemantic!
 diff --git a/compiler/typecheck/TcSplice.hs b/compiler/typecheck/TcSplice.hs
-index 5bef07f369..dda8d449a5 100644
+index 5bef07f369..2613203877 100644
 --- a/compiler/typecheck/TcSplice.hs
 +++ b/compiler/typecheck/TcSplice.hs
 @@ -26,6 +26,7 @@ module TcSplice(
@@ -3770,7 +3770,7 @@ index 5bef07f369..dda8d449a5 100644
  
  defaultRunMeta :: MetaHook TcM
  defaultRunMeta (MetaE r)
-@@ -694,29 +714,101 @@ defaultRunMeta (MetaAW r)
+@@ -694,29 +714,105 @@ defaultRunMeta (MetaAW r)
      -- the toAnnotationWrapper function that we slap around the user's code
  
  ----------------
@@ -3843,8 +3843,12 @@ index 5bef07f369..dda8d449a5 100644
  runMetaAW :: LHsExpr GhcTc         -- Of type AnnotationWrapper
            -> TcM Serialized
  runMetaAW = runMeta metaRequestAW
-+  (panic "runMetaAW doesn't support splice caching (read)")
-+  (panic "runMetaAW doesn't support splice caching (write)")
++  -- We cannot process annotations as they use the same
++  -- mechanism as TH. Instead, we ignore them when
++  -- doing a -save-splices pass, and we pretend we
++  -- read {-# ANN () #-} when doing a -load-splices pass.
++  (\_ -> pure $ toSerialized serializeWithData ())
++  (\_ _ -> pure ())
  
  runMetaE :: LHsExpr GhcTc          -- Of type (Q Exp)
           -> TcM (LHsExpr GhcPs)
@@ -3875,7 +3879,7 @@ index 5bef07f369..dda8d449a5 100644
           -> (SrcSpan -> ForeignHValue -> TcM (Either MsgDoc hs_syn))        -- How to run x
           -> LHsExpr GhcTc        -- Of type x; typically x = Q TH.Exp, or
                                   --    something like that
-@@ -727,7 +819,7 @@ runMeta' show_code ppr_hs run_and_convert expr
+@@ -727,7 +823,7 @@ runMeta' show_code ppr_hs run_and_convert expr
                              -- we catch all kinds of splices and annotations.
  
          -- Check that we've had no errors of any sort so far.
@@ -4229,7 +4233,7 @@ index a80880f4e5..33bd1810ae 100644
  equalKeysUFM (UFM m1) (UFM m2) = liftEq (\_ _ -> True) m1 m2
 diff --git a/run_test.sh b/run_test.sh
 new file mode 100755
-index 0000000000..e80be57745
+index 0000000000..c9c2d4bd7f
 --- /dev/null
 +++ b/run_test.sh
 @@ -0,0 +1,17 @@
@@ -4242,7 +4246,7 @@ index 0000000000..e80be57745
 +rm -rf my-splices
 +
 +# we install aeson and microlens-th
-+cabal install -w $(pwd)/inplace/bin/ghc-stage2 --package-db=$(pwd)/inplace/lib/package.conf.d aeson microlens-th --allow-newer --disable-library-profiling
++cabal install -w $(pwd)/inplace/bin/ghc-stage2 --package-db=$(pwd)/inplace/lib/package.conf.d aeson microlens-th --allow-newer --disable-library-profiling --ghc-options="-save-splices=_tmp/"
 +
 +# we evaluate the splices and save the results
 +inplace/bin/ghc-stage2 -fforce-recomp -save-splices my-splices/ -fno-code -ddump-splices simple_json_th.hs
