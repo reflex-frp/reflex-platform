@@ -214,7 +214,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {})));
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
-        reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
+        reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ./reflex-aeson-orphans) {};
 
         # Broken Haddock - Please fix!
         # : error is: haddock: internal error: internal: extractDecl
