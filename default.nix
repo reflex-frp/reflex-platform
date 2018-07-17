@@ -325,9 +325,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   ghc8_4 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc843).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      (ghcjsPkgs (nixpkgs.pkgs.haskell.compiler.ghcjs84.override {
-        ghcjsSrcJson = ./ghcjs/git.json;
-      }))
+      (ghcjsPkgs nixpkgs.pkgs.haskell.compiler.ghcjs84)
       haskellOverlays.ghc-8_4
     ];
   };

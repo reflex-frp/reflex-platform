@@ -11,10 +11,10 @@ self: super: {
   };
 
   ghcjs-base = overrideCabal (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
-    owner = "ryantrinkle";
+    owner = "ghcjs";
     repo = "ghcjs-base";
-    rev = "0972751720098c467df5114818fc0ff2a3a97050";
-    sha256 = "0qr05m0djll3x38dhl85pl798arsndmwfhil8yklhb70lxrbvfrs";
+    rev = "b4a8d578758613e5c7db88891f444ff5e6f3edb9";
+    sha256 = "117i9fwm1chym812zs1v2shxz0zl3s0p6hpc4sv0lnqgsribdrbn";
   }) {}) (drv: {
     jailbreak = true;
     doCheck = false; #TODO: This should be unnecessary
