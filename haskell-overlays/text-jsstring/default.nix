@@ -7,9 +7,16 @@ self: super: {
   text = self.callCabal2nix "text" (fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "text";
-    rev = "083230324ed55475ce1c3da303b1076b9bf5617f";
-    sha256 = "0fg06pdpdi8rcmg83raj9b77s0y74ky585pibw0brv6m8krkn0kw";
+    rev = "78f714da9bd3510e348b6341855be925b8ede949";
+    sha256 = "003lggllk1hjzjx8wfl941j2bn13sgpxz9bqgvsn6bhlrhwnwcsl";
   }) {};
+
+  mkDerivation = drv: super.mkDerivation (drv // {
+    configureFlags = (drv.configureFlags or []) ++
+                     [ "--ghcjs-option=-O0" ];
+    doCheck = false;
+  });
+
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
