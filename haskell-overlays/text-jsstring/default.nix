@@ -12,8 +12,18 @@ self: super: {
   }) {};
 
   mkDerivation = drv: super.mkDerivation (drv // {
-    configureFlags = (drv.configureFlags or []) ++
-                     [ "--ghcjs-option=-O0" ];
+    # These GHC optimizations interfere with the text jsstring
+    # optimization. This is probably a bug in how GHCJS works but for
+    # now it is easiest to just disable them everywhere. We will still
+    # keep most of the optimizations.
+    configureFlags = (drv.configureFlags or []) ++ [
+      "--ghcjs-option=-fignore-interface-pragmas"
+      "--ghcjs-option=-fno-specialise"
+      "--ghcjs-option=-fno-full-laziness"
+      "--ghcjs-option=-fno-float-in"
+    ];
+
+    # Why does disabling the above optimizations break tests?
     doCheck = false;
   });
 
