@@ -35,25 +35,13 @@ let iosSupport = system != "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          ghcSplices = (super.haskell.compiler.ghcHEAD.override rec {
-            bootPkgs = super.buildPackages.haskell.packages.ghc822;
-            inherit (bootPkgs) alex happy hscolour;
-          }).overrideAttrs (drv: {
-            nativeBuildInputs = (drv.nativeBuildInputs or []) ++ [self.git];
-            src = self.fetchgit {
-              url = "https://git.haskell.org/ghc.git";
-              rev = "7df589608abb178efd6499ee705ba4eebd0cf0d1";
-              sha256 = "08dis5ny8ldxlfsip2b6gw4abcp9x911r838b9hyckvlk693pbwd";
-            };
-            patches = (drv.patches or []) ++ [ ./splices.patch ];
-            preConfigure = (drv.preConfigure or "")
-            + self.lib.optionalString self.targetPlatform.useAndroidPrebuilt ''
-              sed -i -e '5i ,("armv7a-unknown-linux-androideabi", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "cortex-a8", ""))' llvm-targets
-            '';
+          ghcSplices = super.haskell.compiler.ghc843.overrideAttrs (drv: {
+            patches = (drv.patches or [])
+                    ++ [ ./splices.patch ];
           });
         };
         packages = super.haskell.packages // {
-          ghcSplices = (super.haskell.packages.ghcHEAD.override {
+          ghcSplices = (super.haskell.packages.ghc843.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices;
             ghc = self.buildPackages.haskell.compiler.ghcSplices;
           });
@@ -440,6 +428,7 @@ in let this = rec {
           ghcjs
           ghcjs8_2_2
           ghcjs8_4_3
+          ghcSavedSplices
           android
           androidWithHaskellPackages
           ios

@@ -14,4 +14,8 @@ self: super: {
   in (drv.overrideAttrs (_: { inherit SPLICE_DIR; }))
      // { inherit SPLICE_DIR; };
 
+  haddock = super.haddock.overrideAttrs (drv: {
+    patches = (drv.patches or []) ++ [ ./haddock.patch ];
+  });
+
 }
