@@ -2698,7 +2698,7 @@ index 8d097f52fb..65d725eeca 100644
  hsLitType (HsCharPrim _ _)   = charPrimTy
  hsLitType (HsString _ _)     = stringTy
 diff --git a/compiler/typecheck/TcRnDriver.hs b/compiler/typecheck/TcRnDriver.hs
-index 40b5efec84..2f9cb2c3d2 100644
+index 40b5efec84..42745dd2c8 100644
 --- a/compiler/typecheck/TcRnDriver.hs
 +++ b/compiler/typecheck/TcRnDriver.hs
 @@ -44,7 +44,7 @@ module TcRnDriver (
@@ -2718,15 +2718,16 @@ index 40b5efec84..2f9cb2c3d2 100644
  import ListSetOps
  import Outputable
  import ConLike
-@@ -136,6 +137,7 @@ import HsDumpAst
+@@ -136,6 +137,8 @@ import HsDumpAst
  import qualified Data.Set as S
  
  import Control.Monad
 +import System.Directory
++import System.FilePath (takeDirectory)
  
  #include "HsVersions.h"
  
-@@ -417,6 +419,17 @@ tcRnSrcDecls explicit_mod_hdr decls
+@@ -417,6 +420,17 @@ tcRnSrcDecls explicit_mod_hdr decls
          -- Finalizers must run after constraints are simplified, or some types
          -- might not be complete when using reify (see #12777).
        ; (tcg_env, tcl_env) <- setGblEnv tcg_env run_th_modfinalizers
@@ -2736,7 +2737,7 @@ index 40b5efec84..2f9cb2c3d2 100644
 +          (\splicesDir -> do
 +              moduleSplicesPath <- getModuleSplicesPath splicesDir <$> getModule
 +              hs_splice_data <- readTcRef (tcg_hs_splice_data tcg_env)
-+              liftIO $ createDirectoryIfMissing True splicesDir
++              liftIO $ createDirectoryIfMissing True (takeDirectory moduleSplicesPath)
 +              writeHsSpliceData moduleSplicesPath hs_splice_data
 +          )
 +          (pure ())
@@ -3356,6 +3357,22 @@ index f0cc197b71..2f874c04e5 100644
  -- Determines whether two 'UniqFm's contain the same keys.
  equalKeysUFM :: UniqFM a -> UniqFM b -> Bool
  #if MIN_VERSION_containers(0,5,9)
+diff --git a/haddock.diff b/haddock.diff
+new file mode 100644
+index 0000000000..ce79187d19
+--- /dev/null
++++ b/haddock.diff
+@@ -0,0 +1,10 @@
++diff --git a/haddock-api/src/Haddock/Backends/Hoogle.hs b/haddock-api/src/Haddock/Backends/Hoogle.hs
++index e002b602..11ea8ab7 100644
++--- a/haddock-api/src/Haddock/Backends/Hoogle.hs
+++++ b/haddock-api/src/Haddock/Backends/Hoogle.hs
++@@ -1,4 +1,4 @@
++-{-# LANGUAGE FlexibleContexts #-}
+++{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
++ -----------------------------------------------------------------------------
++ -- |
++ -- Module      :  Haddock.Backends.Hoogle
 diff --git a/run_test.sh b/run_test.sh
 new file mode 100755
 index 0000000000..c9c2d4bd7f
