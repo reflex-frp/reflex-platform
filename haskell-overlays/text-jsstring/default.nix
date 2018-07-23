@@ -10,23 +10,6 @@ self: super: {
     rev = "78f714da9bd3510e348b6341855be925b8ede949";
     sha256 = "003lggllk1hjzjx8wfl941j2bn13sgpxz9bqgvsn6bhlrhwnwcsl";
   }) {};
-
-  mkDerivation = drv: super.mkDerivation (drv // {
-    # These GHC optimizations interfere with the text jsstring
-    # optimization. This is probably a bug in how GHCJS works but for
-    # now it is easiest to just disable them everywhere. We will still
-    # keep most of the optimizations.
-    configureFlags = (drv.configureFlags or []) ++ [
-      "--ghcjs-option=-fignore-interface-pragmas"
-      "--ghcjs-option=-fno-specialise"
-      "--ghcjs-option=-fno-full-laziness"
-      "--ghcjs-option=-fno-float-in"
-    ];
-
-    # Why does disabling the above optimizations break tests?
-    doCheck = false;
-  });
-
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base

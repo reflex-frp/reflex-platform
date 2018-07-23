@@ -182,7 +182,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       else drv: drv;
     ghcjsPkgs = ghcjs: self: super: {
       ghcjs = ghcjs.overrideAttrs (o: {
-        patches = (o.patches or []) ++ optional useFastWeak ./fast-weak.patch;
+        patches = (o.patches or [])
+                ++ optional useTextJSString ./haskell-overlays/text-jsstring/ghcjs-disable-string-compactor.patch
+                ++ optional useFastWeak ./fast-weak.patch;
         phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
       });
       ghci-ghcjs = self.callCabal2nix "ghci-ghcjs" (ghcjsSrc + "/lib/ghci-ghcjs") {};
