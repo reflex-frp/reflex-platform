@@ -40,7 +40,8 @@ let iosSupport = system != "x86_64-darwin";
             inherit (bootPkgs) alex happy hscolour;
           }).overrideAttrs (drv: rec {
             patches = (drv.patches or [])
-                    ++ [ ./splices.patch ];
+                    ++ [ ./splices.patch
+                         ./haddock.patch ];
           });
         };
         packages = super.haskell.packages // {
