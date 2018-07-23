@@ -1,15 +1,18 @@
-{ haskellLib, fetchFromGitHub, lib, nativeHaskellPackages }:
+{ haskellLib, fetchFromGitHub, lib, splicedHaskellPackages }:
 
 self: super: {
 
   # Add some flags to load splices from nativeHaskellPackages
   mkDerivation = drv: super.mkDerivation (drv // {
     configureFlags = let
-      attrName = drv.pname;
-      # attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
-      pkg = builtins.getAttr attrName nativeHaskellPackages;
+      attrName = "${drv.pname}_${lib.replaceStrings ["."] ["_"] drv.version}";
+      pkg = if builtins.hasAttr drv.pname splicedHaskellPackages
+            then builtins.getAttr drv.pname splicedHaskellPackages
+            else if builtins.hasAttr attrName splicedHaskellPackages
+            then builtins.getAttr attrName splicedHaskellPackages
+            else null;
     in (drv.configureFlags or []) ++
-      (lib.optionals (builtins.hasAttr attrName nativeHaskellPackages) [
+      (lib.optionals (pkg != null) [
         "--ghc-option=-load-splices=${pkg}${pkg.SPLICE_DIR}"
       ]);
   });
