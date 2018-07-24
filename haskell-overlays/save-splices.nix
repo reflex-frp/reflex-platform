@@ -13,7 +13,8 @@ self: super: {
 
     # Not all packages can be spliced with our patched ghc.
     shouldSplice = !(builtins.elem attrs.pname [
-      "math-functions" "generic-deriving" "lens"
+      "math-functions" "generic-deriving"
+      "lens" "dependent-sum-template"
     ]);
 
   in if shouldSplice
