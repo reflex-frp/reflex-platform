@@ -12,7 +12,7 @@ self: super: {
             then builtins.getAttr attrName splicedHaskellPackages
             else null;
     in (drv.configureFlags or []) ++
-      (lib.optionals (pkg != null) [
+      (lib.optionals (pkg != null && pkg ? SPLICE_DIR) [
         "--ghc-option=-load-splices=${pkg}${pkg.SPLICE_DIR}"
       ]);
   });

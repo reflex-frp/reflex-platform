@@ -11,8 +11,15 @@ self: super: {
 
     SPLICE_DIR = "/lib/${drv.compiler.name}/${drv.name}";
 
-  in (drv.overrideAttrs (_: { inherit SPLICE_DIR; }))
-     // { inherit SPLICE_DIR; };
+    # Not all packages can be spliced with our patched ghc.
+    shouldSplice = !(builtins.elem attrs.pname [
+      "math-functions" "generic-deriving" "lens"
+    ]);
+
+  in if shouldSplice
+     then ((drv.overrideAttrs (_: { inherit SPLICE_DIR; }))
+          // { inherit SPLICE_DIR; })
+     else super.mkDerivation attrs;
 
   haddock = super.haddock.overrideAttrs (drv: {
     patches = (drv.patches or []) ++ [ ./haddock.patch ];
@@ -20,7 +27,8 @@ self: super: {
 
   vector-th-unbox = haskellLib.dontCheck super.vector-th-unbox;
 
+  # Can’t build it outside of android. Hopefully no one wants to use
+  # template haskell with it.
   android-activity = null;
 
-  math-functions = null;
 }
