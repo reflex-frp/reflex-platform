@@ -20,4 +20,6 @@ self: super: {
 
   vector-th-unbox = haskellLib.dontCheck super.vector-th-unbox;
 
+  android-activity = null;
+
 }
