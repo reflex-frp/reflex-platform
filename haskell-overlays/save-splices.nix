@@ -22,4 +22,6 @@ self: super: {
     patches = (drv.patches or []) ++ [ ./haddock.patch ];
   });
 
+  vector-th-unbox = haskellLib.dontCheck super.vector-th-unbox;
+
 }
