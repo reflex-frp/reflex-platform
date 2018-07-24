@@ -1,4 +1,4 @@
-{ haskellLib, fetchFromGitHub, lib, androidActivity, jdk }:
+{ haskellLib, fetchFromGitHub, lib }:
 
 self: super: {
   mkDerivation = attrs: let
@@ -13,10 +13,6 @@ self: super: {
 
   in (drv.overrideAttrs (_: { inherit SPLICE_DIR; }))
      // { inherit SPLICE_DIR; };
-
-  android-activity = self.callPackage androidActivity {
-    inherit jdk;
-  };
 
   haddock = super.haddock.overrideAttrs (drv: {
     patches = (drv.patches or []) ++ [ ./haddock.patch ];
