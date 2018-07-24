@@ -22,4 +22,5 @@ self: super: {
 
   android-activity = null;
 
+  math-functions = null;
 }
