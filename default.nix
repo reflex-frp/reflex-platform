@@ -128,12 +128,6 @@ let iosSupport = system != "x86_64-darwin";
         name = baseNameOf p;
         outPath = filterGit p;
       };
-    # All imports of sources need to go here, so that they can be explicitly cached
-    sources = {
-      ghcjs-boot = hackGet ./ghcjs-boot;
-      shims = hackGet ./shims;
-      ghcjs = hackGet ./ghcjs;
-    };
     inherit (nixpkgs.stdenv.lib) optional optionals optionalAttrs;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
@@ -183,7 +177,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     ghcjsPkgs = ghcjs: self: super: {
       ghcjs = ghcjs.overrideAttrs (o: {
         patches = (o.patches or [])
-                ++ optional useTextJSString ./haskell-overlays/text-jsstring/ghcjs-disable-string-compactor.patch
                 ++ optional useFastWeak ./fast-weak.patch;
         phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
       });
@@ -327,7 +320,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   ghc8_4 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc843).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      (ghcjsPkgs nixpkgs.pkgs.haskell.compiler.ghcjs84)
+      (ghcjsPkgs (nixpkgs.pkgs.haskell.compiler.ghcjs84.override {
+        ghcjsSrc = fetchgit {
+          url = "https://github.com/matthewbauer/ghcjs.git";
+          rev = "4e53a345d00c18341a7d45c4b26bd0d2af463039";
+          sha256 = "18j7qlwgy0wd05w6w8r2kaify8y7lrxqs5j002lv82ylagdyn330";
+          fetchSubmodules = true;
+        };
+      }))
       haskellOverlays.ghc-8_4
     ];
   };
