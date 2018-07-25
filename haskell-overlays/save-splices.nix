@@ -32,4 +32,6 @@ self: super: {
   # template haskell with it.
   android-activity = null;
 
+  # Disable wkwebview. It doesn’t evaluate natively somehow.
+  jsaddle-wkwebview = null;
 }
