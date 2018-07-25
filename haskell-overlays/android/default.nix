@@ -1,4 +1,4 @@
-{ haskellLib, jdk, androidActivity, lib }:
+{ haskellLib, jdk, androidActivity, lib, nixpkgs }:
 
 self: super: {
   ghc = super.ghc // {
@@ -38,4 +38,12 @@ self: super: {
   # Disable these because these on iOS
   jsaddle-webkitgtk = null;
   jsaddle-webkit2gtk = null;
+
+  # This should not be necessary. Happy is a native build input, but
+  # Nixpkgs splices it to the android version. Haskell splicing
+  # appears to be broken! /cc @ericson2314
+  haskell-src-exts = haskellLib.overrideCabal super.haskell-src-exts ({
+    libraryToolDepends = [ nixpkgs.buildPackages.haskell.packages.ghc843.happy ];
+  });
+
 }

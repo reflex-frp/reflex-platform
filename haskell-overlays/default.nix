@@ -50,6 +50,7 @@ rec {
     inherit haskellLib;
     inherit androidActivity;
     inherit (nixpkgs) jdk lib;
+    inherit nixpkgs;
   };
   ios = import ./ios.nix {
     inherit haskellLib;
