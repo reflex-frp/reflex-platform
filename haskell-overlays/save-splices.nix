@@ -26,6 +26,7 @@ self: super: {
   });
 
   vector-th-unbox = haskellLib.dontCheck super.vector-th-unbox;
+  lens = haskellLib.dontCheck super.lens;
 
   # Can’t build it outside of android. Hopefully no one wants to use
   # template haskell with it.
