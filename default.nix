@@ -118,12 +118,13 @@ let iosSupport = system != "x86_64-darwin";
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
     # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
     hackGet = p:
-      if builtins.pathExists (p + "/git.json") then (
-        let gitArgs = builtins.fromJSON (builtins.readFile (p + "/git.json"));
+      let filterArgs = x: removeAttrs x [ "branch" ];
+      in if builtins.pathExists (p + "/git.json") then (
+        let gitArgs = filterArgs (builtins.fromJSON (builtins.readFile (p + "/git.json")));
         in if builtins.elem "@" (nixpkgs.lib.stringToCharacters gitArgs.url)
         then fetchgitPrivate gitArgs
         else fetchgit gitArgs)
-      else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (removeAttrs (builtins.fromJSON (builtins.readFile (p + "/github.json"))) ["branch"])
+      else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (filterArgs (builtins.fromJSON (builtins.readFile (p + "/github.json"))))
       else {
         name = baseNameOf p;
         outPath = filterGit p;
