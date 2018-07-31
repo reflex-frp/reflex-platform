@@ -162,17 +162,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
                 ++ optional useFastWeak ./fast-weak.patch;
         phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
       });
-      ghci-ghcjs = self.callCabal2nix "ghci-ghcjs" (ghcjsSrc + "/lib/ghci-ghcjs") {};
-      ghcjs-th = self.callCabal2nix "ghcjs-th" (ghcjsSrc + "/lib/ghcjs-th") {};
-      template-haskell-ghcjs = self.callCabal2nix "template-haskell-ghcjs" (ghcjsSrc + "/lib/template-haskell-ghcjs") {};
-      ghc-api-ghcjs = overrideCabal (self.callCabal2nix "ghc-api-ghcjs" (ghcjsSrc + "/lib/ghc-api-ghcjs") {}) (drv: {
-        libraryToolDepends = (drv.libraryToolDepends or []) ++ [
-          ghc8_2.alex
-          ghc8_2.happy
-        ];
-      });
-      haddock-api-ghcjs = self.callCabal2nix "haddock-api-ghcjs" (ghcjsSrc + "/lib/haddock-api-ghcjs") {};
-      haddock-library-ghcjs = dontHaddock (self.callCabal2nix "haddock-library-ghcjs" (ghcjsSrc + "/lib/haddock-library-ghcjs") {});
     };
 
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
