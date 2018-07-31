@@ -10,6 +10,7 @@
 , iosSdkVersion ? "10.2"
 }:
 let iosSupport = system != "x86_64-darwin";
+    globalOverlay = self: super: {};
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv =
