@@ -140,7 +140,7 @@ let iosSupport = system != "x86_64-darwin";
       chmod -R +w .
       patch -p1 <"$patch"
     '';
-in with haskellLib;
+in with nixpkgs.lib; with haskellLib;
 let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
@@ -571,28 +571,57 @@ in let this = rec {
   })).env;
 
   workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
-    let ghcEnv =
-      let inherit (builtins) filter all concatLists;
-          dependenciesOf = x: (x.buildDepends or [])
-                           ++ (x.libraryHaskellDepends or [])
-                           ++ (x.executableHaskellDepends or [])
-                           ++ (x.testHaskellDepends or []);
-          elemByPname = p: all (pname: (p.pname or "") != pname) packageNames;
-          overiddenOut  = pkgEnv: n: (overrideCabal pkgEnv.${n} (args: {
-            passthru = (args.passthru or {}) // {
-              out = filter elemByPname (dependenciesOf args);
-            };
-          })).out;
-      in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
-    baseTools = generalDevToolsAttrs env;
-    overriddenTools = baseTools // shellToolOverrides env baseTools;
+    let inherit (builtins) listToAttrs filter attrValues all concatLists;
+        combinableAttrs = [
+          "benchmarkDepends"
+          "benchmarkFrameworkDepends"
+          "benchmarkHaskellDepends"
+          "benchmarkPkgconfigDepends"
+          "benchmarkSystemDepends"
+          "benchmarkToolDepends"
+          "buildDepends"
+          "buildTools"
+          "executableFrameworkDepends"
+          "executableHaskellDepends"
+          "executablePkgconfigDepends"
+          "executableSystemDepends"
+          "executableToolDepends"
+          "extraLibraries"
+          "libraryFrameworkDepends"
+          "libraryHaskellDepends"
+          "libraryPkgconfigDepends"
+          "librarySystemDepends"
+          "libraryToolDepends"
+          "pkgconfigDepends"
+          "setupHaskellDepends"
+          "testDepends"
+          "testFrameworkDepends"
+          "testHaskellDepends"
+          "testPkgconfigDepends"
+          "testSystemDepends"
+          "testToolDepends"
+        ];
+        concatCombinableAttrs = haskellConfigs: listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs);
+        getHaskellConfig = p: (overrideCabal p (args: {
+          passthru = (args.passthru or {}) // {
+            out = args;
+          };
+        })).out;
+        notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
+        baseTools = generalDevToolsAttrs env;
+        overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
+        depAttrs = mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
+          (map getHaskellConfig (attrVals packageNames env))
+          [{
+            buildTools = overriddenTools ++ tools env;
+          }]
+        ]));
 
-    in nixpkgs.stdenv.mkDerivation ((ghcEnv.ghcEnvVars or {}) // {
-      name = "name";
-      buildInputs = [
-        ghcEnv
-      ] ++ builtins.attrValues overriddenTools ++ tools env;
-    });
+    in (env.mkDerivation (depAttrs // {
+      pname = "work-on-multi--combined-pkg";
+      version = "0";
+      license = null;
+    })).env;
 
   workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 
