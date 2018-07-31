@@ -10,6 +10,12 @@ self: super: {
     rev = "78f714da9bd3510e348b6341855be925b8ede949";
     sha256 = "003lggllk1hjzjx8wfl941j2bn13sgpxz9bqgvsn6bhlrhwnwcsl";
   }) {};
+  mkDerivation = attrs: (super.mkDerivation attrs // {
+    configureFlags = (drv.configureFlags or []) ++ [
+      "--ghcjs-option=-fno-full-laziness"
+      "--ghcjs-option=-fno-enable-rewrite-rules"
+    ];
+  });
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
