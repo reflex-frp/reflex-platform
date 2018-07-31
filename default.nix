@@ -10,25 +10,6 @@
 , iosSdkVersion ? "10.2"
 }:
 let iosSupport = system != "x86_64-darwin";
-    globalOverlay = self: super: {
-
-      # need to override cabal2nix to avoid evaluation errors on Android.
-      # https://github.com/NixOS/cabal2nix/pull/344
-      haskellPackages = super.haskellPackages.override (old: {
-        overrides = super.lib.composeExtensions (old.overrides or (_: _: {})) (self_: super_: {
-          cabal2nix = super.haskell.lib.overrideCabal super_.cabal2nix (drv: {
-            src = super.fetchFromGitHub {
-              owner = "NixOS";
-              repo = "cabal2nix";
-              rev = "7c77e7e78a94a72681d9d59e69391feada1085fa";
-              sha256 = "1q2bh0xx3srhh52vkahf9mvplzxnb34k7l75qgivh8izcmghaz54";
-            };
-            doCheck = false;
-          });
-        });
-      });
-
-    };
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv =
