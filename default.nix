@@ -179,7 +179,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ########################################################################
         # Reflex packages
         ########################################################################
-        reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {})));
+        reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {}))));
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ./reflex-aeson-orphans) {};
 
