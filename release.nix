@@ -19,7 +19,13 @@ in nixpkgs.lib.genAttrs cacheTargetSystems (system:
     reflexPlatform = (import ./. { inherit system; });
   in {
     tryReflexShell = reflexPlatform.tryReflexShell;
-    ghcjsReflexTodomvc = ghcjs.reflex-todomvc;
+    ghcjsReflexTodomvc = ghcjs.reflex-todomvc.overrideAttrs (attrs: {
+      postInstall = ''
+        ${attrs.postInstall or ""}
+        mkdir -p $out/nix-support
+        echo $out/bin/reflex-todomvc.jsexe >> $out/nix-support/hydra-build-products
+      '';
+    });
     ghcReflexTodomvc = ghc.reflex-todomvc;
   } // nixpkgs.lib.listToAttrs
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflexPlatform))
