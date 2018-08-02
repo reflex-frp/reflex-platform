@@ -14,9 +14,8 @@ self: super: {
   in {
     buildFlags = (drv.buildFlags or [])
                ++ ["--ghc-option=-load-splices=${LOCAL_SPLICE_DIR}"];
-    postPatch = ''
-      ${drv.postPatch or ""}
-
+    postPatch = (drv.postPatch or "")
+      + lib.optionalString (pkg ? SPLICE_DIR) ''
       # We need to patch splices to have the cross target's package hash.
       # Unfortunately, this requires using sed on each .hs-splice
       # file. So we must copy all of the splice files into
