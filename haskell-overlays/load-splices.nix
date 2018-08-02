@@ -14,7 +14,7 @@ self: super: {
   in {
     buildFlags = (drv.buildFlags or [])
                ++ ["--ghc-option=-load-splices=${LOCAL_SPLICE_DIR}"];
-    postPatch = (drv.postPatch or "")
+    postConfigure = (drv.postConfigure or "")
       + lib.optionalString (pkg ? SPLICE_DIR) ''
       # We need to patch splices to have the cross target's package hash.
       # Unfortunately, this requires using sed on each .hs-splice
@@ -28,15 +28,19 @@ self: super: {
       fi
       chmod -R +w "${LOCAL_SPLICE_DIR}"
 
+      # The target package also needs to be replaced.
+      seds="$(strings dist/setup-config | sed -n 's/^!\(${drv.pname}\)-\([0-9.]\+\)-\(.\{22\}\).*$/-e "s,\1-\2-[a-zA-Z0-9]\{22\},\1-\2-\3, "/p' | head -n1)"
+
       # Generate a list of sed expressions from a package list. Each
       # expression will match a package name with a random hash and replace it
       # with our package db's expected hash. This relies on the hash being
       # exactly 22 characters.
-      seds="$(ghc-pkg --package-db="$packageConfDir" list -v 2>/dev/null | sed -n 's/^ .*(\(\(.*\)-......................\))$/-e s,\2-......................,\1,/p')"
+      seds+="$(ghc-pkg --package-db="$packageConfDir" list -v 2>/dev/null | sed -n 's/^ .*(\(\(.*\)-.\{22\}\))$/-e "s,\2-[a-zA-Z0-9]\{22\},\1,"/p')"
+
       if [ -n "$seds" ]; then
-          echo reticulating splices
-          find "${LOCAL_SPLICE_DIR}" -name '*.hs-splice' -exec echo sed -i '{}' $seds \;
-          find "${LOCAL_SPLICE_DIR}" -name '*.hs-splice' -exec sed -i '{}' $seds \;
+          echo reticulating splices...
+          echo "$seds"
+          find "${LOCAL_SPLICE_DIR}" -name '*.hs-splice' -exec sed -i '{}' "$seds" \;
       fi
     '';
   }));
