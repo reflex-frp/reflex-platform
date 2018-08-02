@@ -20,19 +20,22 @@ self: super: {
       # Unfortunately, this requires using sed on each .hs-splice
       # file. So we must copy all of the splice files into
       # LOCAL_SPLICE_DIR before we write.
-      mkdir -p ${LOCAL_SPLICE_DIR}
-      (cd ${pkg}${pkg.SPLICE_DIR} && \
-       find . -name '*.hs-splice' \
-              -exec install -D '{}' "${LOCAL_SPLICE_DIR}/{}" \;)
-      chmod -R +w ${LOCAL_SPLICE_DIR}
+      mkdir -p "${LOCAL_SPLICE_DIR}"
+      if [ -d "${pkg}${pkg.SPLICE_DIR}" ]; then
+          (cd "${pkg}${pkg.SPLICE_DIR}" && \
+           find . -name '*.hs-splice' \
+                  -exec install -D '{}' "${LOCAL_SPLICE_DIR}/{}" \;)
+      fi
+      chmod -R +w "${LOCAL_SPLICE_DIR}"
 
       # Generate a list of sed expressions from a package list. Each
       # expression will match a package name with a random hash and replace it
       # with our package db's expected hash. This relies on the hash being
       # exactly 22 characters.
-      seds="$(ghc-pkg list -v 2>/dev/null | sed -n 's/^ .*(\(\(.*\)-......................\))$/-e s,\2-......................,\1,/p')"
-      if ! [ -z "$seds" ]; then
+      seds="$(ghc-pkg --package-db="$packageConfDir" list -v 2>/dev/null | sed -n 's/^ .*(\(\(.*\)-......................\))$/-e s,\2-......................,\1,/p')"
+      if [ -n "$seds" ]; then
           echo reticulating splices
+          find "${LOCAL_SPLICE_DIR}" -name '*.hs-splice' -exec echo sed -i '{}' $seds \;
           find "${LOCAL_SPLICE_DIR}" -name '*.hs-splice' -exec sed -i '{}' $seds \;
       fi
     '';
