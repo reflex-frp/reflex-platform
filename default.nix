@@ -10,21 +10,24 @@
 , iosSdkVersion ? "10.2"
 , iosSdkLocation ? "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk"
 , iosSupportForce ? false
+, nixpkgsOverlays ? []
 }:
 let iosSupport =
       if system != "x86_64-darwin" then false
       else if iosSupportForce || builtins.pathExists iosSdkLocation then true
       else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
-    globalOverlay = self: super: {
-      all-cabal-hashes = super.all-cabal-hashes.override {
-        src-spec = {
-          owner = "commercialhaskell";
-          repo = "all-cabal-hashes";
-          rev = "82a8a1a49240a1b465c95de6fa6bf56323ee858f";
-          sha256 = "1jdzl5fyp1qcsi1anjig6kglq4jjsdll53nissjcnxpy3jscmarm";
+    globalOverlays = [
+      (self: super: {
+        all-cabal-hashes = super.all-cabal-hashes.override {
+          src-spec = {
+            owner = "commercialhaskell";
+            repo = "all-cabal-hashes";
+            rev = "82a8a1a49240a1b465c95de6fa6bf56323ee858f";
+            sha256 = "1jdzl5fyp1qcsi1anjig6kglq4jjsdll53nissjcnxpy3jscmarm";
+          };
         };
-      };
-    };
+      })
+    ] ++ nixpkgsOverlays;
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv =
@@ -38,7 +41,7 @@ let iosSupport =
     };
     nixpkgs = nixpkgsFunc ({
       inherit system;
-      overlays = [globalOverlay];
+      overlays = globalOverlays;
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
@@ -57,7 +60,7 @@ let iosSupport =
       android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         arm64 = {
           system = "x86_64-linux";
-          overlays = [globalOverlay];
+          overlays = globalOverlays;
           crossSystem = {
             config = "aarch64-unknown-linux-android";
             arch = "arm64";
@@ -73,7 +76,7 @@ let iosSupport =
         };
         armv7a = {
           system = "x86_64-linux";
-          overlays = [globalOverlay];
+          overlays = globalOverlays;
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
             arch = "armv7";
@@ -131,7 +134,7 @@ let iosSupport =
         in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay appleLibiconvHack];
+          overlays = globalOverlays ++ [appleLibiconvHack];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -151,7 +154,7 @@ let iosSupport =
         };
         arm64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay appleLibiconvHack];
+          overlays = globalOverlays ++ [appleLibiconvHack];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
