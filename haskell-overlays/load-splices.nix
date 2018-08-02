@@ -29,18 +29,20 @@ self: super: {
       chmod -R +w "${LOCAL_SPLICE_DIR}"
 
       # The target package also needs to be replaced.
-      seds="$(strings dist/setup-config | sed -n 's/^!\(${drv.pname}\)-\([0-9.]\+\)-\(.\{22\}\).*$/-e "s,\1-\2-[a-zA-Z0-9]\{22\},\1-\2-\3, "/p' | head -n1)"
+      if [ -f dist/setup-config ]; then
+          strings dist/setup-config | sed -n 's/^!\(${drv.pname}\)-\([0-9.]\+\)-\(.\{21\}\).*$/s,\1-\2-[a-zA-Z0-9]\\{21\\},\1-\2-\3,/p' | head -n1 >> $TMPDIR/seds
+      fi
 
       # Generate a list of sed expressions from a package list. Each
       # expression will match a package name with a random hash and replace it
       # with our package db's expected hash. This relies on the hash being
       # exactly 22 characters.
-      seds+="$(ghc-pkg --package-db="$packageConfDir" list -v 2>/dev/null | sed -n 's/^ .*(\(\(.*\)-.\{22\}\))$/-e "s,\2-[a-zA-Z0-9]\{22\},\1,"/p')"
+      ghc-pkg --package-db="$packageConfDir" list -v 2>/dev/null | sed -n 's/^ .*(\(\(.*\)-.\{22\}\))$/s,\2-[a-zA-Z0-9]\\{22\\},\1,/p' >> $TMPDIR/seds
 
-      if [ -n "$seds" ]; then
+      if [ -f $TMPDIR/seds ] && [ -n "$(<$TMPDIR/seds)" ]; then
           echo reticulating splices...
-          echo "$seds"
-          find "${LOCAL_SPLICE_DIR}" -name '*.hs-splice' -exec sed -i '{}' "$seds" \;
+          cat $TMPDIR/seds
+          find "${LOCAL_SPLICE_DIR}" -name '*.hs-splice' -exec sed -i -f $TMPDIR/seds '{}' \;
       fi
     '';
   }));
