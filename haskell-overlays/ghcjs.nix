@@ -77,4 +77,8 @@ self: super: {
   }));
 
   primitive = doJailbreak (self.callHackage "primitive" "0.6.3.0" {});
+  conduit = dontCheck (self.callHackage "conduit" "1.3.0.3" { });
+  resourcet = self.callHackage "resourcet" "1.2.1" { };
+  unliftio = dontCheck super.unliftio;
+  silently = dontCheck super.silently;
 }
