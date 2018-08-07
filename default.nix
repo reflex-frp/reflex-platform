@@ -8,9 +8,9 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true
 , iosSdkVersion ? "10.2"
+, nixpkgsOverlays ? []
 }:
 let iosSupport = system != "x86_64-darwin";
-    globalOverlay = self: super: {};
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv =
@@ -50,7 +50,7 @@ let iosSupport = system != "x86_64-darwin";
         # Obelisk needs it to for some reason
         allowUnfree = true;
       } // config;
-      overlays = [globalOverlay];
+      overlays = nixpkgsOverlays;
     };
     nixpkgs = nixpkgsFunc (nixpkgsArgs // { inherit system; });
     inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
