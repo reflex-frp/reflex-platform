@@ -29,19 +29,7 @@ else
     EFFECTIVE_PLATFORM="this.$PLATFORM"
 fi
 
-if echo "$PACKAGE" | grep -q / ; then
-    # Package name includes a slash
-    PACKAGE_PATH="$(cleanup_nix_path "$PACKAGE")"
-    if ( echo "$PACKAGE_PATH" | grep -q '\.nix$' && [ -f "$PACKAGE_PATH" ] ) || [ -f "$PACKAGE_PATH/default.nix" ] ; then
-        PACKAGE_INVOCATION="($EFFECTIVE_PLATFORM.callPackage $PACKAGE_PATH {})"
-    elif test -n "$(shopt -s nullglob ; echo "$PACKAGE_PATH"/*.cabal)" ; then
-        PACKAGE_INVOCATION="($EFFECTIVE_PLATFORM.callPackage (this.cabal2nixResult $PACKAGE_PATH) {})"
-    else
-        user_error 1 "Error: The given path must be a nix expression, a directory with a default.nix, or a directory with a cabal file"
-    fi
-else
-    PACKAGE_INVOCATION="$EFFECTIVE_PLATFORM.$PACKAGE"
-fi
+PACKAGE_INVOCATION="$(package_invocation "$EFFECTIVE_PLATFORM" "$PACKAGE")"
 
 terminate_logging
 nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $EFFECTIVE_PLATFORM $PACKAGE_INVOCATION" "$@"
