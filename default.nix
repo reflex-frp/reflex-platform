@@ -451,8 +451,8 @@ in let this = rec {
     inherit name;
     value = f value;
   }) (attrsToList s));
-  mkSdist = pkg: pkg.override {
-    mkDerivation = drv: ghc.mkDerivation (drv // {
+  mkSdist = pkg: pkg.override (oldArgs: {
+    mkDerivation = drv: oldArgs.mkDerivation (drv // {
       postConfigure = ''
         ./Setup sdist
         mkdir "$out"
@@ -461,10 +461,10 @@ in let this = rec {
       '';
       doHaddock = false;
     });
-  };
+  });
   sdists = mapSet mkSdist ghc;
-  mkHackageDocs = pkg: pkg.override {
-    mkDerivation = drv: ghc.mkDerivation (drv // {
+  mkHackageDocs = pkg: pkg.override (oldArgs: {
+    mkDerivation = drv: oldArgs.mkDerivation (drv // {
       postConfigure = ''
         ./Setup haddock --hoogle --hyperlink-source --html --for-hackage --haddock-option=--built-in-themes
         cd dist/doc/html
@@ -474,7 +474,7 @@ in let this = rec {
       '';
       doHaddock = false;
     });
-  };
+  });
   hackageDocs = mapSet mkHackageDocs ghc;
   mkReleaseCandidate = pkg: nixpkgs.stdenv.mkDerivation (rec {
     name = pkg.name + "-rc";
