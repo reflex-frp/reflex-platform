@@ -279,7 +279,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghcjs
-      # (optionalExtension useTextJSString haskellOverlays.textJSString)
+      (optionalExtension useTextJSString haskellOverlays.textJSString)
     ];
   };
   ghcjs = ghcjs8_4;
