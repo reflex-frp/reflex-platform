@@ -61,14 +61,7 @@ self: super: {
       ./hashable.patch
     ];
   });
-  conduit-extra = overrideCabal super.conduit-extra (drv: {
-    src = "${fetchFromGitHub {
-      owner = "luigy";
-      repo = "conduit";
-      rev = "aeb20e4eb7f7bfc07ec401c82821cbb04018b571";
-      sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
-    }}/conduit-extra";
-  });
+  conduit-extra = dontCheck (appendPatch super.conduit-extra ./conduit-extra-text-jsstring.patch);
   double-conversion = overrideCabal super.double-conversion (drv: {
     src = fetchFromGitHub {
       owner = "obsidiansystems";
@@ -93,4 +86,5 @@ self: super: {
   th-lift-instances = dontCheck super.th-lift-instances;
 
   aeson = appendPatch super.aeson ./aeson.patch;
+  mono-traversable = dontCheck super.mono-traversable;
 }
