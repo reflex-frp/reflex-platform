@@ -1,6 +1,7 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "rev": "456be5f5f9ff24cf5a1daffafe3741fdbddc876b",
-  "sha256": "0x4p58czs62fps9rxqqrg1pv6mjlhzl3vik9a99sp0b5pxr1s1p3"
+  "branch": "aa-graphviz-hackaround",
+  "rev": "74881cd08fdcc216cc8afde6ff431fb1f2591662",
+  "sha256": "0qsscnc17m9d7v46sn052pwspz09x61kdz4bg8d2pairx4afb0qq"
 }
