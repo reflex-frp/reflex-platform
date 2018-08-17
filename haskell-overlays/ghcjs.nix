@@ -18,6 +18,16 @@ self: super: {
   }) {}) (drv: {
     jailbreak = true;
     doCheck = false; #TODO: This should be unnecessary
+    patches = (drv.patches or []) ++ [
+      (nixpkgs.fetchpatch {
+        url = "https://github.com/ghcjs/ghcjs-base/commit/2d0d674e54c273ed5fcb9a13f588819c3303a865.patch"; #ghcjs-base/114
+        sha256 = "15vbxnxa1fpdcmmx5zx1z92bzsxyb0cbs3hs3g7fb1rkds5qbvgp";
+      })
+      (nixpkgs.fetchpatch {
+        url = "https://github.com/ghcjs/ghcjs-base/commit/8eccb8d937041ba323d62dea6fe8eb1b04b3cc47.patch"; #ghcjs-base/116
+        sha256 = "1lqjpg46ydpm856wcq1g7c97d69qcnnqs5jxp2b788z9cfd5n64c";
+      })
+    ];
     #TODO: This should be unnecessary
     preConfigure = (drv.preConfigure or "") + ''
       sed -i -e '/jsbits\/export.js/d' -e '/GHCJS\.Foreign\.Export/d' *.cabal
