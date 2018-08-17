@@ -78,13 +78,6 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  vector = overrideCabal super.vector (drv: {
-    buildDepends = filter (p: p.pname != "semigroups") drv.buildDepends;
-  });
-
-  #TODO: Fix this failure
-  th-lift-instances = dontCheck super.th-lift-instances;
-
   aeson = appendPatch super.aeson ./aeson.patch;
   mono-traversable = dontCheck super.mono-traversable;
 }
