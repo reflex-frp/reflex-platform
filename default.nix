@@ -295,8 +295,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       (ghcjsPkgs (nixpkgs.pkgs.haskell.compiler.ghcjs84.override {
         ghcjsSrc = fetchgit {
           url = "https://github.com/obsidiansystems/ghcjs.git";
-          rev = "3a6c0624e93fbb4f433ea3c86a3c537852791955";
-          sha256 = "137yjvq7kaaw3n1rj9l5iik4a0fs1hn52g0ixfzl1vrr0bns6i0f";
+          rev = "e2391d275aa3bc5159e269accd9816882e29db9b";
+          sha256 = "0yn1cf6c9c2gc1z49d2ywqilrg97sf00f4zp3fp3l6xj399nc309";
           fetchSubmodules = true;
         };
       }))
