@@ -31,6 +31,22 @@ self: super: {
         url = "https://github.com/ghcjs/ghcjs-base/commit/ce91c525b5d4377ba4aefd0d8072dc1659f75ef1.patch"; #ghcjs-base/118
         sha256 = "0f6qca1i60cjzpbq4bc74baa7xrf417cja8nmhfims1fflvsx3wy";
       })
+      (nixpkgs.fetchpatch {
+        url = "https://github.com/ghcjs/ghcjs-base/commit/213bfc74a051242668edf0533e11a3fafbbb1bfe.patch"; #ghcjs-base/120
+        sha256 = "0d5dwy22hxa79l8b4y6nn53nbcs74686s0rmfr5l63sdvqxhdy3x";
+      })
+      (nixpkgs.fetchpatch {
+        url = "https://github.com/ghcjs/ghcjs-base/commit/82d76814ab40dc9116990f69f16df330462f27d4.patch"; #ghcjs-base/121
+        sha256 = "0qa74h6w8770csad0bky4hhss1b1s86i6ccpd3ky4ljx00272gqh";
+      })
+      (nixpkgs.fetchpatch {
+        url = "https://github.com/ghcjs/ghcjs-base/commit/5eb34b3dfc6fc9196931178a7a6e2c8a331a8e53.patch"; #ghcjs-base/122
+        sha256 = "1wrfi0rscy8qa9pi4siv54pq5alplmy56ym1fbs8n93xwlqhddii";
+      })
+      (nixpkgs.fetchpatch {
+        url = "https://github.com/ghcjs/ghcjs-base/commit/0cf64df77cdd6275d86ec6276fcf947fa58e548b.patch"; #ghcjs-base/122
+        sha256 = "16wdghfsrzrb1y7lscbf9aawgxi3kvbgdjwvl1ga2zzm4mq139dr";
+      })
     ];
     #TODO: This should be unnecessary
     preConfigure = (drv.preConfigure or "") + ''
