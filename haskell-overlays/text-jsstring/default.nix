@@ -4,14 +4,15 @@ with lib;
 with haskellLib;
 
 self: super: {
-  text = self.callCabal2nix "text" (fetchFromGitHub {
+  text = (doCheck (self.callCabal2nix "text" (fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "text";
-    rev = "78f714da9bd3510e348b6341855be925b8ede949";
-    sha256 = "003lggllk1hjzjx8wfl941j2bn13sgpxz9bqgvsn6bhlrhwnwcsl";
-  }) {};
-  # boot pkg that depends on text. This override avoids introducing
-  # multiple text versions into the pkg set that result in build errors
+    rev = "50076be0262203f0d2afdd0b190a341878a08e21";
+    sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
+  }) {})).overrideScope (self: super: {
+    text = null;
+    QuickCheck = haskellLib.addBuildDepend (self.callHackage "QuickCheck" "2.9.2" {}) self.tf-random;
+  });
   parsec = dontCheck (self.callHackage "parsec" "3.1.13.0" {});
   mkDerivation = attrs: super.mkDerivation (attrs // {
     configureFlags = (attrs.configureFlags or []) ++ [
@@ -82,5 +83,4 @@ self: super: {
     ];
   });
   aeson = appendPatch super.aeson ./aeson.patch;
-  mono-traversable = dontCheck super.mono-traversable;
 }
