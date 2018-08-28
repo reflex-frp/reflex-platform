@@ -4,16 +4,16 @@ with lib;
 with haskellLib;
 
 self: super: {
-  text = (doCheck (self.callCabal2nix "text" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "text";
-    rev = "50076be0262203f0d2afdd0b190a341878a08e21";
-    sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
-  }) {})).overrideScope (self: super: {
-    text = null;
-    QuickCheck = haskellLib.addBuildDepend (self.callHackage "QuickCheck" "2.9.2" {}) self.tf-random;
-  });
-  parsec = dontCheck (self.callHackage "parsec" "3.1.13.0" {});
+  # text = (doCheck (self.callCabal2nix "text" (fetchFromGitHub {
+  #   owner = "obsidiansystems";
+  #   repo = "text";
+  #   rev = "50076be0262203f0d2afdd0b190a341878a08e21";
+  #   sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
+  # }) {})).overrideScope (self: super: {
+  #   text = null;
+  #   QuickCheck = haskellLib.addBuildDepend (self.callHackage "QuickCheck" "2.9.2" {}) self.tf-random;
+  # });
+  # parsec = dontCheck (self.callHackage "parsec" "3.1.13.0" {});
   mkDerivation = attrs: super.mkDerivation (attrs // {
     configureFlags = (attrs.configureFlags or []) ++ [
       "--ghcjs-option=-fno-full-laziness"
@@ -24,16 +24,6 @@ self: super: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
       self.ghcjs-prim
-    ];
-  });
-  ghcjs-base = overrideCabal super.ghcjs-base (drv: {
-    patches = (drv.patches or []) ++ [
-      ./ghcjs-base-text-jsstring.patch
-    ];
-    libraryHaskellDepends = with self; [
-      base bytestring containers deepseq dlist ghc-prim
-      ghcjs-prim integer-gmp primitive time
-      transformers vector
     ];
   });
   attoparsec = overrideCabal super.attoparsec (drv: {

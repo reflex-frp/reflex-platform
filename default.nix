@@ -164,6 +164,87 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
       });
     };
+    useTextJSStringAsBootPkg = ghcjs: if !useTextJSString then ghcjs else ghcjs.overrideAttrs (_: {
+      postUnpack = ''
+        set -x
+        (
+          echo $sourceRoot
+          cd $sourceRoot
+          rm -r lib/boot/pkg/text
+          cp --no-preserve=mode -r "${textSrc}" lib/boot/pkg/text
+          cp --no-preserve=mode -r "${ghcjsBaseTextJSStringSrc}" lib/boot/pkg/ghcjs-base
+          cp --no-preserve=mode -r "${dlistSrc}" lib/boot/pkg/dlist
+          rm -r lib/boot/pkg/vector
+          cp --no-preserve=mode -r "${vectorSrc}" lib/boot/pkg/vector
+          sed -i 's/.\/pkg\/mtl/.\/pkg\/mtl\n    - .\/pkg\/ghcjs-base\n    - .\/pkg\/dlist\n    - .\/pkg\/primitive\n    - .\/pkg\/vector/' lib/boot/boot.yaml
+          cat lib/boot/boot.yaml
+        )
+      '';
+    });
+    ghcjsBaseSrc = fetchgit {
+      url = "https://github.com/ghcjs/ghcjs-base.git";
+      rev = "01014ade3f8f5ae677df192d7c2a208bd795b96c";
+      sha256 = "173h98m7namxj0kfy8fj29qcxmcz6ilg04x8mwkc3ydjqrvk77hh";
+      postFetch = ''
+        ( cd $out
+          patch -p1 < ${nixpkgs.fetchpatch {
+            url = "https://github.com/ghcjs/ghcjs-base/commit/2d0d674e54c273ed5fcb9a13f588819c3303a865.patch"; #ghcjs-base/114
+            sha256 = "15vbxnxa1fpdcmmx5zx1z92bzsxyb0cbs3hs3g7fb1rkds5qbvgp";
+          }}
+          patch -p1 < ${nixpkgs.fetchpatch {
+            url = "https://github.com/ghcjs/ghcjs-base/commit/8eccb8d937041ba323d62dea6fe8eb1b04b3cc47.patch"; #ghcjs-base/116
+            sha256 = "1lqjpg46ydpm856wcq1g7c97d69qcnnqs5jxp2b788z9cfd5n64c";
+          }}
+          patch -p1 < ${nixpkgs.fetchpatch {
+            url = "https://github.com/ghcjs/ghcjs-base/commit/ce91c525b5d4377ba4aefd0d8072dc1659f75ef1.patch"; #ghcjs-base/118
+            sha256 = "0f6qca1i60cjzpbq4bc74baa7xrf417cja8nmhfims1fflvsx3wy";
+          }}
+          patch -p1 < ${nixpkgs.fetchpatch {
+            url = "https://github.com/ghcjs/ghcjs-base/commit/213bfc74a051242668edf0533e11a3fafbbb1bfe.patch"; #ghcjs-base/120
+            sha256 = "0d5dwy22hxa79l8b4y6nn53nbcs74686s0rmfr5l63sdvqxhdy3x";
+          }}
+          patch -p1 < ${nixpkgs.fetchpatch {
+            url = "https://github.com/ghcjs/ghcjs-base/commit/82d76814ab40dc9116990f69f16df330462f27d4.patch"; #ghcjs-base/121
+            sha256 = "0qa74h6w8770csad0bky4hhss1b1s86i6ccpd3ky4ljx00272gqh";
+          }}
+          patch -p1 < ${nixpkgs.fetchpatch {
+            url = "https://github.com/ghcjs/ghcjs-base/commit/5eb34b3dfc6fc9196931178a7a6e2c8a331a8e53.patch"; #ghcjs-base/122
+            sha256 = "1wrfi0rscy8qa9pi4siv54pq5alplmy56ym1fbs8n93xwlqhddii";
+          }}
+          patch -p1 < ${nixpkgs.fetchpatch {
+            url = "https://github.com/ghcjs/ghcjs-base/commit/0cf64df77cdd6275d86ec6276fcf947fa58e548b.patch"; #ghcjs-base/122
+            sha256 = "16wdghfsrzrb1y7lscbf9aawgxi3kvbgdjwvl1ga2zzm4mq139dr";
+          }}
+          cat ghcjs-base.cabal
+        )
+      '';
+    };
+    ghcjsBaseTextJSStringSrc = ghcjsBaseSrc.overrideAttrs (drv: {
+      outputHash = "1ggfklrmawqh54ins98rpr7qy3zbcqaqp1w7qmh90mq5jf711x9r";
+      postFetch = (drv.postFetch or "") + ''
+        ( cd $out
+          patch -p1 < ${./haskell-overlays/text-jsstring/ghcjs-base-text-jsstring.patch}
+        )
+      '';
+    });
+    textSrc = fetchgit {
+      url = "https://github.com/obsidiansystems/text.git";
+      rev = "50076be0262203f0d2afdd0b190a341878a08e21";
+      sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
+    };
+    dlistSrc = fetchgit {
+      url = "https://github.com/spl/dlist.git";
+      rev = "03d91a3000cba49bd2c8588cf1b0d71e229ad3b0"; #v0.8.0.4
+      sha256 = "0asvz1a2rp174r3vvgs1qaidxbdxly4mnlra33dipd0gxrrk15sq";
+    };
+    vectorSrc = fetchgit {
+      url = "https://github.com/haskell/vector.git";
+      rev = "1d208ee9e3a252941ebd112e14e8cd5a982ac2bb"; #v0.12.0.1
+      sha256 = "18qm1c2zqr8h150917djfc0xk62hv99b1clxfs9a79aavrsqi5hs";
+      postFetch = ''
+        substituteInPlace $out/vector.cabal --replace 'base >= 4.5 && < 4.10' 'base >= 4.5 && < 5'
+      '';
+    };
 
     extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
       overrides = self: super:
@@ -248,7 +329,10 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       inherit
         haskellLib
         nixpkgs jdk fetchFromGitHub
+        ghcjsBaseSrc
+        optionalExtension
         useReflexOptimizer
+        useTextJSString
         hackGet;
       inherit (nixpkgs) lib;
       androidActivity = hackGet ./android-activity;
@@ -278,7 +362,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   ghcjs8_4 = (extendHaskellPackages ghcjs8_4Packages).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghcjs
+      haskellOverlays.ghcjs-8_4
       (optionalExtension useTextJSString haskellOverlays.textJSString)
     ];
   };
@@ -292,14 +376,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   ghc8_4 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc843).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      (ghcjsPkgs (nixpkgs.pkgs.haskell.compiler.ghcjs84.override {
+      (ghcjsPkgs (useTextJSStringAsBootPkg (nixpkgs.pkgs.haskell.compiler.ghcjs84.override {
         ghcjsSrc = fetchgit {
           url = "https://github.com/obsidiansystems/ghcjs.git";
           rev = "584eaa138c32c5debb3aae571c4153d537ff58f1";
           sha256 = "1ib0vsv2wrwf5iivnq6jw2l9g5izs0fjpp80jrd71qyywx4xcm66";
           fetchSubmodules = true;
         };
-      }))
+      })))
       haskellOverlays.ghc-8_4
     ];
   };

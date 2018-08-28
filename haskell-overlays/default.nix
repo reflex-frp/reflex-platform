@@ -1,7 +1,10 @@
 { lib
 , haskellLib
 , nixpkgs, jdk, fetchFromGitHub
+, ghcjsBaseSrc
 , useReflexOptimizer
+, useTextJSString
+, optionalExtension
 , androidActivity
 , hackGet
 }:
@@ -37,8 +40,16 @@ rec {
     (import ./ghc-head.nix { inherit haskellLib fetchFromGitHub; });
 
   ghcjs = import ./ghcjs.nix {
-    inherit haskellLib nixpkgs fetchFromGitHub useReflexOptimizer hackGet;
+    inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer hackGet;
   };
+  ghcjs-8_4 = nixpkgs.lib.composeExtensions
+    ghcjs
+    (optionalExtension useTextJSString (_: _: {
+      dlist = null;
+      ghcjs-base = null;
+      primitive = null;
+      vector = null;
+    }));
   android = import ./android {
     inherit haskellLib;
     inherit androidActivity;
