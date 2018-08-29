@@ -14,12 +14,6 @@ self: super: {
   #   QuickCheck = haskellLib.addBuildDepend (self.callHackage "QuickCheck" "2.9.2" {}) self.tf-random;
   # });
   # parsec = dontCheck (self.callHackage "parsec" "3.1.13.0" {});
-  mkDerivation = attrs: super.mkDerivation (attrs // {
-    configureFlags = (attrs.configureFlags or []) ++ [
-      "--ghcjs-option=-fno-full-laziness"
-      "--ghcjs-option=-fno-enable-rewrite-rules"
-    ];
-  });
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
