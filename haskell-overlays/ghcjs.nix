@@ -10,7 +10,7 @@ self: super: {
     ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
 
-  ghcjs-base = self.callCabal2nix "ghcjs-base" ghcjsBaseSrc {};
+  ghcjs-base = doJailbreak (dontCheck (self.callCabal2nix "ghcjs-base" ghcjsBaseSrc {}));
 
   ghc = super.ghc // {
     withPackages = self.ghcWithPackages;
