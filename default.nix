@@ -656,7 +656,7 @@ in let this = rec {
           "testSystemDepends"
           "testToolDepends"
         ];
-        concatCombinableAttrs = haskellConfigs: listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs);
+        concatCombinableAttrs = haskellConfigs: filterAttrs (n: v: v != []) (listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs));
         getHaskellConfig = p: (overrideCabal p (args: {
           passthru = (args.passthru or {}) // {
             out = args;
