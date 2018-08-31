@@ -316,8 +316,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         direct-sqlite = self.callCabal2nix "direct-sqlite" (fetchFromGitHub {
           owner = "IreneKnapp";
           repo = "direct-sqlite";
-          rev = "cd1ab3c0ee7894d888be826fc653b75813fd53c9";
-          sha256 = "13i6lz99x0jb9fgns7brlqnv5s5w4clp26l8c3kxd318r1krvr6w";
+          rev = "8e3da41c46b5de19942cc7bf421c3deb5117ba7a";
+          sha256 = "0ffk5j1db2y1drn0przh4jw9gc3vygwd987wl1g1m3dw7ry4dxy6";
         }) {};
 
         mkDerivation = expr: super.mkDerivation (expr // {
