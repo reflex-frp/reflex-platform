@@ -13,6 +13,8 @@ self: super: {
   cabal-doctest = null;
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
 
+  blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+
   reflex-todomvc = haskellLib.overrideCabal super.reflex-todomvc (drv: {
     postFixup = ''
       mkdir $out/reflex-todomvc.app
