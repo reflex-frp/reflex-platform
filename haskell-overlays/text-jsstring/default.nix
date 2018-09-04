@@ -38,10 +38,10 @@ self: super: {
     };
   });
   hashable = haskellLib.addBuildDepend (self.callCabal2nix "hashable" (fetchFromGitHub {
-    owner = "luigy";
+    owner = "obsidiansystems";
     repo = "hashable";
-    rev = "97a6fc77b028b4b3a7310a5c2897b8611e518870";
-    sha256 = "1rl55p5y0mm8a7hxlfzhhgnnciw2h63ilxdaag3h7ypdx4bfd6rs";
+    rev = "1008a580f2dd3ebd4931e7d8cb36d1347a1e9dc6";
+    sha256 = "1zdd7qjv9k6332h4c6frjjfavknzzffw4ayv8q4f2zh9w774hzli";
   }) {}) self.text;
   conduit-extra = haskellLib.overrideCabal super.conduit-extra (drv: {
     src = "${fetchFromGitHub {

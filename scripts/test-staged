@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+(
+CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean') # This crazy workaround ensures that it will work on both Mac OS and Linux; see https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
+DIFF=$(mktemp 2>/dev/null || mktemp -t 'diff')
+trap "rm \"$DIFF\" ; rm -rf \"$CLEAN\"" EXIT
+
+git clone -n "$DIR" "$CLEAN"
+git -C "$CLEAN" checkout "$(git -C "$DIR" rev-parse HEAD)"
+git -C "$DIR" diff --cached >"$DIFF"
+if [ -s "$DIFF" ] ; then
+    git -C "$CLEAN" apply --index <"$DIFF"
+fi
+
+cd $CLEAN
+
+nice ./scripts/test "$@"
+)

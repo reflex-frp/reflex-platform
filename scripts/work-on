@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+if [ "$#" -lt 2 ] ; then
+  echo "Usage: $0 PLATFORM PACKAGE ..."
+  echo "  PLATFORM can be either \"ghc\" or \"ghcjs\""
+  echo "  PACKAGE can be any cabal package name or a path (including at least one '/' character) to a nix expression representing a cabal package"
+  echo "  Any extra arguments will be passed along to nix-shell"
+  echo
+  echo "This script will drop you into a nix shell with access to the prerequisites of the chosen package on the chosen platform.  From there, you should be able to cabal configure [--ghcjs], cabal build, and cabal test.  Note that cabal install will not interoperate with Nix packages, and may not work at all."
+  exit 1
+fi
+
+. "$DIR/scripts/common-setup.sh"
+
+PLATFORM="$1"
+shift
+PACKAGE="$1"
+shift
+
+if echo "$PLATFORM" | grep -q '^(.*)$' ; then
+    EFFECTIVE_PLATFORM="$PLATFORM"
+elif echo "$PLATFORM" | grep -q / ; then
+    PLATFORM_PATH="$(cleanup_nix_path "$PLATFORM")"
+    EFFECTIVE_PLATFORM="(import $PLATFORM { reflex-platform = this; try-reflex = builtins.trace \"WARNING: the try-reflex parameter is deprecated; please update your script to refer to reflex-platform instead\" this; })"
+else
+    EFFECTIVE_PLATFORM="this.$PLATFORM"
+fi
+
+PACKAGE_INVOCATION="$(package_invocation "$EFFECTIVE_PLATFORM" "$PACKAGE")"
+
+terminate_logging
+nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $EFFECTIVE_PLATFORM $PACKAGE_INVOCATION" "$@"

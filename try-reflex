@@ -3,7 +3,7 @@ set -euo pipefail
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-. "$DIR/common-setup.sh"
+. "$DIR/scripts/common-setup.sh"
 
 ROOT_PERMISSION_FIX_SUGGESTION="please use your operating system's \"repair permissions\" feature, if it has one, or manually remove write permissions for your user from the '/' directory."
 

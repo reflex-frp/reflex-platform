@@ -6,11 +6,11 @@ Fork, then clone the repo:
 
 Make sure the tests pass:
 
-    ./test
+    ./scripts/test
 
 Make your change. Don't forget to add tests and documentation for your change! Stage or commit your changes locally, and make sure the tests pass:
 
-    ./test-staged
+    ./scripts/test-staged
 
 Push to your fork and [submit a pull request][pr].
 

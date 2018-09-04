@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+REV="$1"
+
+NIX_PREFETCH_SCRIPTS="$(nix-build --no-out-link -E "(import \"$DIR/nixpkgs\" {}).nix-prefetch-scripts")"
+
+GITHUB_ARCHIVE_URL="https://github.com/reflex-frp/reflex-platform/archive/$REV.tar.gz"
+
+SHA256="$($NIX_PREFETCH_SCRIPTS/bin/nix-prefetch-zip --hash-type sha256 "$GITHUB_ARCHIVE_URL")"
+
+REFLEX_HUGE_TABLE="$(nix-build --no-out-link -E "$(cat <<EOF
+let inherit (import "$DIR/nixpkgs" {}) fetchFromGitHub fetchgit runCommand;
+    reflexPlatformSrcOrig = fetchFromGitHub {
+      owner = "reflex-frp";
+      repo = "reflex-platform";
+      rev = "$REV";
+      sha256 = "$SHA256";
+    };
+    reflexPlatformSrc = runCommand "reflex-platform-hashfix" {
+      inherit reflexPlatformSrcOrig;
+    } ''
+      set -x
+      mkdir -p "\$out"
+      cd "\$out"
+      cp -r --no-preserve=mode "\$reflexPlatformSrcOrig"/* .
+      find . -type f \( -name '*.nix' -o -name '*.json' \) -print0 | xargs -0 sed -i "
+        s/c8de821d548443779bc9cfe1df4d3a5c76e010b3b1b59c08a6779be1d25031ee/03nnlab796bbwvdb9yvb5wqapp2s50q9m69v4kwpf77yvhj1r86y/;
+        s/f8e8b392b299c3ad2e750191db14e0d99e38258f72f2db85ab1332766b03c25e/0z7v3d2sbcvj5l5kvshjy0nna9k3drwd70d3fkyry32mdgsssl88/;
+        s/1rfigiipqsnbj4grg05ch9anaa0kc1aawfic5h10h6rlpgslrrhf\|0ee64cf5bb341b08022c2c3aae54601328655582ac80971f91cb6a7c637cd1e5/0ivnkbn6w969m5dmavy0yj0fgbznabc3krw1nh05pqf2anhn6p12/;
+        s/1v3wvn4hvylzcnxbzkyqrbdv1h7id2v72xnbpkgrrmxwrrxbajvz\|7f4bb57acebcd79cdfbccb7671b668f1c0b0dbcad8cfbfba659ffa0d89dd7cec/1kswds0na916zrybz1f89z1xwg6p1ppzcsar96fb44z787kl83sw/;
+        s/0z4f07id353n20w7pdnbpb5yp089k7b9ggvnsqlimq3qz0a2c9aa\|4a252614f878e01a29d676bf97d6990981ebcbbacbb67b38107694d1e2018e7c/1s3fwzc29ha4k41hwk5dvf4l1y6dhwmzsrpv0xhgxrxs6givgs9r/;
+        s/103n9q43rl2n3vga18f60q3wiibnjsf02fnm1hbn4p365yqfyy3v\|7b78efb02f665c62170cd53a019c9676c5c80706c6a1a0de1e56d03c084e7680/1vrcasswi5g91iynmznwa5s0n6wiqxlvrs70zbgn8gxd5rjic9l1/;
+        s/1nwrp7x64rnca88q2c6jnzyivcrglijinw792hmq0mspf6w38gk7\|673e34b8715757802b14e9701b65a42fb31dfdb7d230811152cc6662fab999db/0ap005by22s3d24l63n1fhgi1n2l8prb4p5ff5brflj6qdhkdick/;
+        s/0y8q6nxp34xiwz4a0nqvkl0501x4apa6w9bbhv7p1pqc2v8jbbwa\|8aaf25d1160cdf70cf866b256ed455a40750009d1b5ba0c8e7b19371bb351879/1q1wzlpkc37m2ncgf11vjqc3k5jinr9lcyjm6gshcayk16wy8bwn/;
+      "
+    '';
+    reflexPlatform = import reflexPlatformSrc {
+      enableLibraryProfiling = true;
+    };
+    reflexHugeTableSrc = fetchFromGitHub {
+      owner = "reflex-frp";
+      repo = "reflex-huge-table";
+      rev = "36eab1e1bebca086c8d92782f0e35dce29898309";
+      sha256 = "1186iw4rpfhspiava2pfixgk37kqxac86xb5n8z4k6pk62a4c8zc";
+    };
+    reflexHugeTable = reflexPlatform.overrideCabal (reflexPlatform.ghc.callPackage (reflexPlatform.cabal2nixResult reflexHugeTableSrc) {}) (drv: {
+      enableExecutableProfiling = true;
+    });
+in reflexHugeTable
+EOF
+)")"
+
+COMMIT_TIMESTAMP="$(TZ=UTC git show -s --format=%cd --date='format-local:%Y-%m-%d_%H:%M:%S' "$REV")"
+OUTDIR="prof-huge-table-results/${COMMIT_TIMESTAMP}_$REV"
+mkdir -p "$OUTDIR"
+cd "$OUTDIR"
+xvfb-run -a "$REFLEX_HUGE_TABLE/bin/reflex-huge-table" +RTS -p

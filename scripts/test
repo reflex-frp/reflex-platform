@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+cd $DIR
+
+nix-shell $NIXOPTS -E "{path}: let this = import path {}; in this.nixpkgs.runCommand \"shell\" { buildInputs = [ (this.ghc.ghcWithPackages (p: with p; [ shelly hspec ])) ]; } \"\"" --argstr path "$DIR/." --show-trace --command "runghc $(printf "%q " "$DIR/scripts/test.hs" "$@") ; exit $?"
