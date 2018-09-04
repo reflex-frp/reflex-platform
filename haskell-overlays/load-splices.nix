@@ -28,16 +28,24 @@ self: super: {
       fi
       chmod -R +w "${LOCAL_SPLICE_DIR}"
 
+      set +o pipefail
       # The target package also needs to be replaced.
       if [ -f dist/setup-config ]; then
-          strings dist/setup-config | sed -n 's/^!\(${drv.pname}\)-\([0-9.]\+\)-\(.\{21\}\).*$/s,\1-\2-[a-zA-Z0-9]\\{21\\},\1-\2-\3,/p' | head -n1 >> $TMPDIR/seds
+          pkgmatch=$(strings dist/setup-config | sed -n 's/^.*\([^[:alpha:]\{1\}]\)\(${drv.pname}\)-\([0-9\.]*\)-\([[:alnum:]]\{20,25\}\)/s,[^[:alpha:]\{1\}]\2-\3-[[:alnum:]]\\+,\1\2-\3-\4,/p' | head -n1)
+          if [ $? -eq 0 ] && [ ! -z "$pkgmatch" ]; then
+            echo "$pkgmatch" >> $TMPDIR/seds
+          else
+            echo "No package with ${drv.pname} found on dist/setup-config"
+          fi
+          echo "s,\x0binteger-gmp,\x0einteger-simple," >>  $TMPDIR/seds
       fi
+      set -o pipefail
 
       # Generate a list of sed expressions from a package list. Each
       # expression will match a package name with a random hash and replace it
       # with our package db's expected hash. This relies on the hash being
       # exactly 22 characters.
-      ghc-pkg --package-db="$packageConfDir" list -v 2>/dev/null | sed -n 's/^ .*(\(\(.*\)-.\{22\}\))$/s,\2-[a-zA-Z0-9]\\{22\\},\1,/p' >> $TMPDIR/seds
+      ghc-pkg --package-db="$packageConfDir" list -v 2>/dev/null | awk ' { match($2, /\((.*)-([[:alnum:]]+)\)/, arr); out = sprintf("%s-%s", arr[1], arr[2]); if (length(arr[2]) > 0) printf("s,[^[:alpha:]]%s-[[:alnum:]]\\+,\\x%x%s,\n",arr[1], length(out), out); }' >> $TMPDIR/seds
 
       if [ -f $TMPDIR/seds ] && [ -n "$(<$TMPDIR/seds)" ]; then
           echo reticulating splices...
