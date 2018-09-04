@@ -20,6 +20,7 @@ in nixpkgs.lib.genAttrs cacheTargetSystems (system:
     reflexPlatform = (import ./. { inherit system; iosSupportForce = true; });
   in {
     tryReflexShell = reflexPlatform.tryReflexShell;
+    skeleton-test = import ./skeleton-test.nix { this = reflexPlatform; };
   } // nixpkgs.lib.listToAttrs
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflexPlatform))
 ) // {

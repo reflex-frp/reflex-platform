@@ -1,3 +1,17 @@
-### Arch Linux is broken
+## Arch Linux Build Instructions
 
-As of April 11th, 2017, Arch Linux does not seem to be able to run Nix.  See this ticket: https://github.com/NixOS/nix/issues/879
+### Installing Nix
+```
+git clone https://aur.archlinux.org/nix.git
+cd nix
+makepkg -sic
+sudo systemctl enable --now nix-daemon.socket
+```
+You must restart your system for nix's environmental variables to take effect.
+
+### Running reflex-platform
+```
+git clone https://github.com/reflex-frp/reflex-platform/
+cd reflex-platform
+./try-reflex
+```
