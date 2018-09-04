@@ -65,6 +65,15 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
 
 `try-reflex` and `ghcjs --make` are not recommended for real-world projects — just as a quick and easy way to install Nix and experiment with `reflex-dom`. If you need to use additional Haskell libraries (e.g. from Hackage), we recommend using the tools described in [project-development.md](docs/project-development.md) instead.
 
+Haddock
+----
+If you've already set up nix, haddock documentation for the versions pinned by your current reflex-plaftorm can be browsed by running
+
+```shell
+$ ./scripts/docs-for reflex
+$ ./scripts/docs-for reflex-dom
+```
+
 Tutorial
 --------
 In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a simple functional reactive calculator to be used in a web browser.
