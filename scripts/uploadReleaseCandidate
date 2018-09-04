@@ -8,7 +8,7 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 HACKAGE_USER="$1"
 PKG="$2"
 
-RC="$(nix-build $DIR --no-out-link -A "releaseCandidates.$PKG")"
+RC="$(nix-build --no-out-link $NIXOPTS -E "let this = import $DIR/. {}; in this.mkReleaseCandidate $(package_invocation "this.ghc" "$PKG")")"
 PKGNAME="$(cat "$RC/pkgname")"
 
 echo -n "Hackage password: "
