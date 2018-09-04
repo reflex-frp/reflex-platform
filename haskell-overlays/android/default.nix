@@ -1,4 +1,4 @@
-{ haskellLib, jdk }:
+{ haskellLib, jdk, androidActivity }:
 
 self: super: {
   ghc = super.ghc // {
@@ -8,7 +8,7 @@ self: super: {
       };
     };
   };
-  android-activity = self.callPackage ../../android/android-activity {
+  android-activity = self.callPackage androidActivity {
     inherit jdk;
   };
 
@@ -18,6 +18,8 @@ self: super: {
   # Break version bounds on base for GHC HEAD.
   lifted-async = haskellLib.doJailbreak super.lifted-async;
   safe-exceptions = haskellLib.doJailbreak super.safe-exceptions;
+
+  blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
 
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;
