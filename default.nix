@@ -13,28 +13,26 @@
 let iosSupport = system != "x86_64-darwin";
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
-        libiconv =
-          if self.hostPlatform == self.buildPlatform
-          then super.darwin.libiconv
-          else super.darwin.libiconv.overrideAttrs (o: {
+        libiconv = super.darwin.libiconv.overrideAttrs (_:
+          lib.optionalAttrs (self.hostPlatform != self.buildPlatform) {
             postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
             configureFlags = ["--disable-shared" "--enable-static"];
-        });
+          });
       };
     };
-    androidPICPatches = self: super: {
+    androidPICPatches = self: super: (optionalAttrs super.targetPlatform.useAndroidPrebuilt {
       haskell = super.haskell // {
-        compiler = super.haskell.compiler // {
-          integer-simple = super.haskell.compiler.integer-simple // {
-            ghc843 = super.haskell.compiler.integer-simple.ghc843
-                     .overrideAttrs (drv: {
+        compiler = let
+          f = lib.mapAttrs (n: v: v.overrideAttrs (drv:
+            optionalAttrs (builtins.elem n ["ghc843" "ghcHEAD"]) {
               patches = (drv.patches or [])
-                      ++ [ ./android/patches/force-relocation.patch ];
-            });
-          };
+                ++ [ ./android/patches/force-relocation.patch ];
+            }));
+        in f super.haskell.compiler // {
+          integer-simple = f super.haskell.compiler.integer-simple;
         };
       };
-    };
+    });
     nixpkgsArgs = {
       config = {
         permittedInsecurePackages = [
@@ -151,12 +149,12 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       src = "file://${src}";
       sha256 = null;
     });
-    addReflexTraceEventsFlag = if enableTraceReflexEvents
-      then drv: appendConfigureFlag drv "-fdebug-trace-events"
-      else drv: drv;
-    addFastWeakFlag = if useFastWeak
-      then drv: enableCabalFlag drv "fast-weak"
-      else drv: drv;
+    addReflexTraceEventsFlag = drv: if enableTraceReflexEvents
+      then appendConfigureFlag drv "-fdebug-trace-events"
+      else drv;
+    addFastWeakFlag = drv: if useFastWeak
+      then enableCabalFlag drv "fast-weak"
+      else drv;
     ghcjsPkgs = ghcjs: self: super: {
       ghcjs = ghcjs.overrideAttrs (o: {
         patches = (o.patches or [])
@@ -252,9 +250,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
             jsaddlePkgs = import (hackGet ./jsaddle) self;
             gargoylePkgs = self.callPackage (hackGet ./gargoyle) self;
             ghcjsDom = import (hackGet ./ghcjs-dom) self;
-            addReflexOptimizerFlag = if useReflexOptimizer
-              then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
-              else drv: drv;
+            addReflexOptimizerFlag = drv: if useReflexOptimizer
+              then appendConfigureFlag drv "-fuse-reflex-optimizer"
+              else drv;
         in {
 
         ########################################################################
