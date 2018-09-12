@@ -65,7 +65,7 @@ let iosSupport = system != "x86_64-darwin";
     androidPICPatches = self: super: (optionalAttrs super.targetPlatform.useAndroidPrebuilt {
       haskell = super.haskell // {
         compiler = lib.mapAttrs (n: v: v.overrideAttrs (drv:
-          optionalAttrs (builtins.elem n ["ghc843" "ghcHEAD"]) {
+          optionalAttrs (builtins.elem n ["ghc843" "ghcHEAD" "ghcSplices"]) {
           patches = (drv.patches or [])
                     ++ [ ./android/patches/force-relocation.patch ];
         })) super.haskell.compiler;
