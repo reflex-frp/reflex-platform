@@ -5,15 +5,6 @@ self: super: {
   enclosed-exceptions = dontCheck super.enclosed-exceptions; # see https://github.com/jcristovao/enclosed-exceptions/issues/12
   haddock-library-ghcjs = dontCheck super.haddock-library-ghcjs;
   haddock-api-ghcjs = dontCheck super.haddock-api-ghcjs;
-
-  # Versions that haven’t made it into the Haskell LTS release yet
-  testing-feat = super.testing-feat_1_1_0_0;
-  snap = super.snap_1_1_1_0;
-  snap-server = super.snap-server_1_1_0_0;
-  heist = dontCheck super.heist_1_1;
-  map-syntax = super.map-syntax_0_3;
-  logging-effect = super.logging-effect_1_3_1;
-
   algebraic-graphs = doJailbreak super.algebraic-graphs;
 
   # Broken in master

@@ -1,4 +1,4 @@
-{ haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer, hackGet }:
+{ haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer, hackGet, ghcjsBaseSrc }:
 
 with haskellLib;
 
@@ -10,63 +10,25 @@ self: super: {
     ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
 
-  ghcjs-base = overrideCabal (self.callCabal2nix "ghcjs-base" (fetchFromGitHub {
-    owner = "ghcjs";
-    repo = "ghcjs-base";
-    rev = "b4a8d578758613e5c7db88891f444ff5e6f3edb9";
-    sha256 = "117i9fwm1chym812zs1v2shxz0zl3s0p6hpc4sv0lnqgsribdrbn";
-  }) {}) (drv: {
-    jailbreak = true;
-    doCheck = false; #TODO: This should be unnecessary
-    patches = (drv.patches or []) ++ [./ghcjs-base.patch];
-    #TODO: This should be unnecessary
-    preConfigure = (drv.preConfigure or "") + ''
-      sed -i -e '/jsbits\/export.js/d' -e '/GHCJS\.Foreign\.Export/d' *.cabal
-    '';
-  });
+  ghcjs-base = doJailbreak (dontCheck (self.callCabal2nix "ghcjs-base" ghcjsBaseSrc {}));
 
   ghc = super.ghc // {
     withPackages = self.ghcWithPackages;
   };
 
-  diagrams-lib = dontCheck super.diagrams-lib;
-  linear = dontCheck super.linear;
-  bytes = dontCheck super.bytes;
-
   hlint = null;
   hscolour = null;
   cabal-macosx = null;
-
-  #TODO: The following packages' tests fail due to this error:
-  # installHandler: not available for GHCJS
-  tasty-quickcheck = dontCheck super.tasty-quickcheck;
-  scientific = dontCheck super.scientific;
-  uuid-types = dontCheck super.uuid-types;
-  these = dontCheck super.these;
-
-  #TODO: These look like real test failures:
-  aeson = dontCheck super.aeson;
-  # Also, pureMD5 is failing
-
-  #TODO: The following packages' tests fail with errors like this:
-  # Error: Cannot find module '/tmp/nix-build-hspec-discover-2.4.4.drv-0/hspec-discover-2.4.4/var h$currentThread = null;'
-  hspec-core = dontCheck super.hspec-core;
-  hspec-discover = dontCheck super.hspec-discover;
-  hspec = dontCheck super.hspec;
-  bifunctors = dontCheck super.bifunctors;
-  base-compat = dontCheck super.base-compat;
-  generic-deriving = dontCheck super.generic-deriving;
-  newtype-generics = dontCheck super.newtype-generics;
-  lens = disableCabalFlag (dontCheck super.lens) "test-properties";
 
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = builtins.trace "Warning: ignoring dependency on doctest" null;
 
   # These packages require doctest
+  comonad = dontCheck super.comonad;
   http-types = dontCheck super.http-types;
-
-  #TODO: Fix this; it seems like it might indicate a bug in ghcjs
-  parsec = dontCheck super.parsec;
+  lens = disableCabalFlag (disableCabalFlag (dontCheck super.lens) "test-properties") "test-doctests";
+  semigroupoids = disableCabalFlag super.semigroupoids "doctests";
+  these = dontCheck super.these;
 
   # Need newer version of colour for some reason.
   colour = dontCheck (super.colour.overrideAttrs (drv: {
@@ -75,6 +37,4 @@ self: super: {
       sha256 = "1sy51nz096sv91nxqk6yk7b92b5a40axv9183xakvki2nc09yhqg";
     };
   }));
-
-  primitive = doJailbreak (self.callHackage "primitive" "0.6.3.0" {});
 }

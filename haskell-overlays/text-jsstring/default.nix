@@ -4,26 +4,20 @@ with lib;
 with haskellLib;
 
 self: super: {
-  text = self.callCabal2nix "text" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "text";
-    rev = "083230324ed55475ce1c3da303b1076b9bf5617f";
-    sha256 = "0fg06pdpdi8rcmg83raj9b77s0y74ky585pibw0brv6m8krkn0kw";
-  }) {};
+  # text = (doCheck (self.callCabal2nix "text" (fetchFromGitHub {
+  #   owner = "obsidiansystems";
+  #   repo = "text";
+  #   rev = "50076be0262203f0d2afdd0b190a341878a08e21";
+  #   sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
+  # }) {})).overrideScope (self: super: {
+  #   text = null;
+  #   QuickCheck = haskellLib.addBuildDepend (self.callHackage "QuickCheck" "2.9.2" {}) self.tf-random;
+  # });
+  # parsec = dontCheck (self.callHackage "parsec" "3.1.13.0" {});
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
       self.ghcjs-prim
-    ];
-  });
-  ghcjs-base = overrideCabal super.ghcjs-base (drv: {
-    patches = (drv.patches or []) ++ [
-      ./ghcjs-base-text-jsstring.patch
-    ];
-    libraryHaskellDepends = with self; [
-      base bytestring containers deepseq dlist ghc-prim
-      ghcjs-prim integer-gmp primitive time
-      transformers vector
     ];
   });
   attoparsec = overrideCabal super.attoparsec (drv: {
@@ -55,14 +49,7 @@ self: super: {
       ./hashable.patch
     ];
   });
-  conduit-extra = overrideCabal super.conduit-extra (drv: {
-    src = "${fetchFromGitHub {
-      owner = "luigy";
-      repo = "conduit";
-      rev = "aeb20e4eb7f7bfc07ec401c82821cbb04018b571";
-      sha256 = "10kz2m2yxyhk46xdglj7wdn5ba2swqzhyznxasj0jvnjcnv3jriw";
-    }}/conduit-extra";
-  });
+  conduit-extra = dontCheck (appendPatch super.conduit-extra ./conduit-extra-text-jsstring.patch);
   double-conversion = overrideCabal super.double-conversion (drv: {
     src = fetchFromGitHub {
       owner = "obsidiansystems";
@@ -79,12 +66,5 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  vector = overrideCabal super.vector (drv: {
-    buildDepends = filter (p: p.pname != "semigroups") drv.buildDepends;
-  });
-
-  #TODO: Fix this failure
-  th-lift-instances = dontCheck super.th-lift-instances;
-
   aeson = appendPatch super.aeson ./aeson.patch;
 }
