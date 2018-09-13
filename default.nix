@@ -17,8 +17,7 @@ let iosSupport = system != "x86_64-darwin";
       haskell = super.haskell // {
         compiler = let
           spliceGhc = ghc: ghc.overrideAttrs (drv: {
-            patches = (drv.patches or [])
-                   ++ [ ./splices.patch ./haddock.patch ./splices-names.patch ];
+            patches = (drv.patches or []) ++ [ ./splices.patch ./haddock.patch ];
           });
         in super.haskell.compiler // {
           ghcSplices = spliceGhc super.haskell.compiler.ghc843;
@@ -385,7 +384,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.saveSplices
       (self: super: {
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
-        integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
       })
     ];
