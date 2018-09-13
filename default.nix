@@ -12,7 +12,7 @@
 }:
 let iosSupport = system != "x86_64-darwin";
 
-    # overlay for GHC with -load-splices & -save-splices option
+    # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
@@ -23,10 +23,10 @@ let iosSupport = system != "x86_64-darwin";
           });
         };
         packages = super.haskell.packages // {
-          ghcSplices = (super.haskell.packages.ghc843.override {
+          ghcSplices = super.haskell.packages.ghc843.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices;
             ghc = self.buildPackages.haskell.compiler.ghcSplices;
-          });
+          };
         };
       };
     };
