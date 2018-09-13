@@ -37,7 +37,6 @@ self: super: {
           else
             echo "No package with ${drv.pname} found on dist/setup-config"
           fi
-          echo "s,\x0binteger-gmp,\x0einteger-simple," >>  $TMPDIR/seds
       fi
       set -o pipefail
 
