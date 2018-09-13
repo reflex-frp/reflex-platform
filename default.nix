@@ -382,6 +382,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_4
       haskellOverlays.saveSplices
+      (self: super: {
+        cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
+      })
     ];
   };
   ghcjs8_2 = (extendHaskellPackages ghcjs8_2Packages).override {
