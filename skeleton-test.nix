@@ -18,7 +18,7 @@ let
     '';
     buildPhase = ''
       HOME=$NIX_BUILD_TOP
-      cabal new-build all --project-file=${projectFile}
+      cabal new-build all --project-file=${projectFile} ${if this.nixpkgs.stdenv.isDarwin then "--ghc-option=-dynamic" else ""}
     '';
     installPhase = ''
       mv ./dist-newstyle $out
