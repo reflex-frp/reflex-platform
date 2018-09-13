@@ -4,8 +4,8 @@ let
   skeletonSrc = this.nixpkgs.fetchFromGitHub {
     owner = "ElvishJerricco";
     repo = "reflex-project-skeleton";
-    rev = "27d6181af3cd77b04d5e5d441b31c04421215338";
-    sha256 = "1lv52mbmgrvr4jan1axy7kxy4kx51p1rzchx71rf6zg22zlvcdla";
+    rev = "d1cf6b26a9aa08b192e3e81ae07a4ba00064d6d2";
+    sha256 = "05a3rq4ar77fpwl05z7niz025lp5wrwxzzz804jvwkamvyjxsyf2";
     fetchSubmodules = false; # Not interested in its reflex-platform checkout
   };
 
