@@ -384,6 +384,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.saveSplices
       (self: super: {
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
+        scientific = enableCabalFlag super.scientific "integer-simple";
       })
     ];
   };
