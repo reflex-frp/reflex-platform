@@ -11,7 +11,7 @@
 , nixpkgsOverlays ? []
 }:
 let iosSupport = system == "x86_64-darwin";
-    androidSupport = system == "x86_64-linux";
+    androidSupport = nixpkgs.stdenv.hostPlatform.isLinux && nixpkgs.stdenv.hostPlatform.isx86;
 
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
