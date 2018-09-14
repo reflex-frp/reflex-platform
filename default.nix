@@ -449,7 +449,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   };
   iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
   iosAarch64 = iosWithHaskellPackages ghcIosAarch64;
-  iosWithHaskellPackages = nixpkgsCross: {
+  iosWithHaskellPackages = ghc: {
     buildApp = import ./ios { inherit nixpkgs ghc; };
   };
 in let this = rec {
