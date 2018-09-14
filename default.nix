@@ -290,8 +290,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 
         # another broken test
         # phantomjs has issues with finding the right port
-        # jsaddle-warp = dontCheck (addTestToolDepend jsaddlePkgs.jsaddle-warp nixpkgs.phantomjs);
-        jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
+        # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
+        jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
         jsaddle-dom = self.callPackage (hackGet ./jsaddle-dom) {};
 
