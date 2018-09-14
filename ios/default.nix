@@ -1,5 +1,4 @@
-{ nixpkgs, ghcIosAarch64
-}:
+{ nixpkgs, ghc }:
 
 { #TODO
   bundleName
@@ -106,7 +105,7 @@ let
     '';
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
-  exePath = package ghcIosAarch64;
+  exePath = package ghc;
   infoPlist = builtins.toFile "Info.plist" (nixpkgs.lib.generators.toPlist {} infoPlistData);
   resourceRulesPlist = builtins.toFile "ResourceRules.plist" (nixpkgs.lib.generators.toPlist {} {
     rules = {

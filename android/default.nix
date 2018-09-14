@@ -4,7 +4,6 @@ env@{
 , ghcAndroidAarch64
 , ghcAndroidAarch32
 , overrideCabal
-, ...
 }:
 with nixpkgs.lib.strings;
 let impl = import ./impl.nix env;
