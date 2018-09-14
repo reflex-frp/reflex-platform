@@ -704,7 +704,8 @@ in let this = rec {
   } "";
 
   # The systems that we want to build for on the current system
-  cacheTargetSystems = [
+  cacheTargetSystems = builtins.trace "Warning: cacheTargetSystems has been deprecated, use cacheBuildSystems" cacheBuildSystems;
+  cacheBuildSystems = [
     "x86_64-linux"
     # "i686-linux"
     "x86_64-darwin"

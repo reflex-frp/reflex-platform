@@ -13,7 +13,7 @@ let local-reflex-platform = import ./. {};
       ]
     );
 
-in lib.genAttrs local-reflex-platform.cacheTargetSystems (system:
+in lib.genAttrs local-reflex-platform.cacheBuildSystems (system:
   let
     reflex-platform = (import ./. { inherit system; });
   in {

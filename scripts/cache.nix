@@ -1,7 +1,7 @@
 with import ./.. {};
 let inherit (nixpkgs.lib) optionals;
     inputs = builtins.concatLists [
-      (map (system: (import ./.. { inherit system; }).cachePackages) cacheTargetSystems)
+      (map (system: (import ./.. { inherit system; }).cachePackages) cacheBuildSystems)
     ];
     getOtherDeps = reflexPlatform: [
       reflexPlatform.nixpkgs.cabal2nix
@@ -15,6 +15,6 @@ let inherit (nixpkgs.lib) optionals;
       ]
     );
     otherDeps = builtins.concatLists (
-      map (system: getOtherDeps (import ./.. { inherit system; })) cacheTargetSystems
+      map (system: getOtherDeps (import ./.. { inherit system; })) cacheBuildSystems
     ) ++ [(import ./benchmark.nix {})];
 in pinBuildInputs "reflex-platform" inputs otherDeps
