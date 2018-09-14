@@ -427,42 +427,42 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       (optionalExtension useTextJSString haskellOverlays.textJSString)
     ];
   };
-  ghcHEAD = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
+  ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-head
     ];
   };
-  ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc821).override {
+  ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghc = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc802).override {
+  ghc = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc802).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8
     ];
   };
-  ghc7 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc7103).override {
+  ghc7 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc7103).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7
     ];
   };
-  ghc7_8 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc784).override {
+  ghc7_8 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc784).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7_8
     ];
   };
-  ghcAndroidAarch64 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.pkgs.haskell.packages.ghc821).override {
+  ghcAndroidAarch64 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -471,7 +471,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.android
     ];
   };
-  ghcAndroidAarch32 = (makeRecursivelyOverridable nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821).override {
+  ghcAndroidAarch32 = (makeRecursivelyOverridable nixpkgsCross.android.armv7aImpure.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -480,14 +480,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.android
     ];
   };
-  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821).override {
+  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghcIosAarch64 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.pkgs.haskell.packages.ghc821).override {
+  ghcIosAarch64 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -496,7 +496,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
     ];
   };
-  ghcIosAarch32 = (makeRecursivelyOverridable nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821).override {
+  ghcIosAarch32 = (makeRecursivelyOverridable nixpkgsCross.ios.armv7.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
