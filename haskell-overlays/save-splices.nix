@@ -31,7 +31,4 @@ self: super: {
   # Can’t build it outside of android. Hopefully no one wants to use
   # template haskell with it.
   android-activity = null;
-
-  # Disable wkwebview. It doesn’t evaluate natively somehow.
-  jsaddle-wkwebview = null;
 }
