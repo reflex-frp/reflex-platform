@@ -383,6 +383,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
+        dependent-sum-template = dontCheck super.dependent-sum-template;
       })
     ];
   };
