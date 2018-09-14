@@ -1,4 +1,3 @@
-{}:
 let local-reflex-platform = import ./. {};
     inherit (local-reflex-platform.nixpkgs) lib;
     getOtherDeps = reflex-platform: [
@@ -29,7 +28,10 @@ in lib.genAttrs local-reflex-platform.cacheTargetSystems (system:
     ghcReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
     skeleton-test = import ./skeleton-test.nix { this = reflex-platform; };
     benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
-    inherit (reflex-platform) iosReflexTodomvc androidReflexTodomvc;
+  } // lib.optionalAttrs (reflex-platform.androidSupport) {
+    inherit (reflex-platform) androidReflexTodomvc;
+  } // lib.optionalAttrs (reflex-platform.iosSupport) {
+    inherit (reflex-platform) iosReflexTodomvc;
   } // lib.listToAttrs
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflex-platform))
   )
