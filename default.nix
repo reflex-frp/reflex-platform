@@ -10,8 +10,8 @@
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
 }:
-let iosSupport = system != "x86_64-darwin";
-    androidSupport = system != "x86_64-linux";
+let iosSupport = system == "x86_64-darwin";
+    androidSupport = system == "x86_64-linux";
 
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
@@ -773,7 +773,7 @@ in let this = rec {
     };
   }).config.system.build.virtualBoxOVA;
 
-  inherit cabal2nixResult system iosSupport;
+  inherit cabal2nixResult system androidSupport iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
