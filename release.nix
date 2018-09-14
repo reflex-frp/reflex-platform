@@ -1,36 +1,35 @@
 {}:
-with import ./. {};
-let inherit (nixpkgs.lib) optionals;
-    getOtherDeps = reflexPlatform: [
-      reflexPlatform.nixpkgs.cabal2nix
-      reflexPlatform.ghc.cabal2nix
+let local-reflex-platform = import ./. {};
+    inherit (local-reflex-platform.nixpkgs) lib;
+    getOtherDeps = reflex-platform: [
+      reflex-platform.nixpkgs.cabal2nix
+      reflex-platform.ghc.cabal2nix
     ] ++ builtins.concatLists (map
-      (crossPkgs: optionals (crossPkgs != null) [
+      (crossPkgs: lib.optionals (crossPkgs != null) [
         crossPkgs.buildPackages.haskellPackages.cabal2nix
       ]) [
-        reflexPlatform.nixpkgsCross.ios.aarch64
-        reflexPlatform.nixpkgsCross.android.aarch64
-        reflexPlatform.nixpkgsCross.android.aarch32
+        reflex-platform.nixpkgsCross.ios.aarch64
+        reflex-platform.nixpkgsCross.android.aarch64
+        reflex-platform.nixpkgsCross.android.aarch32
       ]
     );
 
-in nixpkgs.lib.genAttrs cacheTargetSystems (system:
+in lib.genAttrs local-reflex-platform.cacheTargetSystems (system:
   let
-    reflexPlatform = (import ./. { inherit system; });
+    reflex-platform = (import ./. { inherit system; });
   in {
-    tryReflexShell = reflexPlatform.tryReflexShell;
-    ghcjsReflexTodomvc = ghcjs.reflex-todomvc.overrideAttrs (attrs: {
+    tryReflexShell = reflex-platform.tryReflexShell;
+    ghcjsReflexTodomvc = reflex-platform.ghcjs.reflex-todomvc.overrideAttrs (attrs: {
       postInstall = ''
         ${attrs.postInstall or ""}
         mkdir -p $out/nix-support
         echo $out/bin/reflex-todomvc.jsexe >> $out/nix-support/hydra-build-products
       '';
     });
-    ghcReflexTodomvc = ghc.reflex-todomvc;
-    skeleton-test = import ./skeleton-test.nix { this = reflexPlatform; };
-  } // nixpkgs.lib.listToAttrs
-    (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflexPlatform))
-) // {
-  benchmark = import ./scripts/benchmark.nix {};
-  inherit iosReflexTodomvc androidReflexTodomvc;
-}
+    ghcReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
+    skeleton-test = import ./skeleton-test.nix { this = reflex-platform; };
+    benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
+    inherit (reflex-platform) iosReflexTodomvc androidReflexTodomvc;
+  } // lib.listToAttrs
+    (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflex-platform))
+  )
