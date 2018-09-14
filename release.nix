@@ -26,7 +26,7 @@ in lib.genAttrs local-reflex-platform.cacheTargetSystems (system:
       '';
     });
     ghcReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
-    skeleton-test = import ./skeleton-test.nix { this = reflex-platform; };
+    skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
     benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
