@@ -11,6 +11,7 @@
 , nixpkgsOverlays ? []
 }:
 let iosSupport = system != "x86_64-darwin";
+    androidSupport = system != "x86_64-linux";
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv = super.darwin.libiconv.overrideAttrs (_:
@@ -49,18 +50,17 @@ let iosSupport = system != "x86_64-darwin";
         allowUnfree = true;
       } // config;
       overlays = nixpkgsOverlays;
+      inherit system;
     };
-    nixpkgs = nixpkgsFunc (nixpkgsArgs // { inherit system; });
+    nixpkgs = nixpkgsFunc nixpkgsArgs;
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
-          system = "x86_64-linux";
           overlays = nixpkgsArgs.overlays ++ [androidPICPatches];
           crossSystem = lib.systems.examples.aarch64-android-prebuilt;
         };
         aarch32 = {
-          system = "x86_64-linux";
           overlays = nixpkgsArgs.overlays ++ [androidPICPatches];
           crossSystem = lib.systems.examples.armv7a-android-prebuilt;
         };
@@ -70,21 +70,18 @@ let iosSupport = system != "x86_64-darwin";
       };
       ios = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         simulator64 = {
-          system = "x86_64-darwin";
           overlays = nixpkgsArgs.overlays ++ [appleLibiconvHack];
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
           };
         };
         aarch64 = {
-          system = "x86_64-darwin";
           overlays = nixpkgsArgs.overlays ++ [appleLibiconvHack];
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
           };
         };
         aarch32 = {
-          system = "x86_64-darwin";
           overlays = nixpkgsArgs.overlays ++ [appleLibiconvHack];
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
@@ -448,16 +445,12 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
-    nixpkgs = nixpkgsFunc (nixpkgsArgs // { system = "x86_64-linux"; });
-    hostPkgs = nixpkgs;
-    inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
+    inherit nixpkgs nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
-  ios = iosWithHaskellPackages ghcIosAarch64;
-  iosWithHaskellPackages = ghcIosAarch64: {
-    buildApp = import ./ios {
-      inherit ghcIosAarch64;
-      nixpkgs = nixpkgsFunc (nixpkgsArgs // { system = "x86_64-darwin"; });
-    };
+  iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
+  iosAarch64 = iosWithHaskellPackages ghcIosAarch64;
+  iosWithHaskellPackages = nixpkgsCross: {
+    buildApp = import ./ios { inherit nixpkgs ghc; };
   };
 in let this = rec {
   inherit nixpkgs
@@ -482,11 +475,13 @@ in let this = rec {
           ghcjs8_4
           android
           androidWithHaskellPackages
-          ios
+          iosAarch32
+          iosAarch64
           iosWithHaskellPackages
           filterGit;
 
   # Back compat
+  ios = iosAarch64;
   ghcAndroidArm64 = builtins.trace "Warning: ghcAndroidArm64 has been deprecated, using ghcAndroidAarch64 instead." ghcAndroidAarch64;
   ghcAndroidArmv7a = builtins.trace "Warning: ghcAndroidArmv7a has been deprecated, using ghcAndroidAarch32 instead." ghcAndroidAarch32;
   ghcIosArm64 = builtins.trace "Warning: ghcIosArm64 has been deprecated, using ghcIosAarch64 instead." ghcIosAarch64;
@@ -714,13 +709,13 @@ in let this = rec {
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
-    let otherPlatforms = optionals (system == "x86_64-linux") [
+    let otherPlatforms = optionals androidSupport [
           "ghcAndroidAarch64"
           "ghcAndroidAarch32"
         ] ++ optional iosSupport "ghcIosAarch64";
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
-      ++ optionals (system == "x86_64-linux") [
+      ++ optionals androidSupport [
         androidDevTools
         androidReflexTodomvc
       ] ++ optionals iosSupport [
