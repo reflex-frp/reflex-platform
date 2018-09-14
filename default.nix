@@ -384,6 +384,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
         dependent-sum-template = dontCheck super.dependent-sum-template;
+        generic-deriving = dontCheck super.generic-deriving;
       })
     ];
   };
