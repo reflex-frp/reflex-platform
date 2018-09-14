@@ -15,13 +15,13 @@ let iosSupport = system == "x86_64-darwin";
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv = super.darwin.libiconv.overrideAttrs (_:
-          lib.optionalAttrs (self.hostPlatform != self.buildPlatform) {
+          lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
             postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
             configureFlags = ["--disable-shared" "--enable-static"];
           });
       };
     };
-    androidPICPatches = self: super: (optionalAttrs super.targetPlatform.useAndroidPrebuilt {
+    androidPICPatches = self: super: (optionalAttrs super.stdenv.targetPlatform.useAndroidPrebuilt {
       haskell = super.haskell // {
         compiler = let
           f = lib.mapAttrs (n: v: v.overrideAttrs (drv:
