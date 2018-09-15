@@ -1,0 +1,516 @@
+diff --git a/compiler/hsSyn/HsExpr.hs b/compiler/hsSyn/HsExpr.hs
+index dd19271698..074a03f1f1 100644
+--- a/compiler/hsSyn/HsExpr.hs
++++ b/compiler/hsSyn/HsExpr.hs
+@@ -10,7 +10,7 @@
+                                       -- in module PlaceHolder
+ {-# LANGUAGE ConstraintKinds #-}
+ {-# LANGUAGE ExistentialQuantification #-}
+-{-# LANGUAGE DeriveFunctor #-}
++{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
+ {-# LANGUAGE TypeFamilies #-}
+ 
+ -- | Abstract Haskell syntax for expressions.
+@@ -2424,7 +2424,7 @@ data HsMatchContext id -- Not an extensible tag
+   | ThPatSplice            -- ^A Template Haskell pattern splice
+   | ThPatQuote             -- ^A Template Haskell pattern quotation [p| (a,b) |]
+   | PatSyn                 -- ^A pattern synonym declaration
+-  deriving Functor
++  deriving (Functor, Foldable, Traversable)
+ deriving instance (Data id) => Data (HsMatchContext id)
+ 
+ instance OutputableBndr id => Outputable (HsMatchContext id) where
+@@ -2462,7 +2462,7 @@ data HsStmtContext id
+   | PatGuard (HsMatchContext id)     -- ^Pattern guard for specified thing
+   | ParStmtCtxt (HsStmtContext id)   -- ^A branch of a parallel stmt
+   | TransStmtCtxt (HsStmtContext id) -- ^A branch of a transform stmt
+-  deriving Functor
++  deriving (Functor, Foldable, Traversable)
+ deriving instance (Data id) => Data (HsStmtContext id)
+ 
+ isListCompExpr :: HsStmtContext id -> Bool
+diff --git a/compiler/hsSyn/HsExprBin.hs b/compiler/hsSyn/HsExprBin.hs
+index e369759f4d..cce341ce63 100644
+--- a/compiler/hsSyn/HsExprBin.hs
++++ b/compiler/hsSyn/HsExprBin.hs
+@@ -51,8 +51,8 @@ nonEmptyHsSpliceData = not . Map.null . hsSpliceMap
+ 
+ data SpliceResult
+   = SRExpr  (LHsExpr GhcSe)
+-  | SRDecls [LHsDecl GhcSe] -- TODO: change to group
+-  -- TODO: add patterns and types
++  | SRDecls [LHsDecl GhcSe] -- TODO: change to HsGroup ?
++  -- TODO: add patterns and types?
+ 
+ instance Binary SpliceResult where
+   put_ bh r = case r of
+diff --git a/compiler/hsSyn/HsExprBin_Conversions.hs b/compiler/hsSyn/HsExprBin_Conversions.hs
+index 58954945c7..4318481674 100644
+--- a/compiler/hsSyn/HsExprBin_Conversions.hs
++++ b/compiler/hsSyn/HsExprBin_Conversions.hs
+@@ -6,6 +6,9 @@ module HsExprBin_Conversions where
+ 
+ import Control.Applicative
+ import Control.Monad
++import Control.Monad.IO.Class
++import Data.Char (isDigit)
++import Data.List (intercalate)
+ import Data.Maybe
+ import Data.Traversable
+ 
+@@ -13,6 +16,8 @@ import Bag (mapBagM)
+ import BasicTypes (Fixity)
+ import Class
+ import ConLike
++import DynFlags
++import FastString
+ import GhcPrelude
+ import HsBinds
+ import HsDecls
+@@ -21,8 +26,11 @@ import HsExtension
+ import HsLit
+ import HsPat
+ import HsTypes
++import Module
+ import Name
+ import Outputable
++import PackageConfig
++import Packages
+ import PlaceHolder
+ import RdrName
+ import SeName
+@@ -41,22 +49,22 @@ class ConvertType t u where
+   convertType :: t -> u
+ 
+ class ConvertName a b where
+-  convertName :: a -> b
++  convertName :: a -> RnM b
+ 
+ instance ConvertName a b => ConvertName [a] [b] where
+-  convertName = fmap convertName
++  convertName = traverse convertName
+ 
+ instance ConvertName a b => ConvertName (Either e a) (Either e b) where
+-  convertName = fmap convertName
++  convertName = traverse convertName
+ 
+ instance ConvertName a b => ConvertName (HsMatchContext a) (HsMatchContext b) where
+-  convertName = fmap convertName
++  convertName = traverse convertName
+ 
+ instance ConvertName a b => ConvertName (HsStmtContext a) (HsStmtContext b) where
+-  convertName = fmap convertName
++  convertName = traverse convertName
+ 
+ instance ConvertName a b => ConvertName (Maybe a) (Maybe b) where
+-  convertName = fmap convertName
++  convertName = traverse convertName
+ 
+ instance ConvertType Type IfaceType where
+   convertType = toIfaceType
+@@ -68,21 +76,45 @@ instance ConvertType IfaceType Type where
+   convertType _ = panic "convertType :: IfaceType -> Type: unsupported constructor"
+ 
+ instance ConvertName RdrName SeName where
+-  convertName = mkSeName
++  convertName = pure . mkSeName
+ 
+ instance ConvertName SeName RdrName where
+-  convertName (SeName n) = n
++  convertName (SeName n) = case n of
++    o@(Orig mod occn) -> do
++      -- TODO: introduce some caching here, to avoid doing the
++      --       searchPackageId dance too often.
++      currentMod <- getModule
++      liftIO . putStrLn $
++        "Current module is in: " ++ unitIdString (moduleUnitId currentMod)
++      if samePackages currentMod mod
++        then liftIO (putStrLn "using the current module's unit id!")
++               >> pure (Orig currentMod occn)
++        else do mnewmod <- findEquivalentModule mod
++                case mnewmod of
++                  Nothing   -> liftIO (putStrLn "keeping old name")
++                            >> pure (Orig mod occn)
++                  Just mod' -> liftIO (putStrLn "using new unitid!")
++                            >> pure (Orig mod' occn)
++
++    _             -> pure n
++
++    where samePackages mod1 mod2 = fromMaybe False $ do
++            let str1 = unitIdString (moduleUnitId mod1)
++                str2 = unitIdString (moduleUnitId mod2)
++            (pkg1, ver1, _mhash1) <- parseUnitId' str1
++            (pkg2, ver2, _mhash2) <- parseUnitId' str2
++            return (pkg1 == pkg2 && ver1 == ver2)
+ 
+ instance ConvertName Name SeName where
+-  convertName n = mkSeName (nameRdrName n)
++  convertName n = pure $ mkSeName (nameRdrName n)
+ 
+ instance ConvertName SeName Name where
+   convertName (SeName n) = case isExact_maybe n of
+-    Just a -> a
++    Just a -> pure a
+     _      -> panic "convertName :: SeName -> Name: non exact RdrName in SeName"
+ 
+ instance ConvertName a b => ConvertName (Located a) (Located b) where
+-  convertName = fmap convertName
++  convertName = traverse convertName
+ 
+ type TypeConstraints p q =
+   ( ConvertType (LitType p) (LitType q)
+@@ -161,17 +193,19 @@ cvDerivDecl (DerivDecl a b c) =
+ cvTyClDecl :: TypeConstraints p q => TyClDecl p -> RnM (TyClDecl q)
+ cvTyClDecl (FamDecl a) = FamDecl <$> cvFamilyDecl a
+ cvTyClDecl (SynDecl a b c d e) =
+-  SynDecl (convertName a)
+-    <$> cvLHsQTyVars b <*> pure c
++  SynDecl
++    <$> convertName a
++    <*> cvLHsQTyVars b <*> pure c
+     <*> traverse cvType d <*> pure e
+ cvTyClDecl (DataDecl a b c d e f) =
+-  DataDecl (convertName a)
+-    <$> cvLHsQTyVars b <*> pure c
++  DataDecl
++    <$> convertName a
++    <*> cvLHsQTyVars b <*> pure c
+     <*> cvHsDataDefn d <*> pure e <*> pure f
+ cvTyClDecl (ClassDecl a b c d e f g h i j k) =
+   ClassDecl
+     <$> traverse (traverse (traverse cvType)) a
+-    <*> pure (convertName b)
++    <*> convertName b
+     <*> cvLHsQTyVars c
+     <*> pure d
+     <*> traverse (traverse cvFunDep) e
+@@ -188,12 +222,12 @@ cvFamEqn
+   -> FamEqn p a b
+   -> RnM (FamEqn q c d)
+ cvFamEqn goPats goRhs (FamEqn a b c d) =
+-  FamEqn (convertName a) <$> goPats b <*> pure c <*> goRhs d
++  FamEqn <$> convertName a <*> goPats b <*> pure c <*> goRhs d
+ 
+ cvFamilyDecl :: TypeConstraints p q => FamilyDecl p -> RnM (FamilyDecl q)
+ cvFamilyDecl (FamilyDecl a b c d e f) =
+   FamilyDecl
+-    <$> cvFamilyInfo a <*> pure (convertName b)
++    <$> cvFamilyInfo a <*> convertName b
+     <*> cvLHsQTyVars c <*> pure d
+     <*> traverse cvFamilyResultSig e
+     <*> traverse (traverse cvInjectivityAnn) f
+@@ -201,7 +235,7 @@ cvFamilyDecl (FamilyDecl a b c d e f) =
+ cvInjectivityAnn
+   :: TypeConstraints p q => InjectivityAnn p -> RnM (InjectivityAnn q)
+ cvInjectivityAnn (InjectivityAnn a b) =
+-  pure (InjectivityAnn (convertName a) (convertName b))
++  InjectivityAnn <$> convertName a <*> convertName b
+ 
+ cvFamilyResultSig
+   :: TypeConstraints p q => FamilyResultSig p -> RnM (FamilyResultSig q)
+@@ -223,19 +257,21 @@ cvFamInstEqn
+ cvFamInstEqn f = cvHsImplicitBndrs (cvFamEqn (traverse (traverse cvType)) f)
+ 
+ cvFunDep :: ConvertName a b => FunDep a -> RnM (FunDep b)
+-cvFunDep (xs, ys) = pure (convertName xs, convertName ys)
++cvFunDep (xs, ys) = (,) <$> convertName xs <*> convertName ys
+ 
+ cvLHsQTyVars :: TypeConstraints p q => LHsQTyVars p -> RnM (LHsQTyVars q)
+ cvLHsQTyVars (HsQTvs a b c) = HsQTvs a <$> traverse (traverse cvHsTyVarBndr) b <*> pure c
+ 
+ cvForeignDecl :: TypeConstraints p q => ForeignDecl p -> RnM (ForeignDecl q)
+ cvForeignDecl (ForeignImport a b c d) =
+-  ForeignImport (convertName a)
+-    <$> cvHsImplicitBndrs (traverse cvType) b
++  ForeignImport
++    <$> convertName a
++    <*> cvHsImplicitBndrs (traverse cvType) b
+     <*> pure c <*> pure d
+ cvForeignDecl (ForeignExport a b c d) =
+-  ForeignExport (convertName a)
+-    <$> cvHsImplicitBndrs (traverse cvType) b
++  ForeignExport
++    <$> convertName a
++    <*> cvHsImplicitBndrs (traverse cvType) b
+     <*> pure c <*> pure d
+ 
+ cvDefaultDecl :: TypeConstraints p q => DefaultDecl p -> RnM (DefaultDecl q)
+@@ -260,12 +296,14 @@ cvHsDataDefn (HsDataDefn a b c d e f) =
+ 
+ cvConDecl :: TypeConstraints p q => ConDecl p -> RnM (ConDecl q)
+ cvConDecl (ConDeclGADT a b c) =
+-  ConDeclGADT (convertName a)
+-    <$> cvHsImplicitBndrs (traverse cvType) b
++  ConDeclGADT
++    <$> convertName a
++    <*> cvHsImplicitBndrs (traverse cvType) b
+     <*> pure c
+ cvConDecl (ConDeclH98 a b c d e) =
+-  ConDeclH98 (convertName a)
+-    <$> traverse cvLHsQTyVars b
++  ConDeclH98
++    <$> convertName a
++    <*> traverse cvLHsQTyVars b
+     <*> traverse (traverse (traverse (traverse cvType))) c
+     <*> cvHsConDeclDetails d
+     <*> pure e
+@@ -301,7 +339,7 @@ cvWarningDecls (Warnings a b) =
+   Warnings a <$> traverse (traverse cvWarningDecl) b
+ 
+ cvWarningDecl :: TypeConstraints p q => WarnDecl p -> RnM (WarnDecl q)
+-cvWarningDecl (Warning a b) = pure $ Warning (convertName a) b
++cvWarningDecl (Warning a b) = Warning <$> convertName a <*> pure b
+ 
+ -- expressions
+ 
+@@ -312,11 +350,11 @@ cvLHsExpr = traverse cvHsExpr
+ cvHsExpr
+   :: TypeConstraints p q => HsExpr p -> RnM (HsExpr q)
+ cvHsExpr e = case e of
+-  HsVar a -> pure $ HsVar (convertName a)
++  HsVar a -> HsVar <$> convertName a
+   HsUnboundVar a -> pure (HsUnboundVar a)
+   HsConLikeOut a -> pure (HsConLikeOut a)
+   HsRecFld a -> pure $ HsRecFld (cvAFieldOcc a)
+-  HsOverLabel a b -> pure $ HsOverLabel (convertName a) b
++  HsOverLabel a b -> HsOverLabel <$> convertName a <*> pure b
+   HsIPVar a -> pure (HsIPVar a)
+   HsOverLit a -> HsOverLit <$> cvOverLit a
+   HsLit a -> pure $ HsLit (cvLit a)
+@@ -338,8 +376,8 @@ cvHsExpr e = case e of
+                        <*> cvLHsExpr b <*> cvLHsExpr c <*> cvLHsExpr d
+   HsMultiIf a b -> HsMultiIf a <$> traverse (traverse cvGRHS) b
+   HsLet a b -> HsLet <$> traverse cvHsLocalBinds a <*> cvLHsExpr b
+-  HsDo a b c -> HsDo (convertName a) <$> traverse (traverse (traverse cvStmtLR)) b <*> pure c
+-  RecordCon a b c d -> RecordCon (convertName a) b c <$> cvRecordBinds d
++  HsDo a b c -> HsDo <$> convertName a <*> traverse (traverse (traverse cvStmtLR)) b <*> pure c
++  RecordCon a b c d -> RecordCon <$> convertName a <*> pure b <*> pure c <*> cvRecordBinds d
+   RecordUpd a b c d e f -> RecordUpd <$> cvLHsExpr a
+                                      <*> traverse (traverse cvHsRecUpdField) b
+                                      <*> pure c <*> pure d <*> pure e <*> pure f
+@@ -349,7 +387,7 @@ cvHsExpr e = case e of
+   HsCoreAnn a b c -> HsCoreAnn a b <$> cvLHsExpr c
+   HsStatic a b -> HsStatic a <$> cvLHsExpr b
+   EWildPat -> pure EWildPat
+-  EAsPat a b -> EAsPat (convertName a) <$> cvLHsExpr b
++  EAsPat a b -> EAsPat <$> convertName a <*> cvLHsExpr b
+   EViewPat a b -> EViewPat <$> cvLHsExpr a <*> cvLHsExpr b
+   ELazyPat a -> ELazyPat <$> cvLHsExpr a
+ 
+@@ -364,7 +402,6 @@ cvHsExpr e = case e of
+   -- (involve typechecker types because used only later, not easily
+   --  serialisable, used to describe splices that we are not going to
+   --  encounter, etc)
+-  HsConLikeOut {} -> panic "cvHsExpr: HsConLikeOut not supported"
+   HsWrap {} -> panic "cvHsExpr: HsWrap not supported"
+   HsBracket {} -> panic "cvHsExpr: HsBracket not supported"
+   HsRnBracketOut {} -> panic "cvHsExpr: HsRnBracketOut not supported"
+@@ -412,14 +449,15 @@ cvMatchGroup (MG a b c d) = MG <$> traverse (traverse (traverse cvMatch)) a
+ cvMatch
+   :: TypeConstraints p q
+   => Match p (LHsExpr p) -> RnM (Match q (LHsExpr q))
+-cvMatch (Match a b c) = Match (convertName a)
+-                    <$> traverse (traverse cvPat) b <*> cvGRHSs c
++cvMatch (Match a b c) = Match
++   <$> convertName a
++   <*> traverse (traverse cvPat) b <*> cvGRHSs c
+ 
+ cvPat :: TypeConstraints p q => Pat p -> RnM (Pat q)
+ cvPat (WildPat a) = pure (WildPat a)
+-cvPat (VarPat a) = pure $ VarPat (convertName a)
++cvPat (VarPat a) = VarPat <$> convertName a
+ cvPat (LazyPat a) = LazyPat <$> traverse cvPat a
+-cvPat (AsPat a b) = AsPat (convertName a) <$> traverse cvPat b
++cvPat (AsPat a b) = AsPat <$> convertName a <*> traverse cvPat b
+ cvPat (ParPat a) = ParPat <$> traverse cvPat a
+ cvPat (BangPat a) = BangPat <$> traverse cvPat a
+ cvPat (ListPat a b c) =
+@@ -430,15 +468,16 @@ cvPat (TuplePat a b c) = TuplePat <$> traverse (traverse cvPat) a
+                                   <*> pure b <*> pure c
+ cvPat (SumPat a b c d) = SumPat <$> traverse cvPat a
+                                 <*> pure b <*> pure c <*> pure d
+-cvPat (ConPatIn a b) = ConPatIn (convertName a) <$> cvHsConPatDetails b
++cvPat (ConPatIn a b) = ConPatIn <$> convertName a <*> cvHsConPatDetails b
+ cvPat (ViewPat a b c) = ViewPat <$> cvLHsExpr a <*> traverse cvPat b <*> pure c
+ cvPat (LitPat a) = pure $ LitPat (cvLit a)
+ cvPat (NPat a b c d) =
+   NPat <$> traverse cvOverLit a <*> traverse cvSyntaxExpr b
+        <*> cvSyntaxExpr c <*> pure d
+ cvPat (NPlusKPat a b c d e f) =
+-  NPlusKPat (convertName a)
+-    <$> traverse cvOverLit b <*> cvOverLit c
++  NPlusKPat
++    <$> convertName a
++    <*> traverse cvOverLit b <*> cvOverLit c
+     <*> cvSyntaxExpr d <*> cvSyntaxExpr e <*> pure f
+ cvPat (SigPatIn a b) = SigPatIn <$> traverse cvPat a <*> cvHsSigWcType b
+ -- deliberately not supported
+@@ -528,8 +567,8 @@ cvStmtLR (ApplicativeStmt a b c) = ApplicativeStmt
+ cvStmtLR (LetStmt a) = LetStmt <$> traverse cvHsLocalBinds a
+ cvStmtLR (RecStmt a b c d e f g h i j) = RecStmt
+   <$> traverse (traverse cvStmtLR) a
+-  <*> pure (convertName b)
+-  <*> pure (convertName c)
++  <*> convertName b
++  <*> convertName c
+   <*> cvSyntaxExpr d
+   <*> cvSyntaxExpr e
+   <*> cvSyntaxExpr f
+@@ -547,18 +586,19 @@ cvHsIPBinds (IPBinds a b) = IPBinds <$> traverse (traverse cvIPBind) a <*> pure
+ 
+ cvIPBind
+   :: TypeConstraints p q => IPBind p -> RnM (IPBind q)
+-cvIPBind (IPBind a b) = IPBind (convertName a) <$> cvLHsExpr b
++cvIPBind (IPBind a b) = IPBind <$> convertName a <*> cvLHsExpr b
+ 
+ cvHsBindLR
+   :: TypeConstraints p q => HsBindLR p p -> RnM (HsBindLR q q)
+-cvHsBindLR (FunBind a b c d e) = FunBind (convertName a)
+-  <$> cvMatchGroup b
++cvHsBindLR (FunBind a b c d e) = FunBind
++  <$> convertName a
++  <*> cvMatchGroup b
+   <*> pure c <*> pure d <*> pure e
+ cvHsBindLR (PatBind a b c d e) = PatBind
+                              <$> traverse cvPat a
+                              <*> cvGRHSs b
+                              <*> pure c <*> pure d <*> pure e
+-cvHsBindLR (VarBind a b c) = VarBind (convertName a) <$> cvLHsExpr b <*> pure c
++cvHsBindLR (VarBind a b c) = VarBind <$> convertName a <*> cvLHsExpr b <*> pure c
+ cvHsBindLR (AbsBinds {}) = panic "cvHsBindLR: AbsBind not supported"
+ cvHsBindLR (PatSynBind a) = PatSynBind <$> cvPatSynBind a
+ 
+@@ -591,7 +631,7 @@ cvType (HsForAllTy a b) = HsForAllTy
+ cvType (HsQualTy a b) = HsQualTy
+                     <$> traverse (traverse (traverse cvType)) a
+                     <*> traverse cvType b
+-cvType (HsTyVar a b) = pure (HsTyVar a (convertName b))
++cvType (HsTyVar a b) = HsTyVar a <$> convertName b
+ cvType (HsAppsTy a) = HsAppsTy <$> traverse (traverse cvHsAppType) a
+ cvType (HsAppTy a b) = HsAppTy <$> traverse cvType a
+                                <*> traverse cvType b
+@@ -601,7 +641,7 @@ cvType (HsListTy a) = HsListTy <$> traverse cvType a
+ cvType (HsTupleTy a b) = HsTupleTy a <$> traverse (traverse cvType) b
+ cvType (HsSumTy a) = HsSumTy <$> traverse (traverse cvType) a
+ cvType (HsOpTy a b c) = HsOpTy <$> traverse cvType a
+-                               <*> pure (convertName b)
++                               <*> convertName b
+                                <*> traverse cvType c
+ cvType (HsParTy a) = HsParTy <$> traverse cvType a
+ cvType (HsIParamTy a b) = HsIParamTy a <$> traverse cvType b
+@@ -623,14 +663,15 @@ cvType _ = panic "cvType: unsupported constructor"
+ 
+ cvHsAppType
+   :: TypeConstraints p q => HsAppType p -> RnM (HsAppType q)
+-cvHsAppType (HsAppInfix a) = pure $ HsAppInfix (convertName a)
++cvHsAppType (HsAppInfix a) = HsAppInfix <$> convertName a
+ cvHsAppType (HsAppPrefix a) = HsAppPrefix <$> traverse cvType a
+ 
+ cvHsTyVarBndr
+   :: TypeConstraints p q => HsTyVarBndr p -> RnM (HsTyVarBndr q)
+-cvHsTyVarBndr (UserTyVar a) = pure $ UserTyVar (convertName a)
+-cvHsTyVarBndr (KindedTyVar a b) = KindedTyVar (convertName a)
+-                              <$> traverse cvType b
++cvHsTyVarBndr (UserTyVar a) = UserTyVar <$> convertName a
++cvHsTyVarBndr (KindedTyVar a b) = KindedTyVar
++                              <$> convertName a
++                              <*> traverse cvType b
+ 
+ cvApplicativeArg
+   :: TypeConstraints p q => ApplicativeArg p a -> RnM (ApplicativeArg q b)
+@@ -641,14 +682,14 @@ cvApplicativeArg (ApplicativeArgMany a b c) =
+                      <*> traverse cvPat c
+ 
+ cvSig :: TypeConstraints p q => Sig p -> RnM (Sig q)
+-cvSig (TypeSig a b) = TypeSig (convertName a) <$> cvHsSigWcType b
++cvSig (TypeSig a b) = TypeSig <$> convertName a <*> cvHsSigWcType b
+ cvSig (PatSynSig a b) =
+-  PatSynSig (convertName a) <$> cvHsImplicitBndrs (traverse cvType) b
++  PatSynSig <$> convertName a <*> cvHsImplicitBndrs (traverse cvType) b
+ cvSig (ClassOpSig a b c) =
+-  ClassOpSig a (convertName b) <$> cvHsImplicitBndrs (traverse cvType) c
++  ClassOpSig a <$> convertName b <*> cvHsImplicitBndrs (traverse cvType) c
+ cvSig (IdSig {}) = panic "cvSig: IdSig not supported yet"
+ cvSig (FixSig {}) = panic "cvSig: FixSig not supported yet"
+-cvSig (InlineSig a b) = pure (InlineSig (convertName a) b)
++cvSig (InlineSig a b) = InlineSig <$> convertName a <*> pure b
+ cvSig (SpecSig {}) = panic "cvSig: SpecSig not supported yet"
+ cvSig (SpecInstSig {}) = panic "cvSig: SpecInstSig not supported yet"
+ cvSig (MinimalSig {}) = panic "cvSig: MinimalSig not supported yet"
+@@ -657,9 +698,10 @@ cvSig (CompleteMatchSig {}) = panic "cvSig: CompleteMatchSig not supported yet"
+ 
+ cvPatSynBind :: TypeConstraints p q => PatSynBind p p -> RnM (PatSynBind q q)
+ cvPatSynBind (PSB a b c d e) =
+-  PSB (convertName a) b
+-    <$> cvHsPatSynDetails (pure . convertName) c <*> traverse cvPat d
+-    <*> cvHsPatSynDir e
++  PSB <$> convertName a
++      <*> pure b
++      <*> cvHsPatSynDetails convertName c <*> traverse cvPat d
++      <*> cvHsPatSynDir e
+ 
+ cvHsPatSynDetails
+   :: (a -> RnM b)
+@@ -679,3 +721,62 @@ cvHsPatSynDir :: TypeConstraints p q => HsPatSynDir p -> RnM (HsPatSynDir q)
+ cvHsPatSynDir Unidirectional = pure Unidirectional
+ cvHsPatSynDir ImplicitBidirectional = pure ImplicitBidirectional
+ cvHsPatSynDir (ExplicitBidirectional a) = ExplicitBidirectional <$> cvMatchGroup a
++
++-- * Looking up modules/packages for Orig names
++
++-- this rejects wired in packages, because we want to leave them untouched
++parseUnitId' :: String -> Maybe (String, String, Maybe String)
++parseUnitId' = parse
++
++  where
++    parse s = case splitOn '-' (reverse s) of
++      ("":_) -> Nothing
++      xs | length xs >= 1 && last xs == "" -> Nothing
++      (hash:ver:name) | isVersion ver ->
++         Just (intercalate "-" (reverse name), ver, Just hash)
++      (ver:name) | isVersion ver ->
++         Just (intercalate "-" (reverse name), ver, Nothing)
++      _ -> Nothing
++    splitOn c = go []
++      where go acc (x:xs)
++              | x == c    = acc : go "" xs
++              | otherwise = go (x:acc) xs
++            go acc [] = [acc]
++    isVersion = go False
++      -- True: waiting for digit or dot (we've seen a digit last)
++      -- False: waiting for digit (we've just seen a dot)
++      where go False (c:cs)
++              | isDigit c = go True cs
++              | otherwise = False
++            go True (c:cs)
++              | isDigit c = go True cs
++              | c == '.'  = go False cs
++              | otherwise = False
++            go b [] = b -- if we've seen a dot last (False), we fail
++                        -- otherwise, the version number can end here
++
++-- | Look up the module from the same package, but built by the
++--   current compiler, therefore with a slightly different hash
++--   in the unit id than the input Module, which was built by some
++--   non-cross-compiling GHC.
++findEquivalentModule :: Module -> RnM (Maybe Module)
++findEquivalentModule mod = do
++  liftIO $ putStrLn ("Looking for equivalent to: " ++ unitIdStr)
++  case parseUnitId' unitIdStr of
++    Nothing -> return Nothing
++    Just (pkg, ver, _mhash) -> do
++      muid <- lookFor pkg ver
++      maybe (pure Nothing) (\uid -> return $ Just (mod { moduleUnitId = uid })) muid
++
++  where unitIdStr = unitIdString (moduleUnitId mod)
++
++lookFor :: String -> String -> RnM (Maybe UnitId)
++lookFor pkg ver = do
++  dflags <- getDynFlags
++  let pkgid = mkFastString (pkg ++ "-" ++ ver)
++      pkgs = searchPackageId dflags (SourcePackageId pkgid)
++  liftIO $ putStrLn ("Looking for: " ++ pkg ++ "-" ++ ver)
++  liftIO . putStrLn . unwords $
++    [ "Found", show (length pkgs), "pkgs:" ] ++
++    [ unitIdString (packageConfigId p) | p <- pkgs ]
++  if null pkgs then pure Nothing else pure (Just $ packageConfigId (head pkgs))
