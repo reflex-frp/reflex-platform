@@ -1,5 +1,6 @@
 { haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer, hackGet, ghcjsBaseSrc }:
 
+let inherit (nixpkgs) lib; in
 with haskellLib;
 
 self: super: {
