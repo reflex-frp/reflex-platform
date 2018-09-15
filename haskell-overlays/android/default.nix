@@ -1,13 +1,6 @@
 { haskellLib, jdk, androidActivity }:
 
 self: super: {
-  ghc = super.ghc // {
-    bootPkgs = super.ghc.bootPkgs.override {
-      overrides = self: super: {
-        Cabal = haskellLib.appendPatch (self.callHackage "Cabal" "2.0.0.2" {}) ./Cabal-Allow-any-arch-with-linux-for-foreign-libs.patch;
-      };
-    };
-  };
   android-activity = self.callPackage androidActivity {
     inherit jdk;
   };
