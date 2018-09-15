@@ -21,7 +21,7 @@ self: super: {
   cabal-macosx = null;
 
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
-  doctest = builtins.trace "Warning: ignoring dependency on doctest" null;
+  doctest = lib.warn "ignoring dependency on doctest" null;
 
   # These packages require doctest
   comonad = dontCheck super.comonad;
