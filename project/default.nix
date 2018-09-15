@@ -223,8 +223,7 @@ let
       in if mobile == {} then ""
         else if includeRemoteBuilds then build
           else if system != this.system then builtins.trace msg ""
-            else build
-              else "";
+            else build;
     in nixpkgs.runCommand name { passthru = prj; preferLocalBuild = true; } ''
       ${concatStringsSep "\n" ghcLinks}
       ${tracedMobileLinks "android" "x86_64-linux" prj.android}
