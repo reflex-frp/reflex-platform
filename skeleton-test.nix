@@ -1,7 +1,7 @@
-{ this }:
+{ reflex-platform }:
 
 let
-  skeletonSrc = this.nixpkgs.fetchFromGitHub {
+  skeletonSrc = reflex-platform.nixpkgs.fetchFromGitHub {
     owner = "ElvishJerricco";
     repo = "reflex-project-skeleton";
     rev = "d1cf6b26a9aa08b192e3e81ae07a4ba00064d6d2";
@@ -9,7 +9,7 @@ let
     fetchSubmodules = false; # Not interested in its reflex-platform checkout
   };
 
-  skeleton = import skeletonSrc { reflex-platform = this; };
+  skeleton = import skeletonSrc { inherit reflex-platform; };
 
   mkCabalProject = { shellDrv, projectFile }: shellDrv.overrideAttrs (old: {
     name = "reflex-project-skeleton-${projectFile}";
@@ -18,7 +18,7 @@ let
     '';
     buildPhase = ''
       HOME=$NIX_BUILD_TOP
-      cabal new-build all --project-file=${projectFile} ${if this.nixpkgs.stdenv.isDarwin then "--ghc-option=-dynamic" else ""}
+      cabal new-build all --project-file=${projectFile} ${if reflex-platform.nixpkgs.stdenv.isDarwin then "--ghc-option=-dynamic" else ""}
     '';
     installPhase = ''
       mv ./dist-newstyle $out

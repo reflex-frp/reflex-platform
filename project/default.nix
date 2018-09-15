@@ -223,14 +223,7 @@ let
       in if mobile == {} then ""
         else if includeRemoteBuilds then build
           else if system != this.system then builtins.trace msg ""
-            # TODO: This is a bit of a hack. `this.iosSupport` prints
-            # a warning and returns false when *the local system*
-            # doesn't have the SDK. Just because `includeRemoteBuilds`
-            # is off doesn't mean we know this is the system iOS apps
-            # will build on. Nonetheless, it's important not to
-            # evaluate `this.iosSupport` if we don't need to, as it
-            # may `trace` an unnecessary warning.
-            else if system == "x86_64-darwin" -> this.iosSupport then build
+            else build
               else "";
     in nixpkgs.runCommand name { passthru = prj; preferLocalBuild = true; } ''
       ${concatStringsSep "\n" ghcLinks}
