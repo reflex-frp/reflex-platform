@@ -210,7 +210,7 @@ let
 
   all =
     let tracedMobileLinks = mobileName: mobile:
-          optionalString (mobile != {}) mobileLinks mobileName mobile;
+          optionalString (mobile != {}) (mobileLinks mobileName mobile);
     in nixpkgs.runCommand name { passthru = prj; preferLocalBuild = true; } ''
       ${concatStringsSep "\n" ghcLinks}
       ${tracedMobileLinks "android" prj.android}
