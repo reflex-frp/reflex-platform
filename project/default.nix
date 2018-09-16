@@ -3,7 +3,7 @@ this:
 let
   inherit (this) nixpkgs;
   inherit (nixpkgs.lib) mapAttrs mapAttrsToList escapeShellArg
-    optionalString concatStringsSep concatMapStringsSep;
+    optionalAttrs optionalString concatStringsSep concatMapStringsSep;
 in
 
 # This function simplifies the definition of Haskell projects that
@@ -181,18 +181,18 @@ let
           ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
         in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
           ({ package = p: p.${name}; } // config)
-      ) android;
+      ) (optionalAttrs this.androidSupport android);
 
     ios =
       mapAttrs (name: config:
         let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
         in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
           ({ package = p: p.${name}; } // config)
-      ) ios;
+      ) (optionalAttrs this.iosSupport ios);
 
     reflex = this;
 
-    all = all true;
+    inherit all;
   };
 
   ghcLinks = mapAttrsToList (name: pnames: optionalString (pnames != []) ''
@@ -208,25 +208,12 @@ let
     '') mobile)}
   '';
 
-  all = includeRemoteBuilds:
-    let tracedMobileLinks = mobileName: system: mobile:
-      let
-        build = mobileLinks mobileName mobile;
-        msg = ''
-
-
-          Skipping ${mobileName} apps; system is ${this.system}, but ${system} is needed.
-          Use `nix-build -A all` to build with remote machines.
-          See: https://nixos.org/nixos/manual/options.html#opt-nix.buildMachines
-
-        '';
-      in if mobile == {} then ""
-        else if includeRemoteBuilds then build
-          else if system != this.system then builtins.trace msg ""
-            else build;
+  all =
+    let tracedMobileLinks = mobileName: mobile:
+          optionalString (mobile != {}) (mobileLinks mobileName mobile);
     in nixpkgs.runCommand name { passthru = prj; preferLocalBuild = true; } ''
       ${concatStringsSep "\n" ghcLinks}
-      ${tracedMobileLinks "android" "x86_64-linux" prj.android}
-      ${tracedMobileLinks "ios" "x86_64-darwin" prj.ios}
+      ${tracedMobileLinks "android" prj.android}
+      ${tracedMobileLinks "ios" prj.ios}
     '';
-in all false
+in all
