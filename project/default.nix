@@ -3,7 +3,7 @@ this:
 let
   inherit (this) nixpkgs;
   inherit (nixpkgs.lib) mapAttrs mapAttrsToList escapeShellArg
-    optionalString concatStringsSep concatMapStringsSep;
+    optionalAttrs optionalString concatStringsSep concatMapStringsSep;
 in
 
 # This function simplifies the definition of Haskell projects that
@@ -181,14 +181,14 @@ let
           ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
         in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
           ({ package = p: p.${name}; } // config)
-      ) android;
+      ) (optionalAttrs this.androidSupport android);
 
     ios =
       mapAttrs (name: config:
         let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
         in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
           ({ package = p: p.${name}; } // config)
-      ) ios;
+      ) (optionalAttrs this.iosSupport ios);
 
     reflex = this;
 
