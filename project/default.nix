@@ -192,7 +192,7 @@ let
 
     reflex = this;
 
-    all = all true;
+    inherit all;
   };
 
   ghcLinks = mapAttrsToList (name: pnames: optionalString (pnames != []) ''
@@ -208,25 +208,12 @@ let
     '') mobile)}
   '';
 
-  all = includeRemoteBuilds:
-    let tracedMobileLinks = mobileName: system: mobile:
-      let
-        build = mobileLinks mobileName mobile;
-        msg = ''
-
-
-          Skipping ${mobileName} apps; system is ${this.system}, but ${system} is needed.
-          Use `nix-build -A all` to build with remote machines.
-          See: https://nixos.org/nixos/manual/options.html#opt-nix.buildMachines
-
-        '';
-      in if mobile == {} then ""
-        else if includeRemoteBuilds then build
-          else if system != this.system then builtins.trace msg ""
-            else build;
+  all =
+    let tracedMobileLinks = mobileName: mobile:
+          optionalString (mobile != {}) mobileLinks mobileName mobile;
     in nixpkgs.runCommand name { passthru = prj; preferLocalBuild = true; } ''
       ${concatStringsSep "\n" ghcLinks}
-      ${tracedMobileLinks "android" "x86_64-linux" prj.android}
-      ${tracedMobileLinks "ios" "x86_64-darwin" prj.ios}
+      ${tracedMobileLinks "android" prj.android}
+      ${tracedMobileLinks "ios" prj.ios}
     '';
-in all false
+in all
