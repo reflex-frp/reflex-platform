@@ -156,6 +156,10 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
       overrides = lib.composeExtensions old.overrides new.overrides;
     };
+    # Makes sure that old `overrides` from a previous call to `override` are not
+    # forgotten, but composed. Do this by overriding `override` and passing a
+    # function which takes the old argument set and combining it. What a tongue
+    # twister!
     makeRecursivelyOverridable = x: x // {
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
