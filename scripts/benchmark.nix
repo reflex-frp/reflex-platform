@@ -1,47 +1,77 @@
 { reflex-platform ? import ./.. {} }:
 let pkgs = reflex-platform.nixpkgs;
-    shellHook = pkgs.yarn2nix.linkNodeModulesHook + ''
+    nodejs = pkgs.nodejs-8_x;
+    # TODO remove in reunification since it is already bundled
+    yarn = pkgs.callPackage ({ stdenv, nodejs, fetchzip }:
+      stdenv.mkDerivation rec {
+        name = "yarn-${version}";
+        version = "1.9.4";
+
+        src = fetchzip {
+          url = "https://github.com/yarnpkg/yarn/releases/download/v${version}/yarn-v${version}.tar.gz";
+          sha256 = "0lxncqvz66167ijhsi76ds2yp8140d9ywn89y5vm92010irsgs20";
+        };
+
+        buildInputs = [ nodejs ];
+
+        installPhase = ''
+          mkdir -p $out/{bin,libexec/yarn/}
+          cp -R . $out/libexec/yarn
+          ln -s $out/libexec/yarn/bin/yarn.js $out/bin/yarn
+          ln -s $out/libexec/yarn/bin/yarn.js $out/bin/yarnpkg
+        '';
+
+        meta = with stdenv.lib; {
+          homepage = https://yarnpkg.com/;
+          description = "Fast, reliable, and secure dependency management for javascript";
+          license = licenses.bsd2;
+          maintainers = [ maintainers.offline ];
+        };
+      }) { inherit nodejs; };
+    shellHook = linkNodeModulesHook + ''
       export PATH=node_modules/.bin:$PATH
     '';
-    inherit (pkgs) mkYarnPackage;
+    inherit (pkgs) fetchzip fetchFromGitHub;
     inherit (reflex-platform) js-framework-benchmark-src;
+    yarn2nixSrc = fetchzip {
+      url = "https://github.com/moretea/yarn2nix/archive/v1.0.0.tar.gz";
+      sha256 = "02bzr9j83i1064r1r34cn74z7ccb84qb5iaivwdplaykyyydl1k8";
+    };
+    yarn2nix = import yarn2nixSrc { inherit pkgs nodejs yarn; };
+    inherit (yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
     nodePkgs = {
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
         src = js-framework-benchmark-src + /webdriver-ts;
-        preInstall = "npm run build-prod";
+        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
-        yarnLock = ./webdriver-ts.yarn.lock;
       };
       webdriver-ts-results = mkYarnPackage {
         name = "webdriver-ts-results";
         src = js-framework-benchmark-src + /webdriver-ts-results;
-        preInstall = "npm run build-prod";
+        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
-        yarnLock = ./webdriver-ts-results.yarn.lock;
       };
       vanillajs-keyed = mkYarnPackage {
         name = "vanillajs-keyed";
         src = js-framework-benchmark-src + /vanillajs-keyed;
-        preInstall = "npm run build-prod";
+        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
-        yarnLock = ./vanillajs-keyed.yarn.lock;
       };
       js-framework-benchmark = mkYarnPackage {
         name = "js-framework-benchmark";
         src = js-framework-benchmark-src;
-        yarnLock = ./js-framework-benchmark.yarn.lock;
         inherit shellHook;
       };
     };
-in pkgs.writeScript "benchmark.sh" ''
+    bin = pkgs.writeScript "benchmark.sh" ''
 #!/usr/bin/env bash
 set -euo pipefail
 
 exec 3>&1
 exec 1>&2
 
-PATH="${pkgs.yarn}/bin:${pkgs.nodejs-8_x}/bin:${pkgs.nodePackages.npm}/bin:${pkgs.chromedriver}/bin:$PATH"
+PATH="${yarn}/bin:${nodejs}/bin:${pkgs.nodePackages.npm}/bin:${pkgs.chromedriver}/bin:$PATH"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
   else ''--chromeBinary "${pkgs.chromium}/bin/chromium"''
@@ -61,7 +91,7 @@ chmod -R +w .
 
 ln -s ${nodePkgs.js-framework-benchmark.node_modules} .
 rm -r yarn.lock vanillajs-keyed webdriver-ts-results
-ln -s ${nodePkgs.vanillajs-keyed}/node_modules/vanillajs-keyed .
+ln -s ${nodePkgs.vanillajs-keyed}/node_modules/js-framework-benchmark-vanillajs ./vanillajs-keyed
 ln -s ${nodePkgs.webdriver-ts-results}/node_modules/webdriver-ts-results .
 
 REFLEX_DOM_DIST=reflex-dom-v0.4-keyed/dist
@@ -78,7 +108,7 @@ SERVER_PORT="$((tail -f -n0 server.out & ) | grep -m 1 '127.0.0.1' | sed -e 's/.
 cd webdriver-ts
 ln -s "${nodePkgs.webdriver-ts}/node_modules/webdriver-ts/dist" .
 
-yarn run selenium --framework reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
+yarn run selenium --framework vanillajs-keyed reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
 
 kill "$SERVER_PID"
 
@@ -87,4 +117,5 @@ exec 1>&3
 echo "[";
 paste -d ',' results/*;
 echo "]";
-''
+'';
+in { inherit bin nodePkgs; }
