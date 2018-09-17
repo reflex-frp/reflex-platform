@@ -205,11 +205,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       revision = null;
       editedCabalFile = null;
     });
-    combineOverrides = old: new: (old // new) // {
+    combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
       overrides = nixpkgs.lib.composeExtensions old.overrides new.overrides;
     };
-    makeRecursivelyOverridable = x: old: x.override old // {
-      override = new: makeRecursivelyOverridable x (combineOverrides old new);
+    makeRecursivelyOverridable = x: x // {
+      override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
     foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
       postInstall = ''
@@ -232,8 +232,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     addFastWeakFlag = if useFastWeak
       then drv: enableCabalFlag drv "fast-weak"
       else drv: drv;
-    extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
-      overrides = self: super:
+    extendHaskellPackages = self: super:
         let reflexDom = import (hackGet ./reflex-dom) self nixpkgs;
             jsaddlePkgs = import (hackGet ./jsaddle) self;
             gargoylePkgs = self.callPackage (hackGet ./gargoyle) self;
@@ -382,7 +381,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       } // (if enableLibraryProfiling then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
-    };
     haskellOverlays = import ./haskell-overlays {
       inherit
         haskellLib
@@ -418,75 +416,86 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
 #      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
 #    };
-  ghcjs = (extendHaskellPackages ghcjsPackages).override {
+  ghcjs = (makeRecursivelyOverridable ghcjsPackages).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghcjs
       (optionalExtension useTextJSString haskellOverlays.textJSString)
     ];
   };
-  ghcHEAD = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
+  ghcHEAD = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-head
     ];
   };
-  ghc8_2_1 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821).override {
+  ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghc = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802).override {
+  ghc = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc802).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8
     ];
   };
-  ghc7 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103).override {
+  ghc7 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc7103).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7
     ];
   };
-  ghc7_8 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784).override {
+  ghc7_8 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc784).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7_8
     ];
   };
-  ghcAndroidArm64 = (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821).override {
+  ghcAndroidArm64 = (makeRecursivelyOverridable nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
     ];
   };
-  ghcAndroidArmv7a = (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821).override {
+  ghcAndroidArmv7a = (makeRecursivelyOverridable nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
     ];
   };
-  ghcIosSimulator64 = (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821).override {
+  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghcIosArm64 = (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821).override {
+  ghcIosArm64 = (makeRecursivelyOverridable nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.ios
     ];
   };
-  ghcIosArmv7 = (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821).override {
+  ghcIosArmv7 = (makeRecursivelyOverridable nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
