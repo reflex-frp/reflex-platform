@@ -126,7 +126,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       editedCabalFile = null;
     });
     combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
-      overrides = nixpkgs.lib.composeExtensions old.overrides new.overrides;
+      overrides = lib.composeExtensions old.overrides new.overrides;
     };
     makeRecursivelyOverridable = x: x // {
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
