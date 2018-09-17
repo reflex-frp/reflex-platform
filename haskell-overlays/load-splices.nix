@@ -1,15 +1,17 @@
 { haskellLib, fetchFromGitHub, lib, splicedHaskellPackages }:
 
+self: super:
+
 let splicedPkg = drv:
-      if builtins.hasAttr drv.pname splicedHaskellPackages
-      then builtins.getAttr drv.pname splicedHaskellPackages
-      else if builtins.hasAttr (attrName drv) splicedHaskellPackages
-      then builtins.getAttr (attrName drv) splicedHaskellPackages
+      if builtins.hasAttr drv.pname self.buildHaskellPackages
+      then builtins.getAttr drv.pname self.buildHaskellPackages
+      else if builtins.hasAttr (attrName drv) self.buildHaskellPackages
+      then builtins.getAttr (attrName drv) self.buildHaskellPackages
       else throw "no spliced pkg for: ${drv.name}";
 
     hasSplicedPkg = drv:
-      (builtins.hasAttr drv.pname splicedHaskellPackages ||
-        builtins.hasAttr (attrName drv) splicedHaskellPackages) &&
+      (builtins.hasAttr drv.pname self.buildHaskellPackages ||
+        builtins.hasAttr (attrName drv) self.buildHaskellPackages) &&
       !(builtins.elem drv.pname nonHsPkgs);
 
     # splicedPkg returns null for those
@@ -24,8 +26,8 @@ let splicedPkg = drv:
       else if splicedDrv.compiler == null
       then throw "spliceDrv.compiler == null"
       else "${splicedDrv}/lib/${splicedDrv.compiler.name}/${splicedDrv.name}";
-in
-self: super: {
+in {
+  buildHaskellPackages = splicedHaskellPackages;
 
   # Add some flags to load splices from nativeHaskellPackages
   mkDerivation = drv: super.mkDerivation (drv //
