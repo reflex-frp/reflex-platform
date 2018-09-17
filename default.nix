@@ -334,6 +334,13 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           sha256 = "0ffk5j1db2y1drn0przh4jw9gc3vygwd987wl1g1m3dw7ry4dxy6";
         }) {};
 
+        monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
+          owner = "obsidiansystems";
+          repo = "monoidal-containers";
+          rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
+          sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
+        }) {};
+
         mkDerivation = expr: super.mkDerivation (expr // {
           inherit enableLibraryProfiling;
         });
