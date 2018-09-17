@@ -480,7 +480,21 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ghc-7
     ];
   };
-  ghcAndroidAarch64 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices).override {
+  # Takes a package set with `makeRecursivelyOverridable` and ensures that any
+  # future overrides will be applied to both the package set itself and it's
+  # build-time package set (`buildHaskellPackages`).
+  makeRecursivelyOverridableBHPToo = x: x // {
+    override = new: makeRecursivelyOverridableBHPToo (x.override
+      (combineOverrides
+        {
+          overrides = self: super: {
+            ASDF = 1;
+            buildHaskellPackages = super.buildHaskellPackages.override new;
+          };
+        }
+        new));
+  };
+  ghcAndroidAarch64 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       (extendHaskellPackages nixpkgsCross.android.aarch64)
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -488,8 +502,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.android
       haskellOverlays.loadSplices
     ];
-  };
-  ghcAndroidAarch32 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices).override {
+  });
+  ghcAndroidAarch32 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       (extendHaskellPackages nixpkgsCross.android.aarch32)
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -497,8 +511,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.android
       haskellOverlays.loadSplices
     ];
-  };
-  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices).override {
+  });
+  ghcIosSimulator64 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       (extendHaskellPackages nixpkgsCross.ios.simulator64)
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -506,8 +520,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
       haskellOverlays.loadSplices
     ];
-  };
-  ghcIosAarch64 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices).override {
+  });
+  ghcIosAarch64 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       (extendHaskellPackages nixpkgsCross.ios.aarch64)
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -515,8 +529,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
       haskellOverlays.loadSplices
     ];
-  };
-  ghcIosAarch32 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices).override {
+  });
+  ghcIosAarch32 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       (extendHaskellPackages nixpkgsCross.ios.aarch32)
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -524,7 +538,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
       haskellOverlays.loadSplices
     ];
-  };
+  });
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
