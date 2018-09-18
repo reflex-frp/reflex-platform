@@ -123,10 +123,13 @@ index 58954945c7..4318481674 100644
 +      --       searchPackageId dance too often.
 +      currentMod <- getModule
 +      liftIO . putStrLn $
-+        "Current module is in: " ++ unitIdString (moduleUnitId currentMod)
++        "Current module (" ++ moduleNameString (moduleName currentMod) ++ ") is in: " ++
++        unitIdString (moduleUnitId currentMod)
++
 +      if samePackages currentMod mod
-+        then liftIO (putStrLn "using the current module's unit id!")
-+               >> pure (Orig currentMod occn)
++        then let newMod = mod { moduleUnitId = moduleUnitId currentMod } in
++               liftIO $ putStrLn ("using the current module's unit id for name coming from: " ++ moduleNameString (moduleName mod)) >>
++               pure (Orig newMod occn)
 +        else do mnewmod <- findEquivalentModule mod
 +                case mnewmod of
 +                  Nothing   -> liftIO (putStrLn "keeping old name")
