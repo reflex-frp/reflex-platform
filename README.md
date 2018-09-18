@@ -1,11 +1,11 @@
-Reflex Platform [![CircleCI](https://circleci.com/gh/reflex-frp/reflex-platform.svg?style=svg)](https://circleci.com/gh/reflex-frp/reflex-platform)
+Reflex Platform
 ===============
 
 The Reflex Platform is a collection of libraries and tools that are useful for developing and deploying [Reflex](https://github.com/reflex-frp/reflex)-based applications.
 
 To get started with Reflex development, follow the instructions below.
 
-Try Reflex lets you set up an environment from which you can use [Reflex](https://github.com/ryantrinkle/reflex) with [GHCJS](https://github.com/ghcjs/ghcjs).
+Try Reflex lets you set up an environment from which you can use [Reflex](https://github.com/ryantrinkle/reflex) with GHC or [GHCJS](https://github.com/ghcjs/ghcjs).
 
 To use Reflex Platform as a build/development system for your own projects, refer to `HACKING.md`.
 
@@ -38,25 +38,41 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
     git clone https://github.com/reflex-frp/reflex-platform
     ```
 
-2. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
+1. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
 
     ```bash
     cd reflex-platform
     ./try-reflex
     ```
 
-3. From this nix-shell, you can compile any haskell source files you like using ghcjs:
+1. From this nix-shell, you can compile any haskell source files you like.
+   Replace `your-source-file.hs` with the name of the file you'd like to compile.  For the most part, ghcjs supports the same options as ghc:
 
-    ```bash
-    ghcjs --make your-source-file.hs
-    ```
-    Replace `your-source-file.hs` with the name of the file you'd like to compile.  For the most part, ghcjs supports the same options as ghc.
+   * GHC
+     ```bash
+     ghc --make your-source-file.hs
+     ./your-source-file
+     ```
+     Compilation will produce a `your-source-file` native executable via [WebkitGtk](https://github.com/WebKit/webkit). Simply run it to launch your app.
 
-4. Compilation will produce a `your-source-file.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
+   * GHCJS
+     ```bash
+     ghcjs --make your-source-file.hs
+     ```
+     Compilation will produce a `your-source-file.jsexe` folder containing an `index.html` file. Open that in your browser to run your app.
 
 **Don't use** `cabal install` to install libraries while inside the try-reflex shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
 
 `try-reflex` and `ghcjs --make` are not recommended for real-world projects — just as a quick and easy way to install Nix and experiment with `reflex-dom`. If you need to use additional Haskell libraries (e.g. from Hackage), we recommend using the tools described in [project-development.md](docs/project-development.md) instead.
+
+Haddock
+----
+If you've already set up nix, haddock documentation for the versions pinned by your current reflex-plaftorm can be browsed by running
+
+```shell
+$ ./scripts/docs-for reflex
+$ ./scripts/docs-for reflex-dom
+```
 
 Tutorial
 --------

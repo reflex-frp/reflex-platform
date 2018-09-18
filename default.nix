@@ -10,24 +10,39 @@
 , iosSdkVersion ? "10.2"
 , iosSdkLocation ? "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${iosSdkVersion}.sdk"
 , iosSupportForce ? false
+, nixpkgsOverlays ? []
 }:
 let iosSupport =
       if system != "x86_64-darwin" then false
       else if iosSupportForce || builtins.pathExists iosSdkLocation then true
       else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
-    globalOverlay = self: super: {
-      all-cabal-hashes = super.all-cabal-hashes.override {
-        src-spec = {
-          owner = "commercialhaskell";
-          repo = "all-cabal-hashes";
-          rev = "82a8a1a49240a1b465c95de6fa6bf56323ee858f";
-          sha256 = "1jdzl5fyp1qcsi1anjig6kglq4jjsdll53nissjcnxpy3jscmarm";
+    androidSupport = nixpkgs.stdenv.hostPlatform.isLinux && nixpkgs.stdenv.hostPlatform.isx86;
+    globalOverlays = [
+      (self: super: {
+        all-cabal-hashes = super.all-cabal-hashes.override {
+          src-spec = {
+            owner = "commercialhaskell";
+            repo = "all-cabal-hashes";
+            rev = "82a8a1a49240a1b465c95de6fa6bf56323ee858f";
+            sha256 = "1jdzl5fyp1qcsi1anjig6kglq4jjsdll53nissjcnxpy3jscmarm";
+          };
         };
+      })
+    ] ++ nixpkgsOverlays;
+    appleLibiconvHack = self: super: {
+      darwin = super.darwin // {
+        libiconv =
+          if self.hostPlatform == self.buildPlatform
+          then super.darwin.libiconv
+          else super.darwin.libiconv.overrideAttrs (o: {
+            postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
+            configureFlags = ["--disable-shared" "--enable-static"];
+        });
       };
     };
     nixpkgs = nixpkgsFunc ({
       inherit system;
-      overlays = [globalOverlay];
+      overlays = globalOverlays;
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
@@ -41,12 +56,12 @@ let iosSupport =
         };
       } // config;
     });
-    inherit (nixpkgs) fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
+    inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
-      android = nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
+      android = lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         arm64 = {
           system = "x86_64-linux";
-          overlays = [globalOverlay];
+          overlays = globalOverlays;
           crossSystem = {
             config = "aarch64-unknown-linux-android";
             arch = "arm64";
@@ -62,7 +77,7 @@ let iosSupport =
         };
         armv7a = {
           system = "x86_64-linux";
-          overlays = [globalOverlay];
+          overlays = globalOverlays;
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
             arch = "armv7";
@@ -117,10 +132,10 @@ let iosSupport =
                 };
               };
             };
-        in nixpkgs.lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
+        in lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay];
+          overlays = globalOverlays ++ [appleLibiconvHack];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -140,7 +155,7 @@ let iosSupport =
         };
         arm64 = {
           system = "x86_64-darwin";
-          overlays = [globalOverlay];
+          overlays = globalOverlays ++ [appleLibiconvHack];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -166,7 +181,7 @@ let iosSupport =
     hackGet = p:
       if builtins.pathExists (p + "/git.json") then (
         let gitArgs = builtins.fromJSON (builtins.readFile (p + "/git.json"));
-        in if builtins.elem "@" (nixpkgs.lib.stringToCharacters gitArgs.url)
+        in if builtins.elem "@" (lib.stringToCharacters gitArgs.url)
         then fetchgitPrivate gitArgs
         else fetchgit gitArgs)
       else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (builtins.fromJSON (builtins.readFile (p + "/github.json")))
@@ -180,9 +195,9 @@ let iosSupport =
       shims = hackGet ./shims;
       ghcjs = hackGet ./ghcjs;
     };
-    inherit (nixpkgs.stdenv.lib) optional optionals;
+    inherit (nixpkgs.stdenv.lib) optional optionals optionalAttrs;
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
-in with haskellLib;
+in with lib; with haskellLib;
 let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
@@ -190,11 +205,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       revision = null;
       editedCabalFile = null;
     });
-    combineOverrides = old: new: (old // new) // {
-      overrides = nixpkgs.lib.composeExtensions old.overrides new.overrides;
+    combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
+      overrides = lib.composeExtensions old.overrides new.overrides;
     };
-    makeRecursivelyOverridable = x: old: x.override old // {
-      override = new: makeRecursivelyOverridable x (combineOverrides old new);
+    makeRecursivelyOverridable = x: x // {
+      override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
     foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
       postInstall = ''
@@ -217,8 +232,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     addFastWeakFlag = if useFastWeak
       then drv: enableCabalFlag drv "fast-weak"
       else drv: drv;
-    extendHaskellPackages = haskellPackages: makeRecursivelyOverridable haskellPackages {
-      overrides = self: super:
+    extendHaskellPackages = self: super:
         let reflexDom = import (hackGet ./reflex-dom) self nixpkgs;
             jsaddlePkgs = import (hackGet ./jsaddle) self;
             gargoylePkgs = self.callPackage (hackGet ./gargoyle) self;
@@ -265,6 +279,12 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
         reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
         haven = self.callHackage "haven" "0.2.0.0" {};
+        monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
+          owner = "obsidiansystems";
+          repo = "monoidal-containers";
+          rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
+          sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
+        }) {};
 
         inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
         jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
@@ -361,7 +381,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       } // (if enableLibraryProfiling then {
         mkDerivation = expr: super.mkDerivation (expr // { enableLibraryProfiling = true; });
       } else {});
-    };
     haskellOverlays = import ./haskell-overlays {
       inherit
         haskellLib
@@ -389,7 +408,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     };
     ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghcjsCompiler;
-      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-7.10.x.nix") { inherit haskellLib; };
+      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-8.0.x.nix") { inherit haskellLib; };
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
     };
@@ -397,75 +416,86 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
 #      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
 #    };
-  ghcjs = (extendHaskellPackages ghcjsPackages).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghcjs = (makeRecursivelyOverridable ghcjsPackages).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghcjs
       (optionalExtension useTextJSString haskellOverlays.textJSString)
     ];
   };
-  ghcHEAD = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghcHEAD = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-head
     ];
   };
-  ghc8_2_1 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc821).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc821).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghc = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc802).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghc = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc802).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8
     ];
   };
-  ghc7 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc7103).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghc7 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc7103).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7
     ];
   };
-  ghc7_8 = (extendHaskellPackages nixpkgs.pkgs.haskell.packages.ghc784).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghc7_8 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc784).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7_8
     ];
   };
-  ghcAndroidArm64 = (extendHaskellPackages nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghcAndroidArm64 = (makeRecursivelyOverridable nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
     ];
   };
-  ghcAndroidArmv7a = (extendHaskellPackages nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghcAndroidArmv7a = (makeRecursivelyOverridable nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
     ];
   };
-  ghcIosSimulator64 = (extendHaskellPackages nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghcIosArm64 = (extendHaskellPackages nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghcIosArm64 = (makeRecursivelyOverridable nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.ios
     ];
   };
-  ghcIosArmv7 = (extendHaskellPackages nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821).override {
-    overrides = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  ghcIosArmv7 = (makeRecursivelyOverridable nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
       haskellOverlays.disableTemplateHaskell
@@ -487,14 +517,13 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     sha256 = "0rca00lajdzf8lf2hgwn6mbmii656dnw725y6nnraz4qf87907zq";
   };
   # TODO: This should probably be upstreamed to nixpkgs.
-  plistLib = import (nix-darwin + /modules/launchd/lib.nix) { lib = nixpkgs.lib; };
+  plistLib = import (nix-darwin + /modules/launchd/lib.nix) { inherit lib; };
 
   ios = iosWithHaskellPackages ghcIosArm64;
   iosWithHaskellPackages = ghcIosArm64: {
     buildApp = import ./ios {
       inherit ghcIosArm64 plistLib;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
-      inherit (nixpkgsCross.ios.arm64) libiconv;
     };
   };
 in let this = rec {
@@ -564,8 +593,8 @@ in let this = rec {
     inherit name;
     value = f value;
   }) (attrsToList s));
-  mkSdist = pkg: pkg.override {
-    mkDerivation = drv: ghc.mkDerivation (drv // {
+  mkSdist = pkg: pkg.override (oldArgs: {
+    mkDerivation = drv: oldArgs.mkDerivation (drv // {
       postConfigure = ''
         ./Setup sdist
         mkdir "$out"
@@ -574,10 +603,10 @@ in let this = rec {
       '';
       doHaddock = false;
     });
-  };
+  });
   sdists = mapSet mkSdist ghc;
-  mkHackageDocs = pkg: pkg.override {
-    mkDerivation = drv: ghc.mkDerivation (drv // {
+  mkHackageDocs = pkg: pkg.override (oldArgs: {
+    mkDerivation = drv: oldArgs.mkDerivation (drv // {
       postConfigure = ''
         ./Setup haddock --hoogle --hyperlink-source --html --for-hackage --haddock-option=--built-in-themes
         cd dist/doc/html
@@ -587,7 +616,7 @@ in let this = rec {
       '';
       doHaddock = false;
     });
-  };
+  });
   hackageDocs = mapSet mkHackageDocs ghc;
   mkReleaseCandidate = pkg: nixpkgs.stdenv.mkDerivation (rec {
     name = pkg.name + "-rc";
@@ -617,28 +646,32 @@ in let this = rec {
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
-  generalDevTools = haskellPackages:
+  generalDevToolsAttrs = haskellPackages:
     let nativeHaskellPackages = ghc;
-    in [
-    nativeHaskellPackages.Cabal
-    nativeHaskellPackages.cabal-install
-    nativeHaskellPackages.ghcid
-    nativeHaskellPackages.hasktags
-    nativeHaskellPackages.hlint
-    nixpkgs.cabal2nix
-    nixpkgs.curl
-    nixpkgs.nix-prefetch-scripts
-    nixpkgs.nodejs
-    nixpkgs.pkgconfig
-    nixpkgs.closurecompiler
-  ] ++ (optionals (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) [
+    in {
+    inherit (nativeHaskellPackages)
+      Cabal
+      cabal-install
+      ghcid
+      hasktags
+      hlint;
+    inherit (nixpkgs)
+      cabal2nix
+      curl
+      nix-prefetch-scripts
+      nodejs
+      pkgconfig
+      closurecompiler;
+  } // (optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
-    (nixpkgs.haskell.lib.justStaticExecutables nativeHaskellPackages.ghc-mod)
-    haskellPackages.hdevtools
-  ]) ++ (if builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0 then [
-    nativeHaskellPackages.stylish-haskell # Recent stylish-haskell only builds with AMP in place
-  ] else []);
+    ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables nativeHaskellPackages.ghc-mod);
+    inherit (haskellPackages) hdevtools;
+  }) // (optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
+    inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
+  });
+
+  generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -649,26 +682,58 @@ in let this = rec {
     buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
   })).env;
 
-  workOnMulti' = { env, packageNames, tools ? _: [] }:
-    let ghcEnv =
-      let inherit (builtins) filter all concatLists;
-          dependenciesOf = x: (x.buildDepends or [])
-                           ++ (x.libraryHaskellDepends or [])
-                           ++ (x.executableHaskellDepends or [])
-                           ++ (x.testHaskellDepends or []);
-          elemByPname = p: all (pname: (p.pname or "") != pname) packageNames;
-          overiddenOut  = pkgEnv: n: (overrideCabal pkgEnv.${n} (args: {
-            passthru = (args.passthru or {}) // {
-              out = filter elemByPname (dependenciesOf args);
-            };
-          })).out;
-      in env.ghc.withPackages (pkgEnv: concatLists (map (overiddenOut pkgEnv) packageNames));
+  workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
+    let inherit (builtins) listToAttrs filter attrValues all concatLists;
+        combinableAttrs = [
+          "benchmarkDepends"
+          "benchmarkFrameworkDepends"
+          "benchmarkHaskellDepends"
+          "benchmarkPkgconfigDepends"
+          "benchmarkSystemDepends"
+          "benchmarkToolDepends"
+          "buildDepends"
+          "buildTools"
+          "executableFrameworkDepends"
+          "executableHaskellDepends"
+          "executablePkgconfigDepends"
+          "executableSystemDepends"
+          "executableToolDepends"
+          "extraLibraries"
+          "libraryFrameworkDepends"
+          "libraryHaskellDepends"
+          "libraryPkgconfigDepends"
+          "librarySystemDepends"
+          "libraryToolDepends"
+          "pkgconfigDepends"
+          "setupHaskellDepends"
+          "testDepends"
+          "testFrameworkDepends"
+          "testHaskellDepends"
+          "testPkgconfigDepends"
+          "testSystemDepends"
+          "testToolDepends"
+        ];
+        concatCombinableAttrs = haskellConfigs: filterAttrs (n: v: v != []) (listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs));
+        getHaskellConfig = p: (overrideCabal p (args: {
+          passthru = (args.passthru or {}) // {
+            out = args;
+          };
+        })).out;
+        notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
+        baseTools = generalDevToolsAttrs env;
+        overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
+        depAttrs = mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
+          (map getHaskellConfig (attrVals packageNames env))
+          [{
+            buildTools = overriddenTools ++ tools env;
+          }]
+        ]));
 
-    in nixpkgs.runCommand "shell" (ghcEnv.ghcEnvVars // {
-      buildInputs = [
-        ghcEnv
-      ] ++ generalDevTools env ++ tools env;
-    }) "";
+    in (env.mkDerivation (depAttrs // {
+      pname = "work-on-multi--combined-pkg";
+      version = "0";
+      license = null;
+    })).env;
 
   workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
 
@@ -701,13 +766,13 @@ in let this = rec {
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
-    let otherPlatforms = optionals (system == "x86_64-linux") [
+    let otherPlatforms = optionals androidSupport [
           "ghcAndroidArm64"
           "ghcAndroidArmv7a"
         ] ++ optional iosSupport "ghcIosArm64";
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
-      ++ optionals (system == "x86_64-linux") [
+      ++ optionals androidSupport [
         androidDevTools
         androidReflexTodomvc
       ] ++ optionals iosSupport [
@@ -725,8 +790,7 @@ in let this = rec {
     };
   }).config.system.build.virtualBoxOVA;
 
-  lib = haskellLib;
-  inherit cabal2nixResult sources system iosSupport;
+  inherit cabal2nixResult sources system androidSupport iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
