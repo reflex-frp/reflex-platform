@@ -108,7 +108,7 @@ index 58954945c7..4318481674 100644
  
  instance ConvertType Type IfaceType where
    convertType = toIfaceType
-@@ -68,21 +76,45 @@ instance ConvertType IfaceType Type where
+@@ -68,21 +76,48 @@ instance ConvertType IfaceType Type where
    convertType _ = panic "convertType :: IfaceType -> Type: unsupported constructor"
  
  instance ConvertName RdrName SeName where
