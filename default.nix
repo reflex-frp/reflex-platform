@@ -11,7 +11,7 @@
 , nixpkgsOverlays ? []
 }:
 let iosSupport = system == "x86_64-darwin";
-    androidSupport = lib.elem system [ "x86_64-linux" "x86_64-darwin" ];
+    androidSupport = lib.elem system [ "x86_64-linux" ];
 
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
