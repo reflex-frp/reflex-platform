@@ -488,7 +488,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       (combineOverrides
         {
           overrides = self: super: {
-            ASDF = 1;
             buildHaskellPackages = super.buildHaskellPackages.override new;
           };
         }
