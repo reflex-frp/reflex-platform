@@ -11,7 +11,7 @@
 , nixpkgsOverlays ? []
 }:
 let iosSupport = system == "x86_64-darwin";
-    androidSupport = lib.elem system [ "x86_64-linux" "x86_64-darwin" ];
+    androidSupport = lib.elem system [ "x86_64-linux" ];
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv = super.darwin.libiconv.overrideAttrs (_:
