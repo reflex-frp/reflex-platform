@@ -18,6 +18,7 @@ in lib.genAttrs local-reflex-platform.cacheBuildSystems (system:
   let
     reflex-platform = (import ./. { inherit system; iosSupportForce = system == "x86_64-darwin"; });
   in {
+    inherit (reflex-platform) sources;
     tryReflexShell = reflex-platform.tryReflexShell;
     skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
   } // lib.optionalAttrs (system == "x86_64-linux") {
