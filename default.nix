@@ -59,7 +59,7 @@ let iosSupport =
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
-        aarch64 = rec {
+        aarch64 = {
           system = "x86_64-linux";
           overlays = globalOverlays;
           crossSystem = {
