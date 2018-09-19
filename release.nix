@@ -30,8 +30,10 @@ in lib.genAttrs local-reflex-platform.cacheBuildSystems (system:
     benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
+    a =  reflex-platform.ghcAndroidAarch64.a;
   } // lib.optionalAttrs (reflex-platform.iosSupport) {
     inherit (reflex-platform) iosReflexTodomvc;
+    a =  reflex-platform.ghcIosArch64.a;
   } // lib.listToAttrs
     (builtins.map (drv: { inherit (drv) name; value = drv; }) (getOtherDeps reflex-platform))
   )
