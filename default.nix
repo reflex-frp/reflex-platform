@@ -15,8 +15,8 @@
 let iosSupport =
       if system != "x86_64-darwin" then false
       else if iosSupportForce || builtins.pathExists iosSdkLocation then true
-      else builtins.trace "Warning: No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
-    androidSupport = nixpkgs.stdenv.hostPlatform.isLinux && nixpkgs.stdenv.hostPlatform.isx86;
+      else lib.warn "No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
+    androidSupport = lib.elem system [ "x86_64-linux" ];
     globalOverlays = [
       (self: super: {
         all-cabal-hashes = super.all-cabal-hashes.override {
@@ -59,7 +59,7 @@ let iosSupport =
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
-        arm64 = {
+        aarch64 = {
           system = "x86_64-linux";
           overlays = globalOverlays;
           crossSystem = {
@@ -68,14 +68,12 @@ let iosSupport =
             libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic64";
-            platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
+            platform = lib.systems.examples.aarch64-multiplatform;
+            useAndroidPrebuilt = true;
           };
           config.allowUnfree = true;
         };
-        arm64Impure = arm64 // {
-          crossSystem = arm64.crossSystem // { useAndroidPrebuilt = true; };
-        };
-        armv7a = {
+        aarch32 = {
           system = "x86_64-linux";
           overlays = globalOverlays;
           crossSystem = {
@@ -84,13 +82,16 @@ let iosSupport =
             libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic32";
-            platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
+            platform = lib.systems.exmamples.armv7l-hf-multiplatform;
+            useAndroidPrebuilt = true;
           };
           config.allowUnfree = true;
         };
-        armv7aImpure = armv7a // {
-          crossSystem = armv7a.crossSystem // { useAndroidPrebuilt = true; };
-        };
+        # Back compat
+        arm64 = lib.warn "nixpkgsCross.android.arm64 has been deprecated, using nixpkgsCross.android.aarch64 instead." aarch64;
+        armv7a = lib.warn "nixpkgsCross.android.armv7a has been deprecated, using nixpkgsCross.android.aarch32 instead." aarch32;
+        arm64Impure = lib.warn "nixpkgsCross.android.arm64Impure has been deprecated, using nixpkgsCross.android.aarch64 instead." aarch64;
+        armv7aImpure = lib.warn "nixpkgsCross.android.armv7aImpure has been deprecated, using nixpkgsCross.android.aarch32 instead." aarch32;
       };
       ios =
         let config = {
@@ -132,7 +133,7 @@ let iosSupport =
                 };
               };
             };
-        in lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) {
+        in lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
           overlays = globalOverlays ++ [appleLibiconvHack];
@@ -153,7 +154,7 @@ let iosSupport =
           };
           inherit config;
         };
-        arm64 = {
+        aarch64 = {
           system = "x86_64-darwin";
           overlays = globalOverlays ++ [appleLibiconvHack];
           crossSystem = {
@@ -173,6 +174,8 @@ let iosSupport =
           };
           inherit config;
         };
+        # Back compat
+        arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
       };
     };
     haskellLib = nixpkgs.haskell.lib;
@@ -208,6 +211,10 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
       overrides = lib.composeExtensions old.overrides new.overrides;
     };
+    # Makes sure that old `overrides` from a previous call to `override` are not
+    # forgotten, but composed. Do this by overriding `override` and passing a
+    # function which takes the old argument set and combining it. What a tongue
+    # twister!
     makeRecursivelyOverridable = x: x // {
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
@@ -424,42 +431,42 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       (optionalExtension useTextJSString haskellOverlays.textJSString)
     ];
   };
-  ghcHEAD = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghcHEAD).override {
+  ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-head
     ];
   };
-  ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc821).override {
+  ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghc = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc802).override {
+  ghc = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc802).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8
     ];
   };
-  ghc7 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc7103).override {
+  ghc7 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc7103).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7
     ];
   };
-  ghc7_8 = (makeRecursivelyOverridable nixpkgs.pkgs.haskell.packages.ghc784).override {
+  ghc7_8 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc784).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-7_8
     ];
   };
-  ghcAndroidArm64 = (makeRecursivelyOverridable nixpkgsCross.android.arm64Impure.pkgs.haskell.packages.ghc821).override {
+  ghcAndroidAarch64 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -468,7 +475,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.android
     ];
   };
-  ghcAndroidArmv7a = (makeRecursivelyOverridable nixpkgsCross.android.armv7aImpure.pkgs.haskell.packages.ghc821).override {
+  ghcAndroidAarch32 = (makeRecursivelyOverridable nixpkgsCross.android.armv7aImpure.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -477,23 +484,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.android
     ];
   };
-  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.pkgs.haskell.packages.ghc821).override {
+  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_2_1
     ];
   };
-  ghcIosArm64 = (makeRecursivelyOverridable nixpkgsCross.ios.arm64.pkgs.haskell.packages.ghc821).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
-      extendHaskellPackages
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2_1
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.ios
-    ];
-  };
-  ghcIosArmv7 = (makeRecursivelyOverridable nixpkgsCross.ios.armv7.pkgs.haskell.packages.ghc821).override {
+  ghcIosAarch64 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) [
       extendHaskellPackages
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
@@ -502,12 +500,25 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ios
     ];
   };
+  ghcIosAarch32 = (makeRecursivelyOverridable nixpkgsCross.ios.armv7.haskell.packages.ghc821).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) [
+      extendHaskellPackages
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2_1
+      haskellOverlays.disableTemplateHaskell
+      haskellOverlays.ios
+    ];
+  };
+  # Back compat
+  ghcAndroidArm64 = lib.warn "ghcAndroidArm64 has been deprecated, using ghcAndroidAarch64 instead." ghcAndroidAarch64;
+  ghcAndroidArmv7a = lib.warn "ghcAndroidArmv7a has been deprecated, using ghcAndroidAarch32 instead." ghcAndroidAarch32;
+  ghcIosArm64 = lib.warn "ghcIosArm64 has been deprecated, using ghcIosAarch64 instead." ghcIosAarch64;
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
-  android = androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; };
-  androidWithHaskellPackages = { ghcAndroidArm64, ghcAndroidArmv7a }: import ./android {
+  android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
+  androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
-    inherit nixpkgsCross ghcAndroidArm64 ghcAndroidArmv7a overrideCabal;
+    inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
 
   nix-darwin = fetchFromGitHub {
@@ -519,10 +530,10 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   # TODO: This should probably be upstreamed to nixpkgs.
   plistLib = import (nix-darwin + /modules/launchd/lib.nix) { inherit lib; };
 
-  ios = iosWithHaskellPackages ghcIosArm64;
-  iosWithHaskellPackages = ghcIosArm64: {
+  ios = iosWithHaskellPackages ghcIosAarch64;
+  iosWithHaskellPackages = ghcIosAarch64: {
     buildApp = import ./ios {
-      inherit ghcIosArm64 plistLib;
+      inherit ghcIosAarch64 plistLib;
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
     };
   };
@@ -541,16 +552,17 @@ in let this = rec {
           ghc7
           ghc7_8
           ghcIosSimulator64
-          ghcIosArm64
-          ghcIosArmv7
-          ghcAndroidArm64
-          ghcAndroidArmv7a
+          ghcIosAarch64
+          ghcIosAarch32
+          ghcAndroidAarch64
+          ghcAndroidAarch32
           ghcjs
           android
           androidWithHaskellPackages
           ios
           iosWithHaskellPackages
           filterGit;
+
   androidReflexTodomvc = android.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
@@ -747,7 +759,8 @@ in let this = rec {
   } "";
 
   # The systems that we want to build for on the current system
-  cacheTargetSystems = [
+  cacheTargetSystems = lib.warn "cacheTargetSystems has been deprecated, use cacheBuildSystems" cacheBuildSystems;
+  cacheBuildSystems = [
     "x86_64-linux"
     "i686-linux"
     "x86_64-darwin"
@@ -767,9 +780,9 @@ in let this = rec {
 
   cachePackages =
     let otherPlatforms = optionals androidSupport [
-          "ghcAndroidArm64"
-          "ghcAndroidArmv7a"
-        ] ++ optional iosSupport "ghcIosArm64";
+          "ghcAndroidAarch64"
+          "ghcAndroidAarch32"
+        ] ++ optional iosSupport "ghcIosAarch64";
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
       ++ optionals androidSupport [
