@@ -1,14 +1,15 @@
-with import ./.. {};
-let inherit (nixpkgs.lib) optionals;
+let local-reflex-platform = import ../. {};
+    inherit (local-reflex-platform.nixpkgs) lib;
     inputs = builtins.concatLists [
-      (builtins.attrValues sources)
-      (map (system: (import ./.. { inherit system; iosSupportForce = true; }).cachePackages) cacheBuildSystems)
+      (builtins.attrValues local-reflex-platform.sources)
+      (map (system: (import ./.. { inherit system; iosSupportForce = true; }).cachePackages)
+           local-reflex-platform.cacheBuildSystems)
     ];
     getOtherDeps = reflexPlatform: [
       reflexPlatform.stage2Script
       reflexPlatform.nixpkgs.cabal2nix
     ] ++ builtins.concatLists (map
-      (crossPkgs: optionals (crossPkgs != null) [
+      (crossPkgs: lib.optionals (crossPkgs != null) [
         crossPkgs.buildPackages.haskellPackages.cabal2nix
       ]) [
         reflexPlatform.nixpkgsCross.ios.aarch64
@@ -17,6 +18,7 @@ let inherit (nixpkgs.lib) optionals;
       ]
     );
     otherDeps = builtins.concatLists (
-      map (system: getOtherDeps (import ./.. { inherit system; })) cacheBuildSystems
+      map (system: getOtherDeps (import ./.. { inherit system; }))
+          local-reflex-platform.cacheBuildSystems
     ) ++ [(import ./benchmark.nix {})];
-in pinBuildInputs "reflex-platform" inputs otherDeps
+in local-reflex-platform.pinBuildInputs "reflex-platform" inputs otherDeps
