@@ -285,7 +285,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         reflex-dom-core = appendConfigureFlags (addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core))
                                                (optional enableLibraryProfiling "-fprofile-reflex");
         reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
-        reflex-aeson-orphans = self.callPackage (hackGet ./reflex-aeson-orphans) {};
+        reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ./reflex-aeson-orphans) {};
         haven = self.callHackage "haven" "0.2.0.0" {};
         monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
           owner = "obsidiansystems";
