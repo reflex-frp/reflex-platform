@@ -68,7 +68,7 @@ let iosSupport =
             libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic64";
-            platform = nixpkgs.pkgs.platforms.aarch64-multiplatform;
+            platform = lib.systems.examples.aarch64-multiplatform;
             useAndroidPrebuilt = true;
           };
           config.allowUnfree = true;
@@ -82,7 +82,7 @@ let iosSupport =
             libc = "bionic";
             withTLS = true;
             openssl.system = "linux-generic32";
-            platform = nixpkgs.pkgs.platforms.armv7l-hf-multiplatform;
+            platform = lib.systems.exmamples.armv7l-hf-multiplatform;
             useAndroidPrebuilt = true;
           };
           config.allowUnfree = true;
