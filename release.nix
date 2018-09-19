@@ -20,6 +20,8 @@ in lib.genAttrs local-reflex-platform.cacheBuildSystems (system:
   in {
     tryReflexShell = reflex-platform.tryReflexShell;
     skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
+  } // lib.optionalAttrs (system != "x86_64-darwin") {
+    # The node build is uncached and slow
     benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
