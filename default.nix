@@ -16,7 +16,7 @@ let iosSupport =
       if system != "x86_64-darwin" then false
       else if iosSupportForce || builtins.pathExists iosSdkLocation then true
       else lib.warn "No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
-    androidSupport = nixpkgs.stdenv.hostPlatform.isLinux && nixpkgs.stdenv.hostPlatform.isx86;
+    androidSupport = lib.elem system [ "x86_64-linux" ];
     globalOverlays = [
       (self: super: {
         all-cabal-hashes = super.all-cabal-hashes.override {
