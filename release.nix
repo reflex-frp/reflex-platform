@@ -9,13 +9,13 @@ let inherit (nixpkgs.lib) optionals;
       (crossPkgs: optionals (crossPkgs != null) [
         crossPkgs.buildPackages.haskellPackages.cabal2nix
       ]) [
-        reflexPlatform.nixpkgsCross.ios.arm64
-        reflexPlatform.nixpkgsCross.android.arm64Impure
-        reflexPlatform.nixpkgsCross.android.armv7aImpure
+        reflexPlatform.nixpkgsCross.ios.aarch64
+        reflexPlatform.nixpkgsCross.android.aarch64
+        reflexPlatform.nixpkgsCross.android.aarch32
       ]
     );
 
-in nixpkgs.lib.genAttrs cacheTargetSystems (system:
+in nixpkgs.lib.genAttrs cacheBuildSystems (system:
   let
     reflexPlatform = (import ./. { inherit system; iosSupportForce = true; });
   in {
