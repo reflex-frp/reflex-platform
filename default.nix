@@ -372,6 +372,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
           sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
         }) {};
 
+        a = self.callCabal2nix "a" (./a) {};
+
         mkDerivation = expr: super.mkDerivation (expr // {
           inherit enableLibraryProfiling;
         });
