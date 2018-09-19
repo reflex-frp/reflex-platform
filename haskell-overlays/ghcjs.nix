@@ -1,5 +1,7 @@
 { haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer }:
 
+let inherit (nixpkgs) lib; in
+
 self: super: {
   ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
     inherit (self) llvmPackages;
@@ -24,6 +26,6 @@ self: super: {
   bytes = haskellLib.dontCheck super.bytes;
 
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
-  doctest = builtins.trace "Warning: ignoring dependency on doctest" null;
+  doctest = lib.warn "ignoring dependency on doctest" null;
 
 }

@@ -1,4 +1,4 @@
-Reflex Platform [![CircleCI](https://circleci.com/gh/reflex-frp/reflex-platform.svg?style=svg)](https://circleci.com/gh/reflex-frp/reflex-platform)
+Reflex Platform
 ===============
 
 The Reflex Platform is a collection of libraries and tools that are useful for developing and deploying [Reflex](https://github.com/reflex-frp/reflex)-based applications.
@@ -64,6 +64,15 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
 **Don't use** `cabal install` to install libraries while inside the try-reflex shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
 
 `try-reflex` and `ghcjs --make` are not recommended for real-world projects — just as a quick and easy way to install Nix and experiment with `reflex-dom`. If you need to use additional Haskell libraries (e.g. from Hackage), we recommend using the tools described in [project-development.md](docs/project-development.md) instead.
+
+Haddock
+----
+If you've already set up nix, haddock documentation for the versions pinned by your current reflex-plaftorm can be browsed by running
+
+```shell
+$ ./scripts/docs-for reflex
+$ ./scripts/docs-for reflex-dom
+```
 
 Tutorial
 --------
