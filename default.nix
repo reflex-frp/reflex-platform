@@ -42,7 +42,7 @@ let iosSupport = system == "x86_64-darwin";
       };
     };
 
-    appleLibiconvHack = self: super: {
+    forceStaticLibs = self: super: {
       darwin = super.darwin // {
         libiconv = super.darwin.libiconv.overrideAttrs (_:
           lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
@@ -50,6 +50,7 @@ let iosSupport = system == "x86_64-darwin";
             configureFlags = ["--disable-shared" "--enable-static"];
           });
       };
+      zlib = super.zlib.override { static = true; };
     };
     androidPICPatches = self: super: (optionalAttrs super.stdenv.targetPlatform.useAndroidPrebuilt {
       haskell = super.haskell // {
@@ -85,11 +86,11 @@ let iosSupport = system == "x86_64-darwin";
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
-          overlays = nixpkgsArgs.overlays ++ [androidPICPatches];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs androidPICPatches ];
           crossSystem = lib.systems.examples.aarch64-android-prebuilt;
         };
         aarch32 = {
-          overlays = nixpkgsArgs.overlays ++ [androidPICPatches];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs androidPICPatches ];
           crossSystem = lib.systems.examples.armv7a-android-prebuilt;
         };
         # Back compat
@@ -98,19 +99,19 @@ let iosSupport = system == "x86_64-darwin";
       };
       ios = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         simulator64 = {
-          overlays = nixpkgsArgs.overlays ++ [appleLibiconvHack];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs ];
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
           };
         };
         aarch64 = {
-          overlays = nixpkgsArgs.overlays ++ [appleLibiconvHack];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs ];
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
           };
         };
         aarch32 = {
-          overlays = nixpkgsArgs.overlays ++ [appleLibiconvHack];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs ];
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
           };
