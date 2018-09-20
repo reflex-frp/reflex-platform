@@ -1,5 +1,5 @@
 { haskellLib
-, nixpkgs, jdk, fetchFromGitHub, hackGet
+, nixpkgs, fetchFromGitHub, hackGet
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents
 , stage2Script
 , androidActivity
@@ -40,7 +40,7 @@ rec {
   android = import ./android {
     inherit haskellLib;
     inherit androidActivity;
-    inherit (nixpkgs) jdk;
+    inherit nixpkgs;
   };
   ios = import ./ios.nix { inherit haskellLib; };
 }
