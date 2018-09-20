@@ -15,7 +15,7 @@ let local-reflex-platform = import ./. {};
 
     perPlatform = lib.genAttrs local-reflex-platform.cacheBuildSystems (system:
       let
-        reflex-platform = import ./. { inherit system; iosSupportForce = system == "x86_64-darwin"; };
+        reflex-platform = import ./. { inherit system; };
         otherDeps = getOtherDeps reflex-platform;
       in {
         inherit (reflex-platform) sources;
