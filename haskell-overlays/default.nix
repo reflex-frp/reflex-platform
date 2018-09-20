@@ -1,10 +1,14 @@
 { haskellLib
-, nixpkgs, jdk, fetchFromGitHub
-, useReflexOptimizer, stage2Script
+, nixpkgs, jdk, fetchFromGitHub, hackGet
+, useFastWeak, useReflexOptimizer, enableTraceReflexEvents
+, stage2Script
 , androidActivity
 }:
 
 rec {
+  reflexPackages = import ./reflex-packages.nix {
+    inherit haskellLib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents;
+  };
   disableTemplateHaskell = import ./disable-template-haskell.nix {
     inherit haskellLib fetchFromGitHub;
   };
