@@ -233,22 +233,8 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       src = "file://${src}";
       sha256 = null;
     });
-    addReflexTraceEventsFlag = if enableTraceReflexEvents
-      then drv: appendConfigureFlag drv "-fdebug-trace-events"
-      else drv: drv;
-    addFastWeakFlag = if useFastWeak
-      then drv: enableCabalFlag drv "fast-weak"
-      else drv: drv;
-    extendHaskellPackages = self: super:
-        let reflexDom = import (hackGet ./reflex-dom) self nixpkgs;
-            jsaddlePkgs = import (hackGet ./jsaddle) self;
-            gargoylePkgs = self.callPackage (hackGet ./gargoyle) self;
-            ghcjsDom = import (hackGet ./ghcjs-dom) self;
-            addReflexOptimizerFlag = if useReflexOptimizer && (self.ghc.cross or null) == null
-              then drv: appendConfigureFlag drv "-fuse-reflex-optimizer"
-              else drv: drv;
-        in {
-
+    extendHaskellPackages = lib.composeExtensions haskellOverlays.reflexPackages extendHaskellPackages';
+    extendHaskellPackages' = self: super: {
         base-compat = self.callHackage "base-compat" "0.9.2" {};
         constraints = self.callHackage "constraints" "0.9" {};
         servant-auth-server = self.callHackage "servant-auth-server" "0.3.1.0" {};
@@ -276,39 +262,6 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         hindent = super.hindent.override { haskell-src-exts = self.haskell-src-exts; };
         # Not sure why these tests fail...
         hfmt = dontCheck super.hfmt;
-
-        ########################################################################
-        # Reflex packages
-        ########################################################################
-        reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ./reflex) {})));
-        reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
-        reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
-        reflex-todomvc = self.callPackage (hackGet ./reflex-todomvc) {};
-        reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ./reflex-aeson-orphans) {};
-        haven = self.callHackage "haven" "0.2.0.0" {};
-        monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
-          owner = "obsidiansystems";
-          repo = "monoidal-containers";
-          rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
-          sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
-        }) {};
-
-        inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
-        jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
-
-        jsaddle-dom = overrideCabal (self.callPackage (hackGet ./jsaddle-dom) {}) (drv: {
-          # On macOS, the jsaddle-dom build will run out of file handles the first time it runs
-          preBuild = ''./setup build || true'';
-        });
-
-        inherit (ghcjsDom) ghcjs-dom-jsffi;
-
-        # TODO: Fix this in Cabal
-        # When building a package with no haskell files, cabal haddock shouldn't fail
-        ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
-        ghcjs-dom = dontHaddock ghcjsDom.ghcjs-dom;
-
-        inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
 
         ########################################################################
         # Tweaks
@@ -391,8 +344,9 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     haskellOverlays = import ./haskell-overlays {
       inherit
         haskellLib
-        nixpkgs jdk fetchFromGitHub
-        useReflexOptimizer stage2Script;
+        nixpkgs jdk fetchFromGitHub hackGet
+        useFastWeak useReflexOptimizer enableTraceReflexEvents
+        stage2Script;
       androidActivity = hackGet ./android-activity;
     };
     stage2Script = nixpkgs.runCommand "stage2.nix" {
