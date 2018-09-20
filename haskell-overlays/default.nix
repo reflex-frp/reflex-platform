@@ -1,16 +1,18 @@
 { lib
 , haskellLib
-, nixpkgs, jdk, fetchFromGitHub
+, nixpkgs, fetchFromGitHub, hackGet
 , ghcjsBaseSrc
-, useReflexOptimizer
+, useFastWeak, useReflexOptimizer, enableTraceReflexEvents
 , useTextJSString
 , optionalExtension
 , androidActivity
-, hackGet
 , ghcSavedSplices
 }:
 
 rec {
+  reflexPackages = import ./reflex-packages.nix {
+    inherit haskellLib lib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents;
+  };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
     inherit lib haskellLib fetchFromGitHub hackGet;
@@ -59,9 +61,8 @@ rec {
     }));
   android = import ./android {
     inherit haskellLib;
-    inherit androidActivity;
-    inherit (nixpkgs) jdk lib;
     inherit nixpkgs;
+    inherit androidActivity;
   };
   ios = import ./ios.nix {
     inherit haskellLib;

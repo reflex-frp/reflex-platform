@@ -21,7 +21,6 @@ let local-reflex-platform = import ./. {};
         reflex-platform = import ./. { inherit system; };
         otherDeps = getOtherDeps reflex-platform;
       in {
-        inherit (reflex-platform) sources;
         tryReflexShell = reflex-platform.tryReflexShell;
         ghcjsReflexTodomvc = reflex-platform.ghcjs.reflex-todomvc.overrideAttrs (attrs: {
           postInstall = ''
@@ -35,7 +34,7 @@ let local-reflex-platform = import ./. {};
         benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
         cache = reflex-platform.pinBuildInputs
           "reflex-platform-${system}"
-          (builtins.attrValues reflex-platform.sources ++ reflex-platform.cachePackages)
+          reflex-platform.cachePackages
           (otherDeps);
       } // lib.optionalAttrs (system == "x86_64-linux") {
         # The node build is uncached and slow

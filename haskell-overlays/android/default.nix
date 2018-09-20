@@ -1,8 +1,8 @@
-{ haskellLib, jdk, androidActivity, lib, nixpkgs }:
+{ haskellLib, androidActivity, nixpkgs }:
 
 self: super: {
   android-activity = self.callPackage androidActivity {
-    inherit jdk;
+    inherit (nixpkgs.buildPackages) jdk;
   };
 
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
