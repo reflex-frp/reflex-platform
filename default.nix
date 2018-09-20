@@ -50,7 +50,9 @@ let iosSupport = system == "x86_64-darwin";
             configureFlags = ["--disable-shared" "--enable-static"];
           });
       };
-      zlib = super.zlib.override { static = true; };
+      zlib = super.zlib.override (optionalAttrs
+        (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
+        { static = true; });
     };
     androidPICPatches = self: super: (optionalAttrs super.stdenv.targetPlatform.useAndroidPrebuilt {
       haskell = super.haskell // {
