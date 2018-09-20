@@ -1,15 +1,17 @@
 { lib
 , haskellLib
-, nixpkgs, jdk, fetchFromGitHub
+, nixpkgs, fetchFromGitHub, hackGet
 , ghcjsBaseSrc
-, useReflexOptimizer
+, useFastWeak, useReflexOptimizer, enableTraceReflexEvents
 , useTextJSString
 , optionalExtension
 , androidActivity
-, hackGet
 }:
 
 rec {
+  reflexPackages = import ./reflex-packages.nix {
+    inherit haskellLib lib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents;
+  };
   disableTemplateHaskell = import ./disable-template-haskell.nix {
     inherit haskellLib fetchFromGitHub;
   };
@@ -53,7 +55,7 @@ rec {
   android = import ./android {
     inherit haskellLib;
     inherit androidActivity;
-    inherit (nixpkgs) jdk;
+    inherit nixpkgs;
   };
   ios = import ./ios.nix { inherit haskellLib; };
 }
