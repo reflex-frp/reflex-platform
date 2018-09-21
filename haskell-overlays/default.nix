@@ -1,6 +1,7 @@
-{ haskellLib
+{ lib
+, haskellLib
 , nixpkgs, fetchFromGitHub, hackGet
-, useFastWeak, useReflexOptimizer, enableTraceReflexEvents
+, useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , stage2Script
 , androidActivity
 }:
@@ -43,4 +44,11 @@ rec {
     inherit nixpkgs;
   };
   ios = import ./ios.nix { inherit haskellLib; };
+  untriaged = import ./untriaged.nix {
+    inherit haskellLib;
+    inherit lib;
+    inherit nixpkgs;
+    inherit fetchFromGitHub;
+    inherit enableLibraryProfiling;
+  };
 }
