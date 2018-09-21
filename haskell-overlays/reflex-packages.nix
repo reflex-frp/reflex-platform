@@ -24,20 +24,19 @@ let
     else drv;
 in
 {
+  ##
+  ## Reflex family
+  ##
+
   reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ../reflex) {})));
   reflex-dom = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom);
   reflex-dom-core = addReflexOptimizerFlag (doJailbreak reflexDom.reflex-dom-core);
   reflex-todomvc = self.callPackage (hackGet ../reflex-todomvc) {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ../reflex-aeson-orphans) {};
 
-  haven = self.callHackage "haven" "0.2.0.0" {};
-
-  monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "monoidal-containers";
-    rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
-    sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
-  }) {};
+  ##
+  ## GHCJS and JSaddle
+  ##
 
   inherit (jsaddlePkgs) jsaddle jsaddle-clib jsaddle-wkwebview jsaddle-webkit2gtk jsaddle-webkitgtk;
   jsaddle-warp = dontCheck jsaddlePkgs.jsaddle-warp;
@@ -54,5 +53,20 @@ in
   ghcjs-dom-jsaddle = dontHaddock ghcjsDom.ghcjs-dom-jsaddle;
   ghcjs-dom = dontHaddock ghcjsDom.ghcjs-dom;
 
+  ##
+  ## Gargoyle
+  ##
+
   inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
+
+  ##
+  ## Misc other dependencies
+  ##
+
+  monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
+    owner = "obsidiansystems";
+    repo = "monoidal-containers";
+    rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
+    sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
+  }) {};
 }
