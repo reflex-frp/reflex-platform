@@ -69,4 +69,11 @@ in
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
+
+  monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
+    owner = "obsidiansystems";
+    repo = "monoidal-containers";
+    rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
+    sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
+  }) {};
 }
