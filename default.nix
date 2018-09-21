@@ -299,7 +299,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2_1
+      haskellOverlays.ghc-8_2
     ]);
   };
   ghc = ghc8_0;
@@ -340,7 +340,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2_1
+      haskellOverlays.ghc-8_2
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
     ]);
@@ -352,7 +352,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2_1
+      haskellOverlays.ghc-8_2
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
     ]);
@@ -364,7 +364,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2_1
+      haskellOverlays.ghc-8_2
     ]);
   };
   ghcIosAarch64 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc821).override {
@@ -374,7 +374,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2_1
+      haskellOverlays.ghc-8_2
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.ios
     ]);
@@ -386,7 +386,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2_1
+      haskellOverlays.ghc-8_2
       haskellOverlays.disableTemplateHaskell
       haskellOverlays.ios
     ]);
