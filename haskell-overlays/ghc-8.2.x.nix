@@ -1,4 +1,5 @@
-{ haskellLib, fetchFromGitHub }:
+{ haskellLib, nixpkgs, fetchFromGitHub}:
+
 with haskellLib;
 self: super: {
   ChasingBottoms = dontCheck (self.callHackage "ChasingBottoms" "1.3.1.3" {});
@@ -23,5 +24,6 @@ self: super: {
   semigroupoids = self.callHackage "semigroupoids" "5.2.1" {};
   shelly = doJailbreak super.shelly;
   syb = self.callHackage "syb" "0.7" {};
-  vector = self.callHackage "vector" "0.12.0.1" {};
+  vector = (if nixpkgs.stdenv.hostPlatform.is32bit then dontCheck else nixpkgs.lib.id)
+           (self.callHackage "vector" "0.12.0.1" {});
 }
