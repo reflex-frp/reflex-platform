@@ -24,6 +24,9 @@ let local-reflex-platform = import ./. {};
       in {
         inherit (reflex-platform) sources;
         tryReflexShell = reflex-platform.tryReflexShell;
+        ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
+        ghc8_0.reflexTodomvc = reflex-platform.ghc8_0.reflex-todomvc;
+        ghc8_2.reflexTodomvc = reflex-platform.ghc8_2.reflex-todomvc;
         skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
         cache = reflex-platform.pinBuildInputs
           "reflex-platform-${system}"
