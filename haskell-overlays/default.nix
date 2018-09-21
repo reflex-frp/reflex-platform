@@ -2,7 +2,7 @@
 , haskellLib
 , nixpkgs, fetchFromGitHub, hackGet
 , ghcjsBaseSrc
-, useFastWeak, useReflexOptimizer, enableTraceReflexEvents
+, useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString
 , optionalExtension
 , androidActivity
@@ -67,5 +67,10 @@ rec {
   ios = import ./ios.nix {
     inherit haskellLib;
     inherit (nixpkgs) lib;
+  };
+  untriaged = import ./untriaged.nix {
+    inherit haskellLib;
+    inherit fetchFromGitHub;
+    inherit enableLibraryProfiling;
   };
 }
