@@ -423,7 +423,6 @@ in let this = rec {
           ghc
           ghcHEAD
           ghc8_2_1
-          ghc8_0_1
           ghc7
           ghc7_8
           ghcIosSimulator64
