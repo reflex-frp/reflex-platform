@@ -1,4 +1,4 @@
-{ haskellLib, jdk, androidActivity }:
+{ haskellLib, nixpkgs, androidActivity }:
 
 self: super: {
   ghc = super.ghc // {
@@ -9,7 +9,9 @@ self: super: {
     };
   };
   android-activity = self.callPackage androidActivity {
-    inherit jdk;
+    # Extra `.buildPackages` to get around erroneous sensativity to the target
+    # platform. Will be fixed on reunification.
+    inherit (nixpkgs.buildPackages.buildPackages) jdk;
   };
 
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
