@@ -24,6 +24,10 @@ let
     else drv;
 in
 {
+  ##
+  ## Reflex family
+  ##
+
   reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ../reflex) {}))));
   reflex-todomvc = self.callPackage (hackGet ../reflex-todomvc) {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ../reflex-aeson-orphans) {};
@@ -33,6 +37,10 @@ in
   # No idea where it hits?
   reflex-dom = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom);
   reflex-dom-core = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core);
+
+  ##
+  ## GHCJS and JSaddle
+  ##
 
   jsaddle = self.callCabal2nix "jsaddle" "${jsaddleSrc}/jsaddle" {};
   jsaddle-clib = self.callCabal2nix "jsaddle-clib" "${jsaddleSrc}/jsaddle-clib" {};
@@ -63,12 +71,19 @@ in
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
   jsaddle-dom = self.callPackage (hackGet ../jsaddle-dom) {};
-
-  haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
+  ##
+  ## Gargoyle
+  ##
+
   inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
+
+  ##
+  ## Misc other dependencies
+  ##
+
+  haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
   monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
     owner = "obsidiansystems";
