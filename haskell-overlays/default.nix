@@ -30,7 +30,7 @@ rec {
     (import ./ghc-7.8.y.nix { inherit haskellLib; });
   ghc-8 = nixpkgs.lib.composeExtensions
     ghc
-    (import ./ghc-8.x.y.nix { });
+    (import ./ghc-8.x.y.nix { inherit haskellLib; });
   ghc-8_2 = nixpkgs.lib.composeExtensions
     ghc-8
     (import ./ghc-8.2.x.nix { inherit haskellLib fetchFromGitHub; });
