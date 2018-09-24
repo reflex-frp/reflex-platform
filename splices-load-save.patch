@@ -258,17 +258,28 @@ index 55d43fd058..dca809f7d1 100644
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  We kind-check declarations differently if they have a complete, user-supplied
 diff --git a/compiler/hsSyn/HsExpr.hs b/compiler/hsSyn/HsExpr.hs
-index 333ca32d72..dd19271698 100644
+index 333ca32d72..96594d5f18 100644
 --- a/compiler/hsSyn/HsExpr.hs
 +++ b/compiler/hsSyn/HsExpr.hs
-@@ -11,6 +11,7 @@
+@@ -10,7 +10,8 @@
+                                       -- in module PlaceHolder
  {-# LANGUAGE ConstraintKinds #-}
  {-# LANGUAGE ExistentialQuantification #-}
- {-# LANGUAGE DeriveFunctor #-}
+-{-# LANGUAGE DeriveFunctor #-}
++{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 +{-# LANGUAGE TypeFamilies #-}
  
  -- | Abstract Haskell syntax for expressions.
  module HsExpr where
+@@ -34,7 +35,7 @@ import CoreSyn
+ import DynFlags ( gopt, GeneralFlag(Opt_PrintExplicitCoercions) )
+ import Name
+ import NameSet
+-import RdrName  ( GlobalRdrEnv )
++import RdrName  ( GlobalRdrEnv, RdrName )
+ import BasicTypes
+ import ConLike
+ import SrcLoc
 @@ -434,7 +435,7 @@ data HsExpr p
    --             'ApiAnnotation.AnnClose'
  
@@ -286,7 +297,18 @@ index 333ca32d72..dd19271698 100644
    -- For details on above see note [Api annotations] in ApiAnnotation
    | RecordUpd
        { rupd_expr :: LHsExpr p
-@@ -891,6 +891,7 @@ ppr_expr (SectionL expr op)
+@@ -833,7 +833,9 @@ pprBinds b = pprDeeper (ppr b)
+ ppr_lexpr :: (SourceTextX p, OutputableBndrId p) => LHsExpr p -> SDoc
+ ppr_lexpr e = ppr_expr (unLoc e)
+ 
+-ppr_expr :: forall p. (SourceTextX p, OutputableBndrId p) => HsExpr p -> SDoc
++ppr_expr :: forall p. ( SourceTextX p, OutputableBndrId p
++                      , RdrOrSeName p ~ RdrName )
++         => HsExpr p -> SDoc
+ ppr_expr (HsVar (L _ v))  = pprPrefixOcc v
+ ppr_expr (HsUnboundVar uv)= pprPrefixOcc (unboundVarOcc uv)
+ ppr_expr (HsConLikeOut c) = pprPrefixOcc c
+@@ -891,6 +893,7 @@ ppr_expr (SectionL expr op)
  
      pp_prefixly = hang (hsep [text " \\ x_ ->", ppr op])
                         4 (hsep [pp_expr, text "x_ )"])
@@ -294,7 +316,7 @@ index 333ca32d72..dd19271698 100644
      pp_infixly v = (sep [pp_expr, pprInfixOcc v])
  
  ppr_expr (SectionR op expr)
-@@ -905,6 +906,7 @@ ppr_expr (SectionR op expr)
+@@ -905,6 +908,7 @@ ppr_expr (SectionR op expr)
  
      pp_prefixly = hang (hsep [text "( \\ x_ ->", ppr op, text "x_"])
                         4 (pp_expr <> rparen)
@@ -302,7 +324,7 @@ index 333ca32d72..dd19271698 100644
      pp_infixly v = sep [pprInfixOcc v, pp_expr]
  
  ppr_expr (ExplicitTuple exprs boxity)
-@@ -1992,7 +1994,7 @@ pprStmt (RecStmt { recS_stmts = segment, recS_rec_ids = rec_ids
+@@ -1992,7 +1996,7 @@ pprStmt (RecStmt { recS_stmts = segment, recS_rec_ids = rec_ids
           , whenPprDebug (vcat [ text "rec_ids=" <> ppr rec_ids
                              , text "later_ids=" <> ppr later_ids])]
  
@@ -311,7 +333,7 @@ index 333ca32d72..dd19271698 100644
    = getPprStyle $ \style ->
        if userStyle style
           then pp_for_user
-@@ -2010,6 +2012,7 @@ pprStmt (ApplicativeStmt args mb_join _)
+@@ -2010,6 +2014,7 @@ pprStmt (ApplicativeStmt args mb_join _)
     flattenStmt (L _ (ApplicativeStmt args _ _)) = concatMap flattenArg args
     flattenStmt stmt = [ppr stmt]
  
@@ -319,7 +341,16 @@ index 333ca32d72..dd19271698 100644
     flattenArg (_, ApplicativeArgOne pat expr isBody)
       | isBody =  -- See Note [Applicative BodyStmt]
       [ppr (BodyStmt expr noSyntaxExpr noSyntaxExpr (panic "pprStmt")
-@@ -2437,6 +2440,7 @@ instance OutputableBndr id => Outputable (HsMatchContext id) where
+@@ -2421,7 +2426,7 @@ data HsMatchContext id -- Not an extensible tag
+   | ThPatSplice            -- ^A Template Haskell pattern splice
+   | ThPatQuote             -- ^A Template Haskell pattern quotation [p| (a,b) |]
+   | PatSyn                 -- ^A pattern synonym declaration
+-  deriving Functor
++  deriving (Functor, Foldable, Traversable)
+ deriving instance (Data id) => Data (HsMatchContext id)
+ 
+ instance OutputableBndr id => Outputable (HsMatchContext id) where
+@@ -2437,6 +2442,7 @@ instance OutputableBndr id => Outputable (HsMatchContext id) where
    ppr ThPatQuote            = text "ThPatQuote"
    ppr PatSyn                = text "PatSyn"
  
@@ -327,6 +358,15 @@ index 333ca32d72..dd19271698 100644
  isPatSynCtxt :: HsMatchContext id -> Bool
  isPatSynCtxt ctxt =
    case ctxt of
+@@ -2458,7 +2464,7 @@ data HsStmtContext id
+   | PatGuard (HsMatchContext id)     -- ^Pattern guard for specified thing
+   | ParStmtCtxt (HsStmtContext id)   -- ^A branch of a parallel stmt
+   | TransStmtCtxt (HsStmtContext id) -- ^A branch of a transform stmt
+-  deriving Functor
++  deriving (Functor, Foldable, Traversable)
+ deriving instance (Data id) => Data (HsStmtContext id)
+ 
+ isListCompExpr :: HsStmtContext id -> Bool
 diff --git a/compiler/hsSyn/HsExpr.hs-boot b/compiler/hsSyn/HsExpr.hs-boot
 index bac8a5a183..2ef8dbc9a5 100644
 --- a/compiler/hsSyn/HsExpr.hs-boot
@@ -341,7 +381,7 @@ index bac8a5a183..2ef8dbc9a5 100644
  
 diff --git a/compiler/hsSyn/HsExprBin.hs b/compiler/hsSyn/HsExprBin.hs
 new file mode 100644
-index 0000000000..e369759f4d
+index 0000000000..cce341ce63
 --- /dev/null
 +++ b/compiler/hsSyn/HsExprBin.hs
 @@ -0,0 +1,94 @@
@@ -398,8 +438,8 @@ index 0000000000..e369759f4d
 +
 +data SpliceResult
 +  = SRExpr  (LHsExpr GhcSe)
-+  | SRDecls [LHsDecl GhcSe] -- TODO: change to group
-+  -- TODO: add patterns and types
++  | SRDecls [LHsDecl GhcSe] -- TODO: change to HsGroup ?
++  -- TODO: add patterns and types?
 +
 +instance Binary SpliceResult where
 +  put_ bh r = case r of
@@ -452,10 +492,10 @@ index 0000000000..964847e097
 \ No newline at end of file
 diff --git a/compiler/hsSyn/HsExprBin_Conversions.hs b/compiler/hsSyn/HsExprBin_Conversions.hs
 new file mode 100644
-index 0000000000..58954945c7
+index 0000000000..885fa4c0f7
 --- /dev/null
 +++ b/compiler/hsSyn/HsExprBin_Conversions.hs
-@@ -0,0 +1,681 @@
+@@ -0,0 +1,790 @@
 +{-# LANGUAGE ConstraintKinds #-}
 +{-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 +{-# LANGUAGE MultiParamTypeClasses #-}
@@ -464,6 +504,9 @@ index 0000000000..58954945c7
 +
 +import Control.Applicative
 +import Control.Monad
++import Control.Monad.IO.Class
++import Data.Char (isDigit)
++import Data.List (intercalate)
 +import Data.Maybe
 +import Data.Traversable
 +
@@ -471,6 +514,8 @@ index 0000000000..58954945c7
 +import BasicTypes (Fixity)
 +import Class
 +import ConLike
++import DynFlags
++import FastString
 +import GhcPrelude
 +import HsBinds
 +import HsDecls
@@ -479,8 +524,11 @@ index 0000000000..58954945c7
 +import HsLit
 +import HsPat
 +import HsTypes
++import Module
 +import Name
 +import Outputable
++import PackageConfig
++import Packages
 +import PlaceHolder
 +import RdrName
 +import SeName
@@ -499,22 +547,22 @@ index 0000000000..58954945c7
 +  convertType :: t -> u
 +
 +class ConvertName a b where
-+  convertName :: a -> b
++  convertName :: a -> RnM b
 +
 +instance ConvertName a b => ConvertName [a] [b] where
-+  convertName = fmap convertName
++  convertName = traverse convertName
 +
 +instance ConvertName a b => ConvertName (Either e a) (Either e b) where
-+  convertName = fmap convertName
++  convertName = traverse convertName
 +
 +instance ConvertName a b => ConvertName (HsMatchContext a) (HsMatchContext b) where
-+  convertName = fmap convertName
++  convertName = traverse convertName
 +
 +instance ConvertName a b => ConvertName (HsStmtContext a) (HsStmtContext b) where
-+  convertName = fmap convertName
++  convertName = traverse convertName
 +
 +instance ConvertName a b => ConvertName (Maybe a) (Maybe b) where
-+  convertName = fmap convertName
++  convertName = traverse convertName
 +
 +instance ConvertType Type IfaceType where
 +  convertType = toIfaceType
@@ -526,27 +574,58 @@ index 0000000000..58954945c7
 +  convertType _ = panic "convertType :: IfaceType -> Type: unsupported constructor"
 +
 +instance ConvertName RdrName SeName where
-+  convertName = mkSeName
++  convertName = pure . mkSeName
 +
 +instance ConvertName SeName RdrName where
-+  convertName (SeName n) = n
++  convertName (SeName n) = case n of
++    Orig mod occn -> do
++      -- TODO: introduce some caching here, to avoid doing the
++      --       searchPackageId dance too often.
++      liftIO . putStrLn $
++        "/!!!\\ Processing name: module=" ++ moduleNameString (moduleName mod) ++
++        ", occname = " ++ occNameString occn
++      currentMod <- getModule
++      liftIO . putStrLn $
++        "Current module (" ++ moduleNameString (moduleName currentMod) ++ ") is in: " ++
++        unitIdString (moduleUnitId currentMod)
++
++      if samePackages currentMod mod
++        then let newMod = mod { moduleUnitId = moduleUnitId currentMod } in
++               liftIO $ putStrLn ("using the current module's unit id for name coming from: " ++ moduleNameString (moduleName mod)) >>
++               pure (Orig newMod occn)
++        else do mnewmod <- findEquivalentModule mod
++                case mnewmod of
++                  Nothing   -> liftIO (putStrLn "keeping old name")
++                            >> pure (Orig mod occn)
++                  Just mod' -> liftIO (putStrLn "using new unitid!")
++                            >> pure (Orig mod' occn)
++
++    _             -> pure n
++
++    where samePackages mod1 mod2 = fromMaybe False $ do
++            let str1 = unitIdString (moduleUnitId mod1)
++                str2 = unitIdString (moduleUnitId mod2)
++            (pkg1, ver1, _mhash1) <- parseUnitId' str1
++            (pkg2, ver2, _mhash2) <- parseUnitId' str2
++            return (pkg1 == pkg2 && ver1 == ver2)
 +
 +instance ConvertName Name SeName where
-+  convertName n = mkSeName (nameRdrName n)
++  convertName n = pure $ mkSeName (nameRdrName n)
 +
 +instance ConvertName SeName Name where
 +  convertName (SeName n) = case isExact_maybe n of
-+    Just a -> a
++    Just a -> pure a
 +    _      -> panic "convertName :: SeName -> Name: non exact RdrName in SeName"
 +
 +instance ConvertName a b => ConvertName (Located a) (Located b) where
-+  convertName = fmap convertName
++  convertName = traverse convertName
 +
 +type TypeConstraints p q =
 +  ( ConvertType (LitType p) (LitType q)
 +  , ConvertName (IdP p) (IdP q)
 +  , ConvertName (DoName p) (DoName q)
 +  , ConvertName (NameOrRdrName (IdP p)) (NameOrRdrName (IdP q))
++  , ConvertName (RdrOrSeName p) (RdrOrSeName q)
 +  , PostRn p NameSet.NameSet ~ PostRn q NameSet.NameSet
 +  , PostRn p (Located Name) ~ PostRn q (Located Name)
 +  , PostRn p [Name] ~ PostRn q [Name]
@@ -619,17 +698,19 @@ index 0000000000..58954945c7
 +cvTyClDecl :: TypeConstraints p q => TyClDecl p -> RnM (TyClDecl q)
 +cvTyClDecl (FamDecl a) = FamDecl <$> cvFamilyDecl a
 +cvTyClDecl (SynDecl a b c d e) =
-+  SynDecl (convertName a)
-+    <$> cvLHsQTyVars b <*> pure c
++  SynDecl
++    <$> convertName a
++    <*> cvLHsQTyVars b <*> pure c
 +    <*> traverse cvType d <*> pure e
 +cvTyClDecl (DataDecl a b c d e f) =
-+  DataDecl (convertName a)
-+    <$> cvLHsQTyVars b <*> pure c
++  DataDecl
++    <$> convertName a
++    <*> cvLHsQTyVars b <*> pure c
 +    <*> cvHsDataDefn d <*> pure e <*> pure f
 +cvTyClDecl (ClassDecl a b c d e f g h i j k) =
 +  ClassDecl
 +    <$> traverse (traverse (traverse cvType)) a
-+    <*> pure (convertName b)
++    <*> convertName b
 +    <*> cvLHsQTyVars c
 +    <*> pure d
 +    <*> traverse (traverse cvFunDep) e
@@ -646,12 +727,12 @@ index 0000000000..58954945c7
 +  -> FamEqn p a b
 +  -> RnM (FamEqn q c d)
 +cvFamEqn goPats goRhs (FamEqn a b c d) =
-+  FamEqn (convertName a) <$> goPats b <*> pure c <*> goRhs d
++  FamEqn <$> convertName a <*> goPats b <*> pure c <*> goRhs d
 +
 +cvFamilyDecl :: TypeConstraints p q => FamilyDecl p -> RnM (FamilyDecl q)
 +cvFamilyDecl (FamilyDecl a b c d e f) =
 +  FamilyDecl
-+    <$> cvFamilyInfo a <*> pure (convertName b)
++    <$> cvFamilyInfo a <*> convertName b
 +    <*> cvLHsQTyVars c <*> pure d
 +    <*> traverse cvFamilyResultSig e
 +    <*> traverse (traverse cvInjectivityAnn) f
@@ -659,7 +740,7 @@ index 0000000000..58954945c7
 +cvInjectivityAnn
 +  :: TypeConstraints p q => InjectivityAnn p -> RnM (InjectivityAnn q)
 +cvInjectivityAnn (InjectivityAnn a b) =
-+  pure (InjectivityAnn (convertName a) (convertName b))
++  InjectivityAnn <$> convertName a <*> convertName b
 +
 +cvFamilyResultSig
 +  :: TypeConstraints p q => FamilyResultSig p -> RnM (FamilyResultSig q)
@@ -681,19 +762,21 @@ index 0000000000..58954945c7
 +cvFamInstEqn f = cvHsImplicitBndrs (cvFamEqn (traverse (traverse cvType)) f)
 +
 +cvFunDep :: ConvertName a b => FunDep a -> RnM (FunDep b)
-+cvFunDep (xs, ys) = pure (convertName xs, convertName ys)
++cvFunDep (xs, ys) = (,) <$> convertName xs <*> convertName ys
 +
 +cvLHsQTyVars :: TypeConstraints p q => LHsQTyVars p -> RnM (LHsQTyVars q)
 +cvLHsQTyVars (HsQTvs a b c) = HsQTvs a <$> traverse (traverse cvHsTyVarBndr) b <*> pure c
 +
 +cvForeignDecl :: TypeConstraints p q => ForeignDecl p -> RnM (ForeignDecl q)
 +cvForeignDecl (ForeignImport a b c d) =
-+  ForeignImport (convertName a)
-+    <$> cvHsImplicitBndrs (traverse cvType) b
++  ForeignImport
++    <$> convertName a
++    <*> cvHsImplicitBndrs (traverse cvType) b
 +    <*> pure c <*> pure d
 +cvForeignDecl (ForeignExport a b c d) =
-+  ForeignExport (convertName a)
-+    <$> cvHsImplicitBndrs (traverse cvType) b
++  ForeignExport
++    <$> convertName a
++    <*> cvHsImplicitBndrs (traverse cvType) b
 +    <*> pure c <*> pure d
 +
 +cvDefaultDecl :: TypeConstraints p q => DefaultDecl p -> RnM (DefaultDecl q)
@@ -718,12 +801,14 @@ index 0000000000..58954945c7
 +
 +cvConDecl :: TypeConstraints p q => ConDecl p -> RnM (ConDecl q)
 +cvConDecl (ConDeclGADT a b c) =
-+  ConDeclGADT (convertName a)
-+    <$> cvHsImplicitBndrs (traverse cvType) b
++  ConDeclGADT
++    <$> convertName a
++    <*> cvHsImplicitBndrs (traverse cvType) b
 +    <*> pure c
 +cvConDecl (ConDeclH98 a b c d e) =
-+  ConDeclH98 (convertName a)
-+    <$> traverse cvLHsQTyVars b
++  ConDeclH98
++    <$> convertName a
++    <*> traverse cvLHsQTyVars b
 +    <*> traverse (traverse (traverse (traverse cvType))) c
 +    <*> cvHsConDeclDetails d
 +    <*> pure e
@@ -759,7 +844,7 @@ index 0000000000..58954945c7
 +  Warnings a <$> traverse (traverse cvWarningDecl) b
 +
 +cvWarningDecl :: TypeConstraints p q => WarnDecl p -> RnM (WarnDecl q)
-+cvWarningDecl (Warning a b) = pure $ Warning (convertName a) b
++cvWarningDecl (Warning a b) = Warning <$> convertName a <*> pure b
 +
 +-- expressions
 +
@@ -770,11 +855,11 @@ index 0000000000..58954945c7
 +cvHsExpr
 +  :: TypeConstraints p q => HsExpr p -> RnM (HsExpr q)
 +cvHsExpr e = case e of
-+  HsVar a -> pure $ HsVar (convertName a)
++  HsVar a -> HsVar <$> convertName a
 +  HsUnboundVar a -> pure (HsUnboundVar a)
 +  HsConLikeOut a -> pure (HsConLikeOut a)
-+  HsRecFld a -> pure $ HsRecFld (cvAFieldOcc a)
-+  HsOverLabel a b -> pure $ HsOverLabel (convertName a) b
++  HsRecFld a -> HsRecFld <$> cvAFieldOcc a
++  HsOverLabel a b -> HsOverLabel <$> convertName a <*> pure b
 +  HsIPVar a -> pure (HsIPVar a)
 +  HsOverLit a -> HsOverLit <$> cvOverLit a
 +  HsLit a -> pure $ HsLit (cvLit a)
@@ -796,8 +881,8 @@ index 0000000000..58954945c7
 +                       <*> cvLHsExpr b <*> cvLHsExpr c <*> cvLHsExpr d
 +  HsMultiIf a b -> HsMultiIf a <$> traverse (traverse cvGRHS) b
 +  HsLet a b -> HsLet <$> traverse cvHsLocalBinds a <*> cvLHsExpr b
-+  HsDo a b c -> HsDo (convertName a) <$> traverse (traverse (traverse cvStmtLR)) b <*> pure c
-+  RecordCon a b c d -> RecordCon (convertName a) b c <$> cvRecordBinds d
++  HsDo a b c -> HsDo <$> convertName a <*> traverse (traverse (traverse cvStmtLR)) b <*> pure c
++  RecordCon a b c d -> RecordCon <$> convertName a <*> pure b <*> pure c <*> cvRecordBinds d
 +  RecordUpd a b c d e f -> RecordUpd <$> cvLHsExpr a
 +                                     <*> traverse (traverse cvHsRecUpdField) b
 +                                     <*> pure c <*> pure d <*> pure e <*> pure f
@@ -807,7 +892,7 @@ index 0000000000..58954945c7
 +  HsCoreAnn a b c -> HsCoreAnn a b <$> cvLHsExpr c
 +  HsStatic a b -> HsStatic a <$> cvLHsExpr b
 +  EWildPat -> pure EWildPat
-+  EAsPat a b -> EAsPat (convertName a) <$> cvLHsExpr b
++  EAsPat a b -> EAsPat <$> convertName a <*> cvLHsExpr b
 +  EViewPat a b -> EViewPat <$> cvLHsExpr a <*> cvLHsExpr b
 +  ELazyPat a -> ELazyPat <$> cvLHsExpr a
 +
@@ -822,7 +907,6 @@ index 0000000000..58954945c7
 +  -- (involve typechecker types because used only later, not easily
 +  --  serialisable, used to describe splices that we are not going to
 +  --  encounter, etc)
-+  HsConLikeOut {} -> panic "cvHsExpr: HsConLikeOut not supported"
 +  HsWrap {} -> panic "cvHsExpr: HsWrap not supported"
 +  HsBracket {} -> panic "cvHsExpr: HsBracket not supported"
 +  HsRnBracketOut {} -> panic "cvHsExpr: HsRnBracketOut not supported"
@@ -839,9 +923,10 @@ index 0000000000..58954945c7
 +cvHsTupArg (Present a) = Present <$> cvLHsExpr a
 +cvHsTupArg (Missing a) = pure (Missing a)
 +
-+cvAFieldOcc :: TypeConstraints p q => AmbiguousFieldOcc p -> AmbiguousFieldOcc q
-+cvAFieldOcc (Unambiguous a b) = Unambiguous a b
-+cvAFieldOcc (Ambiguous a b) = Ambiguous a b
++cvAFieldOcc
++  :: TypeConstraints p q => AmbiguousFieldOcc p -> RnM (AmbiguousFieldOcc q)
++cvAFieldOcc (Unambiguous a b) = Unambiguous <$> convertName a <*> pure b
++cvAFieldOcc (Ambiguous a b) = Ambiguous <$> convertName a <*> pure b
 +
 +cvOverLit :: TypeConstraints p q => HsOverLit p -> RnM (HsOverLit q)
 +cvOverLit (OverLit a b c d) = OverLit a b <$> cvHsExpr c <*> pure d
@@ -870,14 +955,15 @@ index 0000000000..58954945c7
 +cvMatch
 +  :: TypeConstraints p q
 +  => Match p (LHsExpr p) -> RnM (Match q (LHsExpr q))
-+cvMatch (Match a b c) = Match (convertName a)
-+                    <$> traverse (traverse cvPat) b <*> cvGRHSs c
++cvMatch (Match a b c) = Match
++   <$> convertName a
++   <*> traverse (traverse cvPat) b <*> cvGRHSs c
 +
 +cvPat :: TypeConstraints p q => Pat p -> RnM (Pat q)
 +cvPat (WildPat a) = pure (WildPat a)
-+cvPat (VarPat a) = pure $ VarPat (convertName a)
++cvPat (VarPat a) = VarPat <$> convertName a
 +cvPat (LazyPat a) = LazyPat <$> traverse cvPat a
-+cvPat (AsPat a b) = AsPat (convertName a) <$> traverse cvPat b
++cvPat (AsPat a b) = AsPat <$> convertName a <*> traverse cvPat b
 +cvPat (ParPat a) = ParPat <$> traverse cvPat a
 +cvPat (BangPat a) = BangPat <$> traverse cvPat a
 +cvPat (ListPat a b c) =
@@ -888,15 +974,16 @@ index 0000000000..58954945c7
 +                                  <*> pure b <*> pure c
 +cvPat (SumPat a b c d) = SumPat <$> traverse cvPat a
 +                                <*> pure b <*> pure c <*> pure d
-+cvPat (ConPatIn a b) = ConPatIn (convertName a) <$> cvHsConPatDetails b
++cvPat (ConPatIn a b) = ConPatIn <$> convertName a <*> cvHsConPatDetails b
 +cvPat (ViewPat a b c) = ViewPat <$> cvLHsExpr a <*> traverse cvPat b <*> pure c
 +cvPat (LitPat a) = pure $ LitPat (cvLit a)
 +cvPat (NPat a b c d) =
 +  NPat <$> traverse cvOverLit a <*> traverse cvSyntaxExpr b
 +       <*> cvSyntaxExpr c <*> pure d
 +cvPat (NPlusKPat a b c d e f) =
-+  NPlusKPat (convertName a)
-+    <$> traverse cvOverLit b <*> cvOverLit c
++  NPlusKPat
++    <$> convertName a
++    <*> traverse cvOverLit b <*> cvOverLit c
 +    <*> cvSyntaxExpr d <*> cvSyntaxExpr e <*> pure f
 +cvPat (SigPatIn a b) = SigPatIn <$> traverse cvPat a <*> cvHsSigWcType b
 +-- deliberately not supported
@@ -959,14 +1046,14 @@ index 0000000000..58954945c7
 +
 +cvHsRecUpdField
 +  :: TypeConstraints p q => HsRecUpdField p -> RnM (HsRecUpdField q)
-+cvHsRecUpdField = cvHsRecField' (\x -> pure (cvAFieldOcc x)) cvLHsExpr
++cvHsRecUpdField = cvHsRecField' cvAFieldOcc cvLHsExpr
 +
 +cvRecordBinds
 +  :: TypeConstraints p q => HsRecordBinds p -> RnM (HsRecordBinds q)
 +cvRecordBinds = cvHsRecFields cvLHsExpr
 +
 +cvFieldOcc :: TypeConstraints p q => FieldOcc p -> RnM (FieldOcc q)
-+cvFieldOcc (FieldOcc a b) = pure (FieldOcc a b)
++cvFieldOcc (FieldOcc a b) = FieldOcc <$> convertName a <*> pure b
 +
 +cvStmtLR
 +  :: TypeConstraints p q
@@ -986,8 +1073,8 @@ index 0000000000..58954945c7
 +cvStmtLR (LetStmt a) = LetStmt <$> traverse cvHsLocalBinds a
 +cvStmtLR (RecStmt a b c d e f g h i j) = RecStmt
 +  <$> traverse (traverse cvStmtLR) a
-+  <*> pure (convertName b)
-+  <*> pure (convertName c)
++  <*> convertName b
++  <*> convertName c
 +  <*> cvSyntaxExpr d
 +  <*> cvSyntaxExpr e
 +  <*> cvSyntaxExpr f
@@ -1005,18 +1092,19 @@ index 0000000000..58954945c7
 +
 +cvIPBind
 +  :: TypeConstraints p q => IPBind p -> RnM (IPBind q)
-+cvIPBind (IPBind a b) = IPBind (convertName a) <$> cvLHsExpr b
++cvIPBind (IPBind a b) = IPBind <$> convertName a <*> cvLHsExpr b
 +
 +cvHsBindLR
 +  :: TypeConstraints p q => HsBindLR p p -> RnM (HsBindLR q q)
-+cvHsBindLR (FunBind a b c d e) = FunBind (convertName a)
-+  <$> cvMatchGroup b
++cvHsBindLR (FunBind a b c d e) = FunBind
++  <$> convertName a
++  <*> cvMatchGroup b
 +  <*> pure c <*> pure d <*> pure e
 +cvHsBindLR (PatBind a b c d e) = PatBind
 +                             <$> traverse cvPat a
 +                             <*> cvGRHSs b
 +                             <*> pure c <*> pure d <*> pure e
-+cvHsBindLR (VarBind a b c) = VarBind (convertName a) <$> cvLHsExpr b <*> pure c
++cvHsBindLR (VarBind a b c) = VarBind <$> convertName a <*> cvLHsExpr b <*> pure c
 +cvHsBindLR (AbsBinds {}) = panic "cvHsBindLR: AbsBind not supported"
 +cvHsBindLR (PatSynBind a) = PatSynBind <$> cvPatSynBind a
 +
@@ -1049,7 +1137,7 @@ index 0000000000..58954945c7
 +cvType (HsQualTy a b) = HsQualTy
 +                    <$> traverse (traverse (traverse cvType)) a
 +                    <*> traverse cvType b
-+cvType (HsTyVar a b) = pure (HsTyVar a (convertName b))
++cvType (HsTyVar a b) = HsTyVar a <$> convertName b
 +cvType (HsAppsTy a) = HsAppsTy <$> traverse (traverse cvHsAppType) a
 +cvType (HsAppTy a b) = HsAppTy <$> traverse cvType a
 +                               <*> traverse cvType b
@@ -1059,7 +1147,7 @@ index 0000000000..58954945c7
 +cvType (HsTupleTy a b) = HsTupleTy a <$> traverse (traverse cvType) b
 +cvType (HsSumTy a) = HsSumTy <$> traverse (traverse cvType) a
 +cvType (HsOpTy a b c) = HsOpTy <$> traverse cvType a
-+                               <*> pure (convertName b)
++                               <*> convertName b
 +                               <*> traverse cvType c
 +cvType (HsParTy a) = HsParTy <$> traverse cvType a
 +cvType (HsIParamTy a b) = HsIParamTy a <$> traverse cvType b
@@ -1081,14 +1169,15 @@ index 0000000000..58954945c7
 +
 +cvHsAppType
 +  :: TypeConstraints p q => HsAppType p -> RnM (HsAppType q)
-+cvHsAppType (HsAppInfix a) = pure $ HsAppInfix (convertName a)
++cvHsAppType (HsAppInfix a) = HsAppInfix <$> convertName a
 +cvHsAppType (HsAppPrefix a) = HsAppPrefix <$> traverse cvType a
 +
 +cvHsTyVarBndr
 +  :: TypeConstraints p q => HsTyVarBndr p -> RnM (HsTyVarBndr q)
-+cvHsTyVarBndr (UserTyVar a) = pure $ UserTyVar (convertName a)
-+cvHsTyVarBndr (KindedTyVar a b) = KindedTyVar (convertName a)
-+                              <$> traverse cvType b
++cvHsTyVarBndr (UserTyVar a) = UserTyVar <$> convertName a
++cvHsTyVarBndr (KindedTyVar a b) = KindedTyVar
++                              <$> convertName a
++                              <*> traverse cvType b
 +
 +cvApplicativeArg
 +  :: TypeConstraints p q => ApplicativeArg p a -> RnM (ApplicativeArg q b)
@@ -1099,14 +1188,14 @@ index 0000000000..58954945c7
 +                     <*> traverse cvPat c
 +
 +cvSig :: TypeConstraints p q => Sig p -> RnM (Sig q)
-+cvSig (TypeSig a b) = TypeSig (convertName a) <$> cvHsSigWcType b
++cvSig (TypeSig a b) = TypeSig <$> convertName a <*> cvHsSigWcType b
 +cvSig (PatSynSig a b) =
-+  PatSynSig (convertName a) <$> cvHsImplicitBndrs (traverse cvType) b
++  PatSynSig <$> convertName a <*> cvHsImplicitBndrs (traverse cvType) b
 +cvSig (ClassOpSig a b c) =
-+  ClassOpSig a (convertName b) <$> cvHsImplicitBndrs (traverse cvType) c
++  ClassOpSig a <$> convertName b <*> cvHsImplicitBndrs (traverse cvType) c
 +cvSig (IdSig {}) = panic "cvSig: IdSig not supported yet"
 +cvSig (FixSig {}) = panic "cvSig: FixSig not supported yet"
-+cvSig (InlineSig a b) = pure (InlineSig (convertName a) b)
++cvSig (InlineSig a b) = InlineSig <$> convertName a <*> pure b
 +cvSig (SpecSig {}) = panic "cvSig: SpecSig not supported yet"
 +cvSig (SpecInstSig {}) = panic "cvSig: SpecInstSig not supported yet"
 +cvSig (MinimalSig {}) = panic "cvSig: MinimalSig not supported yet"
@@ -1115,9 +1204,10 @@ index 0000000000..58954945c7
 +
 +cvPatSynBind :: TypeConstraints p q => PatSynBind p p -> RnM (PatSynBind q q)
 +cvPatSynBind (PSB a b c d e) =
-+  PSB (convertName a) b
-+    <$> cvHsPatSynDetails (pure . convertName) c <*> traverse cvPat d
-+    <*> cvHsPatSynDir e
++  PSB <$> convertName a
++      <*> pure b
++      <*> cvHsPatSynDetails convertName c <*> traverse cvPat d
++      <*> cvHsPatSynDir e
 +
 +cvHsPatSynDetails
 +  :: (a -> RnM b)
@@ -1137,6 +1227,65 @@ index 0000000000..58954945c7
 +cvHsPatSynDir Unidirectional = pure Unidirectional
 +cvHsPatSynDir ImplicitBidirectional = pure ImplicitBidirectional
 +cvHsPatSynDir (ExplicitBidirectional a) = ExplicitBidirectional <$> cvMatchGroup a
++
++-- * Looking up modules/packages for Orig names
++
++-- this rejects wired in packages, because we want to leave them untouched
++parseUnitId' :: String -> Maybe (String, String, Maybe String)
++parseUnitId' = parse
++
++  where
++    parse s = case splitOn '-' (reverse s) of
++      ("":_) -> Nothing
++      xs | length xs >= 1 && last xs == "" -> Nothing
++      (hash:ver:name) | isVersion ver ->
++         Just (intercalate "-" (reverse name), ver, Just hash)
++      (ver:name) | isVersion ver ->
++         Just (intercalate "-" (reverse name), ver, Nothing)
++      _ -> Nothing
++    splitOn c = go []
++      where go acc (x:xs)
++              | x == c    = acc : go "" xs
++              | otherwise = go (x:acc) xs
++            go acc [] = [acc]
++    isVersion = go False
++      -- True: waiting for digit or dot (we've seen a digit last)
++      -- False: waiting for digit (we've just seen a dot)
++      where go False (c:cs)
++              | isDigit c = go True cs
++              | otherwise = False
++            go True (c:cs)
++              | isDigit c = go True cs
++              | c == '.'  = go False cs
++              | otherwise = False
++            go b [] = b -- if we've seen a dot last (False), we fail
++                        -- otherwise, the version number can end here
++
++-- | Look up the module from the same package, but built by the
++--   current compiler, therefore with a slightly different hash
++--   in the unit id than the input Module, which was built by some
++--   non-cross-compiling GHC.
++findEquivalentModule :: Module -> RnM (Maybe Module)
++findEquivalentModule mod = do
++  liftIO $ putStrLn ("Looking for equivalent to: " ++ unitIdStr)
++  case parseUnitId' unitIdStr of
++    Nothing -> return Nothing
++    Just (pkg, ver, _mhash) -> do
++      muid <- lookFor pkg ver
++      maybe (pure Nothing) (\uid -> return $ Just (mod { moduleUnitId = uid })) muid
++
++  where unitIdStr = unitIdString (moduleUnitId mod)
++
++lookFor :: String -> String -> RnM (Maybe UnitId)
++lookFor pkg ver = do
++  dflags <- getDynFlags
++  let pkgid = mkFastString (pkg ++ "-" ++ ver)
++      pkgs = searchPackageId dflags (SourcePackageId pkgid)
++  liftIO $ putStrLn ("Looking for: " ++ pkg ++ "-" ++ ver)
++  liftIO . putStrLn . unwords $
++    [ "Found", show (length pkgs), "pkgs:" ] ++
++    [ unitIdString (packageConfigId p) | p <- pkgs ]
++  if null pkgs then pure Nothing else pure (Just $ packageConfigId (head pkgs))
 diff --git a/compiler/hsSyn/HsExprBin_Instances.hs b/compiler/hsSyn/HsExprBin_Instances.hs
 new file mode 100644
 index 0000000000..5eb5c95aae
@@ -2123,7 +2272,7 @@ index 0000000000..5eb5c95aae
 +  put_ _ _ = return ()
 +  get _ = pure PlaceHolder
 diff --git a/compiler/hsSyn/HsExtension.hs b/compiler/hsSyn/HsExtension.hs
-index 80dfa67ea3..34322a2419 100644
+index 80dfa67ea3..8b493f9586 100644
 --- a/compiler/hsSyn/HsExtension.hs
 +++ b/compiler/hsSyn/HsExtension.hs
 @@ -23,7 +23,9 @@ import ConLike
@@ -2202,9 +2351,12 @@ index 80dfa67ea3..34322a2419 100644
  
  -- ---------------------------------------------------------------------
  
-@@ -266,6 +286,9 @@ type DataId p =
+@@ -264,8 +284,11 @@ type DataId p =
+   ( Data p
+   , ForallX Data p
    , Data (NameOrRdrName (IdP p))
- 
+-
++  , Data (RdrOrSeName p)
    , Data (IdP p)
 +  , Data (LitType p)
 +  , Data (IdSigId p)
@@ -2212,11 +2364,13 @@ index 80dfa67ea3..34322a2419 100644
    , Data (PostRn p (IdP p))
    , Data (PostRn p (Located Name))
    , Data (PostRn p Bool)
-@@ -288,4 +311,17 @@ type DataId p =
+@@ -288,4 +311,25 @@ type DataId p =
  type OutputableBndrId id =
    ( OutputableBndr (NameOrRdrName (IdP id))
    , OutputableBndr (IdP id)
++  , OutputableBndr (RdrOrSeName id)
 +  , IdSigId id ~ Id
++  , RdrOrSeName id ~ RdrName
    )
 +
 +type family IdSigId pass where
@@ -2230,6 +2384,12 @@ index 80dfa67ea3..34322a2419 100644
 +type family DoName pass where
 +  DoName GhcSe = SeName
 +  DoName (GhcPass _) = Name
++
++type family RdrOrSeName pass
++type instance RdrOrSeName GhcSe = SeName
++type instance RdrOrSeName GhcRn = RdrName
++type instance RdrOrSeName GhcTc = RdrName
++type instance RdrOrSeName GhcPs = RdrName
 diff --git a/compiler/hsSyn/HsImpExp.hs b/compiler/hsSyn/HsImpExp.hs
 index 2930b51ee2..fd14631718 100644
 --- a/compiler/hsSyn/HsImpExp.hs
@@ -2278,6 +2438,29 @@ index d46ef9b448..273f260c17 100644
  convertLit (HsChar a x)       = (HsChar (convert a) x)
  convertLit (HsCharPrim a x)   = (HsCharPrim (convert a) x)
  convertLit (HsString a x)     = (HsString (convert a) x)
+diff --git a/compiler/hsSyn/HsPat.hs b/compiler/hsSyn/HsPat.hs
+index e25ff7bbcc..721888423d 100644
+--- a/compiler/hsSyn/HsPat.hs
++++ b/compiler/hsSyn/HsPat.hs
+@@ -396,7 +396,8 @@ hsRecFieldSel = fmap selectorFieldOcc . hsRecFieldLbl
+ hsRecFieldId :: HsRecField GhcTc arg -> Located Id
+ hsRecFieldId = hsRecFieldSel
+ 
+-hsRecUpdFieldRdr :: HsRecUpdField p -> Located RdrName
++hsRecUpdFieldRdr
++  :: RdrOrSeName p ~ RdrName => HsRecUpdField p -> Located RdrName
+ hsRecUpdFieldRdr = fmap rdrNameAmbiguousFieldOcc . hsRecFieldLbl
+ 
+ hsRecUpdFieldId :: HsRecField' (AmbiguousFieldOcc GhcTc) arg -> Located Id
+@@ -491,7 +492,7 @@ pprConArgs (PrefixCon pats) = sep (map pprParendLPat pats)
+ pprConArgs (InfixCon p1 p2) = sep [pprParendLPat p1, pprParendLPat p2]
+ pprConArgs (RecCon rpats)   = ppr rpats
+ 
+-instance (Outputable arg)
++instance (Outputable arg, Outputable (RdrOrSeName p))
+       => Outputable (HsRecFields p arg) where
+   ppr (HsRecFields { rec_flds = flds, rec_dotdot = Nothing })
+         = braces (fsep (punctuate comma (map ppr flds)))
 diff --git a/compiler/hsSyn/HsPat.hs-boot b/compiler/hsSyn/HsPat.hs-boot
 index 8cb82ed22e..7cfb5ba6cd 100644
 --- a/compiler/hsSyn/HsPat.hs-boot
@@ -2303,7 +2486,7 @@ index 62bfa2e5c5..a5174cd3d5 100644
  module HsSyn (
          module HsBinds,
 diff --git a/compiler/hsSyn/HsTypes.hs b/compiler/hsSyn/HsTypes.hs
-index af30d227d3..5bc27f9ca5 100644
+index af30d227d3..c2be5735f3 100644
 --- a/compiler/hsSyn/HsTypes.hs
 +++ b/compiler/hsSyn/HsTypes.hs
 @@ -10,6 +10,7 @@ HsTypes: Abstract syntax: user-defined types
@@ -2314,6 +2497,15 @@ index af30d227d3..5bc27f9ca5 100644
  {-# LANGUAGE TypeSynonymInstances #-}
  {-# LANGUAGE UndecidableInstances #-} -- Note [Pass sensitive types]
                                        -- in module PlaceHolder
+@@ -39,7 +40,7 @@ module HsTypes (
+ 
+         HsConDetails(..),
+ 
+-        FieldOcc(..), LFieldOcc, mkFieldOcc,
++        FieldOcc(..), LFieldOcc, mkFieldOcc, fieldOccRdrName,
+         AmbiguousFieldOcc(..), mkAmbiguousFieldOcc,
+         rdrNameAmbiguousFieldOcc, selectorAmbiguousFieldOcc,
+         unambiguousFieldOcc, ambiguousFieldOcc,
 @@ -86,6 +87,7 @@ import TysPrim( funTyConName )
  import Type
  import HsDoc
@@ -2333,6 +2525,150 @@ index af30d227d3..5bc27f9ca5 100644
  instance Outputable HsIPName where
      ppr (HsIPName n) = char '?' <> ftext n -- Ordinary implicit parameters
  
+@@ -1100,20 +1106,24 @@ type LFieldOcc pass = Located (FieldOcc pass)
+ -- Represents an *occurrence* of an unambiguous field.  We store
+ -- both the 'RdrName' the user originally wrote, and after the
+ -- renamer, the selector function.
+-data FieldOcc pass = FieldOcc { rdrNameFieldOcc  :: Located RdrName
++data FieldOcc pass = FieldOcc { rdrNameFieldOcc  :: Located (RdrOrSeName pass)
+                                  -- ^ See Note [Located RdrNames] in HsExpr
+                               , selectorFieldOcc :: PostRn pass (IdP pass)
+                               }
+-deriving instance Eq (PostRn pass (IdP pass))  => Eq  (FieldOcc pass)
+-deriving instance Ord (PostRn pass (IdP pass)) => Ord (FieldOcc pass)
++deriving instance (Eq (PostRn pass (IdP pass)), Eq (RdrOrSeName pass))
++               => Eq  (FieldOcc pass)
++deriving instance (Ord (PostRn pass (IdP pass)), Ord (RdrOrSeName pass))
++               => Ord (FieldOcc pass)
+ deriving instance (DataId pass) => Data (FieldOcc pass)
+ 
+-instance Outputable (FieldOcc pass) where
++instance Outputable (RdrOrSeName pass) => Outputable (FieldOcc pass) where
+   ppr = ppr . rdrNameFieldOcc
+ 
+ mkFieldOcc :: Located RdrName -> FieldOcc GhcPs
+ mkFieldOcc rdr = FieldOcc rdr PlaceHolder
+ 
++fieldOccRdrName :: RdrOrSeName pass ~ RdrName => FieldOcc pass -> Located RdrName
++fieldOccRdrName = rdrNameFieldOcc
+ 
+ -- | Ambiguous Field Occurrence
+ --
+@@ -1128,21 +1138,24 @@ mkFieldOcc rdr = FieldOcc rdr PlaceHolder
+ -- Note [Disambiguating record fields] in TcExpr.
+ -- See Note [Located RdrNames] in HsExpr
+ data AmbiguousFieldOcc pass
+-  = Unambiguous (Located RdrName) (PostRn pass (IdP pass))
+-  | Ambiguous   (Located RdrName) (PostTc pass (IdP pass))
++  = Unambiguous (Located (RdrOrSeName pass)) (PostRn pass (IdP pass))
++  | Ambiguous   (Located (RdrOrSeName pass)) (PostTc pass (IdP pass))
+ deriving instance DataId pass => Data (AmbiguousFieldOcc pass)
+ 
+-instance Outputable (AmbiguousFieldOcc pass) where
++instance RdrOrSeName pass ~ RdrName
++      => Outputable (AmbiguousFieldOcc pass) where
+   ppr = ppr . rdrNameAmbiguousFieldOcc
+ 
+-instance OutputableBndr (AmbiguousFieldOcc pass) where
++instance RdrOrSeName pass ~ RdrName
++      => OutputableBndr (AmbiguousFieldOcc pass) where
+   pprInfixOcc  = pprInfixOcc . rdrNameAmbiguousFieldOcc
+   pprPrefixOcc = pprPrefixOcc . rdrNameAmbiguousFieldOcc
+ 
+ mkAmbiguousFieldOcc :: Located RdrName -> AmbiguousFieldOcc GhcPs
+ mkAmbiguousFieldOcc rdr = Unambiguous rdr PlaceHolder
+ 
+-rdrNameAmbiguousFieldOcc :: AmbiguousFieldOcc pass -> RdrName
++rdrNameAmbiguousFieldOcc
++  :: RdrOrSeName pass ~ RdrName => AmbiguousFieldOcc pass -> RdrName
+ rdrNameAmbiguousFieldOcc (Unambiguous (L _ rdr) _) = rdr
+ rdrNameAmbiguousFieldOcc (Ambiguous   (L _ rdr) _) = rdr
+ 
+diff --git a/compiler/hsSyn/HsUtils.hs b/compiler/hsSyn/HsUtils.hs
+index 5cc70c4a06..65a7e10980 100644
+--- a/compiler/hsSyn/HsUtils.hs
++++ b/compiler/hsSyn/HsUtils.hs
+@@ -1089,8 +1089,9 @@ hsTyClForeignBinders tycl_decls foreign_decls
+     getSelectorNames (ns, fs) = map unLoc ns ++ map (selectorFieldOcc.unLoc) fs
+ 
+ -------------------
+-hsLTyClDeclBinders :: Located (TyClDecl pass)
+-                   -> ([Located (IdP pass)], [LFieldOcc pass])
++hsLTyClDeclBinders
++  :: RdrOrSeName pass ~ RdrName
++  => Located (TyClDecl pass) -> ([Located (IdP pass)], [LFieldOcc pass])
+ -- ^ Returns all the /binding/ names of the decl.  The first one is
+ -- guaranteed to be the name of the decl. The first component
+ -- represents all binding names except record fields; the second
+@@ -1140,8 +1141,9 @@ getPatSynBinds binds
+           , L _ (PatSynBind psb) <- bagToList lbinds ]
+ 
+ -------------------
+-hsLInstDeclBinders :: LInstDecl pass
+-                   -> ([Located (IdP pass)], [LFieldOcc pass])
++hsLInstDeclBinders
++  :: RdrOrSeName pass ~ RdrName
++  => LInstDecl pass -> ([Located (IdP pass)], [LFieldOcc pass])
+ hsLInstDeclBinders (L _ (ClsInstD { cid_inst = ClsInstDecl { cid_datafam_insts = dfis } }))
+   = foldMap (hsDataFamInstBinders . unLoc) dfis
+ hsLInstDeclBinders (L _ (DataFamInstD { dfid_inst = fi }))
+@@ -1150,8 +1152,9 @@ hsLInstDeclBinders (L _ (TyFamInstD {})) = mempty
+ 
+ -------------------
+ -- the SrcLoc returned are for the whole declarations, not just the names
+-hsDataFamInstBinders :: DataFamInstDecl pass
+-                     -> ([Located (IdP pass)], [LFieldOcc pass])
++hsDataFamInstBinders
++  :: RdrOrSeName pass ~ RdrName
++  => DataFamInstDecl pass -> ([Located (IdP pass)], [LFieldOcc pass])
+ hsDataFamInstBinders (DataFamInstDecl { dfid_eqn = HsIB { hsib_body =
+                        FamEqn { feqn_rhs = defn }}})
+   = hsDataDefnBinders defn
+@@ -1159,13 +1162,17 @@ hsDataFamInstBinders (DataFamInstDecl { dfid_eqn = HsIB { hsib_body =
+ 
+ -------------------
+ -- the SrcLoc returned are for the whole declarations, not just the names
+-hsDataDefnBinders :: HsDataDefn pass -> ([Located (IdP pass)], [LFieldOcc pass])
++hsDataDefnBinders
++  :: RdrOrSeName pass ~ RdrName
++  => HsDataDefn pass -> ([Located (IdP pass)], [LFieldOcc pass])
+ hsDataDefnBinders (HsDataDefn { dd_cons = cons })
+   = hsConDeclsBinders cons
+   -- See Note [Binders in family instances]
+ 
+ -------------------
+-hsConDeclsBinders :: [LConDecl pass] -> ([Located (IdP pass)], [LFieldOcc pass])
++hsConDeclsBinders
++  :: forall pass. RdrOrSeName pass ~ RdrName
++  => [LConDecl pass] -> ([Located (IdP pass)], [LFieldOcc pass])
+   -- See hsLTyClDeclBinders for what this does
+   -- The function is boringly complicated because of the records
+   -- And since we only have equality, we have to be a little careful
+@@ -1195,9 +1202,10 @@ hsConDeclsBinders cons = go id cons
+                  (_tvs, _cxt, tau) = splitLHsSigmaTy res_ty
+                  record_gadt flds = (map (L loc . unLoc) names ++ ns, r' ++ fs)
+                    where r' = remSeen (concatMap (cd_fld_names . unLoc) flds)
++                         remSeen' :: [LFieldOcc pass] -> [LFieldOcc pass]
+                          remSeen' = foldr (.) remSeen
+                                         [deleteBy ((==) `on`
+-                                              unLoc . rdrNameFieldOcc . unLoc) v
++                                              unLoc . fieldOccRdrName . unLoc) v
+                                         | v <- r']
+                          (ns, fs) = go remSeen' rs
+ 
+@@ -1206,10 +1214,11 @@ hsConDeclsBinders cons = go id cons
+                ([L loc (unLoc name)] ++ ns, r' ++ fs)
+                   where r' = remSeen (concatMap (cd_fld_names . unLoc)
+                                                 (unLoc flds))
++                        remSeen' :: [LFieldOcc pass] -> [LFieldOcc pass]
+                         remSeen'
+                           = foldr (.) remSeen
+                                [deleteBy ((==) `on`
+-                                   unLoc . rdrNameFieldOcc . unLoc) v | v <- r']
++                                   unLoc . fieldOccRdrName . unLoc) v | v <- r']
+                         (ns, fs) = go remSeen' rs
+              L loc (ConDeclH98 { con_name = name }) ->
+                 ([L loc (unLoc name)] ++ ns, fs)
 diff --git a/compiler/hsSyn/PlaceHolder.hs b/compiler/hsSyn/PlaceHolder.hs
 index 0b4711a364..e7a742ba99 100644
 --- a/compiler/hsSyn/PlaceHolder.hs
@@ -2636,6 +2972,33 @@ index f10ef44972..6d759bb961 100644
  data PrimOp
 +primOpTag :: PrimOp -> Int
 +allThePrimOps :: [PrimOp]
+diff --git a/compiler/rename/RnPat.hs b/compiler/rename/RnPat.hs
+index 2846754f11..fdeb5fe4a2 100644
+--- a/compiler/rename/RnPat.hs
++++ b/compiler/rename/RnPat.hs
+@@ -10,7 +10,7 @@ general, all of these functions return a renamed thing, and a set of
+ free variables.
+ -}
+ 
+-{-# LANGUAGE CPP, RankNTypes, ScopedTypeVariables #-}
++{-# LANGUAGE CPP, RankNTypes, ScopedTypeVariables, GADTs #-}
+ 
+ module RnPat (-- main entry points
+               rnPat, rnPats, rnBindPat, rnPatAndThen,
+@@ -794,11 +794,11 @@ rnHsRecUpdFields flds
+ getFieldIds :: [LHsRecField GhcRn arg] -> [Name]
+ getFieldIds flds = map (unLoc . hsRecFieldSel . unLoc) flds
+ 
+-getFieldLbls :: [LHsRecField id arg] -> [RdrName]
++getFieldLbls :: RdrOrSeName id ~ RdrName => [LHsRecField id arg] -> [RdrName]
+ getFieldLbls flds
+   = map (unLoc . rdrNameFieldOcc . unLoc . hsRecFieldLbl . unLoc) flds
+ 
+-getFieldUpdLbls :: [LHsRecUpdField id] -> [RdrName]
++getFieldUpdLbls :: RdrOrSeName id ~ RdrName => [LHsRecUpdField id] -> [RdrName]
+ getFieldUpdLbls flds = map (rdrNameAmbiguousFieldOcc . unLoc . hsRecFieldLbl . unLoc) flds
+ 
+ needFlagDotDot :: HsRecFieldContext -> SDoc
 diff --git a/compiler/typecheck/Inst.hs b/compiler/typecheck/Inst.hs
 index 9da96c4cc0..2a935b0a76 100644
 --- a/compiler/typecheck/Inst.hs
@@ -3357,83 +3720,3 @@ index f0cc197b71..2f874c04e5 100644
  -- Determines whether two 'UniqFm's contain the same keys.
  equalKeysUFM :: UniqFM a -> UniqFM b -> Bool
  #if MIN_VERSION_containers(0,5,9)
-diff --git a/haddock.diff b/haddock.diff
-new file mode 100644
-index 0000000000..ce79187d19
---- /dev/null
-+++ b/haddock.diff
-@@ -0,0 +1,10 @@
-+diff --git a/haddock-api/src/Haddock/Backends/Hoogle.hs b/haddock-api/src/Haddock/Backends/Hoogle.hs
-+index e002b602..11ea8ab7 100644
-+--- a/haddock-api/src/Haddock/Backends/Hoogle.hs
-++++ b/haddock-api/src/Haddock/Backends/Hoogle.hs
-+@@ -1,4 +1,4 @@
-+-{-# LANGUAGE FlexibleContexts #-}
-++{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
-+ -----------------------------------------------------------------------------
-+ -- |
-+ -- Module      :  Haddock.Backends.Hoogle
-diff --git a/run_test.sh b/run_test.sh
-new file mode 100755
-index 0000000000..c9c2d4bd7f
---- /dev/null
-+++ b/run_test.sh
-@@ -0,0 +1,17 @@
-+#!/usr/bin/env sh
-+
-+set -e
-+
-+time make -j4 V=0
-+
-+rm -rf my-splices
-+
-+# we install aeson and microlens-th
-+cabal install -w $(pwd)/inplace/bin/ghc-stage2 --package-db=$(pwd)/inplace/lib/package.conf.d aeson microlens-th --allow-newer --disable-library-profiling --ghc-options="-save-splices=_tmp/"
-+
-+# we evaluate the splices and save the results
-+inplace/bin/ghc-stage2 -fforce-recomp -save-splices my-splices/ -fno-code -ddump-splices simple_json_th.hs
-+
-+# we reuse those results to avoid the need to run any TH, even compiling
-+# the program with stage 1!
-+inplace/bin/ghc-stage1 -fforce-recomp -load-splices my-splices/ -o simple_json_th -ddump-splices simple_json_th.hs
-diff --git a/simple_json_th.hs b/simple_json_th.hs
-new file mode 100644
-index 0000000000..54b794fa96
---- /dev/null
-+++ b/simple_json_th.hs
-@@ -0,0 +1,35 @@
-+{- To install aeson before building this program:
-+$ cabal install -w $(pwd)/inplace/bin/ghc-stage2 \
-+              \ --package-db=$(pwd)/inplace/lib/package.conf.d aeson microlens microlens-th \
-+              \ --disable-library-profiling --allow-newer
-+
-+Then:
-+$ inplace/bin/ghc-stage2 -fforce-recomp -save-splices my-splices/ -fno-code simple_json_th.hs
-+$ inplace/bin/ghc-stage2 -fforce-recomp -load-splices my-splices/ -o simple_json_th simple_json_th.hs
-+-}
-+{-# LANGUAGE TemplateHaskell #-}
-+import Data.Aeson
-+import Data.Aeson.TH
-+import Lens.Micro.TH
-+
-+data Point = P
-+  { _x, _y, _z :: Int }
-+  deriving Show
-+
-+pos :: Point
-+pos = P 12 1 34
-+
-+$(deriveJSON defaultOptions ''Point)
-+makeLenses ''Point
-+
-+data Segment = Segment
-+  { _src :: Point
-+  , _tgt :: Point
-+  } deriving Show
-+
-+makeClassy ''Segment
-+
-+main :: IO ()
-+main = do
-+  print pos
-+  print (encode pos)

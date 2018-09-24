@@ -18,8 +18,9 @@ let iosSupport = system == "x86_64-darwin";
       haskell = super.haskell // {
         compiler = let
           spliceGhc = ghc: ghc.overrideAttrs (drv: {
+            enableParallelBuilding = false;
             patches = (drv.patches or [])
-                   ++ [ ./splices.patch ./haddock.patch ./splices-names.patch ];
+                   ++ [ ./splices-load-save.patch ./haddock.patch ];
           });
         in super.haskell.compiler // {
           ghcSplices = spliceGhc super.haskell.compiler.ghc843;
