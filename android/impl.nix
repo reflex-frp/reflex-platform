@@ -11,7 +11,8 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
         cat >"$out/bin/deploy" <<EOF
-          $(which adb) install -r "$(echo $out/*.apk)"
+        #!/usr/bin/env bash
+        $(command -v adb) install -r "$(echo $out/*.apk)"
         EOF
         chmod +x "$out/bin/deploy"
       '';
@@ -44,12 +45,12 @@ in {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
           }) {
             "arm64-v8a" = {
-              myNixpkgs = nixpkgsCross.android.arm64Impure;
-              myHaskellPackages = ghcAndroidArm64;
+              myNixpkgs = nixpkgsCross.android.aarch64;
+              myHaskellPackages = ghcAndroidAarch64;
             };
             "armeabi-v7a" = {
-              myNixpkgs = nixpkgsCross.android.armv7aImpure;
-              myHaskellPackages = ghcAndroidArmv7a;
+              myNixpkgs = nixpkgsCross.android.aarch32;
+              myHaskellPackages = ghcAndroidAarch32;
             };
           };
           abiVersions = attrNames appSOs;
@@ -73,8 +74,8 @@ in {
         javaSrc = nixpkgs.buildEnv {
           name = applicationId + "-java";
           paths = [
-            (ghcAndroidArm64.android-activity.src + "/java") #TODO: Use output, not src
-            (ghcAndroidArm64.reflex-dom.src + "/java")
+            (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
+            (ghcAndroidAarch64.reflex-dom.src + "/java")
           ];
         };
         src = ./src;

@@ -1,4 +1,4 @@
-{ nixpkgs, ghcIosArm64
+{ nixpkgs, ghcIosAarch64
 , plistLib # Set of functions for generating plist files from nix types
 }:
 
@@ -107,7 +107,7 @@ let
     '';
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
-  exePath = package ghcIosArm64;
+  exePath = package ghcIosAarch64;
   infoPlist = builtins.toFile "Info.plist" (plistLib.toPLIST infoPlistData);
   resourceRulesPlist = builtins.toFile "ResourceRules.plist" (plistLib.toPLIST {
     rules = {

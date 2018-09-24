@@ -1,4 +1,5 @@
-{ haskellLib, fetchFromGitHub }:
+{ haskellLib, nixpkgs, fetchFromGitHub}:
+
 with haskellLib;
 self: super: {
   ChasingBottoms = dontCheck (self.callHackage "ChasingBottoms" "1.3.1.3" {});
@@ -21,7 +22,14 @@ self: super: {
   primitive = self.callHackage "primitive" "0.6.2.0" {};
   profunctors = self.callHackage "profunctors" "5.2.1" {};
   semigroupoids = self.callHackage "semigroupoids" "5.2.1" {};
+  # Runs out of registers, this is a famous example of that according to
+  # https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/Backends/NCG/RegisterAllocator
+  SHA = if nixpkgs.stdenv.hostPlatform.is32bit
+        then appendConfigureFlag super.SHA "--ghc-option=-O0"
+        else super.SHA;
   shelly = doJailbreak super.shelly;
   syb = self.callHackage "syb" "0.7" {};
-  vector = self.callHackage "vector" "0.12.0.1" {};
+  # Tests were failing.
+  vector = (if nixpkgs.stdenv.hostPlatform.is32bit then dontCheck else nixpkgs.lib.id)
+           (self.callHackage "vector" "0.12.0.1" {});
 }

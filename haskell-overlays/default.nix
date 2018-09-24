@@ -1,10 +1,15 @@
-{ haskellLib
-, nixpkgs, jdk, fetchFromGitHub
-, useReflexOptimizer, stage2Script
+{ lib
+, haskellLib
+, nixpkgs, fetchFromGitHub, hackGet
+, useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
+, stage2Script
 , androidActivity
 }:
 
 rec {
+  reflexPackages = import ./reflex-packages.nix {
+    inherit haskellLib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents;
+  };
   disableTemplateHaskell = import ./disable-template-haskell.nix {
     inherit haskellLib fetchFromGitHub;
   };
@@ -23,9 +28,9 @@ rec {
   ghc-8 = nixpkgs.lib.composeExtensions
     ghc
     (import ./ghc-8.x.y.nix { });
-  ghc-8_2_1 = nixpkgs.lib.composeExtensions
+  ghc-8_2 = nixpkgs.lib.composeExtensions
     ghc-8
-    (import ./ghc-8.2.1.nix { inherit haskellLib fetchFromGitHub; });
+    (import ./ghc-8.2.x.nix { inherit haskellLib nixpkgs fetchFromGitHub; });
   ghc-head = nixpkgs.lib.composeExtensions
     ghc-8
     (import ./ghc-head.nix { inherit haskellLib fetchFromGitHub; });
@@ -36,7 +41,14 @@ rec {
   android = import ./android {
     inherit haskellLib;
     inherit androidActivity;
-    inherit (nixpkgs) jdk;
+    inherit nixpkgs;
   };
   ios = import ./ios.nix { inherit haskellLib; };
+  untriaged = import ./untriaged.nix {
+    inherit haskellLib;
+    inherit lib;
+    inherit nixpkgs;
+    inherit fetchFromGitHub;
+    inherit enableLibraryProfiling;
+  };
 }
