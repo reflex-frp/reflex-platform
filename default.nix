@@ -18,33 +18,30 @@ let iosSupport =
       else lib.warn "No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
-    globalOverlays = [
-      (self: super: {
-        all-cabal-hashes = super.all-cabal-hashes.override {
-          src-spec = {
-            owner = "commercialhaskell";
-            repo = "all-cabal-hashes";
-            rev = "82a8a1a49240a1b465c95de6fa6bf56323ee858f";
-            sha256 = "1jdzl5fyp1qcsi1anjig6kglq4jjsdll53nissjcnxpy3jscmarm";
-          };
+    newerHackage = self: super: {
+      all-cabal-hashes = super.all-cabal-hashes.override {
+        src-spec = {
+          owner = "commercialhaskell";
+          repo = "all-cabal-hashes";
+          rev = "82a8a1a49240a1b465c95de6fa6bf56323ee858f";
+          sha256 = "1jdzl5fyp1qcsi1anjig6kglq4jjsdll53nissjcnxpy3jscmarm";
         };
-      })
+      };
+    };
 
-      (self: super: {
-        haskell = super.haskell // {
-          overlays = super.overlays or {} // import ./haskell-overlays {
-            inherit
-              haskellLib
-              nixpkgs fetchFromGitHub hackGet
-              useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-              stage2Script;
-            inherit (self) lib;
-            androidActivity = hackGet ./android-activity;
-          };
+    bindHaskellOverlays = self: super: {
+      haskell = super.haskell // {
+        overlays = super.overlays or {} // import ./haskell-overlays {
+          inherit
+            haskellLib
+            nixpkgs fetchFromGitHub hackGet
+            useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
+            stage2Script;
+          inherit (self) lib;
+          androidActivity = hackGet ./android-activity;
         };
-      })
-
-    ] ++ nixpkgsOverlays;
+      };
+    };
 
     forceStaticLibs = self: super: {
       darwin = super.darwin // {
@@ -62,7 +59,12 @@ let iosSupport =
 
     nixpkgsArgs = {
       inherit system;
-      overlays = globalOverlays ++ [ mobileGhcOverlay ];
+      overlays = [
+        newerHackage
+        bindHaskellOverlays
+        forceStaticLibs
+        mobileGhcOverlay
+      ] ++ nixpkgsOverlays;
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
