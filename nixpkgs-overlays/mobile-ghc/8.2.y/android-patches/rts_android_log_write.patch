@@ -1,0 +1,43 @@
+diff --git a/rts/RtsMessages.c b/rts/RtsMessages.c
+index 0440669..3fc2fd1 100644
+--- a/rts/RtsMessages.c
++++ b/rts/RtsMessages.c
+@@ -23,6 +23,11 @@
+ #include <windows.h>
+ #endif
+ 
++#ifdef __ANDROID__
++#include <dlfcn.h>
++#include <android/log.h>
++#endif
++
+ /* -----------------------------------------------------------------------------
+    General message generation functions
+ 
+@@ -175,6 +180,26 @@ rtsFatalInternalErrorFn(const char *s, va_list ap)
+      fflush(stderr);
+   }
+ 
++#ifdef __ANDROID__
++  {
++      /* don't fflush(stdout); WORKAROUND bug in Linux glibc */
++      void* handle = dlopen("liblog.so", RTLD_GLOBAL | RTLD_NOW);
++      int (*__android_log_write)(int, const char*, const char*) = dlsym(handle, "__android_log_write");
++  //    if (prog_argv != NULL && prog_name != NULL) {
++  //        char* s1;
++  //        sprintf(s1, "%s: internal error: ", prog_name);
++  //        __android_log_write( ANDROID_LOG_ERROR, "ghc-rts", s1);
++  //    } else {
++  //        char* s1;
++  //        sprintf(s1, "internal error: ");
++  //        __android_log_write( ANDROID_LOG_ERROR, "ghc-rts", s1);
++  //    }
++      char* s2;
++      vsprintf(s2, s, ap);
++      __android_log_write( ANDROID_LOG_ERROR, "ghc-rts", s2);
++  }
++#endif // __ANDROID__
++
+ #ifdef TRACING
+   if (RtsFlags.TraceFlags.tracing == TRACE_EVENTLOG) endEventLogging();
+ #endif

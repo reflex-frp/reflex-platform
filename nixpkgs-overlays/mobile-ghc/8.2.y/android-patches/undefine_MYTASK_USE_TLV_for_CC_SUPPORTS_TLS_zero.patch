@@ -1,0 +1,13 @@
+diff -rupN a/rts/Task.h b/rts/Task.h
+--- a/rts/Task.h	2015-07-21 13:52:50.000000000 +0000
++++ b/rts/Task.h	2015-10-10 07:22:00.005818829 +0000
+@@ -259,7 +259,8 @@ extern nat peakWorkerCount;
+ #if ((defined(linux_HOST_OS) && \
+      (defined(i386_HOST_ARCH) || defined(x86_64_HOST_ARCH))) || \
+     (defined(mingw32_HOST_OS) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 4)) && \
+-    (!defined(llvm_CC_FLAVOR))
++    (!defined(llvm_CC_FLAVOR)) && \
++    (CC_SUPPORTS_TLS == 1)
+ #define MYTASK_USE_TLV
+ extern __thread Task *my_task;
+ #else
