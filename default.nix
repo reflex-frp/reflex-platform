@@ -17,7 +17,9 @@ let iosSupport =
       else if iosSupportForce || builtins.pathExists iosSdkLocation then true
       else lib.warn "No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
     androidSupport = lib.elem system [ "x86_64-linux" ];
+
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
+
     globalOverlays = [
       (self: super: {
         all-cabal-hashes = super.all-cabal-hashes.override {
@@ -30,6 +32,7 @@ let iosSupport =
         };
       })
     ] ++ nixpkgsOverlays;
+
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
         libiconv =
@@ -41,6 +44,7 @@ let iosSupport =
         });
       };
     };
+
     nixpkgs = nixpkgsFunc ({
       inherit system;
       overlays = globalOverlays ++ [ mobileGhcOverlay ];
@@ -57,7 +61,9 @@ let iosSupport =
         };
       } // config;
     });
+
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
+
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         aarch64 = {
@@ -179,8 +185,11 @@ let iosSupport =
         arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
       };
     };
+
     haskellLib = nixpkgs.haskell.lib;
+
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
+
     # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
     hackGet = p:
       if builtins.pathExists (p + "/git.json") then (
@@ -193,25 +202,33 @@ let iosSupport =
         name = baseNameOf p;
         outPath = filterGit p;
       };
+
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
       ghcjs-boot = hackGet ./ghcjs-boot;
       shims = hackGet ./shims;
       ghcjs = hackGet ./ghcjs;
     };
+
     inherit (nixpkgs.stdenv.lib) optional optionals optionalAttrs;
+
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
+
 in with lib; with haskellLib;
+
 let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
+
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
       sha256 = null;
       revision = null;
       editedCabalFile = null;
     });
+
     combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
       overrides = lib.composeExtensions old.overrides new.overrides;
     };
+
     # Makes sure that old `overrides` from a previous call to `override` are not
     # forgotten, but composed. Do this by overriding `override` and passing a
     # function which takes the old argument set and combining it. What a tongue
@@ -219,6 +236,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     makeRecursivelyOverridable = x: x // {
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
+
     foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
       postInstall = ''
         cd dist/build/${pkg.pname}/${pkg.pname}-tmp
@@ -229,11 +247,13 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         done
       '';
     });
+
     cabal2nixResult = src: builtins.trace "cabal2nixResult is deprecated; use ghc.haskellSrc2nix or ghc.callCabal2nix instead" (ghc.haskellSrc2nix {
       name = "for-unknown-package";
       src = "file://${src}";
       sha256 = null;
     });
+
     mkHaskellOverlays = nixpkgs: import ./haskell-overlays {
       inherit
         haskellLib
@@ -243,6 +263,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       inherit (nixpkgs) lib;
       androidActivity = hackGet ./android-activity;
     };
+
     stage2Script = nixpkgs.runCommand "stage2.nix" {
       GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
       buildCommand = ''
@@ -254,6 +275,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         ruby cabal2nix
       ];
     } "";
+
     ghcjsCompiler = ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
       bootPkgs = ghc;
       ghcjsSrc = sources.ghcjs;
@@ -261,12 +283,14 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       shims = sources.shims;
       stage2 = import stage2Script;
     };
+
     ghcjsPackages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghcjsCompiler;
       compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-8.0.x.nix") { inherit haskellLib; };
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
     };
+
 #    TODO: Figure out why this approach doesn't work; it doesn't seem to evaluate our overridden ghc at all
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
 #      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
@@ -416,6 +440,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       nixpkgs = nixpkgsFunc { system = "x86_64-darwin"; };
     };
   };
+
 in let this = rec {
   inherit nixpkgs
           nixpkgsCross
