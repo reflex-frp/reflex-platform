@@ -32,9 +32,10 @@ let iosSupport =
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
         overlays = super.overlays or {} // import ./haskell-overlays {
+          nixpkgs = self;
           inherit
             haskellLib
-            nixpkgs fetchFromGitHub hackGet
+            fetchFromGitHub hackGet
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             stage2Script;
           inherit (self) lib;
