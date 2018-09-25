@@ -26,15 +26,10 @@ let iosSupport = system == "x86_64-darwin";
     };
     androidPICPatches = self: super: (optionalAttrs super.stdenv.targetPlatform.useAndroidPrebuilt {
       haskell = super.haskell // {
-        compiler = let
-          f = lib.mapAttrs (n: v: v.overrideAttrs (drv:
-            optionalAttrs (builtins.elem n ["ghc843" "ghcHEAD"]) {
-              patches = (drv.patches or [])
-                ++ [ ./android/patches/force-relocation.patch ];
-            }));
-        in f super.haskell.compiler // {
-          integer-simple = f super.haskell.compiler.integer-simple;
-        };
+        compiler = super.haskell.compiler // lib.mapAttrs (n: v: v.overrideAttrs (drv: {
+          patches = (drv.patches or [])
+            ++ [ ./android/patches/force-relocation.patch ];
+        })) { inherit (super.haskell.compiler) ghc843 ghcHEAD; };
       };
     });
     nixpkgsArgs = {
