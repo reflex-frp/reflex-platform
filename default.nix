@@ -12,6 +12,7 @@
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
+
     forceStaticLibs = self: super: {
       darwin = super.darwin // {
         libiconv = super.darwin.libiconv.overrideAttrs (_:
@@ -24,7 +25,9 @@ let iosSupport = system == "x86_64-darwin";
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
         { static = true; });
     };
+
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
+
     nixpkgsArgs = {
       config = {
         permittedInsecurePackages = [
@@ -43,8 +46,11 @@ let iosSupport = system == "x86_64-darwin";
       overlays = nixpkgsOverlays;
       inherit system;
     };
+
     nixpkgs = nixpkgsFunc nixpkgsArgs;
+
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
+
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
@@ -84,8 +90,11 @@ let iosSupport = system == "x86_64-darwin";
         arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
       };
     };
+
     haskellLib = nixpkgs.haskell.lib;
+
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
+
     # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
     hackGet = p:
       let filterArgs = x: removeAttrs x [ "branch" ];
@@ -99,8 +108,11 @@ let iosSupport = system == "x86_64-darwin";
         name = baseNameOf p;
         outPath = filterGit p;
       };
+
     inherit (lib) optional optionals optionalAttrs;
+
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
+
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
       inherit src patch;
     } ''
@@ -110,17 +122,22 @@ let iosSupport = system == "x86_64-darwin";
       chmod -R +w .
       patch -p1 <"$patch"
     '';
+
 in with lib; with haskellLib;
+
 let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
+
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
       sha256 = null;
       revision = null;
       editedCabalFile = null;
     });
+
     combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
       overrides = lib.composeExtensions old.overrides new.overrides;
     };
+
     # Makes sure that old `overrides` from a previous call to `override` are not
     # forgotten, but composed. Do this by overriding `override` and passing a
     # function which takes the old argument set and combining it. What a tongue
@@ -128,6 +145,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     makeRecursivelyOverridable = x: x // {
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
+
     foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
       postInstall = ''
         cd dist/build/${pkg.pname}/${pkg.pname}-tmp
@@ -138,11 +156,13 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         done
       '';
     });
+
     cabal2nixResult = src: builtins.trace "cabal2nixResult is deprecated; use ghc.haskellSrc2nix or ghc.callCabal2nix instead" (ghc.haskellSrc2nix {
       name = "for-unknown-package";
       src = "file://${src}";
       sha256 = null;
     });
+
     ghcjsPkgs = ghcjs: self: super: {
       ghcjs = ghcjs.overrideAttrs (o: {
         patches = (o.patches or [])
@@ -213,6 +233,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         )
       '';
     });
+
     textSrc = fetchgit {
       url = "https://github.com/obsidiansystems/text.git";
       rev = "50076be0262203f0d2afdd0b190a341878a08e21";
@@ -231,6 +252,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
         substituteInPlace $out/vector.cabal --replace 'base >= 4.5 && < 4.10' 'base >= 4.5 && < 5'
       '';
     };
+
     mkHaskellOverlays = nixpkgs: import ./haskell-overlays {
       inherit
         haskellLib
@@ -256,6 +278,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
       inherit haskellLib;
     };
+
   ghc = ghc8_4;
   ghcjs8_2 = (makeRecursivelyOverridable ghcjs8_2Packages).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
@@ -410,6 +433,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
   iosWithHaskellPackages = ghc: {
     buildApp = import ./ios { inherit nixpkgs ghc; };
   };
+
 in let this = rec {
   inherit nixpkgs
           nixpkgsCross
