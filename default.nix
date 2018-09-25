@@ -362,7 +362,8 @@ let iosSupport =
       haskellOverlays.ghc-7_8
     ]);
   };
-  ghcAndroidAarch64 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc821).override {
+  ghcAndroidAarch64 = ghcAndroidAarch64-8_2;
+  ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
     in [
@@ -374,7 +375,8 @@ let iosSupport =
       haskellOverlays.android
     ]);
   };
-  ghcAndroidAarch32 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc821).override {
+  ghcAndroidAarch32 = ghcAndroidAarch64-8_2;
+  ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
     in [
@@ -386,7 +388,8 @@ let iosSupport =
       haskellOverlays.android
     ]);
   };
-  ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc821).override {
+  ghcIosSimulator64 = ghcIosSimulator64-8_2;
+  ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
     in [
@@ -396,7 +399,8 @@ let iosSupport =
       haskellOverlays.ghc-8_2
     ]);
   };
-  ghcIosAarch64 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc821).override {
+  ghcIosAarch64 = ghcIosAarch64-8_2;
+  ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
     in [
@@ -408,7 +412,8 @@ let iosSupport =
       haskellOverlays.ios
     ]);
   };
-  ghcIosAarch32 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc821).override {
+  ghcIosAarch32 = ghcIosAarch32-8_2;
+  ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
     in [
@@ -422,7 +427,13 @@ let iosSupport =
   };
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
-  android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
+  android = androidWithHaskellPackages {
+    inherit ghcAndroidAarch64 ghcAndroidAarch32;
+  };
+  android-8_2 = androidWithHaskellPackages {
+    ghcAndroidAarch64 = ghcAndroidAarch64-8_2;
+    ghcAndroidAarch32 = ghcAndroidAarch32-8_2;
+  };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     nixpkgs = nixpkgsFunc { system = "x86_64-linux"; };
     inherit nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
@@ -438,6 +449,7 @@ let iosSupport =
   plistLib = import (nix-darwin + /modules/launchd/lib.nix) { inherit lib; };
 
   ios = iosWithHaskellPackages ghcIosAarch64;
+  ios-8_2 = iosWithHaskellPackages ghcIosAarch64-8_2;
   iosWithHaskellPackages = ghcIosAarch64: {
     buildApp = import ./ios {
       inherit ghcIosAarch64 plistLib;
@@ -481,9 +493,21 @@ in let this = rec {
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
   };
+  androidReflexTodomvc-8_2 = android.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc-8_2";
+    applicationId = "org.reflexfrp.todomvc";
+    displayName = "Reflex TodoMVC";
+  };
   iosReflexTodomvc = ios.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleName = "Reflex TodoMVC";
+  };
+  iosReflexTodomvc-8_2 = ios.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc-8_2";
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
