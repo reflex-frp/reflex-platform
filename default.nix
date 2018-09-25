@@ -16,28 +16,17 @@ let iosSupport = system == "x86_64-darwin";
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
       haskell = super.haskell // {
-        compiler = let
-          spliceGhc = ghc: ghc.overrideAttrs (drv: {
+        compiler = super.haskell.compiler // {
+          ghcSplices = super.haskell.compiler.ghc843.overrideAttrs (drv: {
             enableParallelBuilding = false;
             patches = (drv.patches or [])
-                   ++ [ ./splices-load-save.patch ./haddock.patch ];
+              ++ [ ./splices-load-save.patch ./haddock.patch ];
           });
-        in super.haskell.compiler // {
-          ghcSplices = spliceGhc super.haskell.compiler.ghc843;
-          integer-simple = super.haskell.compiler.integer-simple // {
-            ghcSplices = spliceGhc super.haskell.compiler.integer-simple.ghc843;
-          };
         };
         packages = super.haskell.packages // {
           ghcSplices = super.haskell.packages.ghc843.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices;
             ghc = self.buildPackages.haskell.compiler.ghcSplices;
-          };
-          integer-simple = super.haskell.packages.integer-simple // {
-            ghcSplices = super.haskell.packages.ghc843.override {
-              buildHaskellPackages = self.buildPackages.haskell.packages.integer-simple.ghcSplices;
-              ghc = self.buildPackages.haskell.compiler.integer-simple.ghcSplices;
-            };
           };
         };
       };
@@ -55,19 +44,7 @@ let iosSupport = system == "x86_64-darwin";
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
         { static = true; });
     };
-    androidPICPatches = self: super: (optionalAttrs super.stdenv.targetPlatform.useAndroidPrebuilt {
-      haskell = super.haskell // {
-        compiler = let
-          f = lib.mapAttrs (n: v: v.overrideAttrs (drv:
-            optionalAttrs (builtins.elem n [ "ghc843" "ghcHEAD" "ghcSplices" ]) {
-              patches = (drv.patches or [])
-                ++ [ ./android/patches/force-relocation.patch ];
-            }));
-        in f super.haskell.compiler // {
-          integer-simple = f super.haskell.compiler.integer-simple;
-        };
-      };
-    });
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
     nixpkgsArgs = {
       config = {
         permittedInsecurePackages = [
@@ -89,11 +66,11 @@ let iosSupport = system == "x86_64-darwin";
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
-          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs androidPICPatches ];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs mobileGhcOverlay ];
           crossSystem = lib.systems.examples.aarch64-android-prebuilt;
         };
         aarch32 = {
-          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs androidPICPatches ];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs mobileGhcOverlay ];
           crossSystem = lib.systems.examples.armv7a-android-prebuilt;
         };
         # Back compat
@@ -104,19 +81,19 @@ let iosSupport = system == "x86_64-darwin";
       };
       ios = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         simulator64 = {
-          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs ];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs mobileGhcOverlay ];
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
           };
         };
         aarch64 = {
-          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs ];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs mobileGhcOverlay ];
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
           };
         };
         aarch32 = {
-          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs ];
+          overlays = nixpkgsArgs.overlays ++ [ forceStaticLibs mobileGhcOverlay ];
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
           };
