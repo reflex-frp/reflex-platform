@@ -1,4 +1,4 @@
-{ haskellLib, androidActivity, nixpkgs }:
+{ haskellLib, nixpkgs, androidActivity }:
 
 self: super: {
   android-activity = self.callPackage androidActivity {
