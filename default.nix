@@ -17,6 +17,7 @@ let iosSupport =
       else if iosSupportForce || builtins.pathExists iosSdkLocation then true
       else lib.warn "No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
     androidSupport = lib.elem system [ "x86_64-linux" ];
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
     globalOverlays = [
       (self: super: {
         all-cabal-hashes = super.all-cabal-hashes.override {
@@ -42,7 +43,7 @@ let iosSupport =
     };
     nixpkgs = nixpkgsFunc ({
       inherit system;
-      overlays = globalOverlays;
+      overlays = globalOverlays ++ [ mobileGhcOverlay ];
       config = {
         allowUnfree = true;
         allowBroken = true; # GHCJS is marked broken in 011c149ed5e5a336c3039f0b9d4303020cff1d86
@@ -61,7 +62,7 @@ let iosSupport =
       android = lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         aarch64 = {
           system = "x86_64-linux";
-          overlays = globalOverlays;
+          overlays = globalOverlays ++ [ mobileGhcOverlay ];
           crossSystem = {
             config = "aarch64-unknown-linux-android";
             arch = "arm64";
@@ -75,7 +76,7 @@ let iosSupport =
         };
         aarch32 = {
           system = "x86_64-linux";
-          overlays = globalOverlays;
+          overlays = globalOverlays ++ [ mobileGhcOverlay ];
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
             arch = "armv7";
@@ -136,7 +137,7 @@ let iosSupport =
         in lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = globalOverlays ++ [appleLibiconvHack];
+          overlays = globalOverlays ++ [ mobileGhcOverlay appleLibiconvHack ];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -156,7 +157,7 @@ let iosSupport =
         };
         aarch64 = {
           system = "x86_64-darwin";
-          overlays = globalOverlays ++ [appleLibiconvHack];
+          overlays = globalOverlays ++ [ mobileGhcOverlay appleLibiconvHack ];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
