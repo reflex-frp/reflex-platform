@@ -13,25 +13,21 @@
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
-    globalOverlays = [
-
-      (self: super: {
-        haskell = super.haskell // {
-          overlays = super.overlays or {} // import ./haskell-overlays {
-            inherit
-              haskellLib
-              nixpkgs fetchFromGitHub hackGet
-              ghcjsBaseSrc
-              optionalExtension
-              useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-              useTextJSString;
-            inherit (nixpkgs) lib;
-            androidActivity = hackGet ./android-activity;
-          };
+    bindHaskellOverlays = self: super: {
+      haskell = super.haskell // {
+        overlays = super.overlays or {} // import ./haskell-overlays {
+          inherit
+            haskellLib
+            nixpkgs fetchFromGitHub hackGet
+            ghcjsBaseSrc
+            optionalExtension
+            useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
+            useTextJSString;
+          inherit (nixpkgs) lib;
+          androidActivity = hackGet ./android-activity;
         };
-      })
-
-    ] ++ nixpkgsOverlays;
+      };
+    };
 
     forceStaticLibs = self: super: {
       darwin = super.darwin // {
@@ -49,6 +45,12 @@ let iosSupport = system == "x86_64-darwin";
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
     nixpkgsArgs = {
+      inherit system;
+      overlays = [
+        bindHaskellOverlays
+        forceStaticLibs
+        mobileGhcOverlay
+      ] ++ nixpkgsOverlays;
       config = {
         permittedInsecurePackages = [
           "webkitgtk-2.4.11"
@@ -63,8 +65,6 @@ let iosSupport = system == "x86_64-darwin";
         # Obelisk needs it to for some reason
         allowUnfree = true;
       } // config;
-      overlays = globalOverlays;
-      inherit system;
     };
 
     nixpkgs = nixpkgsFunc nixpkgsArgs;
