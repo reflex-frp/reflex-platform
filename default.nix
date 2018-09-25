@@ -45,13 +45,11 @@ let iosSupport =
 
     forceStaticLibs = self: super: {
       darwin = super.darwin // {
-        libiconv =
-          if self.hostPlatform == self.buildPlatform
-          then super.darwin.libiconv
-          else super.darwin.libiconv.overrideAttrs (o: {
+        libiconv = super.darwin.libiconv.overrideAttrs (_:
+          lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform && self.stdenv.hostPlatform.isDarwin) {
             postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
             configureFlags = ["--disable-shared" "--enable-static"];
-        });
+          });
       };
     };
 
