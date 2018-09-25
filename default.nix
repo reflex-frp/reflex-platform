@@ -46,8 +46,6 @@ let iosSupport =
 
     ] ++ nixpkgsOverlays;
 
-    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
-
     forceStaticLibs = self: super: {
       darwin = super.darwin // {
         libiconv =
@@ -60,7 +58,9 @@ let iosSupport =
       };
     };
 
-    nixpkgs = nixpkgsFunc ({
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
+
+    nixpkgsArgs = {
       inherit system;
       overlays = globalOverlays ++ [ mobileGhcOverlay ];
       config = {
@@ -75,7 +75,9 @@ let iosSupport =
           ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
         };
       } // config;
-    });
+    };
+
+    nixpkgs = nixpkgsFunc nixpkgsArgs;
 
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
 
@@ -83,7 +85,7 @@ let iosSupport =
       android = lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         aarch64 = {
           system = "x86_64-linux";
-          overlays = globalOverlays ++ [ mobileGhcOverlay ];
+          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay ];
           crossSystem = {
             config = "aarch64-unknown-linux-android";
             arch = "arm64";
@@ -97,7 +99,7 @@ let iosSupport =
         };
         aarch32 = {
           system = "x86_64-linux";
-          overlays = globalOverlays ++ [ mobileGhcOverlay ];
+          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay ];
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
             arch = "armv7";
@@ -158,7 +160,7 @@ let iosSupport =
         in lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = globalOverlays ++ [ mobileGhcOverlay forceStaticLibs ];
+          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay forceStaticLibs ];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -178,7 +180,7 @@ let iosSupport =
         };
         aarch64 = {
           system = "x86_64-darwin";
-          overlays = globalOverlays ++ [ mobileGhcOverlay forceStaticLibs ];
+          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay forceStaticLibs ];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
