@@ -87,7 +87,7 @@ let iosSupport =
       android = lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         aarch64 = {
           system = "x86_64-linux";
-          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay ];
+          inherit (nixpkgsArgs) overlays;
           crossSystem = {
             config = "aarch64-unknown-linux-android";
             arch = "arm64";
@@ -101,7 +101,7 @@ let iosSupport =
         };
         aarch32 = {
           system = "x86_64-linux";
-          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay ];
+          inherit (nixpkgsArgs) overlays;
           crossSystem = {
             config = "arm-unknown-linux-androideabi";
             arch = "armv7";
@@ -162,7 +162,7 @@ let iosSupport =
         in lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay forceStaticLibs ];
+          inherit (nixpkgsArgs) overlays;
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -182,7 +182,7 @@ let iosSupport =
         };
         aarch64 = {
           system = "x86_64-darwin";
-          overlays = nixpkgsArgs.overlays ++ [ mobileGhcOverlay forceStaticLibs ];
+          inherit (nixpkgsArgs) overlays;
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
