@@ -13,6 +13,26 @@
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
+    globalOverlays = [
+
+      (self: super: {
+        haskell = super.haskell // {
+          overlays = super.overlays or {} // import ./haskell-overlays {
+            inherit
+              haskellLib
+              nixpkgs fetchFromGitHub hackGet
+              ghcjsBaseSrc
+              optionalExtension
+              useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
+              useTextJSString;
+            inherit (nixpkgs) lib;
+            androidActivity = hackGet ./android-activity;
+          };
+        };
+      })
+
+    ] ++ nixpkgsOverlays;
+
     forceStaticLibs = self: super: {
       darwin = super.darwin // {
         libiconv = super.darwin.libiconv.overrideAttrs (_:
@@ -43,7 +63,7 @@ let iosSupport = system == "x86_64-darwin";
         # Obelisk needs it to for some reason
         allowUnfree = true;
       } // config;
-      overlays = nixpkgsOverlays;
+      overlays = globalOverlays;
       inherit system;
     };
 
@@ -249,17 +269,6 @@ let iosSupport = system == "x86_64-darwin";
       '';
     };
 
-    mkHaskellOverlays = nixpkgs: import ./haskell-overlays {
-      inherit
-        haskellLib
-        nixpkgs fetchFromGitHub hackGet
-        ghcjsBaseSrc
-        optionalExtension
-        useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-        useTextJSString;
-      inherit (nixpkgs) lib;
-      androidActivity = hackGet ./android-activity;
-    };
     ghcjs8_2Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghc8_2.ghcjs;
       buildHaskellPackages = ghc8_2.ghcjs.bootPkgs;
@@ -278,7 +287,7 @@ let iosSupport = system == "x86_64-darwin";
   ghc = ghc8_4;
   ghcjs8_2 = (makeRecursivelyOverridable ghcjs8_2Packages).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -289,7 +298,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcjs8_4 = (makeRecursivelyOverridable ghcjs8_4Packages).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -301,7 +310,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs = ghcjs8_4;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -311,7 +320,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghc8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc843).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -329,7 +338,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghc8_2 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -340,7 +349,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghc8_0 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc802).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -350,7 +359,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghc7 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc7103).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -360,7 +369,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcAndroidAarch64 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc843).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgsCross.android.aarch64;
+      haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -372,7 +381,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcAndroidAarch32 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc843).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgsCross.android.aarch32;
+      haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -384,7 +393,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcIosSimulator64 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc843).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgsCross.ios.simulator64;
+      haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -396,7 +405,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcIosAarch64 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc843).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgsCross.ios.aarch64;
+      haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
@@ -408,7 +417,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcIosAarch32 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc843).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgsCross.ios.aarch32;
+      haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
