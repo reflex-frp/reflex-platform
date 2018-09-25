@@ -13,6 +13,38 @@
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
+    bindHaskellOverlays = self: super: {
+      haskell = super.haskell // {
+        overlays = super.overlays or {} // import ./haskell-overlays {
+          inherit
+            haskellLib
+            nixpkgs fetchFromGitHub hackGet
+            ghcjsBaseSrc
+            optionalExtension
+            useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
+            useTextJSString;
+          inherit ghcSavedSplices;
+          inherit (nixpkgs) lib;
+          androidActivity = hackGet ./android-activity;
+        };
+      };
+    };
+
+    forceStaticLibs = self: super: {
+      darwin = super.darwin // {
+        libiconv = super.darwin.libiconv.overrideAttrs (_:
+          lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
+            postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
+            configureFlags = ["--disable-shared" "--enable-static"];
+          });
+      };
+      zlib = super.zlib.override (lib.optionalAttrs
+        (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
+        { static = true; });
+    };
+
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
+
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
       haskell = super.haskell // {
@@ -32,43 +64,14 @@ let iosSupport = system == "x86_64-darwin";
       };
     };
 
-    globalOverlays = [
-
-      (self: super: {
-        haskell = super.haskell // {
-          overlays = super.overlays or {} // import ./haskell-overlays {
-            inherit
-              haskellLib
-              nixpkgs fetchFromGitHub hackGet
-              ghcjsBaseSrc
-              optionalExtension
-              useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-              useTextJSString;
-            inherit ghcSavedSplices;
-            inherit (nixpkgs) lib;
-            androidActivity = hackGet ./android-activity;
-          };
-        };
-      })
-
-    ] ++ nixpkgsOverlays;
-
-    forceStaticLibs = self: super: {
-      darwin = super.darwin // {
-        libiconv = super.darwin.libiconv.overrideAttrs (_:
-          lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
-            postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
-            configureFlags = ["--disable-shared" "--enable-static"];
-          });
-      };
-      zlib = super.zlib.override (lib.optionalAttrs
-        (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
-        { static = true; });
-    };
-
-    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
-
     nixpkgsArgs = {
+      inherit system;
+      overlays = [
+        bindHaskellOverlays
+        forceStaticLibs
+        mobileGhcOverlay
+        splicesEval
+      ] ++ nixpkgsOverlays;
       config = {
         permittedInsecurePackages = [
           "webkitgtk-2.4.11"
@@ -81,8 +84,6 @@ let iosSupport = system == "x86_64-darwin";
         # Obelisk needs it to for some reason
         allowUnfree = true;
       } // config;
-      overlays = [ splicesEval ] ++ globalOverlays;
-      inherit system;
     };
 
     nixpkgs = nixpkgsFunc nixpkgsArgs;
