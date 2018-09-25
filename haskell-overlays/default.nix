@@ -13,6 +13,9 @@ rec {
   reflexPackages = import ./reflex-packages.nix {
     inherit haskellLib lib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents;
   };
+  disableTemplateHaskell = import ./disable-template-haskell.nix {
+    inherit haskellLib fetchFromGitHub;
+  };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
     inherit lib haskellLib fetchFromGitHub hackGet;
@@ -61,8 +64,8 @@ rec {
     }));
   android = import ./android {
     inherit haskellLib;
-    inherit nixpkgs;
     inherit androidActivity;
+    inherit nixpkgs;
   };
   ios = import ./ios.nix {
     inherit haskellLib;

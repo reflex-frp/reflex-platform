@@ -413,7 +413,20 @@ let iosSupport = system == "x86_64-darwin";
         }
         new));
   };
-  ghcAndroidAarch64 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices).override {
+  ghcAndroidAarch64 = ghcAndroidAarch64-8_4;
+  ghcAndroidAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
+      haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
+    in [
+      haskellOverlays.reflexPackages
+      haskellOverlays.untriaged
+      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_2
+      haskellOverlays.loadSplices
+      haskellOverlays.android
+    ]);
+  });
+  ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
     in [
@@ -421,66 +434,132 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
       haskellOverlays.ghc-8_4
+      haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
+    ]);
+  };
+  ghcAndroidAarch32 = ghcAndroidAarch32-8_4;
+  ghcAndroidAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
+      haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
+    in [
+      haskellOverlays.reflexPackages
+      haskellOverlays.untriaged
+    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_4
       haskellOverlays.loadSplices
+      haskellOverlays.android
     ]);
   });
-  ghcAndroidAarch32 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices).override {
+  ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
+      haskellOverlays.ghc-8_2
+      haskellOverlays.disableTemplateHaskell
       haskellOverlays.android
+    ]);
+  };
+  ghcIosSimulator64 = ghcIosSimulator64-8_4;
+  ghcIosSimulator64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
+      haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
+    in [
+      haskellOverlays.reflexPackages
+      haskellOverlays.untriaged
+    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_4
       haskellOverlays.loadSplices
+      haskellOverlays.ios
     ]);
   });
-  ghcIosSimulator64 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices).override {
+  ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
+      haskellOverlays.disableTemplateHaskell
+      haskellOverlays.ghc-8_2
       haskellOverlays.ios
+    ]);
+  };
+  ghcIosAarch64 = ghcIosAarch64-8_4;
+  ghcIosAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
+      haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
+    in [
+      haskellOverlays.reflexPackages
+      haskellOverlays.untriaged
+    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_4
       haskellOverlays.loadSplices
+      haskellOverlays.ios
     ]);
   });
-  ghcIosAarch64 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices).override {
+  ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
+      haskellOverlays.ghc-8_2
+      haskellOverlays.disableTemplateHaskell
       haskellOverlays.ios
+    ]);
+  };
+  ghcIosAarch32 = ghcIosAarch32-8_4;
+  ghcIosAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc843).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
+      haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
+    in [
+      haskellOverlays.reflexPackages
+      haskellOverlays.untriaged
+    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      haskellOverlays.ghc-8_4
       haskellOverlays.loadSplices
+      haskellOverlays.ios
     ]);
   });
-  ghcIosAarch32 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices).override {
+  ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
       (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
+      haskellOverlays.ghc-8_2
+      haskellOverlays.disableTemplateHaskell
       haskellOverlays.ios
-      haskellOverlays.loadSplices
     ]);
-  });
+  };
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
-  android = androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; };
+  android = androidWithHaskellPackages {
+    inherit ghcAndroidAarch64 ghcAndroidAarch32;
+  };
+  android-8_4 = androidWithHaskellPackages {
+    ghcAndroidAarch64 = ghcAndroidAarch64-8_4;
+    ghcAndroidAarch32 = ghcAndroidAarch32-8_4;
+  };
+  android-8_2 = androidWithHaskellPackages {
+    ghcAndroidAarch64 = ghcAndroidAarch64-8_2;
+    ghcAndroidAarch32 = ghcAndroidAarch32-8_2;
+  };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     inherit nixpkgs nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
   };
-  iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
   iosAarch64 = iosWithHaskellPackages ghcIosAarch64;
+  iosAarch64-8_4 = iosWithHaskellPackages ghcIosAarch64-8_4;
+  iosAarch64-8_2 = iosWithHaskellPackages ghcIosAarch64-8_2;
+  iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
+  iosAarch32-8_4 = iosWithHaskellPackages ghcIosAarch32-8_4;
+  iosAarch32-8_2 = iosWithHaskellPackages ghcIosAarch32-8_2;
   iosWithHaskellPackages = ghc: {
     buildApp = import ./ios { inherit nixpkgs ghc; };
   };
@@ -499,9 +578,17 @@ in let this = rec {
           ghc7
           ghcIosSimulator64
           ghcIosAarch64
+          ghcIosAarch64-8_4
+          ghcIosAarch64-8_2
           ghcIosAarch32
+          ghcIosAarch32-8_4
+          ghcIosAarch32-8_2
           ghcAndroidAarch64
+          ghcAndroidAarch64-8_4
+          ghcAndroidAarch64-8_2
           ghcAndroidAarch32
+          ghcAndroidAarch32-8_4
+          ghcAndroidAarch32-8_2
           ghcjs
           ghcjs8_2
           ghcjs8_4
@@ -525,11 +612,35 @@ in let this = rec {
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
   };
+  androidReflexTodomvc-8_4 = android-8_4.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    applicationId = "org.reflexfrp.todomvc";
+    displayName = "Reflex TodoMVC via GHC 8.4";
+  };
+  androidReflexTodomvc-8_2 = android-8_2.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    applicationId = "org.reflexfrp.todomvc";
+    displayName = "Reflex TodoMVC via GHC 8.2";
+  };
   iosReflexTodomvc = ios.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
+  };
+  iosReflexTodomvc-8_4 = iosAarch64-8_4.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleName = "Reflex TodoMVC via GHC 8.4";
+  };
+  iosReflexTodomvc-8_2 = iosAarch64-8_2.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleName = "Reflex TodoMVC via GHC 8.2";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
