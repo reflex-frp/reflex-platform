@@ -579,13 +579,13 @@ in let this = rec {
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
-  iosReflexTodomvc-8_4 = ios-8_4.buildApp {
+  iosReflexTodomvc-8_4 = iosAarch64-8_4.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC via GHC 8.4";
   };
-  iosReflexTodomvc-8_2 = ios-8_2.buildApp {
+  iosReflexTodomvc-8_2 = iosAarch64-8_2.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
