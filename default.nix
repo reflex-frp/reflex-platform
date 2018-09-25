@@ -376,7 +376,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.android
     ]);
   };
-  ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc821).override {
+  ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
     in [
@@ -401,7 +401,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.android
     ]);
   };
-  ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc821).override {
+  ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
     in [
@@ -426,7 +426,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.ios
     ]);
   };
-  ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc821).override {
+  ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
     in [
@@ -451,7 +451,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.ios
     ]);
   };
-  ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc821).override {
+  ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
     in [
@@ -476,7 +476,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.ios
     ]);
   };
-  ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc821).override {
+  ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
     in [
