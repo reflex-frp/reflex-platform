@@ -40,7 +40,7 @@ let iosSupport = system == "x86_64-darwin";
             configureFlags = ["--disable-shared" "--enable-static"];
           });
       };
-      zlib = super.zlib.override (optionalAttrs
+      zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
         { static = true; });
     };
@@ -126,8 +126,6 @@ let iosSupport = system == "x86_64-darwin";
         outPath = filterGit p;
       };
 
-    inherit (lib) optional optionals optionalAttrs;
-
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
 
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
@@ -140,9 +138,7 @@ let iosSupport = system == "x86_64-darwin";
       patch -p1 <"$patch"
     '';
 
-in with lib; with haskellLib;
-
-let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
+   overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
 
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
@@ -151,7 +147,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       editedCabalFile = null;
     });
 
-    combineOverrides = old: new: old // new // optionalAttrs (old ? overrides && new ? overrides) {
+    combineOverrides = old: new: old // new // lib.optionalAttrs (old ? overrides && new ? overrides) {
       overrides = lib.composeExtensions old.overrides new.overrides;
     };
 
@@ -183,7 +179,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
     ghcjsPkgs = ghcjs: self: super: {
       ghcjs = ghcjs.overrideAttrs (o: {
         patches = (o.patches or [])
-                ++ optional useFastWeak ./fast-weak.patch;
+                ++ lib.optional useFastWeak ./fast-weak.patch;
         phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
       });
     };
@@ -308,11 +304,11 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
       haskellOverlays.ghc-8_4
       haskellOverlays.saveSplices
       (self: super: {
-        cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
-        integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
-        scientific = enableCabalFlag super.scientific "integer-simple";
-        dependent-sum-template = dontCheck super.dependent-sum-template;
-        generic-deriving = dontCheck super.generic-deriving;
+        cryptonite = haskellLib.disableCabalFlag super.cryptonite "integer-gmp";
+        integer-logarithms = haskellLib.disableCabalFlag super.integer-logarithms "integer-gmp";
+        scientific = haskellLib.enableCabalFlag super.scientific "integer-simple";
+        dependent-sum-template = haskellLib.dontCheck super.dependent-sum-template;
+        generic-deriving = haskellLib.dontCheck super.generic-deriving;
       })
     ]);
   };
@@ -629,12 +625,12 @@ in let this = rec {
       nodejs
       pkgconfig
       closurecompiler;
-  } // (optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) {
+  } // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
     ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables nativeHaskellPackages.ghc-mod);
     inherit (haskellPackages) hdevtools;
-  }) // (optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
+  }) // (lib.optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
   });
 
@@ -680,7 +676,7 @@ in let this = rec {
           "testSystemDepends"
           "testToolDepends"
         ];
-        concatCombinableAttrs = haskellConfigs: filterAttrs (n: v: v != []) (listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs));
+        concatCombinableAttrs = haskellConfigs: lib.filterAttrs (n: v: v != []) (lib.listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs));
         getHaskellConfig = p: (overrideCabal p (args: {
           passthru = (args.passthru or {}) // {
             out = args;
@@ -689,8 +685,8 @@ in let this = rec {
         notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
         baseTools = generalDevToolsAttrs env;
         overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
-        depAttrs = mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
-          (map getHaskellConfig (attrVals packageNames env))
+        depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
+          (map getHaskellConfig (lib.attrVals packageNames env))
           [{
             buildTools = overriddenTools ++ tools env;
           }]
@@ -741,16 +737,16 @@ in let this = rec {
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
-    let otherPlatforms = optionals androidSupport [
+    let otherPlatforms = lib.optionals androidSupport [
           "ghcAndroidAarch64"
           "ghcAndroidAarch32"
-        ] ++ optional iosSupport "ghcIosAarch64";
+        ] ++ lib.optional iosSupport "ghcIosAarch64";
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
-      ++ optionals androidSupport [
+      ++ lib.optionals androidSupport [
         androidDevTools
         androidReflexTodomvc
-      ] ++ optionals iosSupport [
+      ] ++ lib.optionals iosSupport [
         iosReflexTodomvc
       ];
 
