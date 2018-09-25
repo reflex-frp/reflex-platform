@@ -472,9 +472,13 @@ in let this = rec {
           ghc7_8
           ghcIosSimulator64
           ghcIosAarch64
+          ghcIosAarch64-8_2
           ghcIosAarch32
+          ghcIosAarch32-8_2
           ghcAndroidAarch64
+          ghcAndroidAarch64-8_2
           ghcAndroidAarch32
+          ghcAndroidAarch32-8_2
           ghcjs
           android
           androidWithHaskellPackages
