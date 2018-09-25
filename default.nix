@@ -555,9 +555,9 @@ in let this = rec {
   };
   androidReflexTodomvc-8_4 = android.buildApp {
     package = p: p.reflex-todomvc;
-    executableName = "reflex-todomvc-8_4";
+    executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
-    displayName = "Reflex TodoMVC";
+    displayName = "Reflex TodoMVC via GHC 8.4";
   };
   androidReflexTodomvc-8_2 = android.buildApp {
     package = p: p.reflex-todomvc;
@@ -573,9 +573,9 @@ in let this = rec {
   };
   iosReflexTodomvc-8_4 = ios.buildApp {
     package = p: p.reflex-todomvc;
-    executableName = "reflex-todomvc-8_4";
+    executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
-    bundleName = "Reflex TodoMVC";
+    bundleName = "Reflex TodoMVC via GHC 8.4";
   };
   iosReflexTodomvc-8_2 = ios.buildApp {
     package = p: p.reflex-todomvc;
