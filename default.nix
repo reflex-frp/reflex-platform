@@ -16,9 +16,10 @@ let iosSupport = system == "x86_64-darwin";
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
         overlays = super.overlays or {} // import ./haskell-overlays {
+          nixpkgs = self;
           inherit
             haskellLib
-            nixpkgs fetchFromGitHub hackGet
+            fetchFromGitHub hackGet
             ghcjsBaseSrc
             optionalExtension
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
