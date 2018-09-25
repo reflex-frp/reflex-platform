@@ -497,7 +497,7 @@ in let this = rec {
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
   };
-  androidReflexTodomvc-8_2 = android.buildApp {
+  androidReflexTodomvc-8_2 = android-8_2.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
@@ -509,7 +509,7 @@ in let this = rec {
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
-  iosReflexTodomvc-8_2 = ios.buildApp {
+  iosReflexTodomvc-8_2 = ios-8_2.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
