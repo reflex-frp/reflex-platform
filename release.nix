@@ -44,8 +44,12 @@ let local-reflex-platform = import ./. {};
         benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
+        inherit (reflex-platform) androidReflexTodomvc-8_2;
+        inherit (reflex-platform) androidReflexTodomvc-8_4;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
+        inherit (reflex-platform) iosReflexTodomvc-8_2;
+        inherit (reflex-platform) iosReflexTodomvc-8_4;
       } // drvListToAttrs otherDeps
         // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages) # TODO no filter
       );
