@@ -528,9 +528,17 @@ in let this = rec {
           ghc7
           ghcIosSimulator64
           ghcIosAarch64
+          ghcIosAarch64-8_4
+          ghcIosAarch64-8_2
           ghcIosAarch32
+          ghcIosAarch32-8_4
+          ghcIosAarch32-8_2
           ghcAndroidAarch64
+          ghcAndroidAarch64-8_4
+          ghcAndroidAarch64-8_2
           ghcAndroidAarch32
+          ghcAndroidAarch32-8_4
+          ghcAndroidAarch32-8_2
           ghcjs
           ghcjs8_2
           ghcjs8_4
