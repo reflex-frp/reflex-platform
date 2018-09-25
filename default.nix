@@ -18,8 +18,6 @@ let iosSupport =
       else lib.warn "No iOS sdk found at ${iosSdkLocation}; iOS support disabled.  To enable, either install a version of Xcode that provides that SDK or override the value of iosSdkVersion to match your installed version." false;
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
-    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
-
     globalOverlays = [
       (self: super: {
         all-cabal-hashes = super.all-cabal-hashes.override {
@@ -47,6 +45,8 @@ let iosSupport =
       })
 
     ] ++ nixpkgsOverlays;
+
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
     appleLibiconvHack = self: super: {
       darwin = super.darwin // {
