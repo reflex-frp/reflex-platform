@@ -48,7 +48,7 @@ let iosSupport =
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
-    appleLibiconvHack = self: super: {
+    forceStaticLibs = self: super: {
       darwin = super.darwin // {
         libiconv =
           if self.hostPlatform == self.buildPlatform
@@ -158,7 +158,7 @@ let iosSupport =
         in lib.mapAttrs (_: args: if args == null then null else nixpkgsFunc args) rec {
         simulator64 = {
           system = "x86_64-darwin";
-          overlays = globalOverlays ++ [ mobileGhcOverlay appleLibiconvHack ];
+          overlays = globalOverlays ++ [ mobileGhcOverlay forceStaticLibs ];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
@@ -178,7 +178,7 @@ let iosSupport =
         };
         aarch64 = {
           system = "x86_64-darwin";
-          overlays = globalOverlays ++ [ mobileGhcOverlay appleLibiconvHack ];
+          overlays = globalOverlays ++ [ mobileGhcOverlay forceStaticLibs ];
           crossSystem = {
             useIosPrebuilt = true;
             # You can change config/arch/isiPhoneSimulator depending on your target:
