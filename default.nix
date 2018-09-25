@@ -561,9 +561,9 @@ in let this = rec {
   };
   androidReflexTodomvc-8_2 = android.buildApp {
     package = p: p.reflex-todomvc;
-    executableName = "reflex-todomvc-8_2";
+    executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
-    displayName = "Reflex TodoMVC";
+    displayName = "Reflex TodoMVC via GHC 8.2";
   };
   iosReflexTodomvc = ios.buildApp {
     package = p: p.reflex-todomvc;
@@ -579,9 +579,9 @@ in let this = rec {
   };
   iosReflexTodomvc-8_2 = ios.buildApp {
     package = p: p.reflex-todomvc;
-    executableName = "reflex-todomvc-8_2";
+    executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
-    bundleName = "Reflex TodoMVC";
+    bundleName = "Reflex TodoMVC via GHC 8.2";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
