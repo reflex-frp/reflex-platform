@@ -375,7 +375,7 @@ let iosSupport =
       haskellOverlays.android
     ]);
   };
-  ghcAndroidAarch32 = ghcAndroidAarch64-8_2;
+  ghcAndroidAarch32 = ghcAndroidAarch32-8_2;
   ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc821).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
