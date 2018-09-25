@@ -302,7 +302,7 @@ let iosSupport = system == "x86_64-darwin";
   ghc = ghc8_4;
   ghcSavedSplices = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = mkHaskellOverlays nixpkgs;
+      haskellOverlays = nixpkgs.haskell.overlays;
     in [
       haskellOverlays.reflexPackages
       haskellOverlays.untriaged
