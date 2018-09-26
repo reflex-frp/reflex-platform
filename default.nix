@@ -21,9 +21,9 @@ let iosSupport = system == "x86_64-darwin";
             haskellLib
             fetchFromGitHub hackGet
             ghcjsBaseSrc
-            optionalExtension
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-            useTextJSString;
+            useTextJSString
+            optionalExtension;
           inherit (nixpkgs) lib;
           androidActivity = hackGet ./android-activity;
         };
