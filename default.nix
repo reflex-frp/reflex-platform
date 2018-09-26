@@ -22,9 +22,9 @@ let iosSupport = system == "x86_64-darwin";
             fetchFromGitHub hackGet
             ghcjsBaseSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-            useTextJSString
+            useTextJSString enableExposeAllUnfoldings
             optionalExtension;
-          inherit (nixpkgs) lib;
+          inherit (self) lib;
           androidActivity = hackGet ./android-activity;
         };
       };
@@ -282,45 +282,20 @@ let iosSupport = system == "x86_64-darwin";
 
   ghc = ghc8_4;
   ghcjs8_2 = (makeRecursivelyOverridable ghcjs8_2Packages).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghcjs
-      (optionalExtension useTextJSString haskellOverlays.textJSString)
-    ]);
+    overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcjs8_4 = (makeRecursivelyOverridable ghcjs8_4Packages).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghcjs-8_4
-      (optionalExtension useTextJSString haskellOverlays.textJSString)
-    ]);
+    overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcjs = ghcjs8_4;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-head
-    ]);
+    overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc843).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgs.haskell.overlays;
     in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      nixpkgs.haskell.overlays.combined
       (ghcjsPkgs (useTextJSStringAsBootPkg (nixpkgs.haskell.compiler.ghcjs84.override {
         ghcjsSrc = fetchgit {
           url = "https://github.com/obsidiansystems/ghcjs.git";
@@ -329,164 +304,56 @@ let iosSupport = system == "x86_64-darwin";
           fetchSubmodules = true;
         };
       })))
-      haskellOverlays.ghc-8_4
     ]);
   };
   ghc8_2 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc822).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgs.haskell.overlays;
     in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
+      nixpkgs.haskell.overlays.combined
       (ghcjsPkgs nixpkgs.haskell.compiler.ghcjs82)
-      haskellOverlays.ghc-8_2
     ]);
   };
   ghc8_0 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc802).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8
-    ]);
+    overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc7 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc7103).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-7
-    ]);
+    overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcAndroidAarch64 = ghcAndroidAarch64-8_4;
   ghcAndroidAarch64-8_4 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc843).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.android
-    ]);
+    overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   };
   ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc822).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.android
-    ]);
+    overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   };
   ghcAndroidAarch32 = ghcAndroidAarch32-8_4;
   ghcAndroidAarch32-8_4 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc843).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.android
-    ]);
+    overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   };
   ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc822).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.android
-    ]);
+    overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   };
   ghcIosSimulator64 = ghcIosSimulator64-8_4;
   ghcIosSimulator64-8_4 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc843).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.ghc-8_4
-      haskellOverlays.ios
-    ]);
+    overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   };
   ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc822).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.ghc-8_2
-      haskellOverlays.ios
-    ]);
+    overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   };
   ghcIosAarch64 = ghcIosAarch64-8_4;
   ghcIosAarch64-8_4 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc843).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.ios
-    ]);
+    overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   };
   ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc822).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.ios
-    ]);
+    overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   };
   ghcIosAarch32 = ghcIosAarch32-8_4;
   ghcIosAarch32-8_4 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc843).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-    (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_4
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.ios
-    ]);
+    overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   };
   ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc822).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
-    in [
-      haskellOverlays.reflexPackages
-      haskellOverlays.untriaged
-      (optionalExtension enableExposeAllUnfoldings haskellOverlays.exposeAllUnfoldings)
-      haskellOverlays.ghc-8_2
-      haskellOverlays.disableTemplateHaskell
-      haskellOverlays.ios
-    ]);
+    overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   };
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
