@@ -128,9 +128,11 @@ let iosSupport = system == "x86_64-darwin";
 
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
-      ghcjs-boot = hackGet ./ghcjs-boot;
-      shims = hackGet ./shims;
-      ghcjs = hackGet ./ghcjs;
+      ghcjs8_0 = {
+        boot = hackGet ./ghcjs-8.0/boot;
+        shims = hackGet ./ghcjs-8.0/shims;
+        ghcjs = hackGet ./ghcjs-8.0/ghcjs;
+      };
     };
 
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
@@ -188,7 +190,7 @@ let iosSupport = system == "x86_64-darwin";
       buildCommand = ''
         echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
         patchShebangs .
-        ./gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
+        ./gen-stage2.rb "${sources.ghcjs8_0.boot}" >"$out"
       '';
       nativeBuildInputs = with nixpkgs; [
         ruby cabal2nix
@@ -303,9 +305,9 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcjs8_0 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs80.override (old: {
     ghc = old.ghc.override {
-      ghcjsSrc = sources.ghcjs;
-      ghcjsBootSrc = sources.ghcjs-boot;
-      shims = sources.shims;
+      ghcjsSrc = sources.ghcjs8_0.ghcjs;
+      ghcjsBootSrc = sources.ghcjs8_0.boot;
+      shims = sources.ghcjs8_0.shims;
       stage2 = import stage2Script;
     };
   }))).override {
