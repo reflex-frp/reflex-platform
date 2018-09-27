@@ -265,6 +265,14 @@ let iosSupport = system == "x86_64-darwin";
       '';
     };
 
+    # TODO make real
+    ghcjs8_0Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
+      ghc = ghc8_2.ghcjs;
+      buildHaskellPackages = ghc8_2.ghcjs.bootPkgs;
+      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-8.2.x.nix") { inherit haskellLib; };
+      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
+      inherit haskellLib;
+    };
     ghcjs8_2Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
       ghc = ghc8_2.ghcjs;
       buildHaskellPackages = ghc8_2.ghcjs.bootPkgs;
@@ -285,6 +293,9 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcjs8_2 = (makeRecursivelyOverridable ghcjs8_2Packages).override {
+    overrides = nixpkgs.haskell.overlays.combined;
+  };
+  ghcjs8_0 = (makeRecursivelyOverridable ghcjs8_0Packages).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
 
@@ -411,6 +422,7 @@ in let this = rec {
           ghcAndroidAarch32-8_4
           ghcAndroidAarch32-8_2
           ghcjs
+          ghcjs8_0
           ghcjs8_2
           ghcjs8_4
           android
