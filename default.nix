@@ -23,6 +23,7 @@ let iosSupport = system == "x86_64-darwin";
             ghcjsBaseSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
+            stage2Script
             optionalExtension;
           inherit (self) lib;
           androidActivity = hackGet ./android-activity;
@@ -125,6 +126,13 @@ let iosSupport = system == "x86_64-darwin";
         outPath = filterGit p;
       };
 
+    # All imports of sources need to go here, so that they can be explicitly cached
+    sources = {
+      ghcjs-boot = hackGet ./ghcjs-boot;
+      shims = hackGet ./shims;
+      ghcjs = hackGet ./ghcjs;
+    };
+
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
 
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
@@ -137,7 +145,7 @@ let iosSupport = system == "x86_64-darwin";
       patch -p1 <"$patch"
     '';
 
-   overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
+    overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
 
     replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
       inherit src version;
@@ -174,6 +182,18 @@ let iosSupport = system == "x86_64-darwin";
       src = "file://${src}";
       sha256 = null;
     });
+
+    stage2Script = nixpkgs.runCommand "stage2.nix" {
+      GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
+      buildCommand = ''
+        echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
+        patchShebangs .
+        ./gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
+      '';
+      nativeBuildInputs = with nixpkgs; [
+        ruby cabal2nix
+      ];
+    } "";
 
     ghcjsApplyFastWeak = ghcjs: ghcjs.overrideAttrs (drv: {
       patches = (drv.patches or [])
@@ -281,7 +301,14 @@ let iosSupport = system == "x86_64-darwin";
   }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghcjs8_0 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcjs80).override {
+  ghcjs8_0 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs80.override (old: {
+    ghc = old.ghc.override {
+      ghcjsSrc = sources.ghcjs;
+      ghcjsBootSrc = sources.ghcjs-boot;
+      shims = sources.shims;
+      stage2 = import stage2Script;
+    };
+  }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
 
@@ -371,6 +398,7 @@ in let this = rec {
           overrideCabal
           hackGet
           foreignLibSmuggleHeaders
+          stage2Script
           ghc
           ghcHEAD
           ghc8_4

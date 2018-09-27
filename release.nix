@@ -1,6 +1,7 @@
 let local-reflex-platform = import ./. {};
     inherit (local-reflex-platform.nixpkgs) lib;
     getOtherDeps = reflex-platform: [
+      reflex-platform.stage2Script
       reflex-platform.nixpkgs.cabal2nix
       reflex-platform.ghc.cabal2nix
     ] ++ builtins.concatLists (map
@@ -29,6 +30,7 @@ let local-reflex-platform = import ./. {};
           '';
         });
       in {
+        inherit (reflex-platform) sources;
         tryReflexShell = reflex-platform.tryReflexShell;
         ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
         ghcjs8_0.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_0.reflex-todomvc;
@@ -42,7 +44,7 @@ let local-reflex-platform = import ./. {};
         benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
         cache = reflex-platform.pinBuildInputs
           "reflex-platform-${system}"
-          reflex-platform.cachePackages
+          (builtins.attrValues reflex-platform.sources ++ reflex-platform.cachePackages)
           (otherDeps);
       } // lib.optionalAttrs (system == "x86_64-linux") {
         # The node build is uncached and slow
