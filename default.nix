@@ -280,14 +280,15 @@ let iosSupport = system == "x86_64-darwin";
       inherit haskellLib;
     };
 
-  ghc = ghc8_4;
-  ghcjs8_2 = (makeRecursivelyOverridable ghcjs8_2Packages).override {
-    overrides = nixpkgs.haskell.overlays.combined;
-  };
+  ghcjs = ghcjs8_4;
   ghcjs8_4 = (makeRecursivelyOverridable ghcjs8_4Packages).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghcjs = ghcjs8_4;
+  ghcjs8_2 = (makeRecursivelyOverridable ghcjs8_2Packages).override {
+    overrides = nixpkgs.haskell.overlays.combined;
+  };
+
+  ghc = ghc8_4;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -320,6 +321,7 @@ let iosSupport = system == "x86_64-darwin";
   ghc7 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc7103).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
+
   ghcAndroidAarch64 = ghcAndroidAarch64-8_4;
   ghcAndroidAarch64-8_4 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc843).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
@@ -334,6 +336,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc822).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   };
+
   ghcIosSimulator64 = ghcIosSimulator64-8_4;
   ghcIosSimulator64-8_4 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc843).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
@@ -355,6 +358,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc822).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   };
+
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages {
