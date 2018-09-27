@@ -175,13 +175,11 @@ let iosSupport = system == "x86_64-darwin";
       sha256 = null;
     });
 
-    ghcjsPkgs = ghcjs: self: super: {
-      ghcjs = ghcjs.overrideAttrs (o: {
-        patches = (o.patches or [])
-                ++ lib.optional useFastWeak ./fast-weak.patch;
-        phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
-      });
-    };
+    ghcjsApplyFastWeak = ghcjs: ghcjs.overrideAttrs (drv: {
+      patches = (drv.patches or [])
+        ++ lib.optional useFastWeak ./fast-weak.patch;
+      phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
+    });
     useTextJSStringAsBootPkg = ghcjs: if !useTextJSString then ghcjs else ghcjs.overrideAttrs (_: {
       postUnpack = ''
         set -x
@@ -265,37 +263,25 @@ let iosSupport = system == "x86_64-darwin";
       '';
     };
 
-    # TODO make real
-    ghcjs8_0Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
-      ghc = ghc8_2.ghcjs;
-      buildHaskellPackages = ghc8_2.ghcjs.bootPkgs;
-      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-8.2.x.nix") { inherit haskellLib; };
-      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
-      inherit haskellLib;
-    };
-    ghcjs8_2Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
-      ghc = ghc8_2.ghcjs;
-      buildHaskellPackages = ghc8_2.ghcjs.bootPkgs;
-      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-8.2.x.nix") { inherit haskellLib; };
-      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
-      inherit haskellLib;
-    };
-    ghcjs8_4Packages = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules") {
-      ghc = ghc8_4.ghcjs;
-      buildHaskellPackages = ghc8_4.ghcjs.bootPkgs;
-      compilerConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghc-8.4.x.nix") { inherit haskellLib; };
-      packageSetConfig = nixpkgs.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/configuration-ghcjs.nix") { inherit haskellLib; };
-      inherit haskellLib;
-    };
-
   ghcjs = ghcjs8_4;
-  ghcjs8_4 = (makeRecursivelyOverridable ghcjs8_4Packages).override {
+  ghcjs8_4 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs84.override (old: {
+    ghc = useTextJSStringAsBootPkg (ghcjsApplyFastWeak (old.ghc.override {
+      ghcjsSrc = fetchgit {
+        url = "https://github.com/obsidiansystems/ghcjs.git";
+        rev = "584eaa138c32c5debb3aae571c4153d537ff58f1";
+        sha256 = "1ib0vsv2wrwf5iivnq6jw2l9g5izs0fjpp80jrd71qyywx4xcm66";
+        fetchSubmodules = true;
+      };
+    }));
+  }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghcjs8_2 = (makeRecursivelyOverridable ghcjs8_2Packages).override {
+  ghcjs8_2 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs82.override (old: {
+    ghc = ghcjsApplyFastWeak old.ghc;
+  }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghcjs8_0 = (makeRecursivelyOverridable ghcjs8_0Packages).override {
+  ghcjs8_0 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcjs80).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
 
@@ -304,27 +290,10 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc843).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      nixpkgs.haskell.overlays.combined
-      (ghcjsPkgs (useTextJSStringAsBootPkg (nixpkgs.haskell.compiler.ghcjs84.override {
-        ghcjsSrc = fetchgit {
-          url = "https://github.com/obsidiansystems/ghcjs.git";
-          rev = "584eaa138c32c5debb3aae571c4153d537ff58f1";
-          sha256 = "1ib0vsv2wrwf5iivnq6jw2l9g5izs0fjpp80jrd71qyywx4xcm66";
-          fetchSubmodules = true;
-        };
-      })))
-    ]);
+    overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_2 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc822).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      nixpkgs.haskell.overlays.combined
-      (ghcjsPkgs nixpkgs.haskell.compiler.ghcjs82)
-    ]);
+    overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_0 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc802).override {
     overrides = nixpkgs.haskell.overlays.combined;
