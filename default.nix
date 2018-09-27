@@ -301,17 +301,19 @@ let iosSupport =
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
 #      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
 #    };
-  ghcjs = (makeRecursivelyOverridable ghcjsPackages).override {
+  ghcjs = ghcjs8_0;
+  ghcjs8_0 = (makeRecursivelyOverridable ghcjsPackages).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
+
+  ghc = ghc8_0;
   ghc8_2 = ghc8_2_1;
   ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghc = ghc8_0;
   ghc8_0 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc802).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -321,6 +323,7 @@ let iosSupport =
   ghc7_8 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc784).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
+
   ghcAndroidAarch64 = ghcAndroidAarch64-8_2;
   ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
@@ -329,6 +332,7 @@ let iosSupport =
   ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   };
+
   ghcIosSimulator64 = ghcIosSimulator64-8_2;
   ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
@@ -341,6 +345,7 @@ let iosSupport =
   ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   };
+
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages {
@@ -396,6 +401,7 @@ in let this = rec {
           ghcAndroidAarch32
           ghcAndroidAarch32-8_2
           ghcjs
+          ghcjs8_0
           android
           androidWithHaskellPackages
           ios
