@@ -21,9 +21,19 @@ let local-reflex-platform = import ./. {};
       let
         reflex-platform = import ./. { inherit system; iosSupportForce = system == "x86_64-darwin"; };
         otherDeps = getOtherDeps reflex-platform;
+
+        jsexeHydra = exe: exe.overrideAttrs (attrs: {
+          postInstall = ''
+            ${attrs.postInstall or ""}
+            mkdir -p $out/nix-support
+            echo $out/bin/reflex-todomvc.jsexe >> $out/nix-support/hydra-build-products
+          '';
+        });
       in {
         inherit (reflex-platform) sources;
         tryReflexShell = reflex-platform.tryReflexShell;
+        ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
+        ghcjs8_0.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_0.reflex-todomvc;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_0.reflexTodomvc = reflex-platform.ghc8_0.reflex-todomvc;
         ghc8_2.reflexTodomvc = reflex-platform.ghc8_2.reflex-todomvc;
