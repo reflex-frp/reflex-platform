@@ -16,10 +16,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         EOF
         chmod +x "$out/bin/deploy"
       '';
-      buildInputs = with nixpkgs; [
-        androidsdk
-        which
-      ];
+      buildInputs = with nixpkgs; [ androidsdk ];
     } "";
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {

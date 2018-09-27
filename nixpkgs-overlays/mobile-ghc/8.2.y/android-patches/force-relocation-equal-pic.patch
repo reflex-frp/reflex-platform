@@ -1,0 +1,13 @@
+diff --git a/compiler/main/DriverPipeline.hs b/compiler/main/DriverPipeline.hs
+index adebdf4..7546fc5 100644
+--- a/compiler/main/DriverPipeline.hs
++++ b/compiler/main/DriverPipeline.hs
+@@ -1435,7 +1435,7 @@ runPhase (RealPhase LlvmLlc) input_fn dflags
+         rmodel | platformOS (targetPlatform dflags) == OSiOS = "dynamic-no-pic"
+                | gopt Opt_PIC dflags                         = "pic"
+                | WayDyn `elem` ways dflags                   = "dynamic-no-pic"
+-               | otherwise                                   = "static"
++               | otherwise                                   = "pic" -- "static"
+         tbaa | gopt Opt_LlvmTBAA dflags = "--enable-tbaa=true"
+              | otherwise                = "--enable-tbaa=false"
+ 
