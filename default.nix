@@ -303,12 +303,28 @@ let iosSupport = system == "x86_64-darwin";
   }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
+  ghcjs8_0-bootPkgs = nixpkgs.haskell.packages.ghc802.override {
+    overrides = self: super: {
+      wl-pprint-text = haskellLib.doJailbreak (self.callHackage "wl-pprint-text" "1.1.1.0" {});
+      base-compat = self.callHackage "base-compat" "0.9.3" {};
+    };
+  };
   ghcjs8_0 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs80.override (old: {
     ghc = old.ghc.override {
       ghcjsSrc = sources.ghcjs8_0.ghcjs;
       ghcjsBootSrc = sources.ghcjs8_0.boot;
       shims = sources.ghcjs8_0.shims;
       stage2 = import stage2Script;
+      inherit (ghcjs8_0-bootPkgs)
+        filepath HTTP mtl network random stm time zlib aeson attoparsec
+        bzlib data-default ghc-paths hashable haskell-src-exts haskell-src-meta
+        lens optparse-applicative parallel safe shelly split
+        stringsearch syb system-fileio system-filepath tar terminfo text-binary
+        unordered-containers vector wl-pprint-text yaml
+        base16-bytestring cryptohash haddock-api
+        transformers-compat QuickCheck haddock hspec xhtml
+        regex-posix
+      ;
     };
   }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
