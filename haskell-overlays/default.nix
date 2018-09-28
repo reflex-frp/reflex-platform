@@ -4,6 +4,7 @@
 , ghcjsBaseSrc
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
+, stage2Script
 , optionalExtension
 , androidActivity
 , ghcSavedSplices
@@ -55,6 +56,7 @@ rec {
 
   combined-ghc-8 = self: super: foldExtensions [
     ghc-8
+    (optionalExtension (versionWildcard [ 8 0 ] super.ghc.version) ghc-8_0)
     (optionalExtension (versionWildcard [ 8 2 ] super.ghc.version) ghc-8_2)
     (optionalExtension (versionWildcard [ 8 4 ] super.ghc.version) ghc-8_4)
   ] self super;
@@ -92,6 +94,7 @@ rec {
   ghc-7 = import ./ghc-7.x.y.nix { inherit haskellLib; };
   ghc-7_8 = import ./ghc-7.8.y.nix { inherit haskellLib; };
   ghc-8 = import ./ghc-8.x.y.nix { inherit haskellLib lib; };
+  ghc-8_0 = import ./ghc-8.0.x.nix { inherit haskellLib stage2Script; };
   ghc-8_2 = import ./ghc-8.2.x.nix { inherit haskellLib fetchFromGitHub; };
   ghc-8_4 = import ./ghc-8.4.y.nix { inherit haskellLib fetchFromGitHub; inherit (nixpkgs) pkgs; };
   ghc-head = import ./ghc-head.nix { inherit haskellLib fetchFromGitHub; };
