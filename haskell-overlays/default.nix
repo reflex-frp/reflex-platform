@@ -62,9 +62,9 @@ rec {
 
   combined-ghcjs = self: super: foldExtensions [
     ghcjs
-    (optionalExtension (versionWildcard [ 8 0 ] super.ghc.version) ghcjs-8_0)
-    (optionalExtension (versionWildcard [ 8 2 ] super.ghc.version) ghcjs-8_2)
-    (optionalExtension (versionWildcard [ 8 4 ] super.ghc.version) ghcjs-8_4)
+    (optionalExtension (versionWildcard [ 8 0 ] super.ghc.ghcVersion) ghcjs-8_0)
+    (optionalExtension (versionWildcard [ 8 2 ] super.ghc.ghcVersion) ghcjs-8_2)
+    (optionalExtension (versionWildcard [ 8 4 ] super.ghc.ghcVersion) ghcjs-8_4)
   ] self super;
 
   ##
@@ -95,7 +95,8 @@ rec {
   ghcjs = import ./ghcjs.nix {
     inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer hackGet;
   };
-  ghcjs-8_0 = _: _: {
+  ghcjs-8_0 = self: super: {
+    hashable = self.callHackage "hashable" "1.2.7.0" {};
   };
   ghcjs-8_2 = _: _: {
   };

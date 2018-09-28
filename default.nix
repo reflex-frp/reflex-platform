@@ -304,7 +304,20 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcjs8_0 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs80.override (old: {
-    ghc = old.ghc.override {
+    ghc = (import "${nixpkgs.path}/pkgs/development/compilers/ghcjs/8.0" {
+      bootPkgs = nixpkgs.haskell.packages.ghc802.override {
+        overrides = self: super: {
+          # Newer versions no longer export `(<>)`, because that is now
+          # understand to be monoid/semigroup append.
+          wl-pprint-text = haskellLib.doJailbreak (self.callHackage "wl-pprint-text" "1.1.1.0" {});
+          # Old `wl-pprint-text` in turn doesn't expect `base-compat` to provide
+          # a `(<>)`, since it is defining its own.
+          base-compat = self.callHackage "base-compat" "0.9.3" {};
+        };
+      };
+      inherit (nixpkgs) cabal-install;
+      inherit (nixpkgs.buildPackages) fetchgit fetchFromGitHub;
+    }).override {
       ghcjsSrc = sources.ghcjs8_0.ghcjs;
       ghcjsBootSrc = sources.ghcjs8_0.boot;
       shims = sources.ghcjs8_0.shims;
