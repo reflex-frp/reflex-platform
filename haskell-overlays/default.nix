@@ -74,10 +74,10 @@ rec {
   };
 
   ghc = import ./ghc.nix { inherit haskellLib stage2Script; };
-  ghc-7 = import ./ghc-7.x.y.nix { inherit haskellLib; };
-  ghc-7_8 = import ./ghc-7.8.y.nix { inherit haskellLib; };
-  ghc-8 = import ./ghc-8.x.y.nix { };
-  ghc-8_2 = import ./ghc-8.2.x.nix { inherit haskellLib nixpkgs fetchFromGitHub; };
+  ghc-7 = import ./ghc-7.nix { inherit haskellLib; };
+  ghc-7_8 = import ./ghc-7.8.nix { inherit haskellLib; };
+  ghc-8 = import ./ghc-8.nix { };
+  ghc-8_2 = import ./ghc-8.2.nix { inherit haskellLib nixpkgs fetchFromGitHub; };
   ghc-head = import ./ghc-head.nix { inherit haskellLib fetchFromGitHub; };
 
   ghcjs = import ./ghcjs.nix {
