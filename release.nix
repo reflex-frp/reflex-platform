@@ -20,15 +20,20 @@ let local-reflex-platform = import ./. {};
       let
         reflex-platform = import ./. { inherit system; };
         otherDeps = getOtherDeps reflex-platform;
-      in {
-        tryReflexShell = reflex-platform.tryReflexShell;
-        ghcjsReflexTodomvc = reflex-platform.ghcjs.reflex-todomvc.overrideAttrs (attrs: {
+
+        jsexeHydra = exe: exe.overrideAttrs (attrs: {
           postInstall = ''
             ${attrs.postInstall or ""}
             mkdir -p $out/nix-support
             echo $out/bin/reflex-todomvc.jsexe >> $out/nix-support/hydra-build-products
           '';
         });
+      in {
+        tryReflexShell = reflex-platform.tryReflexShell;
+        ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
+        ghcjs8_0.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_0.reflex-todomvc;
+        ghcjs8_2.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_2.reflex-todomvc;
+        ghcjs8_4.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_4.reflex-todomvc;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_0.reflexTodomvc = reflex-platform.ghc8_0.reflex-todomvc;
         ghc8_2.reflexTodomvc = reflex-platform.ghc8_2.reflex-todomvc;
