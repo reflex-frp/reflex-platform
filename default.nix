@@ -16,27 +16,16 @@ let iosSupport = system == "x86_64-darwin";
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
       haskell = super.haskell // {
-        compiler = let
-          spliceGhc = ghc: ghc.overrideAttrs (drv: {
+        compiler = super.haskell.compiler // {
+          ghcSplices = super.haskell.compiler.ghc843.overrideAttrs (drv: {
             patches = (drv.patches or [])
-                   ++ [ ./splices.patch ./haddock.patch ./splices-names.patch ];
+              ++ [ ./splices.patch ./haddock.patch ./splices-names.patch ];
           });
-        in super.haskell.compiler // {
-          ghcSplices = spliceGhc super.haskell.compiler.ghc843;
-          integer-simple = super.haskell.compiler.integer-simple // {
-            ghcSplices = spliceGhc super.haskell.compiler.integer-simple.ghc843;
-          };
         };
         packages = super.haskell.packages // {
           ghcSplices = super.haskell.packages.ghc843.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices;
             ghc = self.buildPackages.haskell.compiler.ghcSplices;
-          };
-          integer-simple = super.haskell.packages.integer-simple // {
-            ghcSplices = super.haskell.packages.ghc843.override {
-              buildHaskellPackages = self.buildPackages.haskell.packages.integer-simple.ghcSplices;
-              ghc = self.buildPackages.haskell.compiler.integer-simple.ghcSplices;
-            };
           };
         };
       };
