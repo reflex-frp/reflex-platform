@@ -782,7 +782,7 @@ in let this = rec {
     };
   }).config.system.build.virtualBoxOVA;
 
-  inherit cabal2nixResult system androidSupport iosSupport;
+  inherit cabal2nixResult sources system androidSupport iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
   js-framework-benchmark-src = hackGet ./js-framework-benchmark;
