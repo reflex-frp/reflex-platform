@@ -19,6 +19,10 @@ rec {
 
   foldExtensions = lib.foldr lib.composeExtensions (_: _: {});
 
+  getGhcVersion = ghc:
+    if ghc.isGhcjs or false
+    then ghc.ghcVersion
+    else ghc.version;
 
   ##
   ## Conventional roll ups of all the constituent overlays below.
@@ -33,6 +37,7 @@ rec {
 
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
 
+    combined-any
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
@@ -43,22 +48,30 @@ rec {
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
   ] self super;
 
+  combined-any = self: super: foldExtensions [
+    any
+    (optionalExtension (versionWildcard [ 7 ] (getGhcVersion super.ghc)) combined-any-7)
+    (optionalExtension (versionWildcard [ 8 ] (getGhcVersion super.ghc)) combined-any-8)
+  ] self super;
+
+  combined-any-7 = self: super: foldExtensions [
+    any-7
+    (optionalExtension (versionWildcard [ 7 8 ] (getGhcVersion super.ghc)) any-7_8)
+  ] self super;
+
+  combined-any-8 = self: super: foldExtensions [
+    any-8
+    (optionalExtension (versionWildcard [ 8 0 ] (getGhcVersion super.ghc)) any-8_0)
+    (optionalExtension (versionWildcard [ 8 2 ] (getGhcVersion super.ghc)) any-8_2)
+    (optionalExtension (versionWildcard [ 8 4 ] (getGhcVersion super.ghc)) any-8_4)
+    (optionalExtension (lib.versionOlder "8.5"  (getGhcVersion super.ghc)) any-head)
+  ] self super;
+
   combined-ghc = self: super: foldExtensions [
-    ghc
-    (optionalExtension (versionWildcard [ 7 ] super.ghc.version) combined-ghc-7)
-    (optionalExtension (versionWildcard [ 8 ] super.ghc.version) combined-ghc-8)
-  ] self super;
-
-  combined-ghc-7 = self: super: foldExtensions [
-    ghc-7
-    (optionalExtension (versionWildcard [ 7 8 ] super.ghc.version) ghc-7_8)
-  ] self super;
-
-  combined-ghc-8 = self: super: foldExtensions [
-    ghc-8
     (optionalExtension (versionWildcard [ 8 0 ] super.ghc.version) ghc-8_0)
     (optionalExtension (versionWildcard [ 8 2 ] super.ghc.version) ghc-8_2)
     (optionalExtension (versionWildcard [ 8 4 ] super.ghc.version) ghc-8_4)
+    (optionalExtension (lib.versionOlder "8.5"  super.ghc.version) ghc-head)
   ] self super;
 
   combined-ghcjs = self: super: foldExtensions [
@@ -81,6 +94,22 @@ rec {
     inherit (nixpkgs) fetchpatch;
   };
 
+  # For GHC and GHCJS
+  any = _: _: {};
+  any-7 = import ./any-7.nix { inherit haskellLib; };
+  any-7_8 = import ./any-7.8.nix { inherit haskellLib; };
+  any-8 = import ./any-8.nix { inherit haskellLib lib getGhcVersion; };
+  any-8_0 = _: _: {};
+  any-8_2 = import ./any-8.2.nix { inherit haskellLib fetchFromGitHub; };
+  any-8_4 = import ./any-8.4.nix { inherit haskellLib fetchFromGitHub; inherit (nixpkgs) pkgs; };
+  any-head = import ./any-head.nix { inherit haskellLib fetchFromGitHub; };
+
+  # Just for GHC, usually to sync with GHCJS
+  ghc-8_0 = import ./ghc-8.0.nix { inherit haskellLib stage2Script; };
+  ghc-8_2 = _: _: {};
+  ghc-8_4 = _: _: {};
+  ghc-head = _: _: {};
+
   saveSplices = import ./save-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
   };
@@ -90,15 +119,7 @@ rec {
     splicedHaskellPackages = ghcSavedSplices;
   };
 
-  ghc = import ./ghc.nix { inherit haskellLib; };
-  ghc-7 = import ./ghc-7.x.y.nix { inherit haskellLib; };
-  ghc-7_8 = import ./ghc-7.8.y.nix { inherit haskellLib; };
-  ghc-8 = import ./ghc-8.x.y.nix { inherit haskellLib lib; };
-  ghc-8_0 = import ./ghc-8.0.x.nix { inherit haskellLib stage2Script; };
-  ghc-8_2 = import ./ghc-8.2.x.nix { inherit haskellLib fetchFromGitHub; };
-  ghc-8_4 = import ./ghc-8.4.y.nix { inherit haskellLib fetchFromGitHub; inherit (nixpkgs) pkgs; };
-  ghc-head = import ./ghc-head.nix { inherit haskellLib fetchFromGitHub; };
-
+  # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
     inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer hackGet;
   };
