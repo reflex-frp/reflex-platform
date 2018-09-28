@@ -420,38 +420,38 @@ let iosSupport = system == "x86_64-darwin";
   ghcAndroidAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc843).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   });
-  ghcAndroidAarch64-8_2 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc822).override {
+  ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc822).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
-  });
+  };
   ghcAndroidAarch32 = ghcAndroidAarch32-8_4;
   ghcAndroidAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc843).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   });
-  ghcAndroidAarch32-8_2 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc822).override {
+  ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc822).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
-  });
+  };
 
   ghcIosSimulator64 = ghcIosSimulator64-8_4;
   ghcIosSimulator64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc843).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   });
-  ghcIosSimulator64-8_2 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc822).override {
+  ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc822).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
-  });
+  };
   ghcIosAarch64 = ghcIosAarch64-8_4;
   ghcIosAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc843).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   });
-  ghcIosAarch64-8_2 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc822).override {
+  ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.ghc822).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
-  });
+  };
   ghcIosAarch32 = ghcIosAarch32-8_4;
   ghcIosAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc843).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   });
-  ghcIosAarch32-8_2 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc822).override {
+  ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc822).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
-  });
+  };
 
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
