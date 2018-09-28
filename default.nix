@@ -225,9 +225,11 @@ let iosSupport =
 
     # All imports of sources need to go here, so that they can be explicitly cached
     sources = {
-      ghcjs-boot = hackGet ./ghcjs-boot;
-      shims = hackGet ./shims;
-      ghcjs = hackGet ./ghcjs;
+      ghcjs8_0 = {
+        boot = hackGet ./ghcjs-8.0/boot;
+        shims = hackGet ./ghcjs-8.0/shims;
+        ghcjs = hackGet ./ghcjs-8.0/ghcjs;
+      };
     };
 
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
@@ -275,7 +277,7 @@ let iosSupport =
       buildCommand = ''
         echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
         patchShebangs .
-        ./gen-stage2.rb "${sources.ghcjs-boot}" >"$out"
+        ./gen-stage2.rb "${sources.ghcjs8_0.boot}" >"$out"
       '';
       nativeBuildInputs = with nixpkgs; [
         ruby cabal2nix
@@ -284,9 +286,9 @@ let iosSupport =
 
     ghcjsCompiler = ghc.callPackage (nixpkgs.path + "/pkgs/development/compilers/ghcjs/base.nix") {
       bootPkgs = ghc;
-      ghcjsSrc = sources.ghcjs;
-      ghcjsBootSrc = sources.ghcjs-boot;
-      shims = sources.shims;
+      ghcjsSrc = sources.ghcjs8_0.ghcjs;
+      ghcjsBootSrc = sources.ghcjs8_0.boot;
+      shims = sources.ghcjs8_0.shims;
       stage2 = import stage2Script;
     };
 
@@ -301,17 +303,19 @@ let iosSupport =
 #    ghcjsPackages = nixpkgs.haskell.packages.ghcjs.override {
 #      ghc = builtins.trace "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ghcjsCompiler;
 #    };
-  ghcjs = (makeRecursivelyOverridable ghcjsPackages).override {
+  ghcjs = ghcjs8_0;
+  ghcjs8_0 = (makeRecursivelyOverridable ghcjsPackages).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
+
+  ghc = ghc8_0;
   ghc8_2 = ghc8_2_1;
   ghc8_2_1 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc821).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghc = ghc8_0;
   ghc8_0 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc802).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -321,6 +325,7 @@ let iosSupport =
   ghc7_8 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc784).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
+
   ghcAndroidAarch64 = ghcAndroidAarch64-8_2;
   ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
@@ -329,6 +334,7 @@ let iosSupport =
   ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   };
+
   ghcIosSimulator64 = ghcIosSimulator64-8_2;
   ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
@@ -341,6 +347,7 @@ let iosSupport =
   ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.ghc821).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   };
+
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages {
@@ -396,6 +403,7 @@ in let this = rec {
           ghcAndroidAarch32
           ghcAndroidAarch32-8_2
           ghcjs
+          ghcjs8_0
           android
           androidWithHaskellPackages
           ios
