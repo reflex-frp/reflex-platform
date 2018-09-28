@@ -62,10 +62,9 @@ rec {
 
   combined-ghcjs = self: super: foldExtensions [
     ghcjs
-    # (optionalExtension (versionWildcard [ 8 0 ] super.ghc.version) ghcjs-8_0)
-    ghcjs-8_0
-    (optionalExtension (versionWildcard [ 8 2 ] super.ghc.version) ghcjs-8_2)
-    (optionalExtension (versionWildcard [ 8 4 ] super.ghc.version) ghcjs-8_4)
+    (optionalExtension (versionWildcard [ 8 0 ] super.ghc.ghcVersion) ghcjs-8_0)
+    (optionalExtension (versionWildcard [ 8 2 ] super.ghc.ghcVersion) ghcjs-8_2)
+    (optionalExtension (versionWildcard [ 8 4 ] super.ghc.ghcVersion) ghcjs-8_4)
   ] self super;
 
   ##
