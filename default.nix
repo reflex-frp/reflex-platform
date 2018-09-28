@@ -74,20 +74,6 @@ let iosSupport = system == "x86_64-darwin";
         { static = true; });
     };
 
-    androidPICPatches = self: super: (lib.optionalAttrs super.stdenv.targetPlatform.useAndroidPrebuilt {
-      haskell = super.haskell // {
-        compiler = let
-          f = lib.mapAttrs (n: v: v.overrideAttrs (drv:
-            lib.optionalAttrs (builtins.elem n [ "ghc843" "ghcHEAD" "ghcSplices" ]) {
-              patches = (drv.patches or [])
-                ++ [ ./android/patches/force-relocation.patch ];
-            }));
-        in f super.haskell.compiler // {
-          integer-simple = f super.haskell.compiler.integer-simple;
-        };
-      };
-    });
-
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
     nixpkgsArgs = {
