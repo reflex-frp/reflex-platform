@@ -17,15 +17,15 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          ghcSplices = super.haskell.compiler.ghc843.overrideAttrs (drv: {
+          ghcSplices-8_4 = super.haskell.compiler.ghc843.overrideAttrs (drv: {
             patches = (drv.patches or [])
               ++ [ ./splices.patch ./haddock.patch ./splices-names.patch ];
           });
         };
         packages = super.haskell.packages // {
-          ghcSplices = super.haskell.packages.ghc843.override {
-            buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices;
-            ghc = self.buildPackages.haskell.compiler.ghcSplices;
+          ghcSplices-8_4 = super.haskell.packages.ghc843.override {
+            buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_4;
+            ghc = self.buildPackages.haskell.compiler.ghcSplices-8_4;
           };
         };
       };
@@ -303,7 +303,8 @@ let iosSupport = system == "x86_64-darwin";
       '';
     };
 
-  ghcSavedSplices = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices).override {
+  ghcSavedSplices = ghcSavedSplices-8_4;
+  ghcSavedSplices-8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgs.haskell.overlays;
     in [
