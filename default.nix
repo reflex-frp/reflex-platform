@@ -39,7 +39,7 @@ let iosSupport = system == "x86_64-darwin";
           inherit
             haskellLib
             fetchFromGitHub hackGet
-            ghcjsBaseSrc
+            ghcjsBaseSrc ghcjsBaseTextJSStringSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
             stage2Script
