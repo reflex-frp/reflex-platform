@@ -1,7 +1,7 @@
 { lib
 , haskellLib
 , nixpkgs, fetchFromGitHub, hackGet
-, ghcjsBaseSrc
+, ghcjsBaseSrc, ghcjsBaseTextJSStringSrc
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
 , stage2Script
@@ -92,7 +92,7 @@ rec {
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
-    inherit lib haskellLib fetchFromGitHub hackGet;
+    inherit lib haskellLib fetchFromGitHub hackGet ghcjsBaseTextJSStringSrc versionWildcard;
     inherit (nixpkgs) fetchpatch;
   };
 
