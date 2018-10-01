@@ -1,7 +1,7 @@
 { haskellLib
 , lib, nixpkgs
 , fetchFromGitHub, hackGet
-, useFastWeak, useReflexOptimizer, enableTraceReflexEvents
+, useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
 }:
 
 with haskellLib;
@@ -38,7 +38,7 @@ in
   reflex-dom = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom);
   reflex-dom-core = appendConfigureFlags
     (dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core))
-    (optional enableLibraryProfiling "-fprofile-reflex");
+    (lib.optional enableLibraryProfiling "-fprofile-reflex");
 
   ##
   ## GHCJS and JSaddle
