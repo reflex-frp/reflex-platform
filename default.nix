@@ -20,7 +20,7 @@ let iosSupport = system == "x86_64-darwin";
           ghcSplices-8_4 = super.haskell.compiler.ghc843.overrideAttrs (drv: {
             enableParallelBuilding = false;
             patches = (drv.patches or [])
-              ++ [ ./splices.patch ./haddock.patch ./splices-names.patch ];
+              ++ [ ./splices-load-save.patch ./haddock.patch ];
           });
         };
         packages = super.haskell.packages // {
