@@ -1,15 +1,8 @@
-{ haskellLib, jdk, androidActivity }:
+{ haskellLib, nixpkgs, androidActivity }:
 
 self: super: {
-  ghc = super.ghc // {
-    bootPkgs = super.ghc.bootPkgs.override {
-      overrides = self: super: {
-        Cabal = haskellLib.appendPatch (self.callHackage "Cabal" "2.0.0.2" {}) ./Cabal-Allow-any-arch-with-linux-for-foreign-libs.patch;
-      };
-    };
-  };
   android-activity = self.callPackage androidActivity {
-    inherit jdk;
+    inherit (nixpkgs.buildPackages) jdk;
   };
 
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
@@ -26,4 +19,10 @@ self: super: {
     dontStrip = true;
     enableSharedExecutables = false;
   });
+
+  # HACK(matthewbauer):
+  # Temporary fix for https://github.com/ekmett/free/issues/176
+  # Optimizations are broken on some ARM-based systems for some reason.
+  free = haskellLib.appendConfigureFlag super.free "--enable-optimization=0";
+  jsaddle = haskellLib.appendConfigureFlag super.jsaddle "--enable-optimization=0";
 }

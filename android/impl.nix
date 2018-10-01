@@ -11,14 +11,12 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
         cat >"$out/bin/deploy" <<EOF
-          $(which adb) install -r "$(echo $out/*.apk)"
+        #!/usr/bin/env bash
+        $(command -v adb) install -r "$(echo $out/*.apk)"
         EOF
         chmod +x "$out/bin/deploy"
       '';
-      buildInputs = with nixpkgs; [
-        androidsdk
-        which
-      ];
+      buildInputs = [ nixpkgs.androidenv.androidsdk_8_0 ];
     } "";
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
@@ -40,7 +38,6 @@ in {
     src =
       let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
-            inherit (myNixpkgs) libiconv;
             hsApp = overrideAndroidCabal (package myHaskellPackages);
           }) {
             "arm64-v8a" = {
@@ -92,15 +89,11 @@ in {
           ln -s "$applicationMk" "$out/jni/Application.mk"
 
         '' + concatStrings (builtins.map (arch:
-          let inherit (appSOs.${arch}) libiconv hsApp;
+          let inherit (appSOs.${arch}) hsApp;
           in ''
             {
               ARCH_LIB=$out/lib/${arch}
               mkdir -p $ARCH_LIB
-
-              # Move libiconv (per arch) to the correct place
-              cp --no-preserve=mode "${libiconv}/lib/libiconv.so" "$ARCH_LIB"
-              cp --no-preserve=mode "${libiconv}/lib/libcharset.so" "$ARCH_LIB"
 
               local exe="${hsApp}/bin/lib${executableName}.so"
               if [ ! -f "$exe" ] ; then
