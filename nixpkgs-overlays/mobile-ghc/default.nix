@@ -3,7 +3,7 @@
 self: super: {
   haskell = super.haskell // {
     compiler = super.haskell.compiler // {
-      ghc821 = super.haskell.compiler.ghc821.overrideAttrs (drv: {
+      ghc822 = super.haskell.compiler.ghc822.overrideAttrs (drv: {
         patches = (drv.patches or []) ++ lib.optionals self.stdenv.targetPlatform.useAndroidPrebuilt [
           ./8.2.y/android-patches/add-llvm-target-data-layout.patch
           ./8.2.y/android-patches/unix-posix_vdisable.patch
