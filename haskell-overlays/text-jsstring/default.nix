@@ -1,4 +1,4 @@
-{ lib, haskellLib, fetchFromGitHub, hackGet, fetchpatch }:
+{ lib, haskellLib, fetchFromGitHub, hackGet, fetchpatch, ghcjsBaseTextJSStringSrc, versionWildcard }:
 
 with lib;
 with haskellLib;
@@ -44,7 +44,7 @@ self: super: {
     doCheck = false;
     libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
       self.text
-    ];
+    ] ++ optional (versionWildcard [ 8 0 ] super.ghc.ghcVersion) self.ghcjs-base;
     patches = (drv.patches or []) ++ [
       ./hashable.patch
     ];
@@ -67,4 +67,17 @@ self: super: {
     ];
   });
   aeson = appendPatch super.aeson ./aeson.patch;
+  # Bellow 8.4 text was not a boot pkg.
+  text = if !(versionWildcard [ 8 0 ] super.ghc.ghcVersion)
+    then super.text
+    else haskellLib.dontCheck (self.callCabal2nix "text"
+      (fetchFromGitHub { # TODO use this src in useTextJSStringAsBootPkg; Currently here to avoid ghcjs8.4 boot rebuild
+        owner = "obsidiansystems";
+        repo = "text";
+        rev = "3ea808e8cabede6e67f565376376afcb2dfb94b8";
+        sha256 = "1ffiyvfq4diwpmm8sv8k7fm58p37rbr24baxbmm8b2h8bkrnwg9y";
+      }) {});
+  ghcjs-base = with haskellLib; if (versionWildcard [ 8 0 ] super.ghc.ghcVersion)
+    then dontCheck (doJailbreak (self.callCabal2nix "ghcjs-base" ghcjsBaseTextJSStringSrc {}))
+    else super.ghcjs-base;
 }
