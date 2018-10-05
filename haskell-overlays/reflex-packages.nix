@@ -1,7 +1,7 @@
 { haskellLib
 , lib, nixpkgs
 , fetchFromGitHub, hackGet
-, useFastWeak, useReflexOptimizer, enableTraceReflexEvents
+, useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
 }:
 
 with haskellLib;
@@ -36,7 +36,9 @@ in
   # : error is: haddock: internal error: internal: extractDecl
   # No idea where it hits?
   reflex-dom = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom);
-  reflex-dom-core = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core);
+  reflex-dom-core = appendConfigureFlags
+    (dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core))
+    (lib.optional enableLibraryProfiling "-fprofile-reflex");
 
   ##
   ## GHCJS and JSaddle

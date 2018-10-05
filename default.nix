@@ -98,7 +98,12 @@ let iosSupport = system == "x86_64-darwin";
           crossSystem = lib.systems.examples.aarch64-android-prebuilt;
         };
         aarch32 = {
-          crossSystem = lib.systems.examples.armv7a-android-prebuilt;
+          crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
+            # Hard to find newer 32-bit phone to test with that's newer than
+            # this. Concretely, doing so resulted in:
+            # https://android.googlesource.com/platform/bionic/+/master/libc/arch-common/bionic/pthread_atfork.h#19
+            sdkVer = "22";
+          };
         };
         # Back compat
         arm64 = lib.warn "nixpkgsCross.android.arm64 has been deprecated, using nixpkgsCross.android.aarch64 instead." aarch64;
@@ -509,13 +514,13 @@ in let this = rec {
   androidReflexTodomvc-8_4 = android-8_4.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
-    applicationId = "org.reflexfrp.todomvc";
+    applicationId = "org.reflexfrp.todomvc.via_8_4";
     displayName = "Reflex TodoMVC via GHC 8.4";
   };
   androidReflexTodomvc-8_2 = android-8_2.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
-    applicationId = "org.reflexfrp.todomvc";
+    applicationId = "org.reflexfrp.todomvc.via_8_2";
     displayName = "Reflex TodoMVC via GHC 8.2";
   };
   iosReflexTodomvc = ios.buildApp {
@@ -527,13 +532,13 @@ in let this = rec {
   iosReflexTodomvc-8_4 = iosAarch64-8_4.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
-    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc.via_8_4";
     bundleName = "Reflex TodoMVC via GHC 8.4";
   };
   iosReflexTodomvc-8_2 = iosAarch64-8_2.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
-    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc.via_8_2";
     bundleName = "Reflex TodoMVC via GHC 8.2";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
