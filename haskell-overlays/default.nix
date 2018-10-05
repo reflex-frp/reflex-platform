@@ -85,7 +85,7 @@ rec {
   ##
 
   reflexPackages = import ./reflex-packages.nix {
-    inherit haskellLib lib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents;
+    inherit haskellLib lib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling;
   };
   disableTemplateHaskell = import ./disable-template-haskell.nix {
     inherit haskellLib fetchFromGitHub;
