@@ -79,7 +79,12 @@ let iosSupport = system == "x86_64-darwin";
           crossSystem = lib.systems.examples.aarch64-android-prebuilt;
         };
         aarch32 = {
-          crossSystem = lib.systems.examples.armv7a-android-prebuilt;
+          crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
+            # Hard to find newer 32-bit phone to test with that's newer than
+            # this. Concretely, doing so resulted in:
+            # https://android.googlesource.com/platform/bionic/+/master/libc/arch-common/bionic/pthread_atfork.h#19
+            sdkVer = "22";
+          };
         };
         # Back compat
         arm64 = lib.warn "nixpkgsCross.android.arm64 has been deprecated, using nixpkgsCross.android.aarch64 instead." aarch64;
