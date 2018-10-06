@@ -304,7 +304,11 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcjs8_2 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs82.override (old: {
-    ghc = ghcjsApplyFastWeak old.ghc;
+    ghc = ghcjsApplyFastWeak (old.ghc.override {
+      ghcjsDepOverrides = self: super: {
+        haddock-library-ghcjs = haskellLib.doJailbreak super.haddock-library-ghcjs;
+      };
+    });
   }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
