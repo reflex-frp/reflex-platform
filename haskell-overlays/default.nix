@@ -42,6 +42,7 @@ rec {
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
     (optionalExtension (super.ghc.isGhcjs or false && useTextJSString) textJSString)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 2 ] super.ghc.version && hostPlatform != buildPlatform) disableTemplateHaskell)
     (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 4 ] super.ghc.version && hostPlatform != buildPlatform) loadSplices)
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
@@ -87,6 +88,9 @@ rec {
 
   reflexPackages = import ./reflex-packages.nix {
     inherit haskellLib lib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling;
+  };
+  disableTemplateHaskell = import ./disable-template-haskell.nix {
+    inherit haskellLib fetchFromGitHub;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
