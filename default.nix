@@ -83,7 +83,7 @@ let iosSupport = system == "x86_64-darwin";
             # Hard to find newer 32-bit phone to test with that's newer than
             # this. Concretely, doing so resulted in:
             # https://android.googlesource.com/platform/bionic/+/master/libc/arch-common/bionic/pthread_atfork.h#19
-            sdkVer = "22";
+            sdkVer = "21";
           };
         };
         # Back compat
