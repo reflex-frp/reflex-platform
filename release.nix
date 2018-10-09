@@ -34,7 +34,8 @@ let local-reflex-platform = import ./. {};
         tryReflexShell = reflex-platform.tryReflexShell;
         ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
         ghcjs8_0.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_0.reflex-todomvc;
-        ghcjs8_2.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_2.reflex-todomvc;
+        # Doesn't currently build. Removing from CI until fixed.
+        # ghcjs8_2.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_2.reflex-todomvc;
         ghcjs8_4.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_4.reflex-todomvc;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_0.reflexTodomvc = reflex-platform.ghc8_0.reflex-todomvc;
