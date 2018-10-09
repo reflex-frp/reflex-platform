@@ -19,7 +19,7 @@ let local-reflex-platform = import ./. {};
 
     perPlatform = lib.genAttrs local-reflex-platform.cacheBuildSystems (system:
       let
-        reflex-platform = import ./. { inherit system; iosSupportForce = system == "x86_64-darwin"; };
+        reflex-platform = import ./. { inherit system; };
         otherDeps = getOtherDeps reflex-platform;
 
         jsexeHydra = exe: exe.overrideAttrs (attrs: {
@@ -34,10 +34,15 @@ let local-reflex-platform = import ./. {};
         tryReflexShell = reflex-platform.tryReflexShell;
         ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
         ghcjs8_0.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_0.reflex-todomvc;
+        # Doesn't currently build. Removing from CI until fixed.
+        # ghcjs8_2.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_2.reflex-todomvc;
+        ghcjs8_4.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_4.reflex-todomvc;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_0.reflexTodomvc = reflex-platform.ghc8_0.reflex-todomvc;
         ghc8_2.reflexTodomvc = reflex-platform.ghc8_2.reflex-todomvc;
+        ghc8_4.reflexTodomvc = reflex-platform.ghc8_4.reflex-todomvc;
         skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
+        benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
         cache = reflex-platform.pinBuildInputs
           "reflex-platform-${system}"
           (lib.concatMap builtins.attrValues (builtins.attrValues reflex-platform.sources)
@@ -49,9 +54,11 @@ let local-reflex-platform = import ./. {};
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
         inherit (reflex-platform) androidReflexTodomvc-8_2;
+        inherit (reflex-platform) androidReflexTodomvc-8_4;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
         inherit (reflex-platform) iosReflexTodomvc-8_2;
+        inherit (reflex-platform) iosReflexTodomvc-8_4;
       } // drvListToAttrs otherDeps
         // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages) # TODO no filter
       );

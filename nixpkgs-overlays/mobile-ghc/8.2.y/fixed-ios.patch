@@ -1,0 +1,1925 @@
+diff --git a/aclocal.m4 b/aclocal.m4
+index d5078de92f..a493f736a1 100644
+--- a/aclocal.m4
++++ b/aclocal.m4
+@@ -20,14 +20,8 @@ AC_DEFUN([GHC_SELECT_FILE_EXTENSIONS],
+         $2='.exe'
+         $3='.dll'
+         ;;
+-    i386-apple-darwin|powerpc-apple-darwin)
+-        $3='.dylib'
+-        ;;
+-    x86_64-apple-darwin)
+-        $3='.dylib'
+-        ;;
+-    arm-apple-darwin10|i386-apple-darwin11|aarch64-apple-darwin14|x86_64-apple-darwin14)
+-        $2='.a'
++    # apple platform uses .dylib (macOS, iOS, ...)
++    *-apple-*)
+         $3='.dylib'
+         ;;
+     esac
+@@ -115,6 +109,8 @@ AC_DEFUN([FPTOOLS_SET_PLATFORM_VARS],
+         GHC_CONVERT_OS([$target_os], [$TargetArch], [TargetOS])
+     fi
+ 
++    GHC_LLVM_TARGET([$target_cpu],[$target_vendor],[$target_os],[LlvmTarget])
++
+     GHC_SELECT_FILE_EXTENSIONS([$host], [exeext_host], [soext_host])
+     GHC_SELECT_FILE_EXTENSIONS([$target], [exeext_target], [soext_target])
+     windows=NO
+@@ -142,9 +138,13 @@ AC_DEFUN([FPTOOLS_SET_PLATFORM_VARS],
+     TargetVendor_CPP=`  echo "$TargetVendor"   | sed -e 's/\./_/g' -e 's/-/_/g'`
+     TargetOS_CPP=`      echo "$TargetOS"       | sed -e 's/\./_/g' -e 's/-/_/g'`
+ 
++    # we intend to pass trough --targets to llvm as is.
++    LLVMTarget_CPP=`    echo "$LlvmTarget"`
++
+     echo "GHC build  : $BuildPlatform"
+     echo "GHC host   : $HostPlatform"
+     echo "GHC target : $TargetPlatform"
++    echo "LLVM target: $LlvmTarget"
+ 
+     AC_SUBST(BuildPlatform)
+     AC_SUBST(HostPlatform)
+@@ -160,6 +160,7 @@ AC_DEFUN([FPTOOLS_SET_PLATFORM_VARS],
+     AC_SUBST(HostOS_CPP)
+     AC_SUBST(BuildOS_CPP)
+     AC_SUBST(TargetOS_CPP)
++    AC_SUBST(LLVMTarget_CPP)
+ 
+     AC_SUBST(HostVendor_CPP)
+     AC_SUBST(BuildVendor_CPP)
+@@ -238,13 +239,12 @@ AC_DEFUN([FPTOOLS_SET_HASKELL_PLATFORM_VARS],
+ 
+     checkOS() {
+         case [$]1 in
+-        linux)
++        linux|linux-android)
+             test -z "[$]2" || eval "[$]2=OSLinux"
+             ;;
+-        ios)
+-            test -z "[$]2" || eval "[$]2=OSiOS"
+-            ;;
+-        darwin)
++        # Plain "darwin" is turned into "macos" in FPTOOLS_SET_PLATFORM_VARS,
++        # which must be and always is called first.
++        macos|ios|watchos|tvos)
+             test -z "[$]2" || eval "[$]2=OSDarwin"
+             ;;
+         solaris2)
+@@ -280,9 +280,6 @@ AC_DEFUN([FPTOOLS_SET_HASKELL_PLATFORM_VARS],
+         aix)
+             test -z "[$]2" || eval "[$]2=OSAIX"
+             ;;
+-        linux-android)
+-            test -z "[$]2" || eval "[$]2=OSAndroid"
+-            ;;
+         *)
+             echo "Unknown OS '[$]1'"
+             exit 1
+@@ -482,6 +479,12 @@ AC_DEFUN([FP_SETTINGS],
+         SettingsLibtoolCommand="libtool"
+         SettingsTouchCommand='touch'
+     fi
++    if test -z "$ClangCmd"
++    then
++        SettingsClangCommand="clang"
++    else
++        SettingsClangCommand="$ClangCmd"
++    fi
+     if test -z "$LlcCmd"
+     then
+       SettingsLlcCommand="llc"
+@@ -512,6 +515,7 @@ AC_DEFUN([FP_SETTINGS],
+     AC_SUBST(SettingsWindresCommand)
+     AC_SUBST(SettingsLibtoolCommand)
+     AC_SUBST(SettingsTouchCommand)
++    AC_SUBST(SettingsClangCommand)
+     AC_SUBST(SettingsLlcCommand)
+     AC_SUBST(SettingsOptCommand)
+ ])
+@@ -865,20 +869,17 @@ AC_CACHE_CHECK([leading underscore in symbol names], [fptools_cv_leading_undersc
+ # Hack!: nlist() under Digital UNIX insist on there being an _,
+ # but symbol table listings shows none. What is going on here?!?
+ case $TargetPlatform in
+-*linux-android*) fptools_cv_leading_underscore=no;;
+-*openbsd*) # x86 openbsd is ELF from 3.4 >, meaning no leading uscore
+-  case $build in
+-    i386-*2\.@<:@0-9@:>@ | i386-*3\.@<:@0-3@:>@ ) fptools_cv_leading_underscore=yes ;;
+-    *) fptools_cv_leading_underscore=no ;;
+-  esac ;;
+-i386-unknown-mingw32) fptools_cv_leading_underscore=yes;;
+-x86_64-unknown-mingw32) fptools_cv_leading_underscore=no;;
+-
+-    # HACK: Apple doesn't seem to provide nlist in the 64-bit-libraries
+-x86_64-apple-darwin*) fptools_cv_leading_underscore=yes;;
+-*-apple-ios) fptools_cv_leading_underscore=yes;;
+-
+-*) AC_RUN_IFELSE([AC_LANG_SOURCE([[#ifdef HAVE_NLIST_H
++    # Apples mach-o platforms use leading underscores
++    *-apple-*) fptools_cv_leading_underscore=yes;;
++    *linux-android*) fptools_cv_leading_underscore=no;;
++    *openbsd*) # x86 openbsd is ELF from 3.4 >, meaning no leading uscore
++      case $build in
++        i386-*2\.@<:@0-9@:>@ | i386-*3\.@<:@0-3@:>@ ) fptools_cv_leading_underscore=yes ;;
++        *) fptools_cv_leading_underscore=no ;;
++      esac ;;
++    i386-unknown-mingw32) fptools_cv_leading_underscore=yes;;
++    x86_64-unknown-mingw32) fptools_cv_leading_underscore=no;;
++    *) AC_RUN_IFELSE([AC_LANG_SOURCE([[#ifdef HAVE_NLIST_H
+ #include <nlist.h>
+ struct nlist xYzzY1[] = {{"xYzzY1", 0},{0}};
+ struct nlist xYzzY2[] = {{"_xYzzY2", 0},{0}};
+@@ -1214,7 +1215,7 @@ AC_DEFUN([FP_PROG_AR_NEEDS_RANLIB],[
+     if test $fp_prog_ar_is_gnu = yes
+     then
+         fp_cv_prog_ar_needs_ranlib=no
+-    elif test "$TargetOS_CPP" = "darwin"
++    elif test "$TargetVendor_CPP" = "apple"
+     then
+         # It's quite tedious to check for Apple's crazy timestamps in
+         # .a files, so we hardcode it.
+@@ -1926,6 +1927,24 @@ case "$1" in
+   esac
+ ])
+ 
++# GHC_LLVM_TARGET(target_cpu, target_vendor, target_os, llvm_target_var)
++# --------------------------------
++# converts the canonicalized target into someting llvm can understand
++AC_DEFUN([GHC_LLVM_TARGET], [
++  case "$2-$3" in
++    hardfloat-*eabi)
++      llvm_target_vendor="unknown"
++      llvm_target_os="$3""hf"
++      ;;
++    *)
++      GHC_CONVERT_VENDOR([$2],[llvm_target_vendor])
++      GHC_CONVERT_OS([$3],[$1],[llvm_target_os])
++      ;;
++  esac
++  $4="$1-$llvm_target_vendor-$llvm_target_os"
++])
++
++
+ # GHC_CONVERT_VENDOR(vendor, target_var)
+ # --------------------------------
+ # converts vendor from gnu to ghc naming, and assigns the result to $target_var
+@@ -1951,12 +1970,11 @@ AC_DEFUN([GHC_CONVERT_VENDOR],[
+ # --------------------------------
+ # converts os from gnu to ghc naming, and assigns the result to $target_var
+ AC_DEFUN([GHC_CONVERT_OS],[
+-case "$1-$2" in
+-  darwin10-arm|darwin11-i386|darwin14-aarch64|darwin14-x86_64)
+-    $3="ios"
+-    ;;
+-  *)
+     case "$1" in
++      # watchos and tvos are ios variant as of May 2017.
++      ios|watchos|tvos)
++        $3="ios"
++        ;;
+       linux-android*)
+         $3="linux-android"
+         ;;
+@@ -1964,12 +1982,17 @@ case "$1-$2" in
+         $3="linux"
+         ;;
+       # As far as I'm aware, none of these have relevant variants
+-      freebsd|netbsd|openbsd|dragonfly|hpux|linuxaout|kfreebsdgnu|freebsd2|solaris2|mingw32|darwin|gnu|nextstep2|nextstep3|sunos4|ultrix|haiku)
++      freebsd|netbsd|openbsd|dragonfly|hpux|linuxaout|kfreebsdgnu|freebsd2|solaris2|mingw32|gnu|nextstep2|nextstep3|sunos4|ultrix|haiku)
+         $3="$1"
+         ;;
+       aix*) # e.g. powerpc-ibm-aix7.1.3.0
+         $3="aix"
+         ;;
++      darwin*|macos*) # like aarch64-apple-darwin14
++                      #      aarch64-apple-macos
++                      #      aarch64-apple-macosx
++        $3="macos"
++        ;;
+       freebsd*) # like i686-gentoo-freebsd7
+                 #      i686-gentoo-freebsd8
+                 #      i686-gentoo-freebsd8.2
+@@ -1983,8 +2006,6 @@ case "$1-$2" in
+         exit 1
+         ;;
+       esac
+-      ;;
+-  esac
+ ])
+ 
+ # BOOTSTRAPPING_GHC_INFO_FIELD
+@@ -2016,7 +2037,7 @@ AC_SUBST(LIBRARY_[]translit([$1], [-], [_])[]_VERSION)
+ # --------------------------------
+ # Gets the version number of XCode, if on a Mac
+ AC_DEFUN([XCODE_VERSION],[
+-    if test "$TargetOS_CPP" = "darwin"
++    if test "$TargetVendor_CPP" = "apple"
+     then
+         AC_MSG_CHECKING(XCode version)
+         XCodeVersion=`xcodebuild -version | grep Xcode | sed "s/Xcode //"`
+diff --git a/compiler/ghc.mk b/compiler/ghc.mk
+index 614d193d94..6e3708a83f 100644
+--- a/compiler/ghc.mk
++++ b/compiler/ghc.mk
+@@ -160,6 +160,8 @@ compiler/stage1/$(PLATFORM_H) : mk/config.mk mk/project.mk | $$(dir $$@)/.
+ 	@echo "#define HostPlatform_NAME   \"$(HOSTPLATFORM)\""   >> $@
+ 	@echo "#define TargetPlatform_NAME \"$(TARGETPLATFORM)\"" >> $@
+ 	@echo                                                     >> $@
++	@echo "#define LLVM_TARGET \"$(LLVMTarget_CPP)\""         >> $@
++	@echo                                                     >> $@
+ 	@echo "#define $(BuildPlatform_CPP)_BUILD 1"              >> $@
+ 	@echo "#define $(HostPlatform_CPP)_HOST 1"                >> $@
+ 	@echo "#define $(TargetPlatform_CPP)_TARGET 1"            >> $@
+@@ -178,6 +180,16 @@ compiler/stage1/$(PLATFORM_H) : mk/config.mk mk/project.mk | $$(dir $$@)/.
+ 	@echo "#define HOST_OS \"$(HostOS_CPP)\""                 >> $@
+ 	@echo "#define TARGET_OS \"$(TargetOS_CPP)\""             >> $@
+ 	@echo                                                     >> $@
++	@echo "#if defined(macos_BUILD_OS) || defined(ios_BUILD_OS)"   >> $@
++	@echo "#  define darwin_BUILD_OS 1"                            >> $@
++	@echo "#endif"                                                 >> $@
++	@echo "#if defined(macos_HOST_OS) || defined(ios_HOST_OS)"     >> $@
++	@echo "#  define darwin_HOST_OS 1"                             >> $@
++	@echo "#endif"                                                 >> $@
++	@echo "#if defined(macos_TARGET_OS) || defined(ios_TARGET_OS)" >> $@
++	@echo "#  define darwin_TARGET_OS 1"                           >> $@
++	@echo "#endif"                                                 >> $@
++	@echo                                                     >> $@
+ 	@echo "#define $(BuildVendor_CPP)_BUILD_VENDOR 1"         >> $@
+ 	@echo "#define $(HostVendor_CPP)_HOST_VENDOR 1"           >> $@
+ 	@echo "#define $(TargetVendor_CPP)_TARGET_VENDOR  1"      >> $@
+@@ -201,6 +213,8 @@ compiler/stage2/$(PLATFORM_H) : mk/config.mk mk/project.mk | $$(dir $$@)/.
+ 	@echo "#define HostPlatform_NAME   \"$(TARGETPLATFORM)\"" >> $@
+ 	@echo "#define TargetPlatform_NAME \"$(TARGETPLATFORM)\"" >> $@
+ 	@echo                                                     >> $@
++	@echo "#define LLVM_TARGET \"$(LLVMTarget_CPP)\""         >> $@
++	@echo                                                     >> $@
+ 	@echo "#define $(HostPlatform_CPP)_BUILD 1"               >> $@
+ 	@echo "#define $(TargetPlatform_CPP)_HOST 1"              >> $@
+ 	@echo "#define $(TargetPlatform_CPP)_TARGET 1"            >> $@
+@@ -219,6 +233,16 @@ compiler/stage2/$(PLATFORM_H) : mk/config.mk mk/project.mk | $$(dir $$@)/.
+ 	@echo "#define HOST_OS \"$(TargetOS_CPP)\""               >> $@
+ 	@echo "#define TARGET_OS \"$(TargetOS_CPP)\""             >> $@
+ 	@echo                                                     >> $@
++	@echo "#if defined(macos_BUILD_OS) || defined(ios_BUILD_OS)"   >> $@
++	@echo "#  define darwin_BUILD_OS 1"                            >> $@
++	@echo "#endif"                                                 >> $@
++	@echo "#if defined(macos_HOST_OS) || defined(ios_HOST_OS)"     >> $@
++	@echo "#  define darwin_HOST_OS 1"                             >> $@
++	@echo "#endif"                                                 >> $@
++	@echo "#if defined(macos_TARGET_OS) || defined(ios_TARGET_OS)" >> $@
++	@echo "#  define darwin_TARGET_OS 1"                           >> $@
++	@echo "#endif"                                                 >> $@
++	@echo                                                     >> $@
+ 	@echo "#define $(HostVendor_CPP)_BUILD_VENDOR 1"          >> $@
+ 	@echo "#define $(TargetVendor_CPP)_HOST_VENDOR 1"         >> $@
+ 	@echo "#define $(TargetVendor_CPP)_TARGET_VENDOR  1"      >> $@
+diff --git a/compiler/llvmGen/LlvmCodeGen.hs b/compiler/llvmGen/LlvmCodeGen.hs
+index 5596d599c4..d5d76ea4ba 100644
+--- a/compiler/llvmGen/LlvmCodeGen.hs
++++ b/compiler/llvmGen/LlvmCodeGen.hs
+@@ -71,7 +71,7 @@ llvmCodeGen dflags h us cmm_stream
+ llvmCodeGen' :: Stream.Stream LlvmM RawCmmGroup () -> LlvmM ()
+ llvmCodeGen' cmm_stream
+   = do  -- Preamble
+-        renderLlvm pprLlvmHeader
++        renderLlvm header
+         ghcInternalFunctions
+         cmmMetaLlvmPrelude
+ 
+@@ -84,6 +84,15 @@ llvmCodeGen' cmm_stream
+ 
+         -- Postamble
+         cmmUsedLlvmGens
++  where
++    header :: SDoc
++    header = sdocWithDynFlags $ \dflags ->
++      let target = LLVM_TARGET
++          layout = case lookup target (llvmTargets dflags) of
++            Just (LlvmTarget dl _ _) -> dl
++            Nothing -> error $ "Failed to lookup the datalayout for " ++ target ++ "; available targets: " ++ show (map fst $ llvmTargets dflags)
++      in     text ("target datalayout = \"" ++ layout ++ "\"")
++         $+$ text ("target triple = \"" ++ target ++ "\"")
+ 
+ llvmGroupLlvmGens :: RawCmmGroup -> LlvmM ()
+ llvmGroupLlvmGens cmm = do
+diff --git a/compiler/llvmGen/LlvmCodeGen/Ppr.hs b/compiler/llvmGen/LlvmCodeGen/Ppr.hs
+index 37d1391519..e7444ee226 100644
+--- a/compiler/llvmGen/LlvmCodeGen/Ppr.hs
++++ b/compiler/llvmGen/LlvmCodeGen/Ppr.hs
+@@ -4,7 +4,7 @@
+ -- | Pretty print helpers for the LLVM Code generator.
+ --
+ module LlvmCodeGen.Ppr (
+-        pprLlvmHeader, pprLlvmCmmDecl, pprLlvmData, infoSection
++        pprLlvmCmmDecl, pprLlvmData, infoSection
+     ) where
+ 
+ #include "HsVersions.h"
+@@ -15,7 +15,6 @@ import LlvmCodeGen.Data
+ 
+ import CLabel
+ import Cmm
+-import Platform
+ 
+ import FastString
+ import Outputable
+@@ -26,66 +25,6 @@ import Unique
+ -- * Top level
+ --
+ 
+--- | Header code for LLVM modules
+-pprLlvmHeader :: SDoc
+-pprLlvmHeader = moduleLayout
+-
+-
+--- | LLVM module layout description for the host target
+-moduleLayout :: SDoc
+-moduleLayout = sdocWithPlatform $ \platform ->
+-    case platform of
+-    Platform { platformArch = ArchX86, platformOS = OSDarwin } ->
+-        text "target datalayout = \"e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32\""
+-        $+$ text "target triple = \"i386-apple-darwin9.8\""
+-    Platform { platformArch = ArchX86, platformOS = OSMinGW32 } ->
+-        text "target datalayout = \"e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f80:128:128-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32\""
+-        $+$ text "target triple = \"i686-pc-win32\""
+-    Platform { platformArch = ArchX86, platformOS = OSLinux } ->
+-        text "target datalayout = \"e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32\""
+-        $+$ text "target triple = \"i386-pc-linux-gnu\""
+-    Platform { platformArch = ArchX86_64, platformOS = OSDarwin } ->
+-        text "target datalayout = \"e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64\""
+-        $+$ text "target triple = \"x86_64-apple-darwin10.0.0\""
+-    Platform { platformArch = ArchX86_64, platformOS = OSLinux } ->
+-        text "target datalayout = \"e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64\""
+-        $+$ text "target triple = \"x86_64-linux-gnu\""
+-    Platform { platformArch = ArchARM {}, platformOS = OSLinux } ->
+-        text "target datalayout = \"e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32\""
+-        $+$ text "target triple = \"armv6-unknown-linux-gnueabihf\""
+-    Platform { platformArch = ArchARM {}, platformOS = OSAndroid } ->
+-        text "target datalayout = \"e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32\""
+-        $+$ text "target triple = \"arm-unknown-linux-androideabi\""
+-    Platform { platformArch = ArchARM {}, platformOS = OSQNXNTO } ->
+-        text "target datalayout = \"e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32\""
+-        $+$ text "target triple = \"arm-unknown-nto-qnx8.0.0eabi\""
+-    Platform { platformArch = ArchARM {}, platformOS = OSiOS } ->
+-        text "target datalayout = \"e-m:o-p:32:32-f64:32:64-v64:32:64-v128:32:128-a:0:32-n32-S32\""
+-        $+$ text "target triple = \"thumbv7-apple-ios7.0.0\""
+-    Platform { platformArch = ArchARM64, platformOS = OSiOS } ->
+-        text "target datalayout = \"e-m:o-i64:64-i128:128-n32:64-S128\""
+-        $+$ text "target triple = \"arm64-apple-ios7.0.0\""
+-    Platform { platformArch = ArchX86, platformOS = OSiOS } ->
+-        text "target datalayout = \"e-m:o-p:32:32-f64:32:64-f80:128-n8:16:32-S128\""
+-        $+$ text "target triple = \"i386-apple-ios7.0.0\""
+-    Platform { platformArch = ArchX86_64, platformOS = OSiOS } ->
+-        text "target datalayout = \"e-m:o-i64:64-f80:128-n8:16:32:64-S128\""
+-        $+$ text "target triple = \"x86_64-apple-ios7.0.0\""
+-    Platform { platformArch = ArchARM64, platformOS = OSLinux } ->
+-        text "target datalayout = \"e-m:e-i64:64-i128:128-n32:64-S128\""
+-        $+$ text "target triple = \"aarch64-unknown-linux-gnu\""
+-    _ ->
+-        if platformIsCrossCompiling platform
+-            then panic "LlvmCodeGen.Ppr: Cross compiling without valid target info."
+-            else empty
+-        -- If you see the above panic, GHC is missing the required target datalayout
+-        -- and triple information. You can obtain this info by compiling a simple
+-        -- 'hello world' C program with the clang C compiler eg:
+-        --     clang -S hello.c -emit-llvm -o -
+-        -- and the first two lines of hello.ll should provide the 'target datalayout'
+-        -- and 'target triple' lines required.
+-
+-
+ -- | Pretty print LLVM data code
+ pprLlvmData :: LlvmData -> SDoc
+ pprLlvmData (globals, types) =
+diff --git a/compiler/main/DriverPipeline.hs b/compiler/main/DriverPipeline.hs
+index 40e6a8dead..4cfc48eaa3 100644
+--- a/compiler/main/DriverPipeline.hs
++++ b/compiler/main/DriverPipeline.hs
+@@ -67,7 +67,7 @@ import System.Directory
+ import System.FilePath
+ import System.IO
+ import Control.Monad
+-import Data.List        ( isSuffixOf )
++import Data.List        ( isSuffixOf, intercalate )
+ import Data.Maybe
+ import Data.Version
+ 
+@@ -378,7 +378,7 @@ link' dflags batch_attempt_linking hpt
+         let
+             staticLink = case ghcLink dflags of
+                           LinkStaticLib -> True
+-                          _ -> platformBinariesAreStaticLibs (targetPlatform dflags)
++                          _ -> False
+ 
+             home_mod_infos = eltsHpt hpt
+ 
+@@ -818,6 +818,63 @@ getOutputFilename stop_phase output basename dflags next_phase maybe_location
+              | Just d <- odir = d </> persistent
+              | otherwise      = persistent
+ 
++
++-- | The fast LLVM Pipeline skips the mangler and assembler,
++-- emiting object code dirctly from llc.
++--
++-- slow: opt -> llc -> .s -> mangler -> as -> .o
++-- fast: opt -> llc -> .o
++--
++-- hidden flag: -ffast-llvm
++--
++-- if keep-s-files is specified, we need to go through
++-- the slow pipeline (Kavon Farvardin requested this).
++fastLlvmPipeline :: DynFlags -> Bool
++fastLlvmPipeline dflags
++  = not (gopt Opt_KeepSFiles dflags) && gopt Opt_FastLlvm dflags
++
++-- | LLVM Options. These are flags to be passed to opt and llc, to ensure
++-- consistency we list them in pairs, so that they form groups.
++llvmOptions :: DynFlags
++            -> [(String, String)]  -- ^ pairs of (opt, llc) arguments
++llvmOptions dflags =
++       [("-enable-tbaa -tbaa",  "-enable-tbaa") | gopt Opt_LlvmTBAA dflags ]
++    ++ [("-relocation-model=" ++ rmodel
++        ,"-relocation-model=" ++ rmodel) | not (null rmodel)]
++    ++ [("-stack-alignment=" ++ (show align)
++        ,"-stack-alignment=" ++ (show align)) | align > 0 ]
++    ++ [("", "-filetype=obj") | fastLlvmPipeline dflags ]
++
++    -- Additional llc flags
++    ++ [("", "-mcpu=" ++ mcpu)   | not (null mcpu) ]
++    ++ [("", "-mattr=" ++ attrs) | not (null attrs) ]
++
++  where target = LLVM_TARGET
++        Just (LlvmTarget _ mcpu mattr) = lookup target (llvmTargets dflags)
++
++        -- Relocation models
++        rmodel | gopt Opt_PIC dflags        = "pic"
++               | positionIndependent dflags = "pic"
++               | WayDyn `elem` ways dflags  = "dynamic-no-pic"
++               | otherwise                  = "static"
++
++        align :: Int
++        align = case platformArch (targetPlatform dflags) of
++                  ArchX86_64 | isAvxEnabled dflags -> 32
++                  _                                -> 0
++
++        attrs :: String
++        attrs = intercalate "," $ mattr
++              ++ ["+sse42"   | isSse4_2Enabled dflags   ]
++              ++ ["+sse2"    | isSse2Enabled dflags     ]
++              ++ ["+sse"     | isSseEnabled dflags      ]
++              ++ ["+avx512f" | isAvx512fEnabled dflags  ]
++              ++ ["+avx2"    | isAvx2Enabled dflags     ]
++              ++ ["+avx"     | isAvxEnabled dflags      ]
++              ++ ["+avx512cd"| isAvx512cdEnabled dflags ]
++              ++ ["+avx512er"| isAvx512erEnabled dflags ]
++              ++ ["+avx512pf"| isAvx512pfEnabled dflags ]
++
+ -- -----------------------------------------------------------------------------
+ -- | Each phase in the pipeline returns the next phase to execute, and the
+ -- name of the file in which the output was placed.
+@@ -1419,121 +1476,115 @@ runPhase (RealPhase SplitAs) _input_fn dflags
+ 
+ -----------------------------------------------------------------------------
+ -- LlvmOpt phase
+-
+ runPhase (RealPhase LlvmOpt) input_fn dflags
+   = do
+-    let opt_lvl  = max 0 (min 2 $ optLevel dflags)
+-        -- don't specify anything if user has specified commands. We do this
+-        -- for opt but not llc since opt is very specifically for optimisation
+-        -- passes only, so if the user is passing us extra options we assume
+-        -- they know what they are doing and don't get in the way.
+-        optFlag  = if null (getOpts dflags opt_lo)
+-                       then map SysTools.Option $ words (llvmOpts !! opt_lvl)
+-                       else []
+-        tbaa | gopt Opt_LlvmTBAA dflags = "--enable-tbaa=true"
+-             | otherwise                = "--enable-tbaa=false"
+-
+-
+     output_fn <- phaseOutputFilename LlvmLlc
+ 
+     liftIO $ SysTools.runLlvmOpt dflags
+-               ([ SysTools.FileOption "" input_fn,
+-                    SysTools.Option "-o",
+-                    SysTools.FileOption "" output_fn]
+-                ++ optFlag
+-                ++ [SysTools.Option tbaa])
++               (   optFlag
++                ++ defaultOptions ++
++                [ SysTools.FileOption "" input_fn
++                , SysTools.Option "-o"
++                , SysTools.FileOption "" output_fn]
++                )
+ 
+     return (RealPhase LlvmLlc, output_fn)
+   where
+         -- we always (unless -optlo specified) run Opt since we rely on it to
+         -- fix up some pretty big deficiencies in the code we generate
+-        llvmOpts =  [ "-mem2reg -globalopt"
+-                    , "-O1 -globalopt"
+-                    , "-O2"
+-                    ]
++        llvmOpts = case optLevel dflags of
++          0 -> "-mem2reg -globalopt"
++          1 -> "-O1 -globalopt"
++          _ -> "-O2"
++
++        -- don't specify anything if user has specified commands. We do this
++        -- for opt but not llc since opt is very specifically for optimisation
++        -- passes only, so if the user is passing us extra options we assume
++        -- they know what they are doing and don't get in the way.
++        optFlag = if null (getOpts dflags opt_lo)
++                  then map SysTools.Option $ words llvmOpts
++                  else []
++
++        defaultOptions = map SysTools.Option . concat . fmap words . fst
++                       $ unzip (llvmOptions dflags)
+ 
+ -----------------------------------------------------------------------------
+ -- LlvmLlc phase
+ 
+ runPhase (RealPhase LlvmLlc) input_fn dflags
+   = do
+-    let opt_lvl = max 0 (min 2 $ optLevel dflags)
+-        -- iOS requires external references to be loaded indirectly from the
+-        -- DATA segment or dyld traps at runtime writing into TEXT: see #7722
+-        rmodel | platformOS (targetPlatform dflags) == OSiOS = "dynamic-no-pic"
+-               | positionIndependent dflags                  = "pic"
+-               | WayDyn `elem` ways dflags                   = "dynamic-no-pic"
+-               | otherwise                                   = "static"
+-        tbaa | gopt Opt_LlvmTBAA dflags = "--enable-tbaa=true"
+-             | otherwise                = "--enable-tbaa=false"
+-
+-    -- hidden debugging flag '-dno-llvm-mangler' to skip mangling
+-    let next_phase = case gopt Opt_NoLlvmMangler dflags of
+-                         False                            -> LlvmMangle
+-                         True | gopt Opt_SplitObjs dflags -> Splitter
+-                         True                             -> As False
++    next_phase <- if fastLlvmPipeline dflags
++                  then maybeMergeForeign
++                  -- hidden debugging flag '-dno-llvm-mangler' to skip mangling
++                  else case gopt Opt_NoLlvmMangler dflags of
++                         False                            -> return LlvmMangle
++                         True | gopt Opt_SplitObjs dflags -> return Splitter
++                         True                             -> return (As False)
+ 
+     output_fn <- phaseOutputFilename next_phase
+ 
+     liftIO $ SysTools.runLlvmLlc dflags
+-                ([ SysTools.Option (llvmOpts !! opt_lvl),
+-                    SysTools.Option $ "-relocation-model=" ++ rmodel,
+-                    SysTools.FileOption "" input_fn,
+-                    SysTools.Option "-o", SysTools.FileOption "" output_fn]
+-                ++ [SysTools.Option tbaa]
+-                ++ map SysTools.Option fpOpts
+-                ++ map SysTools.Option abiOpts
+-                ++ map SysTools.Option sseOpts
+-                ++ map SysTools.Option avxOpts
+-                ++ map SysTools.Option avx512Opts
+-                ++ map SysTools.Option stackAlignOpts)
++                (  optFlag
++                ++ defaultOptions
++                ++ [ SysTools.FileOption "" input_fn
++                   , SysTools.Option "-o"
++                   , SysTools.FileOption "" output_fn
++                   ]
++                )
+ 
+     return (RealPhase next_phase, output_fn)
+   where
+-        -- Bug in LLVM at O3 on OSX.
+-        llvmOpts = if platformOS (targetPlatform dflags) == OSDarwin
+-                   then ["-O1", "-O2", "-O2"]
+-                   else ["-O1", "-O2", "-O3"]
+-        -- On ARMv7 using LLVM, LLVM fails to allocate floating point registers
+-        -- while compiling GHC source code. It's probably due to fact that it
+-        -- does not enable VFP by default. Let's do this manually here
+-        fpOpts = case platformArch (targetPlatform dflags) of
+-                   ArchARM ARMv7 ext _ -> if (elem VFPv3 ext)
+-                                      then ["-mattr=+v7,+vfp3"]
+-                                      else if (elem VFPv3D16 ext)
+-                                           then ["-mattr=+v7,+vfp3,+d16"]
+-                                           else []
+-                   ArchARM ARMv6 ext _ -> if (elem VFPv2 ext)
+-                                          then ["-mattr=+v6,+vfp2"]
+-                                          else ["-mattr=+v6"]
+-                   _                 -> []
+-        -- On Ubuntu/Debian with ARM hard float ABI, LLVM's llc still
+-        -- compiles into soft-float ABI. We need to explicitly set abi
+-        -- to hard
+-        abiOpts = case platformArch (targetPlatform dflags) of
+-                    ArchARM _ _ HARD -> ["-float-abi=hard"]
+-                    ArchARM _ _ _    -> []
+-                    _                -> []
+-
+-        sseOpts | isSse4_2Enabled dflags = ["-mattr=+sse42"]
+-                | isSse2Enabled dflags   = ["-mattr=+sse2"]
+-                | isSseEnabled dflags    = ["-mattr=+sse"]
+-                | otherwise              = []
+-
+-        avxOpts | isAvx512fEnabled dflags = ["-mattr=+avx512f"]
+-                | isAvx2Enabled dflags    = ["-mattr=+avx2"]
+-                | isAvxEnabled dflags     = ["-mattr=+avx"]
+-                | otherwise               = []
+-
+-        avx512Opts =
+-          [ "-mattr=+avx512cd" | isAvx512cdEnabled dflags ] ++
+-          [ "-mattr=+avx512er" | isAvx512erEnabled dflags ] ++
+-          [ "-mattr=+avx512pf" | isAvx512pfEnabled dflags ]
+-
+-        stackAlignOpts =
+-            case platformArch (targetPlatform dflags) of
+-              ArchX86_64 | isAvxEnabled dflags -> ["-stack-alignment=32"]
+-              _                                -> []
++    -- Note [Clamping of llc optimizations]
++    --
++    -- See #13724
++    --
++    -- we clamp the llc optimization between [1,2]. This is because passing -O0
++    -- to llc 3.9 or llc 4.0, the naive register allocator can fail with
++    --
++    --   Error while trying to spill R1 from class GPR: Cannot scavenge register
++    --   without an emergency spill slot!
++    --
++    -- Observed at least with target 'arm-unknown-linux-gnueabihf'.
++    --
++    --
++    -- With LLVM4, llc -O3 crashes when ghc-stage1 tries to compile
++    --   rts/HeapStackCheck.cmm
++    --
++    -- llc -O3 '-mtriple=arm-unknown-linux-gnueabihf' -enable-tbaa /var/folders/fv/xqjrpfj516n5xq_m_ljpsjx00000gn/T/ghc33674_0/ghc_6.bc -o /var/folders/fv/xqjrpfj516n5xq_m_ljpsjx00000gn/T/ghc33674_0/ghc_7.lm_s
++    -- 0  llc                      0x0000000102ae63e8 llvm::sys::PrintStackTrace(llvm::raw_ostream&) + 40
++    -- 1  llc                      0x0000000102ae69a6 SignalHandler(int) + 358
++    -- 2  libsystem_platform.dylib 0x00007fffc23f4b3a _sigtramp + 26
++    -- 3  libsystem_c.dylib        0x00007fffc226498b __vfprintf + 17876
++    -- 4  llc                      0x00000001029d5123 llvm::SelectionDAGISel::LowerArguments(llvm::Function const&) + 5699
++    -- 5  llc                      0x0000000102a21a35 llvm::SelectionDAGISel::SelectAllBasicBlocks(llvm::Function const&) + 3381
++    -- 6  llc                      0x0000000102a202b1 llvm::SelectionDAGISel::runOnMachineFunction(llvm::MachineFunction&) + 1457
++    -- 7  llc                      0x0000000101bdc474 (anonymous namespace)::ARMDAGToDAGISel::runOnMachineFunction(llvm::MachineFunction&) + 20
++    -- 8  llc                      0x00000001025573a6 llvm::MachineFunctionPass::runOnFunction(llvm::Function&) + 134
++    -- 9  llc                      0x000000010274fb12 llvm::FPPassManager::runOnFunction(llvm::Function&) + 498
++    -- 10 llc                      0x000000010274fd23 llvm::FPPassManager::runOnModule(llvm::Module&) + 67
++    -- 11 llc                      0x00000001027501b8 llvm::legacy::PassManagerImpl::run(llvm::Module&) + 920
++    -- 12 llc                      0x000000010195f075 compileModule(char**, llvm::LLVMContext&) + 12133
++    -- 13 llc                      0x000000010195bf0b main + 491
++    -- 14 libdyld.dylib            0x00007fffc21e5235 start + 1
++    -- Stack dump:
++    -- 0.  Program arguments: llc -O3 -mtriple=arm-unknown-linux-gnueabihf -enable-tbaa /var/folders/fv/xqjrpfj516n5xq_m_ljpsjx00000gn/T/ghc33674_0/ghc_6.bc -o /var/folders/fv/xqjrpfj516n5xq_m_ljpsjx00000gn/T/ghc33674_0/ghc_7.lm_s
++    -- 1.  Running pass 'Function Pass Manager' on module '/var/folders/fv/xqjrpfj516n5xq_m_ljpsjx00000gn/T/ghc33674_0/ghc_6.bc'.
++    -- 2.  Running pass 'ARM Instruction Selection' on function '@"stg_gc_f1$def"'
++    --
++    -- Observed at least with -mtriple=arm-unknown-linux-gnueabihf -enable-tbaa
++    --
++    llvmOpts = case optLevel dflags of
++      0 -> "-O1" -- required to get the non-naive reg allocator. Passing -regalloc=greedy is not sufficient.
++      1 -> "-O1"
++      _ -> "-O2"
++
++    optFlag = if null (getOpts dflags opt_lc)
++              then map SysTools.Option $ words llvmOpts
++              else []
++
++    defaultOptions = map SysTools.Option . concat . fmap words . snd
++                   $ unzip (llvmOptions dflags)
++
+ 
+ -----------------------------------------------------------------------------
+ -- LlvmMangle phase
+@@ -1892,22 +1943,19 @@ linkBinary' staticLink dflags o_files dep_packages = do
+     -- Here are some libs that need to be linked at the *end* of
+     -- the command line, because they contain symbols that are referred to
+     -- by the RTS.  We can't therefore use the ordinary way opts for these.
+-    let
+-        debug_opts | WayDebug `elem` ways dflags = [
++    let debug_opts | WayDebug `elem` ways dflags = [
+ #if defined(HAVE_LIBBFD)
+                         "-lbfd", "-liberty"
+ #endif
+                          ]
+-                   | otherwise            = []
++                   | otherwise                   = []
+ 
+-    let thread_opts
+-         | WayThreaded `elem` ways dflags =
+-            let os = platformOS (targetPlatform dflags)
+-            in if os `elem` [OSMinGW32, OSFreeBSD, OSOpenBSD, OSAndroid,
+-                             OSNetBSD, OSHaiku, OSQNXNTO, OSiOS, OSDarwin]
+-               then []
+-               else ["-lpthread"]
+-         | otherwise               = []
++        thread_opts | WayThreaded `elem` ways dflags = [
++#if NEED_PTHREAD_LIB
++                        "-lpthread"
++#endif
++                        ]
++                    | otherwise                      = []
+ 
+     rc_objs <- maybeCreateManifest dflags output_fn
+ 
+@@ -1942,7 +1990,7 @@ linkBinary' staticLink dflags o_files dep_packages = do
+                       -- on x86.
+                       ++ (if sLdSupportsCompactUnwind mySettings &&
+                              not staticLink &&
+-                             (platformOS platform == OSDarwin || platformOS platform == OSiOS) &&
++                             (platformOS platform == OSDarwin) &&
+                              case platformArch platform of
+                                ArchX86 -> True
+                                ArchX86_64 -> True
+@@ -1952,13 +2000,6 @@ linkBinary' staticLink dflags o_files dep_packages = do
+                           then ["-Wl,-no_compact_unwind"]
+                           else [])
+ 
+-                      -- '-no_pie'
+-                      -- iOS uses 'dynamic-no-pic', so we must pass this to ld to suppress a warning; see #7722
+-                      ++ (if platformOS platform == OSiOS &&
+-                             not staticLink
+-                          then ["-Wl,-no_pie"]
+-                          else [])
+-
+                       -- '-Wl,-read_only_relocs,suppress'
+                       -- ld gives loads of warnings like:
+                       --     ld: warning: text reloc in _base_GHCziArr_unsafeArray_info to _base_GHCziArr_unsafeArray_closure
+@@ -2073,10 +2114,7 @@ linkDynLibCheck dflags o_files dep_packages
+ 
+ linkStaticLibCheck :: DynFlags -> [String] -> [InstalledUnitId] -> IO ()
+ linkStaticLibCheck dflags o_files dep_packages
+- = do
+-    when (platformOS (targetPlatform dflags) `notElem` [OSiOS, OSDarwin]) $
+-      throwGhcExceptionIO (ProgramError "Static archive creation only supported on Darwin/OS X/iOS")
+-    linkBinary' True dflags o_files dep_packages
++ = linkBinary' True dflags o_files dep_packages
+ 
+ -- -----------------------------------------------------------------------------
+ -- Running CPP
+diff --git a/compiler/main/DynFlags.hs b/compiler/main/DynFlags.hs
+index f5f5f00dd2..2cde3b7700 100644
+--- a/compiler/main/DynFlags.hs
++++ b/compiler/main/DynFlags.hs
+@@ -76,6 +76,9 @@ module DynFlags (
+         safeDirectImpsReq, safeImplicitImpsReq,
+         unsafeFlags, unsafeFlagsForInfer,
+ 
++        -- ** LLVM Targets
++        LlvmTarget(..), LlvmTargets,
++
+         -- ** System tool settings and locations
+         Settings(..),
+         targetPlatform, programName, projectVersion,
+@@ -83,9 +86,9 @@ module DynFlags (
+         versionedAppDir,
+         extraGccViaCFlags, systemPackageConfig,
+         pgm_L, pgm_P, pgm_F, pgm_c, pgm_s, pgm_a, pgm_l, pgm_dll, pgm_T,
+-        pgm_windres, pgm_libtool, pgm_lo, pgm_lc, pgm_i,
++        pgm_windres, pgm_libtool, pgm_lo, pgm_lc, pgm_lcc, pgm_i,
+         opt_L, opt_P, opt_F, opt_c, opt_a, opt_l, opt_i,
+-        opt_windres, opt_lo, opt_lc,
++        opt_windres, opt_lo, opt_lc, opt_lcc,
+ 
+ 
+         -- ** Manipulating DynFlags
+@@ -407,6 +410,7 @@ data GeneralFlag
+    | Opt_DoAsmLinting
+    | Opt_DoAnnotationLinting
+    | Opt_NoLlvmMangler                 -- hidden flag
++   | Opt_FastLlvm                      -- hidden flag
+ 
+    | Opt_WarnIsError                    -- -Werror; makes warnings fatal
+    | Opt_ShowWarnGroups                 -- Show the group a warning belongs to
+@@ -695,6 +699,7 @@ data DynFlags = DynFlags {
+   ghcLink               :: GhcLink,
+   hscTarget             :: HscTarget,
+   settings              :: Settings,
++  llvmTargets           :: LlvmTargets,
+   verbosity             :: Int,         -- ^ Verbosity level: see Note [Verbosity levels]
+   optLevel              :: Int,         -- ^ Optimisation level
+   debugLevel            :: Int,         -- ^ How much debug information to produce
+@@ -999,6 +1004,14 @@ data ProfAuto
+   | ProfAutoCalls      -- ^ annotate call-sites
+   deriving (Eq,Enum)
+ 
++data LlvmTarget = LlvmTarget
++  { lDataLayout :: String
++  , lCPU        :: String
++  , lAttributes :: [String]
++  }
++
++type LlvmTargets = [(String, LlvmTarget)]
++
+ data Settings = Settings {
+   sTargetPlatform        :: Platform,    -- Filled in by SysTools
+   sGhcUsagePath          :: FilePath,    -- Filled in by SysTools
+@@ -1031,6 +1044,7 @@ data Settings = Settings {
+   sPgm_libtool           :: String,
+   sPgm_lo                :: (String,[Option]), -- LLVM: opt llvm optimiser
+   sPgm_lc                :: (String,[Option]), -- LLVM: llc static compiler
++  sPgm_lcc               :: (String,[Option]), -- LLVM: c compiler
+   sPgm_i                 :: String,
+   -- options for particular phases
+   sOpt_L                 :: [String],
+@@ -1042,6 +1056,7 @@ data Settings = Settings {
+   sOpt_windres           :: [String],
+   sOpt_lo                :: [String], -- LLVM: llvm optimiser
+   sOpt_lc                :: [String], -- LLVM: llc static compiler
++  sOpt_lcc               :: [String], -- LLVM: c compiler
+   sOpt_i                 :: [String], -- iserv options
+ 
+   sPlatformConstants     :: PlatformConstants
+@@ -1089,6 +1104,8 @@ pgm_windres           :: DynFlags -> String
+ pgm_windres dflags = sPgm_windres (settings dflags)
+ pgm_libtool           :: DynFlags -> String
+ pgm_libtool dflags = sPgm_libtool (settings dflags)
++pgm_lcc               :: DynFlags -> (String,[Option])
++pgm_lcc dflags = sPgm_lcc (settings dflags)
+ pgm_lo                :: DynFlags -> (String,[Option])
+ pgm_lo dflags = sPgm_lo (settings dflags)
+ pgm_lc                :: DynFlags -> (String,[Option])
+@@ -1112,6 +1129,8 @@ opt_l dflags = concatMap (wayOptl (targetPlatform dflags)) (ways dflags)
+             ++ sOpt_l (settings dflags)
+ opt_windres           :: DynFlags -> [String]
+ opt_windres dflags = sOpt_windres (settings dflags)
++opt_lcc                :: DynFlags -> [String]
++opt_lcc dflags = sOpt_lcc (settings dflags)
+ opt_lo                :: DynFlags -> [String]
+ opt_lo dflags = sOpt_lo (settings dflags)
+ opt_lc                :: DynFlags -> [String]
+@@ -1547,8 +1566,8 @@ initDynFlags dflags = do
+ 
+ -- | The normal 'DynFlags'. Note that they are not suitable for use in this form
+ -- and must be fully initialized by 'GHC.runGhc' first.
+-defaultDynFlags :: Settings -> DynFlags
+-defaultDynFlags mySettings =
++defaultDynFlags :: Settings -> LlvmTargets -> DynFlags
++defaultDynFlags mySettings myLlvmTargets =
+ -- See Note [Updating flag description in the User's Guide]
+      DynFlags {
+         ghcMode                 = CompManager,
+@@ -1641,6 +1660,8 @@ defaultDynFlags mySettings =
+         rtsBuildTag             = mkBuildTag (defaultWays mySettings),
+         splitInfo               = Nothing,
+         settings                = mySettings,
++        llvmTargets             = myLlvmTargets,
++
+         -- ghc -M values
+         depMakefile       = "Makefile",
+         depIncludePkgDeps = False,
+@@ -3067,6 +3088,8 @@ dynamic_flags_deps = [
+         (NoArg (setGeneralFlag Opt_D_faststring_stats))
+   , make_ord_flag defGhcFlag "dno-llvm-mangler"
+         (NoArg (setGeneralFlag Opt_NoLlvmMangler)) -- hidden flag
++  , make_ord_flag defGhcFlag "fast-llvm"
++        (NoArg (setGeneralFlag Opt_FastLlvm)) -- hidden flag
+   , make_ord_flag defGhcFlag "ddump-debug"
+         (setDumpFlag Opt_D_dump_debug)
+   , make_ord_flag defGhcFlag "ddump-json"
+@@ -5244,9 +5267,10 @@ makeDynFlagsConsistent dflags
+ -- initialized.
+ defaultGlobalDynFlags :: DynFlags
+ defaultGlobalDynFlags =
+-    (defaultDynFlags settings) { verbosity = 2 }
++    (defaultDynFlags settings llvmTargets) { verbosity = 2 }
+   where
+-    settings = panic "v_unsafeGlobalDynFlags: not initialised"
++    settings = panic "v_unsafeGlobalDynFlags: settings not initialised"
++    llvmTargets = panic "v_unsafeGlobalDynFlags: llvmTargets not initialised"
+ 
+ #if STAGE < 2
+ GLOBAL_VAR(v_unsafeGlobalDynFlags, defaultGlobalDynFlags, DynFlags)
+diff --git a/compiler/main/GHC.hs b/compiler/main/GHC.hs
+index 8f508411b6..700e4826d1 100644
+--- a/compiler/main/GHC.hs
++++ b/compiler/main/GHC.hs
+@@ -489,7 +489,8 @@ initGhcMonad :: GhcMonad m => Maybe FilePath -> m ()
+ initGhcMonad mb_top_dir
+   = do { env <- liftIO $
+                 do { mySettings <- initSysTools mb_top_dir
+-                   ; dflags <- initDynFlags (defaultDynFlags mySettings)
++                   ; myLlvmTargets <- initLlvmTargets mb_top_dir
++                   ; dflags <- initDynFlags (defaultDynFlags mySettings myLlvmTargets)
+                    ; checkBrokenTablesNextToCode dflags
+                    ; setUnsafeGlobalDynFlags dflags
+                       -- c.f. DynFlags.parseDynamicFlagsFull, which
+diff --git a/compiler/main/HscTypes.hs b/compiler/main/HscTypes.hs
+index 56d2ac5eb9..e16452bca1 100644
+--- a/compiler/main/HscTypes.hs
++++ b/compiler/main/HscTypes.hs
+@@ -2578,7 +2578,6 @@ soExt :: Platform -> FilePath
+ soExt platform
+     = case platformOS platform of
+       OSDarwin  -> "dylib"
+-      OSiOS     -> "dylib"
+       OSMinGW32 -> "dll"
+       _         -> "so"
+ 
+diff --git a/compiler/main/SysTools.hs b/compiler/main/SysTools.hs
+index b2d85a782a..61cc24efcf 100644
+--- a/compiler/main/SysTools.hs
++++ b/compiler/main/SysTools.hs
+@@ -13,6 +13,7 @@
+ module SysTools (
+         -- Initialisation
+         initSysTools,
++        initLlvmTargets,
+ 
+         -- Interface to system tools
+         runUnlit, runCpp, runCc, -- [Option] -> IO ()
+@@ -187,6 +188,20 @@ stuff.
+ ************************************************************************
+ -}
+ 
++initLlvmTargets :: Maybe String
++                -> IO LlvmTargets
++initLlvmTargets mbMinusB
++  = do top_dir <- findTopDir mbMinusB
++       let llvmTargetsFile = top_dir </> "llvm-targets"
++       llvmTargetsStr <- readFile llvmTargetsFile
++       case maybeReadFuzzy llvmTargetsStr of
++         Just s -> return (fmap mkLlvmTarget <$> s)
++         Nothing -> pgmError ("Can't parse " ++ show llvmTargetsFile)
++  where
++    mkLlvmTarget :: (String, String, String) -> LlvmTarget
++    mkLlvmTarget (dl, cpu, attrs) = LlvmTarget dl cpu (words attrs)
++
++
+ initSysTools :: Maybe String    -- Maybe TopDir path (without the '-B' prefix)
+              -> IO Settings     -- Set all the mutable variables above, holding
+                                 --      (a) the system programs
+@@ -322,6 +337,7 @@ initSysTools mbMinusB
+        -- We just assume on command line
+        lc_prog <- getSetting "LLVM llc command"
+        lo_prog <- getSetting "LLVM opt command"
++       lcc_prog <- getSetting "LLVM clang command"
+ 
+        let iserv_prog = libexec "ghc-iserv"
+ 
+@@ -365,6 +381,7 @@ initSysTools mbMinusB
+                     sPgm_libtool = libtool_path,
+                     sPgm_lo  = (lo_prog,[]),
+                     sPgm_lc  = (lc_prog,[]),
++                    sPgm_lcc = (lcc_prog,[]),
+                     sPgm_i   = iserv_prog,
+                     sOpt_L       = [],
+                     sOpt_P       = [],
+@@ -373,6 +390,7 @@ initSysTools mbMinusB
+                     sOpt_a       = [],
+                     sOpt_l       = [],
+                     sOpt_windres = [],
++                    sOpt_lcc     = [],
+                     sOpt_lo      = [],
+                     sOpt_lc      = [],
+                     sOpt_i       = [],
+@@ -587,8 +605,7 @@ runLlvmLlc dflags args = do
+ -- assembler)
+ runClang :: DynFlags -> [Option] -> IO ()
+ runClang dflags args = do
+-  -- we simply assume its available on the PATH
+-  let clang = "clang"
++  let (clang,_) = pgm_lcc dflags
+       -- be careful what options we call clang with
+       -- see #5903 and #7617 for bugs caused by this.
+       (_,args0) = pgm_a dflags
+@@ -818,9 +835,6 @@ getLinkerInfo' dflags = do
+                  -- that doesn't support --version. We can just assume that's
+                  -- what we're using.
+                  return $ DarwinLD []
+-               OSiOS ->
+-                 -- Ditto for iOS
+-                 return $ DarwinLD []
+                OSMinGW32 ->
+                  -- GHC doesn't support anything but GNU ld on Windows anyway.
+                  -- Process creation is also fairly expensive on win32, so
+@@ -1666,7 +1680,7 @@ linkDynLib dflags0 o_files dep_packages
+                  ++ pkg_lib_path_opts
+                  ++ pkg_link_opts
+                 ))
+-        OSDarwin -> do
++        _ | os == OSDarwin -> do
+             -------------------------------------------------------------------
+             -- Making a darwin dylib
+             -------------------------------------------------------------------
+@@ -1726,7 +1740,6 @@ linkDynLib dflags0 o_files dep_packages
+                  ++ map Option pkg_link_opts
+                  ++ map Option pkg_framework_opts
+               )
+-        OSiOS -> throwGhcExceptionIO (ProgramError "dynamic libraries are not supported on iOS target")
+         _ -> do
+             -------------------------------------------------------------------
+             -- Making a DSO
+diff --git a/compiler/nativeGen/RegAlloc/Linear/Main.hs b/compiler/nativeGen/RegAlloc/Linear/Main.hs
+index b7721880c3..c98a8e4773 100644
+--- a/compiler/nativeGen/RegAlloc/Linear/Main.hs
++++ b/compiler/nativeGen/RegAlloc/Linear/Main.hs
+@@ -496,7 +496,7 @@ genRaInsn block_live new_instrs block_id instr r_dying w_dying = do
+     -- debugging
+ {-    freeregs <- getFreeRegsR
+     assig    <- getAssigR
+-    pprDebugAndThen (defaultDynFlags Settings{ sTargetPlatform=platform }) trace "genRaInsn"
++    pprDebugAndThen (defaultDynFlags Settings{ sTargetPlatform=platform } undefined) trace "genRaInsn"
+         (ppr instr
+                 $$ text "r_dying      = " <+> ppr r_dying
+                 $$ text "w_dying      = " <+> ppr w_dying
+diff --git a/compiler/specialise/SpecConstr.hs b/compiler/specialise/SpecConstr.hs
+index f686f0fba1..647f696640 100644
+--- a/compiler/specialise/SpecConstr.hs
++++ b/compiler/specialise/SpecConstr.hs
+@@ -514,7 +514,7 @@ for nested bindings.  (So really it should be passed around explicitly
+ and not stored in ScEnv.)  Trac #14379 turned out to be caused by
+    f SPEC x = let g1 x = ...
+               in ...
+-We force-specialise f (becuase of the SPEC), but that generates a specialised
++We force-specialise f (because of the SPEC), but that generates a specialised
+ copy of g1 (as well as the original).  Alas g1 has a nested binding g2; and
+ in each copy of g1 we get an unspecialised and specialised copy of g2; and so
+ on. Result, exponential.  So the force-spec flag now only applies to one
+@@ -524,7 +524,7 @@ Mechanism for this one-level-only thing:
+ 
+  - Switch it on at the call to specRec, in scExpr and scTopBinds
+  - Switch it off when doing the RHSs;
+-   this can be done very conveneniently in decreaseSpecCount
++   this can be done very conveniently in decreaseSpecCount
+ 
+ What alternatives did I consider?
+ 
+diff --git a/compiler/typecheck/TcCanonical.hs b/compiler/typecheck/TcCanonical.hs
+index 0221a3e3ac..0635b4a0dd 100644
+--- a/compiler/typecheck/TcCanonical.hs
++++ b/compiler/typecheck/TcCanonical.hs
+@@ -1575,7 +1575,7 @@ canEqTyVarTyVar, are these
+ 
+ Note [Avoid unnecessary swaps]
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-If we swap without actually improving matters, we can get an infnite loop.
++If we swap without actually improving matters, we can get an infinite loop.
+ Consider
+     work item:  a ~ b
+    inert item:  b ~ c
+diff --git a/compiler/typecheck/TcInteract.hs b/compiler/typecheck/TcInteract.hs
+index 5bbc5f86aa..9af719812a 100644
+--- a/compiler/typecheck/TcInteract.hs
++++ b/compiler/typecheck/TcInteract.hs
+@@ -2009,9 +2009,9 @@ favour of alpha.  If we instead had
+ then we would unify alpha := gamma1; and kick out the wanted
+ constraint.  But when we grough it back in, it'd look like
+    [W] TF (gamma1, beta) ~ fuv
+-and exactly the same thing would happen again!  Infnite loop.
++and exactly the same thing would happen again!  Infinite loop.
+ 
+-This all sesms fragile, and it might seem more robust to avoid
++This all seems fragile, and it might seem more robust to avoid
+ introducing gamma1 in the first place, in the case where the
+ actual argument (alpha, beta) partly matches the improvement
+ template.  But that's a bit tricky, esp when we remember that the
+diff --git a/compiler/utils/Platform.hs b/compiler/utils/Platform.hs
+index 86c70a9789..8cd1fa75e3 100644
+--- a/compiler/utils/Platform.hs
++++ b/compiler/utils/Platform.hs
+@@ -16,7 +16,6 @@ module Platform (
+         osMachOTarget,
+         osSubsectionsViaSymbols,
+         platformUsesFrameworks,
+-        platformBinariesAreStaticLibs,
+ )
+ 
+ where
+@@ -76,7 +75,6 @@ data OS
+         = OSUnknown
+         | OSLinux
+         | OSDarwin
+-        | OSiOS
+         | OSSolaris2
+         | OSMinGW32
+         | OSFreeBSD
+@@ -86,7 +84,6 @@ data OS
+         | OSKFreeBSD
+         | OSHaiku
+         | OSQNXNTO
+-        | OSAndroid
+         | OSAIX
+         deriving (Read, Show, Eq)
+ 
+@@ -132,12 +129,10 @@ osElfTarget OSOpenBSD   = True
+ osElfTarget OSNetBSD    = True
+ osElfTarget OSSolaris2  = True
+ osElfTarget OSDarwin    = False
+-osElfTarget OSiOS       = False
+ osElfTarget OSMinGW32   = False
+ osElfTarget OSKFreeBSD  = True
+ osElfTarget OSHaiku     = True
+ osElfTarget OSQNXNTO    = False
+-osElfTarget OSAndroid   = True
+ osElfTarget OSAIX       = False
+ osElfTarget OSUnknown   = False
+  -- Defaulting to False is safe; it means don't rely on any
+@@ -152,21 +147,12 @@ osMachOTarget _ = False
+ 
+ osUsesFrameworks :: OS -> Bool
+ osUsesFrameworks OSDarwin = True
+-osUsesFrameworks OSiOS    = True
+ osUsesFrameworks _        = False
+ 
+ platformUsesFrameworks :: Platform -> Bool
+ platformUsesFrameworks = osUsesFrameworks . platformOS
+ 
+-osBinariesAreStaticLibs :: OS -> Bool
+-osBinariesAreStaticLibs OSiOS = True
+-osBinariesAreStaticLibs _     = False
+-
+ osSubsectionsViaSymbols :: OS -> Bool
+ osSubsectionsViaSymbols OSDarwin = True
+-osSubsectionsViaSymbols OSiOS    = True
+ osSubsectionsViaSymbols _        = False
+ 
+-platformBinariesAreStaticLibs :: Platform -> Bool
+-platformBinariesAreStaticLibs = osBinariesAreStaticLibs . platformOS
+-
+diff --git a/configure.ac b/configure.ac
+index 846f5596f2..c79ecc524a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -201,7 +201,8 @@ dnl we ask the bootstrapping compiler what platform it is for
+ if test "${WithGhc}" != ""
+ then
+         bootstrap_host=`"${WithGhc}" +RTS --info | grep '^ ,("Host platform"' | sed -e 's/.*, "//' -e 's/")//' | tr -d '\r'`
+-        bootstrap_target=`"${WithGhc}" +RTS --info | grep '^ ,("Target platform"' | sed -e 's/.*, "//' -e 's/")//' | tr -d '\r'`
++        # Turn darwin -> macos to deal with the changing default
++        bootstrap_target=`"${WithGhc}" +RTS --info | grep '^ ,("Target platform"' | sed -e 's/.*, "//' -e 's/")//' | tr -d '\r' | sed s/darwin/macos/`
+         if test "$bootstrap_host" != "$bootstrap_target"
+         then
+                 echo "Bootstrapping GHC is a cross compiler. This probably isn't going to work"
+@@ -513,7 +514,8 @@ dnl ** Which nm to use?
+ dnl --------------------------------------------------------------
+ FP_ARG_WITH_PATH_GNU_PROG([NM], [nm], [nm])
+ 
+-if test "$TargetOS_CPP" = "darwin"
++# Use `HaskellTargetOs` in order to conflate Darwin variants
++if test "$HaskellTargetOs" = "OSDarwin"
+ then
+     AC_MSG_CHECKING(whether nm program is broken)
+     # Some versions of XCode ship a broken version of `nm`. Detect and work
+@@ -587,6 +589,12 @@ AC_SUBST([LlvmVersion])
+ sUPPORTED_LLVM_VERSION=$(echo \($LlvmVersion\) | sed 's/\./,/')
+ AC_DEFINE_UNQUOTED([sUPPORTED_LLVM_VERSION], ${sUPPORTED_LLVM_VERSION}, [The supported LLVM version number])
+ 
++dnl ** Which LLVM clang to use?
++dnl --------------------------------------------------------------
++AC_CHECK_TARGET_TOOL([CLANG], [clang])
++ClangCmd="$CLANG"
++AC_SUBST([ClangCmd])
++
+ dnl ** Which LLVM llc to use?
+ dnl --------------------------------------------------------------
+ FIND_LLVM_PROG([LLC], [llc], [llc], [$LlvmVersion])
+@@ -729,9 +737,15 @@ dnl ** check for dtrace (currently only implemented for Mac OS X)
+ HaveDtrace=NO
+ AC_PATH_PROG(DtraceCmd,dtrace)
+ if test -n "$DtraceCmd"; then
+-  if test "x$TargetOS_CPP-$TargetVendor_CPP" = "xdarwin-apple" -o "x$TargetOS_CPP-$TargetVendor_CPP" = "xsolaris2-unknown"; then
+-    HaveDtrace=YES
+-  fi
++  # Use `HaskellTargetOs` in order to conflate Darwin variants
++  case "$HaskellTargetOs-$TargetVendor_CPP" in
++    OSDarwin-apple|OSSolaris2-unknown)
++      HaveDtrace=YES
++      ;;
++    *)
++      HaveDtrace=NO
++      ;;
++  esac
+ fi
+ AC_SUBST(HaveDtrace)
+ 
+@@ -1065,14 +1079,18 @@ AC_ARG_ENABLE(large-address-space,
+ use_large_address_space=no
+ if test "$ac_cv_sizeof_void_p" -eq 8 ; then
+     if test "x$EnableLargeAddressSpace" = "xyes" ; then
+-        if test "$ghc_host_os" = "darwin" ; then
++        case "$ghc_host_os" in
++          # Darwin for back-compat
++          darwin|macos|ios|watchos|tvos)
+             use_large_address_space=yes
+-	elif test "$ghc_host_os" = "openbsd" ; then
+-	    # as of OpenBSD 5.8 (2015), OpenBSD does not support mmap with MAP_NORESERVE.
+-	    # The flag MAP_NORESERVE is supported for source compatibility reasons,
+-	    # but is completely ignored by OS mmap
++            ;;
++          openbsd)
++            # as of OpenBSD 5.8 (2015), OpenBSD does not support mmap with MAP_NORESERVE.
++            # The flag MAP_NORESERVE is supported for source compatibility reasons,
++            # but is completely ignored by OS mmap
+             use_large_address_space=no
+-        else
++            ;;
++          *)
+             AC_CHECK_DECLS([MAP_NORESERVE, MADV_FREE, MADV_DONTNEED],[],[],
+                 [
+                 #include <unistd.h>
+@@ -1085,7 +1103,8 @@ if test "$ac_cv_sizeof_void_p" -eq 8 ; then
+                 test "$ac_cv_have_decl_MADV_DONTNEED" = "yes" ; then
+                     use_large_address_space=yes
+             fi
+-        fi
++            ;;
++        esac
+     fi
+ fi
+ if test "$use_large_address_space" = "yes" ; then
+@@ -1099,8 +1118,8 @@ case ${TargetOS} in
+     linux|linux-android|freebsd|dragonfly|netbsd|openbsd|kfreebsdgnu|gnu|solaris2)
+         RtsLinkerUseMmap=1
+         ;;
+-    darwin)
+-        # Don't use mmap on powerpc/darwin as the mmap there doesn't support
++    macos|ios|watchos|tvos)
++        # Don't use mmap on PowerPC/Darwin as the mmap there doesn't support
+         # reallocating. Reallocating is needed to allocate jump islands just
+         # after each object image. Jumps to these jump islands use relative
+         # branches which are limited to offsets that can be represented in
+@@ -1263,6 +1282,7 @@ echo "\
+    xelatex      : $XELATEX
+ 
+    Using LLVM tools
++      clang : $ClangCmd
+       llc   : $LlcCmd
+       opt   : $OptCmd"
+ 
+diff --git a/docs/users_guide/phases.rst b/docs/users_guide/phases.rst
+index afb3a8be5c..6288961b14 100644
+--- a/docs/users_guide/phases.rst
++++ b/docs/users_guide/phases.rst
+@@ -551,11 +551,9 @@ for example).
+ 
+ .. ghc-flag:: -staticlib
+ 
+-    On Darwin/OS X/iOS only, link all passed files into a static library
+-    suitable for linking into an iOS (when using a cross-compiler) or
+-    Mac Xcode project. To control the name, use the :ghc-flag:`-o ⟨file⟩` option
+-    as usual. The default name is ``liba.a``. This should nearly always
+-    be passed when compiling for iOS with a cross-compiler.
++    Link all passed files into a static library suitable for linking.
++    To control the name, use the :ghc-flag:`-o` ⟨name⟩ option
++    as usual. The default name is ``liba.a``.
+ 
+ .. ghc-flag:: -L ⟨dir⟩
+ 
+diff --git a/ghc.mk b/ghc.mk
+index 5b9cf22454..87628166ff 100644
+--- a/ghc.mk
++++ b/ghc.mk
+@@ -541,9 +541,6 @@ utils/ghc-pkg/dist-install/package-data.mk: $(fixed_pkg_prev)
+ utils/hsc2hs/dist-install/package-data.mk: $(fixed_pkg_prev)
+ utils/compare_sizes/dist-install/package-data.mk: $(fixed_pkg_prev)
+ utils/runghc/dist-install/package-data.mk: $(fixed_pkg_prev)
+-iserv/stage2/package-data.mk: $(fixed_pkg_prev)
+-iserv/stage2_p/package-data.mk: $(fixed_pkg_prev)
+-iserv/stage2_dyn/package-data.mk: $(fixed_pkg_prev)
+ 
+ # the GHC package doesn't live in libraries/, so we add its dependency manually:
+ compiler/stage2/package-data.mk: $(fixed_pkg_prev)
+@@ -694,7 +691,6 @@ BUILD_DIRS += utils/mkUserGuidePart
+ BUILD_DIRS += docs/users_guide
+ BUILD_DIRS += utils/count_lines
+ BUILD_DIRS += utils/compare_sizes
+-BUILD_DIRS += iserv
+ 
+ # ----------------------------------------------
+ # Actually include the sub-ghc.mk's
+@@ -1035,6 +1031,7 @@ $(eval $(call bindist-list,.,\
+     INSTALL \
+     configure config.sub config.guess install-sh \
+     settings.in \
++    llvm-targets \
+     packages \
+     Makefile \
+     mk/config.mk.in \
+@@ -1061,7 +1058,7 @@ $(eval $(call bindist-list,.,\
+     $(wildcard compiler/stage2/doc) \
+     $(wildcard libraries/*/dist-install/doc/) \
+     $(wildcard libraries/*/*/dist-install/doc/) \
+-    $(filter-out settings,$(INSTALL_LIBS)) \
++    $(filter-out settings llvm-targets,$(INSTALL_LIBS)) \
+     $(RTS_INSTALL_LIBS) \
+     $(filter-out %/project.mk mk/config.mk %/mk/install.mk,$(MAKEFILE_LIST)) \
+     mk/project.mk \
+@@ -1094,7 +1091,7 @@ BIN_DIST_MK = $(BIN_DIST_PREP_DIR)/bindist.mk
+ unix-binary-dist-prep:
+ 	$(call removeTrees,bindistprep/)
+ 	"$(MKDIRHIER)" $(BIN_DIST_PREP_DIR)
+-	set -e; for i in packages LICENSE compiler ghc iserv rts libraries utils docs libffi includes driver mk rules Makefile aclocal.m4 config.sub config.guess install-sh settings.in ghc.mk inplace distrib/configure.ac distrib/README distrib/INSTALL; do ln -s ../../$$i $(BIN_DIST_PREP_DIR)/; done
++	set -e; for i in packages LICENSE compiler ghc rts libraries utils docs libffi includes driver mk rules Makefile aclocal.m4 config.sub config.guess install-sh settings.in llvm-targets ghc.mk inplace distrib/configure.ac distrib/README distrib/INSTALL; do ln -s ../../$$i $(BIN_DIST_PREP_DIR)/; done
+ 	echo "HADDOCK_DOCS       = $(HADDOCK_DOCS)"       >> $(BIN_DIST_MK)
+ 	echo "BUILD_SPHINX_HTML  = $(BUILD_SPHINX_HTML)"  >> $(BIN_DIST_MK)
+ 	echo "BUILD_SPHINX_PDF   = $(BUILD_SPHINX_PDF)"   >> $(BIN_DIST_MK)
+@@ -1188,11 +1185,11 @@ SRC_DIST_TESTSUITE_TARBALL        = $(SRC_DIST_ROOT)/$(SRC_DIST_TESTSUITE_NAME).
+ # Files to include in source distributions
+ #
+ SRC_DIST_GHC_DIRS = mk rules docs distrib bindisttest libffi includes \
+-    utils docs rts compiler ghc driver libraries libffi-tarballs iserv
++    utils docs rts compiler ghc driver libraries libffi-tarballs
+ SRC_DIST_GHC_FILES += \
+     configure.ac config.guess config.sub configure \
+     aclocal.m4 README.md ANNOUNCE HACKING.md INSTALL.md LICENSE Makefile \
+-    install-sh settings.in VERSION GIT_COMMIT_ID \
++    install-sh settings.in llvm-targets VERSION GIT_COMMIT_ID \
+     boot packages ghc.mk MAKEHELP.md
+ 
+ .PHONY: VERSION
+diff --git a/ghc/GHCi/UI.hs b/ghc/GHCi/UI.hs
+index f677e995d0..47aa83baff 100644
+--- a/ghc/GHCi/UI.hs
++++ b/ghc/GHCi/UI.hs
+@@ -2519,7 +2519,7 @@ showDynFlags show_all dflags = do
+                 is_on = test f dflags
+                 quiet = not show_all && test f default_dflags == is_on
+ 
+-        default_dflags = defaultDynFlags (settings dflags)
++        default_dflags = defaultDynFlags (settings dflags) (llvmTargets dflags)
+ 
+         (ghciFlags,others)  = partition (\f -> flagSpecFlag f `elem` flgs)
+                                         DynFlags.fFlags
+@@ -2930,7 +2930,7 @@ showLanguages' show_all dflags =
+                 quiet = not show_all && test f default_dflags == is_on
+ 
+    default_dflags =
+-       defaultDynFlags (settings dflags) `lang_set`
++       defaultDynFlags (settings dflags) (llvmTargets dflags) `lang_set`
+          case language dflags of
+            Nothing -> Just Haskell2010
+            other   -> other
+diff --git a/ghc/Main.hs b/ghc/Main.hs
+index cc6d08ee45..5926718f3f 100644
+--- a/ghc/Main.hs
++++ b/ghc/Main.hs
+@@ -804,7 +804,7 @@ dumpFastStringStats dflags = do
+                          ])
+         -- we usually get more "has z-encoding" than "z-encoded", because
+         -- when we z-encode a string it might hash to the exact same string,
+-        -- which will is not counted as "z-encoded".  Only strings whose
++        -- which is not counted as "z-encoded".  Only strings whose
+         -- Z-encoding is different from the original string are counted in
+         -- the "z-encoded" total.
+   putMsg dflags msg
+diff --git a/ghc/ghc.mk b/ghc/ghc.mk
+index 8d4c1dfe8e..921e5666af 100644
+--- a/ghc/ghc.mk
++++ b/ghc/ghc.mk
+@@ -133,6 +133,9 @@ all_ghc_stage3 : $(GHC_STAGE3)
+ $(INPLACE_LIB)/settings : settings
+ 	"$(CP)" $< $@
+ 
++$(INPLACE_LIB)/llvm-targets : llvm-targets
++	"$(CP)" $< $@
++
+ $(INPLACE_LIB)/platformConstants: $(includes_GHCCONSTANTS_HASKELL_VALUE)
+ 	"$(CP)" $< $@
+ 
+@@ -141,6 +144,7 @@ $(INPLACE_LIB)/platformConstants: $(includes_GHCCONSTANTS_HASKELL_VALUE)
+ 
+ GHC_DEPENDENCIES += $$(unlit_INPLACE)
+ GHC_DEPENDENCIES += $(INPLACE_LIB)/settings
++GHC_DEPENDENCIES += $(INPLACE_LIB)/llvm-targets
+ GHC_DEPENDENCIES += $(INPLACE_LIB)/platformConstants
+ 
+ $(GHC_STAGE1) : | $(GHC_DEPENDENCIES)
+@@ -168,6 +172,7 @@ $(GHC_STAGE2) : $(foreach w,$(GhcLibWays),libraries/base/dist-install/build/GHC/
+ endif
+ 
+ INSTALL_LIBS += settings
++INSTALL_LIBS += llvm-targets
+ 
+ ifeq "$(Windows_Host)" "NO"
+ install: install_ghc_link
+diff --git a/includes/ghc.mk b/includes/ghc.mk
+index d08ecfbc07..31efbb0cd0 100644
+--- a/includes/ghc.mk
++++ b/includes/ghc.mk
+@@ -144,6 +144,13 @@ $(includes_H_PLATFORM) : includes/Makefile | $$(dir $$@)/.
+ 	@echo "#define BUILD_OS  \"$(HostOS_CPP)\"" >> $@
+ 	@echo "#define HOST_OS  \"$(TargetOS_CPP)\"" >> $@
+ 	@echo >> $@
++	@echo "#if defined(macos_BUILD_OS) || defined(ios_BUILD_OS)" >> $@
++	@echo "#  define darwin_BUILD_OS  1" >> $@
++	@echo "#endif" >> $@
++	@echo "#if defined(macos_HOST_OS) || defined(ios_HOST_OS)" >> $@
++	@echo "#  define darwin_HOST_OS  1" >> $@
++	@echo "#endif" >> $@
++	@echo >> $@
+ 	@echo "#define $(HostVendor_CPP)_BUILD_VENDOR  1" >> $@
+ 	@echo "#define $(TargetVendor_CPP)_HOST_VENDOR  1" >> $@
+ 	@echo "#define BUILD_VENDOR  \"$(HostVendor_CPP)\"" >> $@
+diff --git a/libraries/base/GHC/Event/Manager.hs b/libraries/base/GHC/Event/Manager.hs
+index 013850b5d2..cee0579f3c 100644
+--- a/libraries/base/GHC/Event/Manager.hs
++++ b/libraries/base/GHC/Event/Manager.hs
+@@ -146,7 +146,7 @@ callbackTableVar mgr fd = emFds mgr ! hashFd fd
+ 
+ haveOneShot :: Bool
+ {-# INLINE haveOneShot #-}
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#ifdef darwin_HOST_OS
+ haveOneShot = False
+ #elif defined(HAVE_EPOLL) || defined(HAVE_KQUEUE)
+ haveOneShot = True
+@@ -372,7 +372,7 @@ registerFd mgr cb fd evs lt = do
+ -}
+ -- | Wake up the event manager.
+ wakeManager :: EventManager -> IO ()
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#ifdef darwin_HOST_OS
+ wakeManager mgr = sendWakeup (emControl mgr)
+ #elif defined(HAVE_EPOLL) || defined(HAVE_KQUEUE)
+ wakeManager _ = return ()
+diff --git a/libraries/base/cbits/DarwinUtils.c b/libraries/base/cbits/DarwinUtils.c
+index d080934104..b8cd9da966 100644
+--- a/libraries/base/cbits/DarwinUtils.c
++++ b/libraries/base/cbits/DarwinUtils.c
+@@ -1,6 +1,6 @@
+ #include "HsBase.h"
+ 
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#ifdef darwin_HOST_OS
+ #include <mach/mach_time.h>
+ 
+ static double scaling_factor = 0.0;
+diff --git a/libraries/base/configure.ac b/libraries/base/configure.ac
+index 69ea800a7f..f472319a7e 100644
+--- a/libraries/base/configure.ac
++++ b/libraries/base/configure.ac
+@@ -69,7 +69,7 @@ if test "$ac_cv_header_poll_h" = yes && test "$ac_cv_func_poll" = yes; then
+   AC_DEFINE([HAVE_POLL], [1], [Define if you have poll support.])
+ fi
+ 
+-# Linux open file description locks
++# Linux open file descriptor locks
+ AC_CHECK_DECL([F_OFD_SETLK], [
+   AC_DEFINE([HAVE_OFD_LOCKING], [1], [Define if you have open file descriptor lock support.])
+ ])
+diff --git a/libraries/base/include/HsBase.h b/libraries/base/include/HsBase.h
+index cfe046426d..401359a562 100644
+--- a/libraries/base/include/HsBase.h
++++ b/libraries/base/include/HsBase.h
+@@ -534,11 +534,15 @@ INLINE int __hscore_open(char *file, int how, mode_t mode) {
+ }
+ #endif
+ 
+-#if darwin_HOST_OS
++#if macos_HOST_OS
+ // You should not access _environ directly on Darwin in a bundle/shared library.
+ // See #2458 and http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man7/environ.7.html
+ #include <crt_externs.h>
+ INLINE char **__hscore_environ(void) { return *(_NSGetEnviron()); }
++#elif ios_HOST_OS
++// _NSGetEnviron is a "private API" and will cause an app store rejection.
++char* const __hscore_fake_envion[] = { NULL };
++INLINE char **__hscore_environ(void) { return __hscore_fake_envion; }
+ #else
+ /* ToDo: write a feature test that doesn't assume 'environ' to
+  *    be in scope at link-time. */
+diff --git a/llvm-targets b/llvm-targets
+new file mode 100644
+index 0000000000..b67ee6ccfa
+--- /dev/null
++++ b/llvm-targets
+@@ -0,0 +1,25 @@
++[("i386-unknown-windows", ("e-m:x-p:32:32-i64:64-f80:32-n8:16:32-a:0:32-S32", "pentium4", ""))
++,("i686-unknown-windows", ("e-m:x-p:32:32-i64:64-f80:32-n8:16:32-a:0:32-S32", "pentium4", ""))
++,("x86_64-unknown-windows", ("e-m:w-i64:64-f80:128-n8:16:32:64-S128", "x86-64", ""))
++,("arm-unknown-linux-gnueabihf", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "arm1176jzf-s", "+strict-align"))
++,("armv6-unknown-linux-gnueabihf", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "arm1136jf-s", "+strict-align"))
++,("armv6l-unknown-linux-gnueabihf", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "arm1176jzf-s", "+strict-align"))
++,("armv7-unknown-linux-gnueabihf", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "generic", ""))
++,("armv7a-unknown-linux-gnueabi", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "generic", ""))
++,("armv7l-unknown-linux-gnueabihf", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "generic", ""))
++,("aarch64-unknown-linux-gnu", ("e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128", "generic", "+neon"))
++,("aarch64-unknown-linux", ("e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128", "generic", "+neon"))
++,("i386-unknown-linux-gnu", ("e-m:e-p:32:32-f64:32:64-f80:32-n8:16:32-S128", "pentium4", ""))
++,("i386-unknown-linux", ("e-m:e-p:32:32-f64:32:64-f80:32-n8:16:32-S128", "pentium4", ""))
++,("x86_64-unknown-linux-gnu", ("e-m:e-i64:64-f80:128-n8:16:32:64-S128", "x86-64", ""))
++,("x86_64-unknown-linux", ("e-m:e-i64:64-f80:128-n8:16:32:64-S128", "x86-64", ""))
++,("armv7-unknown-linux-androideabi", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "generic", ""))
++,("aarch64-unknown-linux-android", ("e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128", "generic", "+neon"))
++,("arm-unknown-nto-qnx-eabi", ("e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64", "arm7tdmi", "+strict-align"))
++,("i386-apple-darwin", ("e-m:o-p:32:32-f64:32:64-f80:128-n8:16:32-S128", "yonah", ""))
++,("x86_64-apple-darwin", ("e-m:o-i64:64-f80:128-n8:16:32:64-S128", "core2", ""))
++,("armv7-apple-ios", ("e-m:o-p:32:32-f64:32:64-v64:32:64-v128:32:128-a:0:32-n32-S32", "generic", ""))
++,("aarch64-apple-ios", ("e-m:o-i64:64-i128:128-n32:64-S128", "generic", "+neon"))
++,("i386-apple-ios", ("e-m:o-p:32:32-f64:32:64-f80:128-n8:16:32-S128", "yonah", ""))
++,("x86_64-apple-ios", ("e-m:o-i64:64-f80:128-n8:16:32:64-S128", "core2", ""))
++]
+diff --git a/mk/config.mk.in b/mk/config.mk.in
+index fcbc32d7df..c740f64e2e 100644
+--- a/mk/config.mk.in
++++ b/mk/config.mk.in
+@@ -745,6 +745,7 @@ NM = @NmCmd@
+ AR = @ArCmd@
+ OBJDUMP = @ObjdumpCmd@
+ 
++CLANG = @ClangCmd@
+ LLC = @LlcCmd@
+ OPT = @OptCmd@
+ 
+diff --git a/mk/project.mk.in b/mk/project.mk.in
+index 03bd7441cb..d620ed5a61 100644
+--- a/mk/project.mk.in
++++ b/mk/project.mk.in
+@@ -12,7 +12,7 @@
+ # Versioning scheme: A.B.C
+ #         A: major version, decimal, any number of digits
+ #         B: minor version, decimal, any number of digits
+-#	  C: patchlevel, one digit, omitted if zero.
++#     C: patchlevel, one digit, omitted if zero.
+ #
+ # ProjectVersionInt does *not* contain the patchlevel (rationale: this
+ # figure is used for conditional compilations, and library interfaces
+@@ -35,7 +35,7 @@ ProjectGitCommitId = @ProjectGitCommitId@
+ 
+ ################################################################################
+ #
+-#		Platform variables
++#       Platform variables
+ #
+ ################################################################################
+ 
+@@ -81,24 +81,25 @@ ProjectGitCommitId = @ProjectGitCommitId@
+ # You have to do a lot of work by hand to cross compile: see the
+ # section on "Porting GHC" in the Building Guide.
+ 
+-HOSTPLATFORM			= @HostPlatform@
+-TARGETPLATFORM			= @TargetPlatform@
+-BUILDPLATFORM			= @BuildPlatform@
++HOSTPLATFORM            = @HostPlatform@
++TARGETPLATFORM          = @TargetPlatform@
++BUILDPLATFORM           = @BuildPlatform@
+ 
+-HostPlatform_CPP		= @HostPlatform_CPP@
+-HostArch_CPP			= @HostArch_CPP@
+-HostOS_CPP			= @HostOS_CPP@
+-HostVendor_CPP	                = @HostVendor_CPP@
++HostPlatform_CPP        = @HostPlatform_CPP@
++HostArch_CPP            = @HostArch_CPP@
++HostOS_CPP              = @HostOS_CPP@
++HostVendor_CPP          = @HostVendor_CPP@
+ 
+-TargetPlatform_CPP		= @TargetPlatform_CPP@
+-TargetArch_CPP			= @TargetArch_CPP@
+-TargetOS_CPP			= @TargetOS_CPP@
+-TargetVendor_CPP                = @TargetVendor_CPP@
++TargetPlatform_CPP      = @TargetPlatform_CPP@
++TargetArch_CPP          = @TargetArch_CPP@
++TargetOS_CPP            = @TargetOS_CPP@
++TargetVendor_CPP        = @TargetVendor_CPP@
++LLVMTarget_CPP          = @LLVMTarget_CPP@
+ 
+-BuildPlatform_CPP		= @BuildPlatform_CPP@
+-BuildArch_CPP			= @BuildArch_CPP@
+-BuildOS_CPP			= @BuildOS_CPP@
+-BuildVendor_CPP                 = @BuildVendor_CPP@
++BuildPlatform_CPP       = @BuildPlatform_CPP@
++BuildArch_CPP           = @BuildArch_CPP@
++BuildOS_CPP             = @BuildOS_CPP@
++BuildVendor_CPP         = @BuildVendor_CPP@
+ 
+ @HostPlatform_CPP@_HOST           = 1
+ @TargetPlatform_CPP@_TARGET       = 1
+@@ -118,7 +119,7 @@ BuildVendor_CPP                 = @BuildVendor_CPP@
+ 
+ ################################################################################
+ #
+-#		Global configuration options
++#       Global configuration options
+ #
+ ################################################################################
+ 
+diff --git a/rts/StgCRun.c b/rts/StgCRun.c
+index 5f7f2b910f..725f4fb127 100644
+--- a/rts/StgCRun.c
++++ b/rts/StgCRun.c
+@@ -116,7 +116,7 @@ StgWord8 *win32AllocStack(void)
+ 
+ #ifdef i386_HOST_ARCH
+ 
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#if defined(darwin_HOST_OS)
+ #define STG_GLOBAL ".globl "
+ #define STG_HIDDEN ".private_extern "
+ #else
+@@ -245,7 +245,7 @@ StgRunIsImplementedInAssembler(void)
+ 
+ #define STG_GLOBAL ".globl "
+ 
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#if defined(darwin_HOST_OS)
+ #define STG_HIDDEN ".private_extern "
+ #else
+ #define STG_HIDDEN ".hidden "
+diff --git a/rts/linker/LoadArchive.c b/rts/linker/LoadArchive.c
+index 4d6b2fecb7..d43e53cea9 100644
+--- a/rts/linker/LoadArchive.c
++++ b/rts/linker/LoadArchive.c
+@@ -28,7 +28,7 @@
+ 
+ #define DEBUG_LOG(...) IF_DEBUG(linker, debugBelch("loadArchive: " __VA_ARGS__))
+ 
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#if defined(darwin_HOST_OS)
+ /* Read 4 bytes and convert to host byte order */
+ static uint32_t read4Bytes(const char buf[static 4])
+ {
+@@ -151,7 +151,7 @@ static StgBool checkFatArchive(char magic[static 20], FILE* f, pathchar* path)
+ {
+     StgBool success;
+     success = false;
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#if defined(darwin_HOST_OS)
+     /* Not a standard archive, look for a fat archive magic number: */
+     if (read4Bytes(magic) == FAT_MAGIC)
+         success = loadFatArchive(magic, f, path);
+@@ -343,7 +343,7 @@ static HsInt loadArchive_ (pathchar *path)
+             }
+         }
+ 
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#if defined(darwin_HOST_OS)
+         if (strncmp(fileName, "!<arch>\n", 8) == 0) {
+             DEBUG_LOG("found the start of another archive, breaking\n");
+             break;
+@@ -502,7 +502,7 @@ static HsInt loadArchive_ (pathchar *path)
+             //       cannot currently allocate blocks large enough.
+             image = allocateImageAndTrampolines(path, fileName, f, memberSize,
+                                                 isThin);
+-#elif defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#elif defined(darwin_HOST_OS)
+             if (RTS_LINKER_USE_MMAP)
+                 image = mmapForLinker(memberSize, MAP_ANONYMOUS, -1, 0);
+             else {
+diff --git a/rts/linker/MachO.c b/rts/linker/MachO.c
+index 55b2bf1ebc..9e85489115 100644
+--- a/rts/linker/MachO.c
++++ b/rts/linker/MachO.c
+@@ -1,7 +1,6 @@
+ #include "Rts.h"
+ 
+ #ifdef darwin_HOST_OS
+-
+ #include "RtsUtils.h"
+ #include "GetEnv.h"
+ #include "LinkerInternals.h"
+@@ -16,6 +15,9 @@
+ #include <mach-o/loader.h>
+ #include <mach-o/nlist.h>
+ #include <mach-o/reloc.h>
++#endif /* darwin_HOST_OS */
++
++#ifdef macos_HOST_OS
+ 
+ #if defined(HAVE_SYS_MMAN_H)
+ #  include <sys/mman.h>
+@@ -39,7 +41,7 @@
+   *) add still more sanity checks.
+ */
+ 
+-#if x86_64_HOST_ARCH || powerpc64_HOST_ARCH
++#if x86_64_HOST_ARCH || powerpc64_HOST_ARCH || aarch64_HOST_ARCH
+ #define mach_header mach_header_64
+ #define segment_command segment_command_64
+ #define section section_64
+@@ -153,7 +155,7 @@ ocVerifyImage_MachO(ObjectCode * oc)
+ 
+     IF_DEBUG(linker, debugBelch("ocVerifyImage_MachO: start\n"));
+ 
+-#if x86_64_HOST_ARCH || powerpc64_HOST_ARCH
++#if x86_64_HOST_ARCH || powerpc64_HOST_ARCH || aarch64_HOST_ARCH
+     if(header->magic != MH_MAGIC_64) {
+         errorBelch("Could not load image %s: bad magic!\n"
+                    "  Expected %08x (64bit), got %08x%s\n",
+@@ -1205,6 +1207,9 @@ machoInitSymbolsWithoutUnderscore(void)
+ }
+ #endif
+ 
++#endif /* macos_HOST_OS */
++
++#ifdef darwin_HOST_OS
+ /*
+  * Figure out by how much to shift the entire Mach-O file in memory
+  * when loading so that its single segment ends up 16-byte-aligned
+@@ -1223,7 +1228,7 @@ machoGetMisalignment( FILE * f )
+     }
+     fseek(f, -sizeof(header), SEEK_CUR);
+ 
+-#if x86_64_HOST_ARCH || powerpc64_HOST_ARCH
++#if x86_64_HOST_ARCH || powerpc64_HOST_ARCH || aarch64_HOST_ARCH
+     if(header.magic != MH_MAGIC_64) {
+         barf("Bad magic. Expected: %08x, got: %08x.",
+              MH_MAGIC_64, header.magic);
+@@ -1240,5 +1245,4 @@ machoGetMisalignment( FILE * f )
+ 
+     return misalignment ? (16 - misalignment) : 0;
+ }
+-
+-#endif /* darwin_HOST_OS */
++#endif /* darwin_HOST_O */
+diff --git a/rts/posix/GetEnv.c b/rts/posix/GetEnv.c
+index e3f731cfed..4527e71155 100644
+--- a/rts/posix/GetEnv.c
++++ b/rts/posix/GetEnv.c
+@@ -9,7 +9,7 @@
+ #include "Rts.h"
+ #include "GetEnv.h"
+ 
+-#if defined(darwin_HOST_OS)
++#if defined(macos_HOST_OS)
+ 
+ /* While the "extern char** environ" var does exist on OSX, it is not
+  * available to shared libs. See ghc ticket #2458 and
+@@ -19,6 +19,13 @@
+ 
+ static char** get_environ(void) { return *(_NSGetEnviron()); }
+ 
++#elif defined(ios_HOST_OS)
++
++/* `_NSGetEnviron` is a "private API" and will cause an app store rejection.
++ */
++static char* const fake_envion[] = { NULL };
++static char** get_environ(void) { return fake_envion; }
++
+ #else
+ 
+ /* On proper unix systems the environ is just a global var.
+diff --git a/rts/posix/Itimer.c b/rts/posix/Itimer.c
+index 59d34be5fb..787718fc0b 100644
+--- a/rts/posix/Itimer.c
++++ b/rts/posix/Itimer.c
+@@ -32,9 +32,9 @@
+ /*
+  * We want to avoid using the SIGALRM signals whenever possible as these signals
+  * interrupt system calls (see #10840) and can be overridden by user code. On
+- * Darwin we can use a dedicated thread and usleep.
++ * macOS we can use a dedicated thread and usleep.
+  */
+-#if defined(darwin_HOST_OS)
++#if defined(macos_HOST_OS)
+ #define USE_PTHREAD_FOR_ITIMER
+ #endif
+ 
+diff --git a/rts/posix/OSMem.c b/rts/posix/OSMem.c
+index d25aaf86de..4d3c869705 100644
+--- a/rts/posix/OSMem.c
++++ b/rts/posix/OSMem.c
+@@ -39,7 +39,7 @@
+ 
+ #include <errno.h>
+ 
+-#if darwin_HOST_OS || ios_HOST_OS
++#ifdef darwin_HOST_OS
+ #include <mach/mach.h>
+ #include <mach/vm_map.h>
+ #include <sys/sysctl.h>
+@@ -368,7 +368,7 @@ StgWord64 getPhysicalMemorySize (void)
+ {
+     static StgWord64 physMemSize = 0;
+     if (!physMemSize) {
+-#if defined(darwin_HOST_OS) || defined(ios_HOST_OS)
++#ifdef darwin_HOST_OS
+         /* So, darwin doesn't support _SC_PHYS_PAGES, but it does
+            support getting the raw memory size in bytes through
+            sysctlbyname(hw.memsize); */
+diff --git a/settings.in b/settings.in
+index 04b913b86c..e4deb05b3c 100644
+--- a/settings.in
++++ b/settings.in
+@@ -29,6 +29,7 @@
+  ("target has RTS linker", "@HaskellHaveRTSLinker@"),
+  ("Unregisterised", "@Unregisterised@"),
+  ("LLVM llc command", "@SettingsLlcCommand@"),
+- ("LLVM opt command", "@SettingsOptCommand@")
++ ("LLVM opt command", "@SettingsOptCommand@"),
++ ("LLVM clang command", "@SettingsClangCommand@")
+  ]
+ 
+diff --git a/utils/llvm-targets/gen-data-layout.sh b/utils/llvm-targets/gen-data-layout.sh
+new file mode 100755
+index 0000000000..3d9ded1a51
+--- /dev/null
++++ b/utils/llvm-targets/gen-data-layout.sh
+@@ -0,0 +1,104 @@
++#!/usr/bin/env bash
++#
++# llvm-target generator
++#
++# Author: Moritz Angermann <moritz.angermann@gmail.com>
++#
++# This file generates the `llvm-targets` file, which contains the
++# data-layout, cpu and attributes for the target.  This is done by
++# querying `clang` for the data-layout, cpu and attributes based
++# on a given target.
++#
++# To utilize it run it as
++#
++#  $ ./gen-data-layout.sh > llvm-targets
++#
++# Add missing targets to the list below to have them included in
++# llvm-targets file.
++
++# Target sets for which to generate the llvm-targets file
++TARGETS=(
++    # Windows x86
++    "i386-unknown-windows" "i686-unknown-windows" "x86_64-unknown-windows"
++
++    # Linux ARM
++    "arm-unknown-linux-gnueabihf" "armv6-unknown-linux-gnueabihf" "armv6l-unknown-linux-gnueabihf"
++    "armv7-unknown-linux-gnueabihf" "armv7a-unknown-linux-gnueabi" "armv7l-unknown-linux-gnueabihf"
++    "aarch64-unknown-linux-gnu" "aarch64-unknown-linux"
++    # Linux x86
++    "i386-unknown-linux-gnu" "i386-unknown-linux" "x86_64-unknown-linux-gnu" "x86_64-unknown-linux"
++    # Linux Android
++    "armv7-unknown-linux-androideabi" "aarch64-unknown-linux-android"
++
++    # QNX
++    "arm-unknown-nto-qnx-eabi"
++
++    # macOS
++    "i386-apple-darwin" "x86_64-apple-darwin"
++    # iOS
++    "armv7-apple-ios arm64-apple-ios" "i386-apple-ios x86_64-apple-ios"
++)
++
++# given the call to clang -c11 that clang --target -v generates,
++# parse the -target-cpu <CPU> and -target-feature <feature> from
++# the output.
++function get_cpu_and_attr() {
++    # echo $@
++    while [ "$#" -gt 0 ]; do
++        case "$1" in
++            -target-cpu) CPU=$2; shift 2;;
++            -target-feature)
++                # translate clang to opt/llc target features
++                case "$2" in
++                    # we don't have support in GHC for proper soft-float.
++                    # if we extend the `llvm-target` file to contain two
++                    # additional columns for opt and llc flags, we could
++                    # pass -float-abi=soft; However ghc will use float
++                    # registers unconditionally on arm, and as such true
++                    # soft float with the registerised llvm backend is
++                    # currently not possible.
++                    +soft-float-abi) shift 2;;
++                    *) ATTR+=("$2"); shift 2;;
++                esac
++                ;;
++            *) shift 1;;
++        esac
++    done
++}
++
++# first marker to discrimiate the first line being outputted.
++FST=1
++# a dummy file to use for the clang invocation.
++FILE=_____dummy.c
++touch $FILE
++
++for target in "${TARGETS[@]}"; do
++    # find the cpu and attributes emitte by clang for the given $target
++    CPU=""
++    ATTR=()
++    args=$(clang --target=$target -S $FILE -o /dev/null -v 2>&1 |grep $FILE)
++    get_cpu_and_attr $args
++
++    # find the data-layout from the llvm code emitted by clang.
++    dl=$(clang --target=$target -S $FILE -emit-llvm -o -|grep datalayout |awk -F\  '{ print $4 }')
++    # GNU and Apple/LLVM can't agree on the aarch64 target.
++    # aarch64-apple-ios, is understood by autotools but not by LLVM.
++    # arm64-apple-ios, is understood by LLVM, but not by autotools.
++    #
++    # therefore, while we query clang with arm64-apple-ios, we put
++    # aarch64-apple-ios into the llvm-target list, as that is what
++    # we have to configure ghc with --target with anyway.  Also we
++    # want to retain the GNU naming for compatibility with libraries
++    # that use autotools.
++    if [ "$target" == "arm64-apple-ios" ]; then
++       target="aarch64-apple-ios"
++    fi
++    if [ $FST -eq 1 ]; then
++        echo "[(\"${target}\", ($dl, \"$CPU\", \"${ATTR[*]}\"))"
++        FST=0
++    else
++        echo ",(\"${target}\", ($dl, \"$CPU\", \"${ATTR[*]}\"))"
++    fi
++done
++rm $FILE
++echo "]"
+diff --git a/utils/mkUserGuidePart/Options/Linking.hs b/utils/mkUserGuidePart/Options/Linking.hs
+index 23e32fac78..f0b6ea55d6 100644
+--- a/utils/mkUserGuidePart/Options/Linking.hs
++++ b/utils/mkUserGuidePart/Options/Linking.hs
+@@ -11,9 +11,10 @@ linkingOptions =
+          }
+   , flag { flagName = "-staticlib"
+          , flagDescription =
+-           "On Darwin/OS X/iOS only, generate a standalone static library " ++
+-           "(as opposed to an executable). This is the usual way to " ++
+-           "compile for iOS."
++           "Generate a standalone static library (as opposed to an " ++
++           "executable). This is useful when cross compiling. The " ++
++           "library together with all its dependencies ends up in in a " ++
++           "single static library that can be linked against."
+          , flagType = DynamicFlag
+          }
+   , flag { flagName = "-fPIC"
