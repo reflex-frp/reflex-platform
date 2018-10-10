@@ -110,8 +110,12 @@ project. In the root directory of your project, create this
   };
 
   shells = {
-    ghc = ["common" "backend" "frontend"];
-    ghcjs = ["common" "frontend"];
+    -- because of a bug in nix, we have to add a non base module
+    -- like "text" to the list of dependencies. This will change with
+    -- future versions
+    -- (https://github.com/NixOS/nixpkgs/issues/33592)
+    ghc = ["common" "backend" "frontend" "text"];
+    ghcjs = ["common" "frontend" "text"];
   };
 })
 ```
