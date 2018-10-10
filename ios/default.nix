@@ -1,6 +1,4 @@
-{ nixpkgs, ghcIosArm64
-, plistLib # Set of functions for generating plist files from nix types
-}:
+{ nixpkgs, ghc }:
 
 { #TODO
   bundleName
@@ -107,18 +105,18 @@ let
     '';
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
-  exePath = package ghcIosArm64;
-  infoPlist = builtins.toFile "Info.plist" (plistLib.toPLIST infoPlistData);
-  resourceRulesPlist = builtins.toFile "ResourceRules.plist" (plistLib.toPLIST {
+  exePath = package ghc;
+  infoPlist = builtins.toFile "Info.plist" (nixpkgs.lib.generators.toPlist {} infoPlistData);
+  resourceRulesPlist = builtins.toFile "ResourceRules.plist" (nixpkgs.lib.generators.toPlist {} {
     rules = {
-      ${".*"} = true;
-      ${"Info.plist"} = {
+      ".*" = true;
+      "Info.plist" = {
         omit = true;
-        weight = plistLib.types.real 10;
+        weight = 10;
       };
-      ${"ResourceRules.plist"} = {
+      "ResourceRules.plist" = {
         omit = true;
-        weight = plistLib.types.real 100;
+        weight = 100;
       };
     };
   });
@@ -130,13 +128,13 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       </body>
     </html>
   '';
-  xcent = builtins.toFile "xcent" (plistLib.toPLIST {
+  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} {
     application-identifier = "<team-id/>.${bundleIdentifier}";
-    ${"com.apple.developer.team-identifier"} = "<team-id/>";
+    "com.apple.developer.team-identifier" = "<team-id/>";
     get-task-allow = true;
     keychain-access-groups = [ "<team-id/>.${bundleIdentifier}" ];
     aps-environment = apsEnv;
-    ${"com.apple.developer.associated-domains"} =
+    "com.apple.developer.associated-domains" =
       if hosts == [] then null else map (host: "applinks:${host}") hosts;
   });
   deployScript = nixpkgs.writeText "deploy" ''
