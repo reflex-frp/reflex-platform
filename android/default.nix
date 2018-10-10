@@ -1,8 +1,8 @@
 env@{
   nixpkgs
 , nixpkgsCross
-, ghcAndroidArm64
-, ghcAndroidArmv7a
+, ghcAndroidAarch64
+, ghcAndroidAarch32
 , overrideCabal
 }:
 with nixpkgs.lib.strings;

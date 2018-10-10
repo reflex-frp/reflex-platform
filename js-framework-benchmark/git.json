@@ -1,6 +1,6 @@
 {
-  "url": "https://github.com/alexfmpe/js-framework-benchmark",
-  "rev": "f9dc2d0d6d603a0e4b77afeec85346cfad76c153",
-  "sha256": "1bdrgsjwbwn0zg80sg0vbb27vms817qv2fmpiz2va2y9npn9jq41",
-  "fetchSubmodules": true
+  "url": "git://github.com/obsidiansystems/js-framework-benchmark.git",
+  "rev": "aa54b5a5dc532264f82b6b0fd3bdc218409ba2ff",
+  "sha256": "1naa1w199rysysjswzw2iy2mag47j8ssvhdr2b1hrddn71jlmjz0",
+  "fetchSubmodules": false
 }

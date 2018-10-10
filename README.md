@@ -1,4 +1,4 @@
-Reflex Platform [![CircleCI](https://circleci.com/gh/reflex-frp/reflex-platform.svg?style=svg)](https://circleci.com/gh/reflex-frp/reflex-platform)
+Reflex Platform
 ===============
 
 The Reflex Platform is a collection of libraries and tools that are useful for developing and deploying [Reflex](https://github.com/reflex-frp/reflex)-based applications.
