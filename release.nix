@@ -55,10 +55,12 @@ let local-reflex-platform = import ./. {};
         inherit (reflex-platform) androidReflexTodomvc;
         inherit (reflex-platform) androidReflexTodomvc-8_2;
         inherit (reflex-platform) androidReflexTodomvc-8_4;
+        a = reflex-platform.ghcAndroidAarch64.a;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
         inherit (reflex-platform) iosReflexTodomvc-8_2;
         inherit (reflex-platform) iosReflexTodomvc-8_4;
+        a = reflex-platform.ghcIosAarch64.a;
       } // drvListToAttrs otherDeps
         // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages) # TODO no filter
       );

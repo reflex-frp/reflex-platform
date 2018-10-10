@@ -1,10 +1,7 @@
-{ haskellLib }:
+{ haskellLib, lib }:
 
 self: super: {
   ghcjs-prim = null;
-  derive = null;
-  focus-http-th = null;
-  th-lift-instances = null;
   websockets = null;
   wai = null;
   warp = null;
