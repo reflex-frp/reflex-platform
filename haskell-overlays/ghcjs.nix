@@ -33,7 +33,7 @@ self: super: {
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
 
-  # Megaparsec's tests seem to hang
+  # Convenience: tests take long to finish
   megaparsec = dontCheck super.megaparsec;
 
   # Need newer version of colour for some reason.
