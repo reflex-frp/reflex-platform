@@ -39,6 +39,8 @@ self: super: {
     sha256 = "0ffk5j1db2y1drn0przh4jw9gc3vygwd987wl1g1m3dw7ry4dxy6";
   }) {};
 
+  a = self.callCabal2nix "a" (../a) {};
+
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
   });

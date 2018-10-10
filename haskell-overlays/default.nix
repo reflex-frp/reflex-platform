@@ -7,6 +7,7 @@
 , stage2Script
 , optionalExtension
 , androidActivity
+, ghcSavedSplices
 }:
 
 rec {
@@ -41,7 +42,8 @@ rec {
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
     (optionalExtension (super.ghc.isGhcjs or false && useTextJSString) textJSString)
-    (optionalExtension (with nixpkgs.stdenv; hostPlatform != buildPlatform) disableTemplateHaskell)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 2 ] super.ghc.version && hostPlatform != buildPlatform) disableTemplateHaskell)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 4 ] super.ghc.version && hostPlatform != buildPlatform) loadSplices)
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
@@ -112,6 +114,15 @@ rec {
   ghc-8_4 = _: _: {};
   ghc-head = _: _: {};
 
+  saveSplices = import ./save-splices.nix {
+    inherit lib haskellLib fetchFromGitHub;
+  };
+
+  loadSplices = import ./load-splices.nix {
+    inherit lib haskellLib fetchFromGitHub;
+    splicedHaskellPackages = ghcSavedSplices;
+  };
+
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
     inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer hackGet;
@@ -132,10 +143,13 @@ rec {
 
   android = import ./android {
     inherit haskellLib;
-    inherit androidActivity;
     inherit nixpkgs;
+    inherit androidActivity;
   };
-  ios = import ./ios.nix { inherit haskellLib; };
+  ios = import ./ios.nix {
+    inherit haskellLib;
+    inherit (nixpkgs) lib;
+  };
 
   untriaged = import ./untriaged.nix {
     inherit haskellLib;

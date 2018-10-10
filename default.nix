@@ -13,6 +13,25 @@
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
+    # Overlay for GHC with -load-splices & -save-splices option
+    splicesEval = self: super: {
+      haskell = super.haskell // {
+        compiler = super.haskell.compiler // {
+          ghcSplices-8_4 = super.haskell.compiler.ghc843.overrideAttrs (drv: {
+            enableParallelBuilding = false;
+            patches = (drv.patches or [])
+              ++ [ ./splices-load-save.patch ./haddock.patch ];
+          });
+        };
+        packages = super.haskell.packages // {
+          ghcSplices-8_4 = super.haskell.packages.ghc843.override {
+            buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_4;
+            ghc = self.buildPackages.haskell.compiler.ghcSplices-8_4;
+          };
+        };
+      };
+    };
+
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
         overlays = super.overlays or {} // import ./haskell-overlays {
@@ -25,6 +44,7 @@ let iosSupport = system == "x86_64-darwin";
             useTextJSString enableExposeAllUnfoldings
             stage2Script
             optionalExtension;
+          inherit ghcSavedSplices;
           inherit (self) lib;
           androidActivity = hackGet ./android-activity;
         };
@@ -52,6 +72,7 @@ let iosSupport = system == "x86_64-darwin";
         bindHaskellOverlays
         forceStaticLibs
         mobileGhcOverlay
+        splicesEval
       ] ++ nixpkgsOverlays;
       config = {
         permittedInsecurePackages = [
@@ -59,8 +80,6 @@ let iosSupport = system == "x86_64-darwin";
         ];
         packageOverrides = pkgs: {
           webkitgtk = pkgs.webkitgtk220x;
-          # cabal2nix's tests crash on 32-bit linux; see https://github.com/NixOS/cabal2nix/issues/272
-          ${if system == "i686-linux" then "cabal2nix" else null} = pkgs.haskell.lib.dontCheck pkgs.cabal2nix;
         };
 
         # XCode needed for native macOS app
@@ -290,6 +309,22 @@ let iosSupport = system == "x86_64-darwin";
       '';
     };
 
+  ghcSavedSplices = ghcSavedSplices-8_4;
+  ghcSavedSplices-8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_4).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
+      haskellOverlays = nixpkgs.haskell.overlays;
+    in [
+      haskellOverlays.combined
+      haskellOverlays.saveSplices
+      (self: super: with haskellLib; {
+        cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
+        integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
+        scientific = enableCabalFlag super.scientific "integer-simple";
+        dependent-sum-template = dontCheck super.dependent-sum-template;
+        generic-deriving = dontCheck super.generic-deriving;
+      })
+    ]);
+  };
   ghcjs = ghcjs8_4;
   ghcjs8_4 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs84.override (old: {
     ghc = useTextJSStringAsBootPkg (ghcjsApplyFastWeak (old.ghc.override {
@@ -353,39 +388,53 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
 
-  ghcAndroidAarch64 = ghcAndroidAarch64-8_4;
-  ghcAndroidAarch64-8_4 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc843).override {
-    overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
+  # Takes a package set with `makeRecursivelyOverridable` and ensures that any
+  # future overrides will be applied to both the package set itself and it's
+  # build-time package set (`buildHaskellPackages`).
+  makeRecursivelyOverridableBHPToo = x: x // {
+    override = new: makeRecursivelyOverridableBHPToo (x.override
+      (combineOverrides
+        {
+          overrides = self: super: {
+            buildHaskellPackages = super.buildHaskellPackages.override new;
+          };
+        }
+        new));
   };
+
+  ghcAndroidAarch64 = ghcAndroidAarch64-8_4;
+  ghcAndroidAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_4).override {
+    overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
+  });
   ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   };
   ghcAndroidAarch32 = ghcAndroidAarch32-8_4;
-  ghcAndroidAarch32-8_4 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc843).override {
+  ghcAndroidAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
-  };
+  });
   ghcAndroidAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   };
 
   ghcIosSimulator64 = ghcIosSimulator64-8_4;
-  ghcIosSimulator64-8_4 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc843).override {
+  ghcIosSimulator64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
-  };
+  });
   ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   };
   ghcIosAarch64 = ghcIosAarch64-8_4;
-  ghcIosAarch64-8_4 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc843).override {
+  ghcIosAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
-  };
+  });
   ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   };
   ghcIosAarch32 = ghcIosAarch32-8_4;
-  ghcIosAarch32-8_4 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc843).override {
+  ghcIosAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
-  };
+  });
   ghcIosAarch32-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   };
@@ -446,6 +495,7 @@ in let this = rec {
           ghcjs8_0
           ghcjs8_2
           ghcjs8_4
+          ghcSavedSplices
           android
           androidWithHaskellPackages
           iosAarch32
