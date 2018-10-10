@@ -28,8 +28,13 @@ self: super: {
   comonad = dontCheck super.comonad;
   http-types = dontCheck super.http-types;
   lens = disableCabalFlag (disableCabalFlag (dontCheck super.lens) "test-properties") "test-doctests";
+  pgp-wordlist = dontCheck super.pgp-wordlist;
+  prettyprinter = dontCheck super.prettyprinter;
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
+
+  # Megaparsec's tests seem to hang
+  megaparsec = dontCheck super.megaparsec;
 
   # Need newer version of colour for some reason.
   colour = dontCheck (super.colour.overrideAttrs (drv: {
