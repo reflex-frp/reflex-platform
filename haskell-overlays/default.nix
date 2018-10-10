@@ -134,12 +134,12 @@ rec {
   };
   ghcjs-8_2 = _: _: {
   };
-  ghcjs-8_4 = _: _: {
+  ghcjs-8_4 = optionalExtension useTextJSString (_: _: {
     dlist = null;
     ghcjs-base = null;
     primitive = null;
     vector = null;
-  };
+  });
 
   android = import ./android {
     inherit haskellLib;
