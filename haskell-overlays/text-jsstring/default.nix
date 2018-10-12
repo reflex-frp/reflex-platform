@@ -20,14 +20,12 @@ self: super: {
       self.ghcjs-prim
     ];
   });
-  attoparsec = overrideCabal super.attoparsec (drv: {
-    src = fetchFromGitHub {
-      owner = "luigy";
-      repo = "attoparsec";
-      rev = "e766a754811042f061b6b4498137d2ad28e207a8";
-      sha256 = "106fn187hw9z3bidbkp7r4wafmhk7g2iv2k0hybirv63f8727x3x";
-    };
-  });
+  attoparsec = self.callCabal2nix "attoparsec" (fetchFromGitHub {
+    owner = "obsidiansystems";
+    repo = "attoparsec";
+    rev = "5569fbd47ae235a800653134a06bf51186c91f8f";
+    sha256 = "0qgr9xcmwzbxxm84l9api7bib6bspmkii1d7dlg8bcgk9icqwbcw";
+  }) {};
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {
