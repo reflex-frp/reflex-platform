@@ -41,7 +41,7 @@ rec {
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
-    (optionalExtension (super.ghc.isGhcjs or false && useTextJSString) textJSString)
+    (optionalExtension (versionWildcard [ 8 4 ] (getGhcVersion super.ghc) && (super.ghc.isGhcjs or false) && useTextJSString) textJSString)
     (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 2 ] super.ghc.version && hostPlatform != buildPlatform) disableTemplateHaskell)
     (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 4 ] super.ghc.version && hostPlatform != buildPlatform) loadSplices)
 
@@ -128,7 +128,7 @@ rec {
     inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer hackGet;
   };
   ghcjs-8_0 = self: super: {
-    hashable = self.callHackage "hashable" "1.2.7.0" {};
+    hashable = haskellLib.addBuildDepend (self.callHackage "hashable" "1.2.7.0" {}) super.text;
     # `configure` cannot be generated on the fly from `configure.ac` with older Cabal.
     old-time = haskellLib.addBuildTool super.old-time nixpkgs.autoreconfHook;
   };
