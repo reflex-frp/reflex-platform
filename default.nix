@@ -38,7 +38,7 @@ let iosSupport = system == "x86_64-darwin";
           nixpkgs = self;
           inherit
             haskellLib
-            fetchFromGitHub hackGet
+            fetchFromGitHub dep
             ghcjsBaseSrc ghcjsBaseTextJSStringSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
@@ -46,7 +46,7 @@ let iosSupport = system == "x86_64-darwin";
             optionalExtension;
           inherit ghcSavedSplices;
           inherit (self) lib;
-          androidActivity = hackGet ./android-activity;
+          androidActivity = dep.android-activity;
         };
       };
     };
@@ -150,14 +150,10 @@ let iosSupport = system == "x86_64-darwin";
         outPath = filterGit p;
       };
 
-    # All imports of sources need to go here, so that they can be explicitly cached
-    sources = {
-      ghcjs8_0 = {
-        boot = hackGet ./ghcjs-8.0/boot;
-        shims = hackGet ./ghcjs-8.0/shims;
-        ghcjs = hackGet ./ghcjs-8.0/ghcjs;
-      };
-    };
+    # Make an attribute set of source derivations for a directory containing thunks:
+    thunkSet = dir: lib.mapAttrs (name: _: hackGet (dir + "/${name}")) (builtins.readDir dir);
+
+    dep = thunkSet ./dep;
 
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
 
@@ -214,7 +210,7 @@ let iosSupport = system == "x86_64-darwin";
       buildCommand = ''
         echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
         patchShebangs .
-        ./gen-stage2.rb "${sources.ghcjs8_0.boot}" >"$out"
+        ./gen-stage2.rb "${dep."ghcjs-boot-8.0"}" >"$out"
       '';
       nativeBuildInputs = with nixpkgs; [
         ruby cabal2nix
@@ -362,9 +358,9 @@ let iosSupport = system == "x86_64-darwin";
       inherit (nixpkgs) cabal-install;
       inherit (nixpkgs.buildPackages) fetchgit fetchFromGitHub;
     }).override {
-      ghcjsSrc = sources.ghcjs8_0.ghcjs;
-      ghcjsBootSrc = sources.ghcjs8_0.boot;
-      shims = sources.ghcjs8_0.shims;
+      ghcjsSrc = dep."ghcjs-8.0";
+      ghcjsBootSrc = dep."ghcjs-boot-8.0";
+      shims = dep."ghcjs-shims-8.0";
       stage2 = import stage2Script;
     };
   }))).override {
@@ -470,6 +466,8 @@ in let this = rec {
           nixpkgsCross
           overrideCabal
           hackGet
+          thunkSet
+          dep
           foreignLibSmuggleHeaders
           stage2Script
           ghc
@@ -781,9 +779,8 @@ in let this = rec {
     };
   }).config.system.build.virtualBoxOVA;
 
-  inherit cabal2nixResult sources system androidSupport iosSupport;
+  inherit cabal2nixResult system androidSupport iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
-  js-framework-benchmark-src = hackGet ./js-framework-benchmark;
   ghcjsExternsJs = ./ghcjs.externs.js;
 }; in this

@@ -32,7 +32,7 @@ let pkgs = reflex-platform.nixpkgs;
       export PATH=node_modules/.bin:$PATH
     '';
     inherit (pkgs) fetchzip fetchFromGitHub;
-    inherit (reflex-platform) js-framework-benchmark-src;
+    inherit (reflex-platform) dep.js-framework-benchmark;
     yarn2nixSrc = fetchzip {
       url = "https://github.com/moretea/yarn2nix/archive/v1.0.0.tar.gz";
       sha256 = "02bzr9j83i1064r1r34cn74z7ccb84qb5iaivwdplaykyyydl1k8";
@@ -42,25 +42,25 @@ let pkgs = reflex-platform.nixpkgs;
     nodePkgs = {
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
-        src = js-framework-benchmark-src + /webdriver-ts;
+        src = dep.js-framework-benchmark + /webdriver-ts;
         preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       webdriver-ts-results = mkYarnPackage {
         name = "webdriver-ts-results";
-        src = js-framework-benchmark-src + /webdriver-ts-results;
+        src = dep.js-framework-benchmark + /webdriver-ts-results;
         preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       vanillajs-keyed = mkYarnPackage {
         name = "vanillajs-keyed";
-        src = js-framework-benchmark-src + /vanillajs-keyed;
+        src = dep.js-framework-benchmark + /vanillajs-keyed;
         preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       js-framework-benchmark = mkYarnPackage {
         name = "js-framework-benchmark";
-        src = js-framework-benchmark-src;
+        src = dep.js-framework-benchmark;
         inherit shellHook;
       };
     };
@@ -86,7 +86,7 @@ trap "rm -rf \"$CLEAN\"" EXIT
 
 cd "$CLEAN"
 
-cp -a "${reflex-platform.js-framework-benchmark-src}/"* .
+cp -a "${reflex-platform.dep.js-framework-benchmark}/"* .
 chmod -R +w .
 
 ln -s ${nodePkgs.js-framework-benchmark.node_modules} .

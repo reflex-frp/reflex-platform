@@ -1,4 +1,4 @@
-{ haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer, hackGet, ghcjsBaseSrc }:
+{ haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer, ghcjsBaseSrc }:
 
 let inherit (nixpkgs) lib; in
 with haskellLib;

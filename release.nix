@@ -30,7 +30,7 @@ let local-reflex-platform = import ./. {};
           '';
         });
       in {
-        inherit (reflex-platform) sources;
+        inherit (reflex-platform) dep;
         tryReflexShell = reflex-platform.tryReflexShell;
         ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
         ghcjs8_0.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_0.reflex-todomvc;
@@ -45,7 +45,7 @@ let local-reflex-platform = import ./. {};
         benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
         cache = reflex-platform.pinBuildInputs
           "reflex-platform-${system}"
-          (lib.concatMap builtins.attrValues (builtins.attrValues reflex-platform.sources)
+          (lib.concatMap builtins.attrValues (builtins.attrValues reflex-platform.dep)
            ++ reflex-platform.cachePackages)
           (otherDeps);
       } // lib.optionalAttrs (system == "x86_64-linux") {
