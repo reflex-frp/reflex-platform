@@ -90,8 +90,8 @@ in
   monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "monoidal-containers";
-    rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
-    sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
+    rev = "be91bc55eb7cc3c3036f12af75a45012b08913ec";
+    sha256 = "105wdpbdbadb0kncjzax6islrndfzv60qfxzsrwb3490z692mha7";
   }) {};
 
   # Needs additional instances
