@@ -16,6 +16,7 @@ self: super: {
   lifted-async = self.callHackage "lifted-async" "0.10.0.2" {};
   hinotify = self.callHackage "hinotify" "0.3.10" {};
   fsnotify = self.callHackage "fsnotify" "0.3.0.1" {};
+  primitive = self.callHackage "primitive" "0.6.4.0" {};
 
   ########################################################################
   # Packages not in hackage
