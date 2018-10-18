@@ -10,6 +10,7 @@
 , __useLegacyCompilers ? false # Interface unstable
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
+, haskellOverlays ? []
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -44,7 +45,8 @@ let iosSupport = system == "x86_64-darwin";
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
             stage2Script
-            optionalExtension;
+            optionalExtension
+            haskellOverlays;
           inherit ghcSavedSplices;
           inherit (self) lib;
           androidActivity = hackGet ./android-activity;
