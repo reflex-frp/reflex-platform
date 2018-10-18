@@ -7,8 +7,10 @@
 , useFastWeak ? true
 , useReflexOptimizer ? false
 , useTextJSString ? true
+, __useLegacyCompilers ? false # Interface unstable
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
+, haskellOverlays ? []
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -43,7 +45,8 @@ let iosSupport = system == "x86_64-darwin";
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
             stage2Script
-            optionalExtension;
+            optionalExtension
+            haskellOverlays;
           inherit ghcSavedSplices;
           inherit (self) lib;
           androidActivity = hackGet ./android-activity;
@@ -325,7 +328,7 @@ let iosSupport = system == "x86_64-darwin";
       })
     ]);
   };
-  ghcjs = ghcjs8_4;
+  ghcjs = if __useLegacyCompilers then ghcjs8_0 else ghcjs8_4;
   ghcjs8_4 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs84.override (old: {
     ghc = useTextJSStringAsBootPkg (ghcjsApplyFastWeak (old.ghc.override {
       ghcjsSrc = fetchgit {
@@ -371,7 +374,7 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
 
-  ghc = ghc8_4;
+  ghc = if __useLegacyCompilers then ghc8_0 else ghc8_4;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -402,14 +405,14 @@ let iosSupport = system == "x86_64-darwin";
         new));
   };
 
-  ghcAndroidAarch64 = ghcAndroidAarch64-8_4;
+  ghcAndroidAarch64 = if __useLegacyCompilers then ghcAndroidAarch64-8_2 else ghcAndroidAarch64-8_4;
   ghcAndroidAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   });
   ghcAndroidAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   };
-  ghcAndroidAarch32 = ghcAndroidAarch32-8_4;
+  ghcAndroidAarch32 = if __useLegacyCompilers then ghcAndroidAarch32-8_2 else ghcAndroidAarch32-8_4;
   ghcAndroidAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   });
@@ -417,21 +420,21 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   };
 
-  ghcIosSimulator64 = ghcIosSimulator64-8_4;
+  ghcIosSimulator64 = if __useLegacyCompilers then ghcIosSimulator64-8_2 else ghcIosSimulator64-8_4;
   ghcIosSimulator64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   });
   ghcIosSimulator64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   };
-  ghcIosAarch64 = ghcIosAarch64-8_4;
+  ghcIosAarch64 = if __useLegacyCompilers then ghcIosAarch64-8_2 else ghcIosAarch64-8_4;
   ghcIosAarch64-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   });
   ghcIosAarch64-8_2 = (makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc822).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   };
-  ghcIosAarch32 = ghcIosAarch32-8_4;
+  ghcIosAarch32 = if __useLegacyCompilers then ghcIosAarch32-8_2 else ghcIosAarch32-8_4;
   ghcIosAarch32-8_4 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   });
@@ -723,13 +726,15 @@ in let this = rec {
   # A simple derivation that just creates a file with the names of all
   # of its inputs. If built, it will have a runtime dependency on all
   # of the given build inputs.
-  pinBuildInputs = drvName: buildInputs: otherDeps: nixpkgs.runCommand drvName {
-    buildCommand = ''
-      mkdir "$out"
+  pinBuildInputs = name: buildInputs: otherDeps: (nixpkgs.releaseTools.aggregate {
+    inherit name;
+    constituents = buildInputs ++ otherDeps;
+  }).overrideAttrs (old: {
+    buildCommand = old.buildCommand + ''
       echo "$propagatedBuildInputs $buildInputs $nativeBuildInputs $propagatedNativeBuildInputs $otherDeps" > "$out/deps"
     '';
     inherit buildInputs otherDeps;
-  } "";
+  });
 
   # The systems that we want to build for on the current system
   cacheTargetSystems = lib.warn "cacheTargetSystems has been deprecated, use cacheBuildSystems" cacheBuildSystems;
