@@ -79,7 +79,7 @@ in
   ## Gargoyle
   ##
 
-  inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
+  inherit (gargoylePkgs) gargoyle gargoyle-postgresql gargoyle-postgresql-nix;
 
   ##
   ## Misc other dependencies

@@ -151,6 +151,8 @@ in
   # will be in `ios.<app name>`. The `package` argument can be set to
   # use a different Haskell package than the one named <app name>.
 
+, passthru ? {}
+
 }:
 let
   overrides' = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
@@ -192,7 +194,7 @@ let
 
     reflex = this;
 
-    inherit all;
+    inherit all passthru;
   };
 
   ghcLinks = mapAttrsToList (name: pnames: optionalString (pnames != []) ''
