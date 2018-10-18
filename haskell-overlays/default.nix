@@ -8,6 +8,7 @@
 , optionalExtension
 , androidActivity
 , ghcSavedSplices
+, haskellOverlays
 }:
 
 rec {
@@ -47,6 +48,8 @@ rec {
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
+
+    user-custom
   ] self super;
 
   combined-any = self: super: foldExtensions [
@@ -156,4 +159,6 @@ rec {
     inherit fetchFromGitHub;
     inherit enableLibraryProfiling;
   };
+
+  user-custom = foldExtensions haskellOverlays;
 }
