@@ -651,7 +651,7 @@ in let this = rec {
   } // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
-    ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables nativeHaskellPackages.ghc-mod);
+    ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables haskellPackages.ghc-mod);
     inherit (haskellPackages) hdevtools;
   }) // (lib.optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
