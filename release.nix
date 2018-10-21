@@ -20,6 +20,7 @@ let local-reflex-platform = import ./. {};
     perPlatform = lib.genAttrs local-reflex-platform.cacheBuildSystems (system:
       let
         reflex-platform = import ./. { inherit system; };
+        reflex-platform-legacy-compilers = import ./. { inherit system; __useLegacyCompilers = true; };
         otherDeps = getOtherDeps reflex-platform;
 
         jsexeHydra = exe: exe.overrideAttrs (attrs: {
@@ -42,6 +43,8 @@ let local-reflex-platform = import ./. {};
         ghc8_2.reflexTodomvc = reflex-platform.ghc8_2.reflex-todomvc;
         ghc8_4.reflexTodomvc = reflex-platform.ghc8_4.reflex-todomvc;
         skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
+        # TODO update reflex-project-skeleton to also cover ghc80 instead of using legacy compilers option
+        skeleton-test-legacy-compilers = import ./skeleton-test.nix { reflex-platform = reflex-platform-legacy-compilers; };
         benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
         cache = reflex-platform.pinBuildInputs
           "reflex-platform-${system}"
