@@ -361,7 +361,7 @@ let iosSupport = system == "x86_64-darwin";
           # a `(<>)`, since it is defining its own.
           base-compat = self.callHackage "base-compat" "0.9.3" {};
           # relax bounds for newer process
-          concurren-output = haskellLib.doJailbreak super.concurrent-output;
+          concurrent-output = haskellLib.doJailbreak super.concurrent-output;
           # missing semigroups pkg
           ListLike = haskellLib.addBuildDepend super.ListLike self.semigroups;
         };
