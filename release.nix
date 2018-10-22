@@ -21,8 +21,10 @@ let
     lib.listToAttrs (map (drv: { inherit (drv) name; value = drv; }) drvs);
 
   perPlatform = lib.genAttrs local-self.cacheBuildSystems (system: let
-    reflex-platform-legacy-compilers = import ./. { inherit system; __useLegacyCompilers = true; };
-    reflex-platform = import ./. { inherit system; };
+    getRP = args: import ./. ({ inherit system; } // args);
+    reflex-platform = getRP {};
+    reflex-platform-profiled = getRP { enableLibraryProfiling = true; };
+    reflex-platform-legacy-compilers = getRP { __useLegacyCompilers = true; };
     otherDeps = getOtherDeps reflex-platform;
 
     jsexeHydra = exe: exe.overrideAttrs (attrs: {
@@ -44,6 +46,21 @@ let
     ghc8_0.reflexTodomvc = reflex-platform.ghc8_0.reflex-todomvc;
     ghc8_2.reflexTodomvc = reflex-platform.ghc8_2.reflex-todomvc;
     ghc8_4.reflexTodomvc = reflex-platform.ghc8_4.reflex-todomvc;
+    profiled = {
+      ghc8_0.reflexTodomvc = reflex-platform-profiled.ghc8_0.reflex-todomvc;
+      ghc8_2.reflexTodomvc = reflex-platform-profiled.ghc8_2.reflex-todomvc;
+      ghc8_4.reflexTodomvc = reflex-platform-profiled.ghc8_4.reflex-todomvc;
+    } // lib.optionalAttrs (reflex-platform.androidSupport) {
+      inherit (reflex-platform-profiled) androidReflexTodomvc;
+      inherit (reflex-platform-profiled) androidReflexTodomvc-8_2;
+      inherit (reflex-platform-profiled) androidReflexTodomvc-8_4;
+      a = reflex-platform-profiled.ghcAndroidAarch64.a;
+    } // lib.optionalAttrs (reflex-platform.iosSupport) {
+      inherit (reflex-platform-profiled) iosReflexTodomvc;
+      inherit (reflex-platform-profiled) iosReflexTodomvc-8_2;
+      inherit (reflex-platform-profiled) iosReflexTodomvc-8_4;
+      a = reflex-platform-profiled.ghcIosAarch64.a;
+    };
     skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
     # TODO update reflex-project-skeleton to also cover ghc80 instead of using legacy compilers option
     skeleton-test-legacy-compilers = import ./skeleton-test.nix { reflex-platform = reflex-platform-legacy-compilers; };
