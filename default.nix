@@ -753,7 +753,7 @@ in let this = rec {
     let otherPlatforms = optionals (system == "x86_64-linux") [
           "ghcAndroidArm64"
           "ghcAndroidArmv7a"
-        ] ++ optionals iosSupport ["ghcIosArm64" "ghcIosSimulator64"];
+        ] ++ optional iosSupport "ghcIosArm64";
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
       ++ optionals (system == "x86_64-linux") [
