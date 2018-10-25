@@ -1,0 +1,463 @@
+diff --git a/Data/JSString.hs b/Data/JSString.hs
+index 176aad4..9ca6693 100644
+--- a/Data/JSString.hs
++++ b/Data/JSString.hs
+@@ -99,6 +99,7 @@ module Data.JSString ( JSString
+                      , breakOnEnd
+                      , break
+                      , span
++                     , span_
+                      , group
+                      , group'
+                      , groupBy
+@@ -1231,19 +1232,23 @@ splitAt (I# n) x = case js_splitAt n x of (# y, z #) -> (y, z)
+ -- of @t@ of elements that satisfy @p@, and whose second is the
+ -- remainder of the list.
+ span :: (Char -> Bool) -> JSString -> (JSString, JSString)
+-span p x = case js_length x of
+-            0# -> (empty, empty)
+-            l  -> let c0 = js_uncheckedIndex 0# x
+-                  in if p (C# (chr# c0)) then loop 0# l else (empty, x)
++span p x = let (# a, b #) = span_ p x in (a, b)
++{-# INLINE span #-}
++
++span_ :: (Char -> Bool) -> JSString -> (# JSString, JSString #)
++span_ p x = case js_length x of
++              0# -> (# empty, empty #)
++              l  -> let c0 = js_uncheckedIndex 0# x
++                    in if p (C# (chr# c0)) then loop 0# l else (# empty, x #)
+   where
+     loop i l
+-      | isTrue# (i >=# l) = (x, empty)
++      | isTrue# (i >=# l) = (# x, empty #)
+       | otherwise         =
+           let c = js_uncheckedIndex i x
+           in  if p (C# (chr# c))
+               then loop (i +# charWidth c) l
+-              else (js_substr 0# i x, js_substr1 i x)
+-{-# INLINE span #-}
++              else (# js_substr 0# i x, js_substr1 i x #)
++{-# INLINE span_ #-}
+ 
+ -- | /O(n)/ 'break' is like 'span', but the prefix returned is
+ -- over elements that fail the predicate @p@.
+diff --git a/GHCJS/Foreign.hs b/GHCJS/Foreign.hs
+index 5bbc5c5..b128f24 100644
+--- a/GHCJS/Foreign.hs
++++ b/GHCJS/Foreign.hs
+@@ -82,7 +82,7 @@ import           GHCJS.Marshal
+ import           GHCJS.Marshal.Pure
+ -}
+ import           Data.String (IsString(..))
+-import qualified Data.Text as T
++-- import qualified Data.Text as T
+ 
+ 
+ class ToJSString a where
+diff --git a/GHCJS/Foreign/Internal.hs b/GHCJS/Foreign/Internal.hs
+index 5ac81f0..449bfe4 100644
+--- a/GHCJS/Foreign/Internal.hs
++++ b/GHCJS/Foreign/Internal.hs
+@@ -100,10 +100,10 @@ import           Data.Typeable (Typeable)
+ import           Data.ByteString (ByteString)
+ import           Data.ByteString.Unsafe (unsafePackAddressLen)
+ 
+-import qualified Data.Text.Array as A
+-import qualified Data.Text as T
+-import qualified Data.Text.Internal as T
+-import qualified Data.Text.Lazy as TL (Text, toStrict, fromStrict)
++-- import qualified Data.Text.Array as A
++-- import qualified Data.Text as T
++-- import qualified Data.Text.Internal as T
++-- import qualified Data.Text.Lazy as TL (Text, toStrict, fromStrict)
+ 
+ import           Unsafe.Coerce
+ 
+diff --git a/GHCJS/Marshal.hs b/GHCJS/Marshal.hs
+index a36aca2..6256a73 100644
+--- a/GHCJS/Marshal.hs
++++ b/GHCJS/Marshal.hs
+@@ -16,7 +16,7 @@
+ 
+ module GHCJS.Marshal ( FromJSVal(..)
+                      , ToJSVal(..)
+-                     , toJSVal_aeson
++                     -- , toJSVal_aeson
+                      , toJSVal_pure
+                      ) where
+ 
+@@ -24,17 +24,17 @@ import           Control.Applicative
+ import           Control.Monad
+ import           Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
+ 
+-import qualified Data.Aeson as AE
+-import           Data.Attoparsec.Number (Number(..))
++-- import qualified Data.Aeson as AE
++-- import           Data.Attoparsec.Number (Number(..))
+ import           Data.Bits ((.&.))
+ import           Data.Char (chr, ord)
+-import qualified Data.HashMap.Strict as H
++-- import qualified Data.HashMap.Strict as H
+ import           Data.Int (Int8, Int16, Int32)
+ import qualified Data.JSString as JSS
+-import qualified Data.JSString.Text as JSS
++-- import qualified Data.JSString.Text as JSS
+ import           Data.Maybe
+-import           Data.Scientific (Scientific, scientific, fromFloatDigits)
+-import           Data.Text (Text)
++-- import           Data.Scientific (Scientific, scientific, fromFloatDigits)
++-- import           Data.Text (Text)
+ import qualified Data.Vector as V
+ import           Data.Word (Word8, Word16, Word32, Word)
+ import           Data.Primitive.ByteArray
+@@ -85,11 +85,11 @@ instance FromJSVal JSString where
+     {-# INLINE fromJSValUnchecked #-}
+     fromJSVal = fromJSVal_pure
+     {-# INLINE fromJSVal #-}
+-instance FromJSVal Text where
+-    fromJSValUnchecked = fromJSValUnchecked_pure
+-    {-# INLINE fromJSValUnchecked #-}
+-    fromJSVal = fromJSVal_pure
+-    {-# INLINE fromJSVal #-}
++-- instance FromJSVal Text where
++--     fromJSValUnchecked = fromJSValUnchecked_pure
++--     {-# INLINE fromJSValUnchecked #-}
++--     fromJSVal = fromJSVal_pure
++--     {-# INLINE fromJSVal #-}
+ instance FromJSVal Char where
+     fromJSValUnchecked = fromJSValUnchecked_pure
+     {-# INLINE fromJSValUnchecked #-}
+@@ -154,24 +154,24 @@ instance FromJSVal Double where
+     {-# INLINE fromJSValUnchecked #-}
+     fromJSVal = fromJSVal_pure
+     {-# INLINE fromJSVal #-}
+-instance FromJSVal AE.Value where
+-    fromJSVal r = case jsonTypeOf r of
+-            JSONNull    -> return (Just AE.Null)
+-            JSONInteger -> liftM (AE.Number . flip scientific 0 . (toInteger :: Int -> Integer))
+-                 <$> fromJSVal r
+-            JSONFloat   -> liftM (AE.Number . (fromFloatDigits :: Double -> Scientific))
+-                 <$> fromJSVal r
+-            JSONBool    -> liftM AE.Bool  <$> fromJSVal r
+-            JSONString  -> liftM AE.String <$> fromJSVal r
+-            JSONArray   -> liftM (AE.Array . V.fromList) <$> fromJSVal r
+-            JSONObject  -> do
+-                props <- OI.listProps (OI.Object r)
+-                runMaybeT $ do
+-                    propVals <- forM props $ \p -> do
+-                        v <- MaybeT (fromJSVal =<< OI.getProp p (OI.Object r))
+-                        return (JSS.textFromJSString p, v)
+-                    return (AE.Object (H.fromList propVals))
+-    {-# INLINE fromJSVal #-}
++-- instance FromJSVal AE.Value where
++--     fromJSVal r = case jsonTypeOf r of
++--             JSONNull    -> return (Just AE.Null)
++--             JSONInteger -> liftM (AE.Number . flip scientific 0 . (toInteger :: Int -> Integer))
++--                  <$> fromJSVal r
++--             JSONFloat   -> liftM (AE.Number . (fromFloatDigits :: Double -> Scientific))
++--                  <$> fromJSVal r
++--             JSONBool    -> liftM AE.Bool  <$> fromJSVal r
++--             JSONString  -> liftM AE.String <$> fromJSVal r
++--             JSONArray   -> liftM (AE.Array . V.fromList) <$> fromJSVal r
++--             JSONObject  -> do
++--                 props <- OI.listProps (OI.Object r)
++--                 runMaybeT $ do
++--                     propVals <- forM props $ \p -> do
++--                         v <- MaybeT (fromJSVal =<< OI.getProp p (OI.Object r))
++--                         return (JSS.textFromJSString p, v)
++--                     return (AE.Object (H.fromList propVals))
++--     {-# INLINE fromJSVal #-}
+ instance (FromJSVal a, FromJSVal b) => FromJSVal (a,b) where
+     fromJSVal r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
+     {-# INLINE fromJSVal #-}
+@@ -204,15 +204,15 @@ jf r n = MaybeT $ do
+ instance ToJSVal JSVal where
+   toJSVal = toJSVal_pure
+   {-# INLINE toJSVal #-}
+-instance ToJSVal AE.Value where
+-    toJSVal = toJSVal_aeson
+-    {-# INLINE toJSVal #-}
++-- instance ToJSVal AE.Value where
++--     toJSVal = toJSVal_aeson
++--     {-# INLINE toJSVal #-}
+ instance ToJSVal JSString where
+     toJSVal = toJSVal_pure
+     {-# INLINE toJSVal #-}
+-instance ToJSVal Text where
+-    toJSVal = toJSVal_pure
+-    {-# INLINE toJSVal #-}
++-- instance ToJSVal Text where
++--     toJSVal = toJSVal_pure
++--     {-# INLINE toJSVal #-}
+ instance ToJSVal Char where
+     toJSVal = return . pToJSVal
+     {-# INLINE toJSVal #-}
+@@ -285,21 +285,21 @@ foreign import javascript unsafe "[$1,$2,$3,$4,$5]"       arr5     :: JSVal -> J
+ foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6]"    arr6     :: JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
+ foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6,$7]" arr7     :: JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
+ 
+-toJSVal_aeson :: AE.ToJSON a => a -> IO JSVal
+-toJSVal_aeson x = cv (AE.toJSON x)
+-  where
+-    cv = convertValue
++-- toJSVal_aeson :: AE.ToJSON a => a -> IO JSVal
++-- toJSVal_aeson x = cv (AE.toJSON x)
++--   where
++--     cv = convertValue
+ 
+-    convertValue :: AE.Value -> IO JSVal
+-    convertValue AE.Null       = return jsNull
+-    convertValue (AE.String t) = return (pToJSVal t)
+-    convertValue (AE.Array a)  = (\(AI.SomeJSArray x) -> x) <$>
+-                                 (AI.fromListIO =<< mapM convertValue (V.toList a))
+-    convertValue (AE.Number n) = toJSVal (realToFrac n :: Double)
+-    convertValue (AE.Bool b)   = return (toJSBool b)
+-    convertValue (AE.Object o) = do
+-      obj@(OI.Object obj') <- OI.create
+-      mapM_ (\(k,v) -> convertValue v >>= \v' -> OI.setProp (JSS.textToJSString k) v' obj) (H.toList o)
+-      return obj'
++--     convertValue :: AE.Value -> IO JSVal
++--     convertValue AE.Null       = return jsNull
++--     convertValue (AE.String t) = return (pToJSVal t)
++--     convertValue (AE.Array a)  = (\(AI.SomeJSArray x) -> x) <$>
++--                                  (AI.fromListIO =<< mapM convertValue (V.toList a))
++--     convertValue (AE.Number n) = toJSVal (realToFrac n :: Double)
++--     convertValue (AE.Bool b)   = return (toJSBool b)
++--     convertValue (AE.Object o) = do
++--       obj@(OI.Object obj') <- OI.create
++--       mapM_ (\(k,v) -> convertValue v >>= \v' -> OI.setProp (JSS.textToJSString k) v' obj) (H.toList o)
++--       return obj'
+ 
+ 
+diff --git a/GHCJS/Marshal/Pure.hs b/GHCJS/Marshal/Pure.hs
+index 902fa20..268489d 100644
+--- a/GHCJS/Marshal/Pure.hs
++++ b/GHCJS/Marshal/Pure.hs
+@@ -28,11 +28,11 @@ import           Data.Data
+ import           Data.Int (Int8, Int16, Int32)
+ import           Data.JSString.Internal.Type
+ import           Data.Maybe
+-import           Data.Text (Text)
++-- import           Data.Text (Text)
+ import           Data.Typeable
+ import           Data.Word (Word8, Word16, Word32, Word)
+ import           Data.JSString
+-import           Data.JSString.Text
++-- import           Data.JSString.Text
+ import           Data.Bits ((.&.))
+ import           Unsafe.Coerce (unsafeCoerce)
+ import           GHC.Int
+@@ -65,8 +65,8 @@ instance PFromJSVal JSString where pFromJSVal = JSString
+                                    {-# INLINE pFromJSVal #-}
+ instance PFromJSVal [Char] where pFromJSVal   = Prim.fromJSString
+                                  {-# INLINE pFromJSVal #-}
+-instance PFromJSVal Text   where pFromJSVal   = textFromJSVal
+-                                 {-# INLINE pFromJSVal #-}
++-- instance PFromJSVal Text   where pFromJSVal   = textFromJSVal
++--                                  {-# INLINE pFromJSVal #-}
+ instance PFromJSVal Char   where pFromJSVal x = C# (jsvalToChar x)
+                                  {-# INLINE pFromJSVal #-}
+ instance PFromJSVal Bool   where pFromJSVal   = isTruthy
+@@ -103,8 +103,8 @@ instance PToJSVal JSString  where pToJSVal          = jsval
+                                   {-# INLINE pToJSVal #-}
+ instance PToJSVal [Char]    where pToJSVal          = Prim.toJSString
+                                   {-# INLINE pToJSVal #-}
+-instance PToJSVal Text      where pToJSVal          = jsval . textToJSString
+-                                  {-# INLINE pToJSVal #-}
++-- instance PToJSVal Text      where pToJSVal          = jsval . textToJSString
++--                                   {-# INLINE pToJSVal #-}
+ instance PToJSVal Char      where pToJSVal (C# c)   = charToJSVal c
+                                   {-# INLINE pToJSVal #-}
+ instance PToJSVal Bool      where pToJSVal True     = jsTrue
+diff --git a/JavaScript/JSON/Types/Instances.hs b/JavaScript/JSON/Types/Instances.hs
+index 2b288ec..6d7074c 100644
+--- a/JavaScript/JSON/Types/Instances.hs
++++ b/JavaScript/JSON/Types/Instances.hs
+@@ -57,7 +57,7 @@ import Control.Applicative ((<$>), (<*>), (<|>), pure, empty)
+ 
+ import           Data.JSString      (JSString)
+ import qualified Data.JSString      as JSS
+-import qualified Data.JSString.Text as JSS
++-- import qualified Data.JSString.Text as JSS
+ 
+ import           JavaScript.Array (JSArray)
+ import qualified JavaScript.Array as JSA
+@@ -335,21 +335,21 @@ instance FromJSON JSString where
+     parseJSON = withJSString "JSString" pure
+     {-# INLINE parseJSON #-}
+ 
+-instance ToJSON Text where
+-    toJSON = stringValue . JSS.textToJSString
+-    {-# INLINE toJSON #-}
++-- instance ToJSON Text where
++--     toJSON = stringValue . JSS.textToJSString
++--     {-# INLINE toJSON #-}
+ 
+-instance FromJSON Text where
+-    parseJSON = withJSString "Text" ( pure . JSS.textFromJSString )
+-    {-# INLINE parseJSON #-}
++-- instance FromJSON Text where
++--     parseJSON = withJSString "Text" ( pure . JSS.textFromJSString )
++--     {-# INLINE parseJSON #-}
+ 
+-instance ToJSON LT.Text where
+-    toJSON = stringValue . JSS.textToJSString . LT.toStrict
+-    {-# INLINE toJSON #-}
++-- instance ToJSON LT.Text where
++--     toJSON = stringValue . JSS.textToJSString . LT.toStrict
++--     {-# INLINE toJSON #-}
+ 
+-instance FromJSON LT.Text where
+-    parseJSON = withJSString "Lazy Text" $ pure . LT.fromStrict . JSS.textFromJSString
+-    {-# INLINE parseJSON #-}
++-- instance FromJSON LT.Text where
++--     parseJSON = withJSString "Lazy Text" $ pure . LT.fromStrict . JSS.textFromJSString
++--     {-# INLINE parseJSON #-}
+ 
+ instance (ToJSON a) => ToJSON [a] where
+     toJSON = arrayValue . arrayValueList . map toJSON
+diff --git a/JavaScript/Web/Canvas.hs b/JavaScript/Web/Canvas.hs
+index 0a7684c..74490c2 100644
+--- a/JavaScript/Web/Canvas.hs
++++ b/JavaScript/Web/Canvas.hs
+@@ -69,7 +69,7 @@ import Control.Monad
+ 
+ import Data.Data
+ import Data.Maybe (fromJust)
+-import Data.Text (Text)
++-- import Data.Text (Text)
+ import Data.Typeable
+ 
+ import GHCJS.Foreign
+diff --git a/ghcjs-base.cabal b/ghcjs-base.cabal
+index 4a64694..acf8806 100644
+--- a/ghcjs-base.cabal
++++ b/ghcjs-base.cabal
+@@ -55,7 +55,7 @@ library
+                    Data.JSString.RealFloat
+                    Data.JSString.RegExp
+                    Data.JSString.Internal
+-                   Data.JSString.Text
++                   -- Data.JSString.Text
+                    Data.JSString.Internal.Fusion
+                    Data.JSString.Internal.Fusion.Types
+                    Data.JSString.Internal.Fusion.Common
+@@ -78,12 +78,12 @@ library
+                    JavaScript.Array.Internal
+                    JavaScript.Array.ST
+                    JavaScript.Cast
+-                   JavaScript.JSON
+-                   JavaScript.JSON.Types
+-                   JavaScript.JSON.Types.Class
+-                   JavaScript.JSON.Types.Generic
+-                   JavaScript.JSON.Types.Instances
+-                   JavaScript.JSON.Types.Internal
++                   -- JavaScript.JSON
++                   -- JavaScript.JSON.Types
++                   -- JavaScript.JSON.Types.Class
++                   -- JavaScript.JSON.Types.Generic
++                   -- JavaScript.JSON.Types.Instances
++                   -- JavaScript.JSON.Types.Internal
+                    JavaScript.Number
+                    JavaScript.Object
+                    JavaScript.Object.Internal
+@@ -115,11 +115,11 @@ library
+                    JavaScript.Web.Storage
+                    JavaScript.Web.Storage.Internal
+                    JavaScript.Web.StorageEvent
+-                   JavaScript.Web.XMLHttpRequest
++                   -- JavaScript.Web.XMLHttpRequest
+                    JavaScript.Web.WebSocket
+                    JavaScript.Web.Worker
+-  other-modules:   GHCJS.Internal.Types
+                    Data.JSString.Internal.Type
++  other-modules:   GHCJS.Internal.Types
+                    JavaScript.TypedArray.Internal.Types
+                    JavaScript.TypedArray.ArrayBuffer.Internal
+                    JavaScript.TypedArray.DataView.Internal
+@@ -129,48 +129,48 @@ library
+                    integer-gmp,
+                    binary               >= 0.8  && < 0.9,
+                    bytestring           >= 0.10 && < 0.11,
+-                   text                 >= 1.1  && < 1.3,
+-                   aeson                >= 0.8  && < 1.3,
+-                   scientific           >= 0.3  && < 0.4,
++                   -- text                 >= 1.1  && < 1.3,
++                   -- aeson                >= 0.8  && < 1.3,
++                   -- scientific           >= 0.3  && < 0.4,
+                    vector               >= 0.10 && < 0.13,
+                    containers           >= 0.5  && < 0.6,
+                    time                 >= 1.5  && < 1.9,
+-                   hashable             >= 1.2  && < 1.3,
+-                   unordered-containers >= 0.2  && < 0.3,
+-                   attoparsec           >= 0.11 && < 0.14,
++                   -- hashable             >= 1.2  && < 1.3,
++                   -- unordered-containers >= 0.2  && < 0.3,
++                   -- attoparsec           >= 0.11 && < 0.14,
+                    transformers         >= 0.3  && < 0.6,
+                    primitive            >= 0.5  && < 0.7,
+                    deepseq              >= 1.3  && < 1.5,
+                    dlist                >= 0.7  && < 0.9
+ 
+-test-suite tests
+-  type:           exitcode-stdio-1.0
+-  hs-source-dirs: test
+-  main-is:        Tests.hs
+-  other-modules:  Tests.Marshal
+-                  Tests.Properties
+-                  Tests.Properties.Numeric
+-                  Tests.SlowFunctions
+-                  Tests.QuickCheckUtils
+-                  Tests.Regressions
+-                  Tests.Utils
+-  ghc-options:
+-    -Wall -rtsopts
+-  build-depends:
+-    HUnit >= 1.2,
+-    QuickCheck >= 2.7,
+-    array,
+-    text,
+-    base,
+-    bytestring,
+-    deepseq,
+-    directory,
+-    ghc-prim,
+-    ghcjs-prim,
+-    ghcjs-base,
+-    primitive,
+-    quickcheck-unicode,
+-    random,
+-    test-framework >= 0.4,
+-    test-framework-hunit >= 0.2,
+-    test-framework-quickcheck2 >= 0.2
++-- test-suite tests
++--   type:           exitcode-stdio-1.0
++--   hs-source-dirs: test
++--   main-is:        Tests.hs
++--   other-modules:  Tests.Marshal
++--                   Tests.Properties
++--                   Tests.Properties.Numeric
++--                   Tests.SlowFunctions
++--                   Tests.QuickCheckUtils
++--                   Tests.Regressions
++--                   Tests.Utils
++--   ghc-options:
++--     -Wall -rtsopts
++--   build-depends:
++--     HUnit >= 1.2,
++--     QuickCheck >= 2.7,
++--     array,
++--     text,
++--     base,
++--     bytestring,
++--     deepseq,
++--     directory,
++--     ghc-prim,
++--     ghcjs-prim,
++--     ghcjs-base,
++--     primitive,
++--     quickcheck-unicode,
++--     random,
++--     test-framework >= 0.4,
++--     test-framework-hunit >= 0.2,
++--     test-framework-quickcheck2 >= 0.2

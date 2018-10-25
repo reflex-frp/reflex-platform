@@ -32,7 +32,7 @@ if [ -z "$signer" ]; then
 fi
 
 mkdir -p $tmpdir/reflex-todomvc.app
-cp -r `nix-build --no-out-link -A ghcIosArm64.reflex-todomvc`/reflex-todomvc.app/* $tmpdir/reflex-todomvc.app
-sed "s|<team-id/>|$1|" < "$(eval "echo $(nix-instantiate --eval -E '(import ./. {}).ghcIosArm64.reflex-todomvc.src')")/reflex-todomvc.app.xcent" > $tmpdir/reflex-todomvc.app.xcent
+cp -r `nix-build --no-out-link -A ghcIosAarch64.reflex-todomvc`/reflex-todomvc.app/* $tmpdir/reflex-todomvc.app
+sed "s|<team-id/>|$1|" < "$(eval "echo $(nix-instantiate --eval -E '(import ./. {}).ghcIosAarch64.reflex-todomvc.src')")/reflex-todomvc.app.xcent" > $tmpdir/reflex-todomvc.app.xcent
 /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/reflex-todomvc.app.xcent --timestamp=none $tmpdir/reflex-todomvc.app
 "$(nix-build --no-out-link -A nixpkgs.nodePackages.ios-deploy)/bin/ios-deploy" -W -b $tmpdir/reflex-todomvc.app
