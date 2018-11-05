@@ -87,7 +87,7 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = dontHaddock (self.callHackage"monoidal-containers" "0.4.0.0" {});
+  monoidal-containers = self.callHackage "monoidal-containers" "0.4.0.0" {};
 
   # Needs additional instances
   dependent-sum = self.callCabal2nix "dependent-sum" (fetchFromGitHub {
