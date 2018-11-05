@@ -87,12 +87,7 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "monoidal-containers";
-    rev = "11eec0a1da953fe23ee494f9a66235e48c55a17f";
-    sha256 = "0wlkhpcbiq5g8k1p1knpkl85rsd8v8vmis2s6i477zll30w0k32s";
-  }) {};
+  monoidal-containers = dontHaddock (self.callHackage"monoidal-containers" "0.4.0.0" {});
 
   # Needs additional instances
   dependent-sum = self.callCabal2nix "dependent-sum" (fetchFromGitHub {
