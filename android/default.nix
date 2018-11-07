@@ -77,6 +77,8 @@ in rec {
 
     , iconPath ? defaultIconPath
 
+    , splashImage ? defaultIconPath
+
     , activityAttributes ? ""
       # Additional activity attributes like: android:launchMode="singleInstance"
 
@@ -109,6 +111,7 @@ in rec {
               resources
               assets
               iconPath
+              splashImage
               activityAttributes
               permissions
               services

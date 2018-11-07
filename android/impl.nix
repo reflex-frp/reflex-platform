@@ -61,6 +61,12 @@ in {
         androidManifestXml = builtins.toFile "AndroidManifest.xml" (import ./AndroidManifest.xml.nix {
           inherit applicationId version iconPath intentFilters services permissions activityAttributes;
         });
+        stylesXml = builtins.toFile "styles.xml" (import ./styles.xml.nix {
+          inherit splashImage;
+        });
+        launchScreenXml = builtins.toFile "launch_screen.xml" (import ./launch_screen.xml.nix {
+          inherit splashImage;
+        });
         stringsXml = builtins.toFile "strings.xml" (import ./strings.xml.nix {
           inherit displayName;
         });
@@ -82,6 +88,10 @@ in {
           mkdir -p "$out/src/main"
           cp -r --no-preserve=mode "$javaSrc" "$out/src/main/java"
           ln -s "$buildGradle" "$out/build.gradle"
+          mkdir -p $out/res/values
+          ln -s "$stylesXml" "$out/res/values/styles.xml"
+          mkdir -p $out/res/drawable
+          ln -s "$launchScreenXml" "$out/res/drawable/launch_screen.xml"
           ln -s "$androidManifestXml" "$out/AndroidManifest.xml"
           mkdir -p "$out/res/values"
           ln -s "$stringsXml" "$out/res/values/strings.xml"

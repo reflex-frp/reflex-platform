@@ -1,0 +1,13 @@
+{ splashImage
+}:
+''
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" android:opacity="opaque">
+  <item android:drawable="@android:color/black"/>
+  <item>
+    <bitmap 
+      android:src="${splashImage}"
+      android:gravity="center"/>
+  </item>
+</layer-list>
+''
