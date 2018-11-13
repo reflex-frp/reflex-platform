@@ -66,7 +66,6 @@ rec {
   combined-any-8 = self: super: foldExtensions [
     any-8
     (optionalExtension (versionWildcard [ 8 0 ] (getGhcVersion super.ghc)) any-8_0)
-    (optionalExtension (versionWildcard [ 8 2 ] (getGhcVersion super.ghc)) any-8_2)
     (optionalExtension (versionWildcard [ 8 4 ] (getGhcVersion super.ghc)) any-8_4)
     (optionalExtension (lib.versionOlder "8.5"  (getGhcVersion super.ghc)) any-head)
   ] self super;
@@ -107,7 +106,6 @@ rec {
   any-7_8 = import ./any-7.8.nix { inherit haskellLib; };
   any-8 = import ./any-8.nix { inherit haskellLib lib getGhcVersion; };
   any-8_0 = import ./any-8.0.nix { inherit haskellLib; };
-  any-8_2 = import ./any-8.2.nix { inherit haskellLib fetchFromGitHub; };
   any-8_4 = import ./any-8.4.nix { inherit haskellLib fetchFromGitHub; inherit (nixpkgs) pkgs; };
   any-head = import ./any-head.nix { inherit haskellLib fetchFromGitHub; };
 
