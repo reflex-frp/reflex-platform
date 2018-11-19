@@ -17,10 +17,6 @@ self: super: {
     withPackages = self.ghcWithPackages;
   };
 
-  hlint = null;
-  hscolour = null;
-  cabal-macosx = null;
-
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = lib.warn "ignoring dependency on doctest" null;
 
@@ -33,7 +29,7 @@ self: super: {
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
 
-  # Megaparsec's tests seem to hang
+  # Convenience: tests take long to finish
   megaparsec = dontCheck super.megaparsec;
 
   # Need newer version of colour for some reason.
