@@ -18,6 +18,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       '';
       buildInputs = [ nixpkgs.androidenv.androidsdk_8_0 ];
     } "";
+    inherit (nixpkgs) lib;
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
@@ -33,13 +34,11 @@ in {
     keyStorePassword = releaseKey.storePassword or null;
     mavenDeps = import ./defaults/deps.nix;
     name = applicationId;
-    platformVersions = [ "25" ];
+    platformVersions = [ "24" "25" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;
-          appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
-            hsApp = overrideAndroidCabal (package myHaskellPackages);
-          }) {
+          perAbi = {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
               myHaskellPackages = ghcAndroidAarch64;
@@ -49,6 +48,12 @@ in {
               myHaskellPackages = ghcAndroidAarch32;
             };
           };
+          appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
+            hsApp = overrideAndroidCabal (package myHaskellPackages);
+          }) perAbi;
+          getAbiSdkVer = let
+             versionList = builtins.map (a: a.myNixpkgs.hostPlatform.sdkVer) (lib.attrValues perAbi);
+          in verF: lib.foldl (old: new: verF old new) (lib.head (builtins.trace versionList versionList)) (lib.tail versionList);
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
@@ -57,6 +62,8 @@ in {
             "classpath 'com.google.gms:google-services:3.0.0'";
           googleServicesPlugin = optionalString (googleServicesJson != null)
             "apply plugin: 'com.google.gms.google-services'";
+          minsdk = builtins.toString (getAbiSdkVer (old: sdkVer: lib.min old sdkVer));
+          targetsdk = builtins.toString (getAbiSdkVer (old: sdkVer: lib.max old sdkVer));
         });
         androidManifestXml = builtins.toFile "AndroidManifest.xml" (import ./AndroidManifest.xml.nix {
           inherit applicationId version iconPath intentFilters services permissions activityAttributes;

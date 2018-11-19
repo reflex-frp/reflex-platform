@@ -5,6 +5,8 @@
 , googleServicesClasspath
 , googleServicesPlugin
 , universalApk
+, minsdk
+, targetsdk
 }:
 ''
 buildscript {
@@ -25,7 +27,7 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion ${targetsdk}
     buildToolsVersion '26.0.2'
 
     sourceSets {
@@ -39,8 +41,8 @@ android {
     }
     defaultConfig {
         applicationId "${applicationId}"
-        minSdkVersion 21
-        targetSdkVersion 25
+        minSdkVersion ${minsdk}
+        targetSdkVersion ${targetsdk}
         versionCode ${version.code}
         versionName "${version.name}"
     }
