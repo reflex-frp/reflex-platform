@@ -79,7 +79,7 @@ in
   ## Gargoyle
   ##
 
-  inherit (gargoylePkgs) gargoyle gargoyle-postgresql;
+  inherit (gargoylePkgs) gargoyle gargoyle-postgresql gargoyle-postgresql-nix;
 
   ##
   ## Misc other dependencies
@@ -87,12 +87,7 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "monoidal-containers";
-    rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
-    sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
-  }) {};
+  monoidal-containers = self.callHackage "monoidal-containers" "0.4.0.0" {};
 
   # Needs additional instances
   dependent-sum = self.callCabal2nix "dependent-sum" (fetchFromGitHub {
