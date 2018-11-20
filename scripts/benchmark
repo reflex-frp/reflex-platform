@@ -5,4 +5,4 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
 cd "$DIR"
 
-"$(nix-build ./scripts/benchmark.nix)"
+"$(nix-build ./scripts/benchmark.nix -A bin --no-out-link)"

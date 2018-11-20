@@ -1,0 +1,53 @@
+diff --git a/src/Gen2/Compactor.hs b/src/Gen2/Compactor.hs
+index 1150b28..a4d1507 100644
+--- a/src/Gen2/Compactor.hs
++++ b/src/Gen2/Compactor.hs
+@@ -109,8 +109,8 @@ packStrings settings dflags cstate code =
+           isExisting bs = isJust (HM.lookup bs $ stOffsets origStringTable)
+ 
+       staticString :: StaticVal -> Maybe ByteString
+-      staticString (StaticUnboxed (StaticUnboxedString bs)) = Just bs
+-      staticString (StaticUnboxed (StaticUnboxedStringOffset bs)) = Just bs
++      -- staticString (StaticUnboxed (StaticUnboxedString bs)) = Just bs
++      -- staticString (StaticUnboxed (StaticUnboxedStringOffset bs)) = Just bs
+       staticString _ = Nothing
+ 
+       allStringsList :: [ByteString]
+@@ -178,10 +178,10 @@ packStrings settings dflags cstate code =
+ 
+       newIdentsMap :: HashMap Text (Either Int Int)
+       newIdentsMap =
+-        let f (StaticInfo s (StaticUnboxed (StaticUnboxedString bs)) _)
+-              = Just (s, Left . fst $ newOffsetsMap HM.! bs)
+-            f (StaticInfo s (StaticUnboxed (StaticUnboxedStringOffset bs)) _)
+-              = Just (s, Right . snd $ newOffsetsMap HM.! bs)
++        let -- f (StaticInfo s (StaticUnboxed (StaticUnboxedString bs)) _)
++            --   = Just (s, Left . fst $ newOffsetsMap HM.! bs)
++            -- f (StaticInfo s (StaticUnboxed (StaticUnboxedStringOffset bs)) _)
++            --   = Just (s, Right . snd $ newOffsetsMap HM.! bs)
+             f _ = Nothing
+         in HM.union (stIdents origStringTable)
+                     (HM.fromList $ mapMaybe f allStatics)
+@@ -222,14 +222,14 @@ packStrings settings dflags cstate code =
+       rewriteStat st = st & valsS %~ rewriteVals
+ 
+       rewriteStatic :: StaticInfo -> Maybe StaticInfo
+-      rewriteStatic (StaticInfo i
+-                                (StaticUnboxed (StaticUnboxedString {}))
+-                                cc) =
+-        Nothing
+-      rewriteStatic (StaticInfo i
+-                                (StaticUnboxed (StaticUnboxedStringOffset {}))
+-                                cc) =
+-        Nothing
++      -- rewriteStatic (StaticInfo i
++      --                           (StaticUnboxed (StaticUnboxedString {}))
++      --                           cc) =
++      --   Nothing
++      -- rewriteStatic (StaticInfo i
++      --                           (StaticUnboxed (StaticUnboxedStringOffset {}))
++      --                           cc) =
++      --   Nothing
+       rewriteStatic si = Just (si & staticInfoArgs %~ rewriteStaticArg)
+ 
+       rewriteStaticArg :: StaticArg -> StaticArg
