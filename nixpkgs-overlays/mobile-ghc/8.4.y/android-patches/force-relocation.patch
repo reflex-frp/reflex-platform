@@ -1,0 +1,13 @@
+diff --git a/compiler/main/DriverPipeline.hs b/compiler/main/DriverPipeline.hs
+index 86dd913461..e6d6defdb9 100644
+--- a/compiler/main/DriverPipeline.hs
++++ b/compiler/main/DriverPipeline.hs
+@@ -830,7 +830,7 @@ llvmOptions dflags =
+         rmodel | gopt Opt_PIC dflags        = "pic"
+                | positionIndependent dflags = "pic"
+                | WayDyn `elem` ways dflags  = "dynamic-no-pic"
+-               | otherwise                  = "static"
++               | otherwise                  = "pic" -- "static"
+ 
+         align :: Int
+         align = case platformArch (targetPlatform dflags) of

@@ -1,8 +1,8 @@
 env@{
   nixpkgs
 , nixpkgsCross
-, ghcAndroidArm64
-, ghcAndroidArmv7a
+, ghcAndroidAarch64
+, ghcAndroidAarch32
 , overrideCabal
 }:
 with nixpkgs.lib.strings;
@@ -99,7 +99,7 @@ in rec {
       # where "offset" is a per-platform constant.
     }:
     assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
-    impl.buildApp {
+    nixpkgs.lib.makeOverridable impl.buildApp {
       inherit package
               executableName
               applicationId
