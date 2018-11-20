@@ -158,8 +158,8 @@ Of course, we want to do more than just view a static webpage. Let's start by ge
 > import Reflex.Dom
 
 > main = mainWidget $ el "div" $ do
->   t <- textInput def
->   dynText $ _textInput_value t
+>   t <- inputElement def
+>   dynText $ _inputElement_value t
 
 ```
 <!--
@@ -169,62 +169,30 @@ Of course, we want to do more than just view a static webpage. Let's start by ge
 
 Running this in your browser, you'll see that it produces a `div` containing an `input` element. When you type into the `input` element, the text you enter appears inside the div as well.
 
-`textInput` is a function with the following type:
+`inputElement` is a function with the following type:
 
 ```haskell
-textInput :: MonadWidget t m => TextInputConfig t -> m (TextInput t)
+inputElement :: DomBuilder t m
+  => InputElementConfig er t (DomBuilderSpace m)
+  -> m (InputElement er (DomBuilderSpace m) t)
 ```
 
-It takes a `TextInputConfig` (given a default value in our example), and produces a `Widget` whose result is a `TextInput`. In `Reflex.Dom.Widget.Input` we can see that a `TextInput` exposes the following functionality:
+It takes a `InputElementConfig` (given a default value in our example), and produces a `Widget` whose result is a `InputElement`. The `InputElement` exposes the following functionality:
 
 ```haskell
-data TextInput t
-   = TextInput { _textInput_value :: Dynamic t Text
-               , _textInput_input :: Event t Text
-               , _textInput_keypress :: Event t Int
-               , _textInput_keydown :: Event t Int
-               , _textInput_keyup :: Event t Int
-               , _textInput_hasFocus :: Dynamic t Bool
-               , _textInput_builderElement :: InputElement EventResult GhcjsDomSpace t
-               }
+data InputElement er d t
+   = InputElement { _inputElement_value :: Dynamic t Text
+                  , _inputElement_checked :: Dynamic t Bool
+                  , _inputElement_checkedChange :: Event t Bool
+                  , _inputElement_input :: Event t Text
+                  , _inputElement_hasFocus :: Dynamic t Bool
+                  , _inputElement_element :: Element er d t
+                  , _inputElement_raw :: RawInputElement d
+                  , _inputElement_files :: Dynamic t [RawFile d]
+                  }
 ```
 
-Here we are using `_textInput_value` to access the `Dynamic Text` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
-
-We can also access `Event`s related to the `TextInput`. For example, consider the following code:
-
-<!--
-#ifdef SNIPPET_3
--->
-```haskell
-
-> {-# LANGUAGE OverloadedStrings #-}
-> import Data.Text  (pack)
-> import Reflex
-> import Reflex.Dom
-
-> main = mainWidget $ el "div" $ do
->   t <- textInput def
->   text "Last key pressed: "
->   let keypressEvent = fmap (pack . show) $ _textInput_keypress t
->   keypressDyn <- holdDyn "None" keypressEvent
->   dynText keypressDyn
-
-```
-<!--
-#endif
--->
-
-Here, we are creating a `TextInput` as we were before. The function `_textInput_keypress` gives us an `Event Int` representing the key code of the pressed key. We are using `fmap` here to apply `pack . show` to the `Int`, so the type of `keypressEvent` is `Event Text`. Whenever a key is pressed inside the `TextInput`, the `keypressEvent` will fire.
-`holdDyn` allows us to take create a `Dynamic` out of an `Event`. We must provide an initial value for the `Dynamic`. This will be the value of the `Dynamic` until the associated `Event` fires. The type of `holdDyn` is:
-
-```haskell
-holdDyn :: MonadHold t m => a -> Event t a -> m (Dynamic t a)
-```
-
-We won't go into the details of `MonadHold` here, but the rest of the type signature should be fairly clear: `holdDyn` takes an initial value, an `Event` containing a value of the same type as the initial, and returns a `Dynamic` containing a value of the same type.
-
-When you run this application, you'll see a textbox and the string "Last key pressed: None" on the screen. Recall that "None" is the initial value we gave `holdDyn`.
+Here we are using `_inputElement_value` to access the `Dynamic Text` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
 
  ### A Number Input
 A calculator was promised, I know. We'll start building the calculator by creating an input for numbers.
@@ -241,18 +209,19 @@ A calculator was promised, I know. We'll start building the calculator by creati
 > import qualified Data.Map as Map
 
 > main = mainWidget $ el "div" $ do
->   t <- textInput $ def & textInputConfig_inputType .~ "number"
->                        & textInputConfig_initialValue .~ "0"
->   dynText $ _textInput_value t
+>   t <- inputElement $ def
+>     & inputElementConfig_initialValue .~ "0"
+>     & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
+>   dynText $ _inputElement_value t
 
 ```
 <!--
 #endif
 -->
 
-The code above overrides some of the default values of the `TextInputConfig`. We provide a `Text` value for the `textInputConfig_inputType`, specifying the html input element's `type` attribute. We're using `"number"` here.
+The code above overrides some of the default values of the `InputElementConfig`. We provide a `Map Text Text` value for the `inputElementConfig_elementConfig`'s `elementConfig_initialAttributes`, specifying the html input element's `type` attribute to `number`.
 
-Next, we override the default initial value of the `TextInput`. We gave it `"0"`. Even though we're making an html `input` element with the attribute `type=number`, the result is still a `Text`. We'll convert this later.
+Next, we override the default initial value of the `InputElement`. We gave it `"0"`. Even though we're making an html `input` element with the attribute `type=number`, the result is still a `Text`. We'll convert this later.
 
 Let's do more than just take the input value and print it out. First, let's make sure the input is actually a number:
 
@@ -275,9 +244,10 @@ Let's do more than just take the input value and print it out. First, let's make
 
 > numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 > numberInput = do
->   n <- textInput $ def & textInputConfig_inputType .~ "number"
->                        & textInputConfig_initialValue .~ "0"
->   return . fmap (readMaybe . unpack) $ _textInput_value n
+>   n <- inputElement $ def
+>     & inputElementConfig_initialValue .~ "0"
+>     & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
+>   return . fmap (readMaybe . unpack) $ _inputElement_value n
 
 ```
 <!--
@@ -285,7 +255,7 @@ Let's do more than just take the input value and print it out. First, let's make
 -->
 
 
-We've defined a function `numberInput` that both handles the creation of the `TextInput` and reads its value. Recall that `_textInput_value` gives us a `Dynamic Text`. The final line of code in `numberInput` uses `fmap` to apply the function `readMaybe . unpack` to the `Dynamic` value of the `TextInput`. This produces a `Dynamic (Maybe Double)`. Our `main` function uses `fmap` to map over the `Dynamic (Maybe Double)` produced by `numberInput` and `pack . show` the value it contains. We store the new `Dynamic Text` in `numberString` and feed that into `dynText` to actually display the `Text`
+We've defined a function `numberInput` that both handles the creation of the `InputElement` and reads its value. Recall that `_inputElement_value` gives us a `Dynamic Text`. The final line of code in `numberInput` uses `fmap` to apply the function `readMaybe . unpack` to the `Dynamic` value of the `InputElement`. This produces a `Dynamic (Maybe Double)`. Our `main` function uses `fmap` to map over the `Dynamic (Maybe Double)` produced by `numberInput` and `pack . show` the value it contains. We store the new `Dynamic Text` in `numberString` and feed that into `dynText` to actually display the `Text`
 
 Running the app at this point should produce an input and some text showing the `Maybe Double`. Typing in a number should produce output like `Just 12.0` and typing in other text should produce the output `Nothing`.
 
@@ -317,9 +287,10 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 
 > numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 > numberInput = do
->   n <- textInput $ def & textInputConfig_inputType .~ "number"
->                        & textInputConfig_initialValue .~ "0"
->   return . fmap (readMaybe . unpack) $ _textInput_value n
+>   n <- inputElement $ def
+>     & inputElementConfig_initialValue .~ "0"
+>     & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
+>   return . fmap (readMaybe . unpack) $ _inputElement_value n
 
 ```
 <!--
@@ -389,9 +360,10 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 >
 > numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 > numberInput = do
->   n <- textInput $ def & textInputConfig_inputType .~ "number"
->                        & textInputConfig_initialValue .~ "0"
->   return . fmap (readMaybe . unpack) $ _textInput_value n
+>   n <- inputElement $ def
+>     & inputElementConfig_initialValue .~ "0"
+>     & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
+>   return . fmap (readMaybe . unpack) $ _inputElement_value n
 >
 > data Op = Plus | Minus | Times | Divide deriving (Eq, Ord)
 >
@@ -428,9 +400,10 @@ Let's spare a thought for the user of our calculator and add a little UI styling
 ```haskell
 numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
-  n <- textInput $ def & textInputConfig_inputType .~ "number"
-                       & textInputConfig_initialValue .~ "0"
-  return . fmap (readMaybe . unpack) $ _textInput_value n
+  n <- inputElement $ def
+    & inputElementConfig_initialValue .~ "0"
+    & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
+  return . fmap (readMaybe . unpack) $ _inputElement_value n
 ```
 
 Let's give it some html attributes to work with:
@@ -438,37 +411,51 @@ Let's give it some html attributes to work with:
 ```haskell
 numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
 numberInput = do
-  let attrs = constDyn ("style" =: "border-color: blue")
-  n <- textInput $ def & textInputConfig_inputType .~ "number"
-                       & textInputConfig_initialValue .~ "0"
-                       & textInputConfig_attributes .~ attrs
-  return . fmap (readMaybe . unpack) $ _textInput_value n
+  let initAttrs = (("type" =: "number") <> ("style" =: "border-color: blue"))
+  n <- inputElement $ def
+    & inputElementConfig_initialValue .~ "0"
+    & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ initAttrs
+  return . fmap (readMaybe . unpack) $ _inputElement_value n
 ```
 
-Here, we've created a `Dynamic (Map Text Text)`. This `Map` represents the html attributes of our inputs. Because we're using `constDyn` again, this `Dynamic` will never change. If you load this in the browser, you'll see that the inputs now have a blue border.
+Here, we've used a `(Map Text Text)`. This `Map` represents the html attributes of our inputs. 
 
-Unchanging attributes are useful and quite common, but attributes will often need to change. Instead of just making the `TextInput` blue, let's change it's color based on whether the input successfully parses to a `Double`:
+Static attributes are useful and quite common, but attributes will often need to change.
+Instead of just making the `InputElement` blue, let's change it's color based on whether the input successfully parses to a `Double`:
 
 ```haskell
 {-# LANGUAGE RecursiveDo #-}
 ...
 numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
 numberInput = do
-  let errorState = "style" =: "border-color: red"
-      validState = "style" =: "border-color: green"
-  rec n <- textInput $ def & textInputConfig_inputType .~ "number"
-                           & textInputConfig_initialValue .~ "0"
-                           & textInputConfig_attributes .~ attrs
-      let result = fmap (readMaybe . unpack) $ _textInput_value n
-          attrs  = fmap (maybe errorState (const validState)) result
+  let initAttrs = ("type" =: "number") <> (style False)
+      color error = if error then "red" else "green"
+      style error = "style" =: ("border-color: " <> color error)
+      styleChange :: Maybe Double -> Map AttributeName (Maybe Text)
+      styleChange result = case result of
+        (Just _) -> fmap Just (style False)
+        (Nothing) -> fmap Just (style True)
+
+  rec
+    n <- inputElement $ def
+      & inputElementConfig_initialValue .~ "0"
+      & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ initAttrs
+      & inputElementConfig_elementConfig . elementConfig_modifyAttributes .~ modAttrEv
+    let result = fmap (readMaybe . unpack) $ _inputElement_value n
+        modAttrEv  = fmap styleChange (updated result)
   return result
 ```
 
-Note that we need to add a language pragma here to enable the `RecursiveDo` language extension. We've defined two `Map`s of attributes for our inputs: one to represent bad input and one to represent valid input. Next, you'll see that the code for actually making the number input is now inside of a `rec` block. This is because the attributes we apply depend on the value of the input.
+Note that we need to add a language pragma here to enable the `RecursiveDo` language extension.
+Here `style` function takes a `Bool` value, whether input is correct or not, and it gives a `Map` of attributes with green or red color respectively.
+The next function `styleChange` actually produces a `Map` which tells which attribute to change.
+If the value of a key in the `Map` is a `Just` value then the attribute is either added or modified.
+If the value of key is `Nothing`, then that attribute is removed.
+An `Event` of this `Map` is specified in the `elementConfig_modifyAttributes`.
 
-In the first line of the `rec`, we have supplied the argument `attrs`, of type `Dynamic (Map Text Text)`. The `Dynamic` value of the input is bound to `result`. The code for parsing this value has not changed.
+In the first line of the `rec`, we have supplied this `Event` as argument `modAttrEv`. The `Dynamic` value of the input is bound to `result`. The code for parsing this value has not changed.
 
-After we bind `result`, we use `fmap` again to apply a switching function to `result`. The switching function checks whether the value was successfully parsed. If it was, we get the `Map` of attributes representing the valid state, otherwise we get the `Map` representing the error state. The result is a `Dynamic (Map Text Text)`, which is the type `textInputConfig_attributes` expects to receive.
+After we bind `result`, we use `fmap` again to apply a switching function to the `updated result` `Event`. The switching function checks whether the value was successfully parsed and gives the corresponding `Event` to modify the attributes.
 
 The complete program now looks like this:
 
@@ -499,13 +486,21 @@ The complete program now looks like this:
 >
 > numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
 > numberInput = do
->   let errorState = "style" =: "border-color: red"
->       validState = "style" =: "border-color: green"
->   rec n <- textInput $ def & textInputConfig_inputType .~ "number"
->                            & textInputConfig_initialValue .~ "0"
->                            & textInputConfig_attributes .~ attrs
->       let result = fmap (readMaybe . unpack) $ _textInput_value n
->           attrs  = fmap (maybe errorState (const validState)) result
+>   let initAttrs = ("type" =: "number") <> (style False)
+>       color error = if error then "red" else "green"
+>       style error = "style" =: ("border-color: " <> color error)
+>       styleChange :: Maybe Double -> Map AttributeName (Maybe Text)
+>       styleChange result = case result of
+>         (Just _) -> fmap Just (style False)
+>         (Nothing) -> fmap Just (style True)
+>
+>   rec
+>     n <- inputElement $ def
+>       & inputElementConfig_initialValue .~ "0"
+>       & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ initAttrs
+>       & inputElementConfig_elementConfig . elementConfig_modifyAttributes .~ modAttrEv
+>     let result = fmap (readMaybe . unpack) $ _inputElement_value n
+>         modAttrEv  = fmap styleChange (updated result)
 >   return result
 >
 > data Op = Plus | Minus | Times | Divide deriving (Eq, Ord)
