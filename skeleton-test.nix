@@ -13,6 +13,7 @@ let
 
   mkCabalProject = { shellDrv, projectFile }: shellDrv.overrideAttrs (old: {
     name = "reflex-project-skeleton-${projectFile}";
+    phases = [ "unpackPhase" "buildPhase" "installPhase" ];
     src = skeletonSrc;
     CABAL_CONFIG = builtins.toFile "cabal.config" ''
     '';
