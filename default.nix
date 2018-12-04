@@ -644,6 +644,7 @@ in let this = rec {
       cabal-install
       ghcid
       hasktags
+      hdevtools
       hlint;
     inherit (nixpkgs)
       cabal2nix
@@ -652,7 +653,6 @@ in let this = rec {
       nodejs
       pkgconfig
       closurecompiler;
-    inherit (haskellPackages) hdevtools;
   } // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
