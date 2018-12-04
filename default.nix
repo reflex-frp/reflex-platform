@@ -644,6 +644,7 @@ in let this = rec {
       cabal-install
       ghcid
       hasktags
+      hdevtools
       hlint;
     inherit (nixpkgs)
       cabal2nix
@@ -656,7 +657,6 @@ in let this = rec {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
     ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables haskellPackages.ghc-mod);
-    inherit (haskellPackages) hdevtools;
   }) // (lib.optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
   });
