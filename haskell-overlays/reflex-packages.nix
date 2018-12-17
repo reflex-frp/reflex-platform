@@ -1,6 +1,6 @@
 { haskellLib
 , lib, nixpkgs
-, fetchFromGitHub, hackGet
+, fetchFromGitHub, hackGet, fetchFromBitbucket
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
 }:
 
@@ -115,5 +115,12 @@ in
     rev = "8c28c09991cd7c3588ae6db1be59a0540758f5f5";
     sha256 = "0dg32s2mgxav68yw6g7b15w0h0z116zx0qri26gprafgy23bxanm";
   }) {};
+  # Version 1.2.1 not on Hackage yet
+  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
+    owner = "wuzzeb";
+    repo = "webdriver-utils";
+    rev = "a8b15525a1cceb0ddc47cfd4d7ab5a29fdbe3127";
+    sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
+  } + "/hspec-webdriver") {};
 
 }
