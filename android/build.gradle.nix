@@ -40,7 +40,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode ${version.code}
         versionName "${version.name}"
     }
