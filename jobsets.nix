@@ -27,6 +27,10 @@ let
         value = "https://github.com/NixOS/nixpkgs-channels nixos-unstable";
         emailresponsible = false;
       };
+      config = {
+        type = "nix";
+        value = "{ android_sdk.accept_license = true; }";
+      };
     };
   };
   branchJobset = branch: defaults {
