@@ -30,6 +30,7 @@ let
       config = {
         type = "nix";
         value = "{ android_sdk.accept_license = true; }";
+        emailresponsible = false;
       };
     };
   };
