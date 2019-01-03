@@ -356,6 +356,10 @@ let iosSupport = system == "x86_64-darwin";
           # Old `wl-pprint-text` in turn doesn't expect `base-compat` to provide
           # a `(<>)`, since it is defining its own.
           base-compat = self.callHackage "base-compat" "0.9.3" {};
+          # relax bounds for newer process
+          concurrent-output = haskellLib.doJailbreak super.concurrent-output;
+          # missing semigroups pkg
+          ListLike = haskellLib.addBuildDepend super.ListLike self.semigroups;
         };
       };
       inherit (nixpkgs) cabal-install;
@@ -461,7 +465,7 @@ let iosSupport = system == "x86_64-darwin";
   iosAarch32-8_4 = iosWithHaskellPackages ghcIosAarch32-8_4;
   iosAarch32-8_2 = iosWithHaskellPackages ghcIosAarch32-8_2;
   iosWithHaskellPackages = ghc: {
-    buildApp = import ./ios { inherit nixpkgs ghc; };
+    buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
 
 in let this = rec {
@@ -638,6 +642,7 @@ in let this = rec {
       cabal-install
       ghcid
       hasktags
+      hdevtools
       hlint;
     inherit (nixpkgs)
       cabal2nix
@@ -649,8 +654,7 @@ in let this = rec {
   } // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.2" < 0) {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
-    ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables nativeHaskellPackages.ghc-mod);
-    inherit (haskellPackages) hdevtools;
+    ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables haskellPackages.ghc-mod);
   }) // (lib.optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
   });
