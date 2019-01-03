@@ -1,4 +1,4 @@
-{ lib, haskellLib, fetchFromGitHub, hackGet, fetchpatch, ghcjsBaseTextJSStringSrc, versionWildcard }:
+{ lib, haskellLib, fetchFromGitHub, fetchpatch, ghcjsBaseTextJSStringSrc, versionWildcard }:
 
 with lib;
 with haskellLib;

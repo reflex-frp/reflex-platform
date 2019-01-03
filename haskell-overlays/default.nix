@@ -1,6 +1,6 @@
 { lib
 , haskellLib
-, nixpkgs, fetchFromGitHub, hackGet
+, nixpkgs, fetchFromGitHub, dep
 , ghcjsBaseSrc, ghcjsBaseTextJSStringSrc
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
@@ -89,14 +89,14 @@ rec {
   ##
 
   reflexPackages = import ./reflex-packages.nix {
-    inherit haskellLib lib nixpkgs fetchFromGitHub hackGet useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling;
+    inherit haskellLib lib nixpkgs fetchFromGitHub dep useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling;
   };
   disableTemplateHaskell = import ./disable-template-haskell.nix {
     inherit haskellLib fetchFromGitHub;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
-    inherit lib haskellLib fetchFromGitHub hackGet ghcjsBaseTextJSStringSrc versionWildcard;
+    inherit lib haskellLib fetchFromGitHub ghcjsBaseTextJSStringSrc versionWildcard;
     inherit (nixpkgs) fetchpatch;
   };
 
@@ -126,7 +126,7 @@ rec {
 
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
-    inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer hackGet;
+    inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer;
   };
   ghcjs-8_0 = self: super: {
     hashable = haskellLib.addBuildDepend (self.callHackage "hashable" "1.2.7.0" {}) self.text;

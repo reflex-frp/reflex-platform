@@ -1,6 +1,6 @@
 { haskellLib
 , lib, nixpkgs
-, fetchFromGitHub, hackGet
+, fetchFromGitHub, dep
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
 }:
 
@@ -9,10 +9,10 @@ with haskellLib;
 self: super:
 
 let
-  reflexDom = import (hackGet ../reflex-dom) self nixpkgs;
-  jsaddleSrc = hackGet ../jsaddle;
-  gargoylePkgs = self.callPackage (hackGet ../gargoyle) self;
-  ghcjsDom = import (hackGet ../ghcjs-dom) self;
+  reflexDom = import dep.reflex-dom self nixpkgs;
+  jsaddleSrc = dep.jsaddle;
+  gargoylePkgs = self.callPackage dep.gargoyle self;
+  ghcjsDom = import dep.ghcjs-dom self;
   addReflexTraceEventsFlag = drv: if enableTraceReflexEvents
     then appendConfigureFlag drv "-fdebug-trace-events"
     else drv;
@@ -28,9 +28,9 @@ in
   ## Reflex family
   ##
 
-  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ../reflex) {}))));
-  reflex-todomvc = self.callPackage (hackGet ../reflex-todomvc) {};
-  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ../reflex-aeson-orphans) {};
+  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage dep.reflex {}))));
+  reflex-todomvc = self.callPackage dep.reflex-todomvc {};
+  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" dep.reflex-aeson-orphans {};
 
   # Broken Haddock - Please fix!
   # : error is: haddock: internal error: internal: extractDecl
@@ -72,7 +72,7 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
-  jsaddle-dom = self.callPackage (hackGet ../jsaddle-dom) {};
+  jsaddle-dom = self.callPackage dep.jsaddle-dom {};
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   ##
