@@ -32,7 +32,7 @@ let pkgs = reflex-platform.nixpkgs;
       export PATH=node_modules/.bin:$PATH
     '';
     inherit (pkgs) fetchzip fetchFromGitHub;
-    inherit (reflex-platform.dep) js-framework-benchmark;
+    inherit (reflex-platform) dep;
     yarn2nixSrc = fetchzip {
       url = "https://github.com/moretea/yarn2nix/archive/v1.0.0.tar.gz";
       sha256 = "02bzr9j83i1064r1r34cn74z7ccb84qb5iaivwdplaykyyydl1k8";
@@ -86,7 +86,7 @@ trap "rm -rf \"$CLEAN\"" EXIT
 
 cd "$CLEAN"
 
-cp -a "${reflex-platform.dep.js-framework-benchmark}/"* .
+cp -a "${dep.js-framework-benchmark}/"* .
 chmod -R +w .
 
 ln -s ${nodePkgs.js-framework-benchmark.node_modules} .
