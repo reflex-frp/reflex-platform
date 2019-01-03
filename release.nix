@@ -67,8 +67,7 @@ let
     benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
     cache = reflex-platform.pinBuildInputs
       "reflex-platform-${system}"
-      (lib.concatMap builtins.attrValues (builtins.attrValues reflex-platform.dep)
-        ++ reflex-platform.cachePackages)
+      (builtins.attrValues reflex-platform.dep ++ reflex-platform.cachePackages)
       (otherDeps);
   } // lib.optionalAttrs (system == "x86_64-linux") {
     # The node build is uncached and slow
