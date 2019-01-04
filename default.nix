@@ -138,16 +138,6 @@ let iosSupport = system == "x86_64-darwin";
 
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
 
-    applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
-      inherit src patch;
-    } ''
-      cp -r "$src" "$out"
-
-      cd "$out"
-      chmod -R +w .
-      patch -p1 <"$patch"
-    '';
-
     overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
 
     combineOverrides = old: new: old // new // lib.optionalAttrs (old ? overrides && new ? overrides) {
