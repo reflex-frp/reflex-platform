@@ -31,13 +31,9 @@ in
   reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage dep.reflex {}))));
   reflex-todomvc = self.callPackage dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" dep.reflex-aeson-orphans {};
-
-  # Broken Haddock - Please fix!
-  # : error is: haddock: internal error: internal: extractDecl
-  # No idea where it hits?
-  reflex-dom = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom);
+  reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
   reflex-dom-core = appendConfigureFlags
-    (dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core))
+    (addReflexOptimizerFlag reflexDom.reflex-dom-core)
     (lib.optional enableLibraryProfiling "-fprofile-reflex");
 
   ##
