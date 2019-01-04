@@ -34,6 +34,8 @@ let
         echo $out/bin/reflex-todomvc.jsexe >> $out/nix-support/hydra-build-products
       '';
     });
+
+    benchmark = import ./scripts/benchmark { inherit reflex-platform; };
   in {
     inherit (reflex-platform) dep;
     tryReflexShell = reflex-platform.tryReflexShell;
@@ -64,19 +66,16 @@ let
     skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
     # TODO update reflex-project-skeleton to also cover ghc80 instead of using legacy compilers option
     skeleton-test-legacy-compilers = import ./skeleton-test.nix { reflex-platform = reflex-platform-legacy-compilers; };
-    benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
+    inherit benchmark;
     cache = reflex-platform.pinBuildInputs
       "reflex-platform-${system}"
-      (builtins.attrValues reflex-platform.dep
-       ++ builtins.attrValues reflex-platform.ghcjs8_0._dep
+      (builtins.attrValues reflex-platform.ghcjs8_0._dep
        ++ builtins.attrValues reflex-platform.ghcjs8_2._dep
        ++ builtins.attrValues reflex-platform.ghcjs8_4._dep
        ++ builtins.attrValues (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
+       ++ builtins.attrValues benchmark.dep
        ++ reflex-platform.cachePackages)
       (otherDeps);
-  } // lib.optionalAttrs (system == "x86_64-linux") {
-    # The node build is uncached and slow
-    benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
     inherit (reflex-platform) androidReflexTodomvc-8_2;

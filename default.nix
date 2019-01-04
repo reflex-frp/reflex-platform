@@ -138,8 +138,6 @@ let iosSupport = system == "x86_64-darwin";
 
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
 
-    dep = nixpkgs.thunkSet ./dep;
-
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
       inherit src patch;
     } ''
@@ -334,7 +332,6 @@ in let this = rec {
   inherit nixpkgs
           nixpkgsCross
           overrideCabal
-          dep
           foreignLibSmuggleHeaders
           ghc
           ghcHEAD
