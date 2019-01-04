@@ -1,7 +1,6 @@
 { lib
 , haskellLib
-, nixpkgs, fetchFromGitHub, dep
-, ghcjsBaseSrc, ghcjsBaseTextJSStringSrc
+, nixpkgs, dep
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
 , stage2Script
@@ -9,6 +8,10 @@
 , ghcSavedSplices
 , haskellOverlays
 }:
+
+let
+  inherit (nixpkgs.buildPackages) fetchgit fetchFromGitHub;
+in
 
 rec {
   optionalExtension = cond: overlay: if cond then overlay else _: _: {};
@@ -80,6 +83,7 @@ rec {
 
   combined-ghcjs = self: super: foldExtensions [
     ghcjs
+    (optionalExtension (lib.versionAtLeast super.ghc.ghcVersion "8.2") ghcjs-fast-weak)
     (optionalExtension (versionWildcard [ 8 0 ] super.ghc.ghcVersion) ghcjs-8_0)
     (optionalExtension (versionWildcard [ 8 2 ] super.ghc.ghcVersion) ghcjs-8_2)
     (optionalExtension (versionWildcard [ 8 4 ] super.ghc.ghcVersion) ghcjs-8_4)
@@ -97,7 +101,7 @@ rec {
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
-    inherit lib haskellLib fetchFromGitHub ghcjsBaseTextJSStringSrc versionWildcard;
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
     inherit (nixpkgs) fetchpatch;
   };
 
@@ -127,7 +131,10 @@ rec {
 
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
-    inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer;
+    inherit lib haskellLib nixpkgs fetchgit fetchFromGitHub useReflexOptimizer;
+  };
+  ghcjs-fast-weak = import ./ghcjs-fast-weak {
+   inherit lib;
   };
   ghcjs-8_0 = self: super: {
     hashable = haskellLib.addBuildDepend (self.callHackage "hashable" "1.2.7.0" {}) self.text;
@@ -136,12 +143,8 @@ rec {
   };
   ghcjs-8_2 = _: _: {
   };
-  ghcjs-8_4 = optionalExtension useTextJSString (_: _: {
-    dlist = null;
-    ghcjs-base = null;
-    primitive = null;
-    vector = null;
-  });
+  ghcjs-8_4 = optionalExtension useTextJSString
+    (import ./ghcjs-8.4-text-jsstring.nix { inherit lib fetchgit; });
 
   android = import ./android {
     inherit haskellLib;

@@ -1,9 +1,20 @@
-{ lib, haskellLib, fetchFromGitHub, fetchpatch, ghcjsBaseTextJSStringSrc, versionWildcard }:
+{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard }:
 
 with lib;
 with haskellLib;
 
 self: super: {
+  _dep = super._dep or {} // {
+    ghcjsBaseTextJSStringSrc = self._dep.ghcjsBaseSrc.overrideAttrs (drv: {
+      outputHash = "1ggfklrmawqh54ins98rpr7qy3zbcqaqp1w7qmh90mq5jf711x9r";
+      postFetch = (drv.postFetch or "") + ''
+        ( cd $out
+          patch -p1 < ${./ghcjs-base-text-jsstring.patch}
+        )
+      '';
+    });
+  };
+
   # text = (doCheck (self.callCabal2nix "text" (fetchFromGitHub {
   #   owner = "obsidiansystems";
   #   repo = "text";
@@ -76,6 +87,6 @@ self: super: {
         sha256 = "1ffiyvfq4diwpmm8sv8k7fm58p37rbr24baxbmm8b2h8bkrnwg9y";
       }) {});
   ghcjs-base = with haskellLib; if (versionWildcard [ 8 0 ] super.ghc.ghcVersion)
-    then dontCheck (doJailbreak (self.callCabal2nix "ghcjs-base" ghcjsBaseTextJSStringSrc {}))
+    then dontCheck (doJailbreak (self.callCabal2nix "ghcjs-base" self._dep.ghcjsBaseTextJSStringSrc {}))
     else super.ghcjs-base;
 }
