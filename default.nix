@@ -150,13 +150,6 @@ let iosSupport = system == "x86_64-darwin";
 
     overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
 
-    replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
-      inherit src version;
-      sha256 = null;
-      revision = null;
-      editedCabalFile = null;
-    });
-
     combineOverrides = old: new: old // new // lib.optionalAttrs (old ? overrides && new ? overrides) {
       overrides = lib.composeExtensions old.overrides new.overrides;
     };
