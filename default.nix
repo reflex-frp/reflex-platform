@@ -328,7 +328,6 @@ in let this = rec {
     hackGet
     thunkSet
     ;
-  inherit (ghcjs8_0._dep) stage2Script;
   inherit nixpkgs
           nixpkgsCross
           overrideCabal

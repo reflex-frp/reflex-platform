@@ -4,7 +4,7 @@
 let
   inherit (local-self.nixpkgs) lib;
   getOtherDeps = reflex-platform: [
-    reflex-platform.stage2Script
+    reflex-platform.ghcjs8_0._dep.stage2Script
     reflex-platform.nixpkgs.cabal2nix
     reflex-platform.ghc.cabal2nix
   ] ++ builtins.concatLists (map
