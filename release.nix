@@ -71,6 +71,7 @@ let
        ++ builtins.attrValues reflex-platform.ghcjs8_0._dep
        ++ builtins.attrValues reflex-platform.ghcjs8_2._dep
        ++ builtins.attrValues reflex-platform.ghcjs8_4._dep
+       ++ builtins.attrValues (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
        ++ reflex-platform.cachePackages)
       (otherDeps);
   } // lib.optionalAttrs (system == "x86_64-linux") {

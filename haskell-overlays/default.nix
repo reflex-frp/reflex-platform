@@ -4,13 +4,12 @@
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
 , stage2Script
-, androidActivity
 , ghcSavedSplices
 , haskellOverlays
 }:
 
 let
-  inherit (nixpkgs.buildPackages) fetchgit fetchFromGitHub;
+  inherit (nixpkgs.buildPackages) thunkSet fetchgit fetchFromGitHub;
 in
 
 rec {
@@ -149,7 +148,7 @@ rec {
   android = import ./android {
     inherit haskellLib;
     inherit nixpkgs;
-    inherit androidActivity;
+    inherit thunkSet;
   };
   ios = import ./ios.nix {
     inherit haskellLib;

@@ -50,7 +50,6 @@ let iosSupport = system == "x86_64-darwin";
             stage2Script
             haskellOverlays;
           inherit ghcSavedSplices;
-          androidActivity = dep.android-activity;
         };
       };
     };
