@@ -169,17 +169,6 @@ let iosSupport = system == "x86_64-darwin";
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
 
-    foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
-      postInstall = ''
-        cd dist/build/${pkg.pname}/${pkg.pname}-tmp
-        for header in $(find . | grep '\.h'$); do
-          local dest_dir=$out/include/$(dirname "$header")
-          mkdir -p "$dest_dir"
-          cp "$header" "$dest_dir"
-        done
-      '';
-    });
-
     cabal2nixResult = src: builtins.trace "cabal2nixResult is deprecated; use ghc.haskellSrc2nix or ghc.callCabal2nix instead" (ghc.haskellSrc2nix {
       name = "for-unknown-package";
       src = "file://${src}";
@@ -331,7 +320,6 @@ in let this = rec {
   inherit nixpkgs
           nixpkgsCross
           overrideCabal
-          foreignLibSmuggleHeaders
           ghc
           ghcHEAD
           ghc8_4
