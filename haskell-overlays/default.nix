@@ -5,13 +5,14 @@
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
 , stage2Script
-, optionalExtension
 , androidActivity
 , ghcSavedSplices
 , haskellOverlays
 }:
 
 rec {
+  optionalExtension = cond: overlay: if cond then overlay else _: _: {};
+
   versionWildcard = versionList: let
     versionListInc = lib.init versionList ++ [ (lib.last versionList + 1) ];
     bottom = lib.concatStringsSep "." (map toString versionList);

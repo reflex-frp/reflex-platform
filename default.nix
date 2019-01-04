@@ -41,17 +41,17 @@ let iosSupport = system == "x86_64-darwin";
       haskell = super.haskell // {
         overlays = super.overlays or {} // import ./haskell-overlays {
           nixpkgs = self;
+          inherit (self) lib;
+          inherit (self.buildPackages) fetchFromGitHub;
+          haskellLib = self.haskell.lib;
           inherit
-            haskellLib
-            fetchFromGitHub dep
+            dep
             ghcjsBaseSrc ghcjsBaseTextJSStringSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
             stage2Script
-            optionalExtension
             haskellOverlays;
           inherit ghcSavedSplices;
-          inherit (self) lib;
           androidActivity = dep.android-activity;
         };
       };
@@ -144,8 +144,6 @@ let iosSupport = system == "x86_64-darwin";
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
 
     dep = nixpkgs.thunkSet ./dep;
-
-    optionalExtension = cond: overlay: if cond then overlay else _: _: {};
 
     applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
       inherit src patch;
