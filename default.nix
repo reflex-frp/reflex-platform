@@ -44,7 +44,6 @@ let iosSupport = system == "x86_64-darwin";
           inherit (self) lib;
           haskellLib = self.haskell.lib;
           inherit
-            dep
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
             haskellOverlays;
