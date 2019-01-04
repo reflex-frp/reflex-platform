@@ -3,13 +3,12 @@
 , nixpkgs, dep
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
-, stage2Script
 , ghcSavedSplices
 , haskellOverlays
 }:
 
 let
-  inherit (nixpkgs.buildPackages) thunkSet fetchgit fetchFromGitHub;
+  inherit (nixpkgs.buildPackages) thunkSet runCommand fetchgit fetchFromGitHub;
 in
 
 rec {
@@ -109,12 +108,12 @@ rec {
   any-7 = import ./any-7.nix { inherit haskellLib; };
   any-7_8 = import ./any-7.8.nix { inherit haskellLib; };
   any-8 = import ./any-8.nix { inherit haskellLib lib getGhcVersion; };
-  any-8_0 = import ./any-8.0.nix { inherit haskellLib; };
+  any-8_0 = import ./any-8.0 { inherit haskellLib nixpkgs thunkSet runCommand; };
   any-8_4 = import ./any-8.4.nix { inherit haskellLib fetchFromGitHub; inherit (nixpkgs) pkgs; };
   any-head = import ./any-head.nix { inherit haskellLib fetchFromGitHub; };
 
   # Just for GHC, usually to sync with GHCJS
-  ghc-8_0 = import ./ghc-8.0.nix { inherit haskellLib stage2Script; };
+  ghc-8_0 = import ./ghc-8.0.nix { inherit haskellLib; };
   ghc-8_2 = _: _: {};
   ghc-8_4 = _: _: {};
   ghc-head = _: _: {};
@@ -135,10 +134,10 @@ rec {
   ghcjs-fast-weak = import ./ghcjs-fast-weak {
    inherit lib;
   };
-  ghcjs-8_0 = self: super: {
-    hashable = haskellLib.addBuildDepend (self.callHackage "hashable" "1.2.7.0" {}) self.text;
-    # `configure` cannot be generated on the fly from `configure.ac` with older Cabal.
-    old-time = haskellLib.addBuildTool super.old-time nixpkgs.autoreconfHook;
+  ghcjs-8_0 = import ./ghcjs-8.0 {
+   inherit haskellLib;
+   inherit nixpkgs;
+   inherit thunkSet;
   };
   ghcjs-8_2 = _: _: {
   };

@@ -8,6 +8,6 @@ self: super: {
   # some instances have been added to QuickCheck which overlap with ones
   # defined by aeson.  This can probably be removed once ghcjs-boot has
   # updated to aeson >= 0.11.2.1.
-  aeson = let version = (import stage2Script { ghcjsBoot = null; } { inherit (self) callPackage; }).aeson.version;
+  aeson = let version = (import self._dep.stage2Script { ghcjsBoot = null; } { inherit (self) callPackage; }).aeson.version;
     in haskellLib.dontCheck (self.callPackage (self.hackage2nix "aeson" version) {});
 }

@@ -47,7 +47,6 @@ let iosSupport = system == "x86_64-darwin";
             dep
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
-            stage2Script
             haskellOverlays;
           inherit ghcSavedSplices;
         };
@@ -190,18 +189,6 @@ let iosSupport = system == "x86_64-darwin";
       sha256 = null;
     });
 
-    stage2Script = nixpkgs.runCommand "stage2.nix" {
-      GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
-      buildCommand = ''
-        echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
-        patchShebangs .
-        ./gen-stage2.rb "${dep."ghcjs-boot-8.0"}" >"$out"
-      '';
-      nativeBuildInputs = with nixpkgs; [
-        ruby cabal2nix
-      ];
-    } "";
-
   ghcSavedSplices = ghcSavedSplices-8_4;
   ghcSavedSplices-8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_4).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
@@ -241,29 +228,6 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghcjs8_0 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs80.override (old: {
-    ghc = (import "${nixpkgs.path}/pkgs/development/compilers/ghcjs/8.0" {
-      bootPkgs = nixpkgs.haskell.packages.ghc802.override {
-        overrides = self: super: {
-          # Newer versions no longer export `(<>)`, because that is now
-          # understand to be monoid/semigroup append.
-          wl-pprint-text = haskellLib.doJailbreak (self.callHackage "wl-pprint-text" "1.1.1.0" {});
-          # Old `wl-pprint-text` in turn doesn't expect `base-compat` to provide
-          # a `(<>)`, since it is defining its own.
-          base-compat = self.callHackage "base-compat" "0.9.3" {};
-          # relax bounds for newer process
-          concurrent-output = haskellLib.doJailbreak super.concurrent-output;
-          # missing semigroups pkg
-          ListLike = haskellLib.addBuildDepend super.ListLike self.semigroups;
-        };
-      };
-      inherit (nixpkgs) cabal-install;
-      inherit (nixpkgs.buildPackages) fetchgit fetchFromGitHub;
-    }).override {
-      ghcjsSrc = dep."ghcjs-8.0";
-      ghcjsBootSrc = dep."ghcjs-boot-8.0";
-      shims = dep."ghcjs-shims-8.0";
-      stage2 = import stage2Script;
-    };
   }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -367,12 +331,12 @@ in let this = rec {
     hackGet
     thunkSet
     ;
+  inherit (ghcjs8_0._dep) stage2Script;
   inherit nixpkgs
           nixpkgsCross
           overrideCabal
           dep
           foreignLibSmuggleHeaders
-          stage2Script
           ghc
           ghcHEAD
           ghc8_4
