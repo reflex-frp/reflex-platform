@@ -136,8 +136,6 @@ let iosSupport = system == "x86_64-darwin";
 
     haskellLib = nixpkgs.haskell.lib;
 
-    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
-
     overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
 
     combineOverrides = old: new: old // new // lib.optionalAttrs (old ? overrides && new ? overrides) {
@@ -297,6 +295,7 @@ let iosSupport = system == "x86_64-darwin";
 
 in let this = rec {
   inherit (nixpkgs)
+    filterGit
     hackGet
     thunkSet
     ;
@@ -332,7 +331,7 @@ in let this = rec {
           iosAarch32
           iosAarch64
           iosWithHaskellPackages
-          filterGit;
+          ;
 
   # Back compat
   ios = iosAarch64;

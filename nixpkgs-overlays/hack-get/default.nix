@@ -3,6 +3,8 @@
 self:
 
 {
+  filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
+
   # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
   hackGet = p:
     let filterArgs = x: removeAttrs x [ "branch" ];
