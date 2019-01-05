@@ -36,8 +36,16 @@ let
     });
 
     benchmark = import ./scripts/benchmark { inherit reflex-platform; };
+
+    dep = {}
+      // reflex-platform.ghcjs8_0._dep
+      // reflex-platform.ghcjs8_2._dep
+      // reflex-platform.ghcjs8_4._dep
+      // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
+      // benchmark.dep
+      ;
   in {
-    inherit (reflex-platform) dep;
+    inherit dep;
     tryReflexShell = reflex-platform.tryReflexShell;
     ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
     ghcjs8_0.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_0.reflex-todomvc;
@@ -67,15 +75,9 @@ let
     # TODO update reflex-project-skeleton to also cover ghc80 instead of using legacy compilers option
     skeleton-test-legacy-compilers = import ./skeleton-test.nix { reflex-platform = reflex-platform-legacy-compilers; };
     inherit benchmark;
-    cache = reflex-platform.pinBuildInputs
-      "reflex-platform-${system}"
-      (builtins.attrValues reflex-platform.ghcjs8_0._dep
-       ++ builtins.attrValues reflex-platform.ghcjs8_2._dep
-       ++ builtins.attrValues reflex-platform.ghcjs8_4._dep
-       ++ builtins.attrValues (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
-       ++ builtins.attrValues benchmark.dep
-       ++ reflex-platform.cachePackages)
-      (otherDeps);
+    cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
+      (builtins.attrValues dep ++ reflex-platform.cachePackages)
+      otherDeps;
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
     inherit (reflex-platform) androidReflexTodomvc-8_2;
