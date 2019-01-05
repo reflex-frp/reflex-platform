@@ -2,12 +2,13 @@
 
 self: super: {
   _dep = super._dep or {} // thunkSet ./dep // {
-    stage2Script = runCommand "stage2.nix" {
+    stage2Script = runCommand "stage2" {
       GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
       buildCommand = ''
         echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
         patchShebangs .
-        ./gen-stage2.rb "${self._dep."ghcjs-boot"}" >"$out"
+        mkdir -p "$out"
+        ./gen-stage2.rb "${self._dep."ghcjs-boot"}" > "$out/default.nix"
       '';
       nativeBuildInputs = with nixpkgs; [
         ruby cabal2nix
