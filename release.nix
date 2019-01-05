@@ -67,8 +67,7 @@ let
     skeleton-test-ghcjs = skeleton-test.ghcjs;
     inherit benchmark;
     cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
-      (builtins.attrValues dep ++ reflex-platform.cachePackages)
-      otherDeps;
+      (builtins.attrValues dep ++ reflex-platform.cachePackages ++ otherDeps);
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
     inherit (reflex-platform) androidReflexTodomvc-8_6;
@@ -81,9 +80,7 @@ let
     // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages) # TODO no filter
   );
 
-  metaCache = local-self.pinBuildInputs
-    "reflex-platform-everywhere"
-    (map (a: a.cache) (builtins.attrValues perPlatform))
-    [];
+  metaCache = local-self.pinBuildInputs "reflex-platform-everywhere"
+    (map (a: a.cache) (builtins.attrValues perPlatform));
 
 in perPlatform // { inherit metaCache; }
