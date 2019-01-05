@@ -18,4 +18,4 @@ else
 fi
 
 terminate_logging
-nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOnMulti $EFFECTIVE_PLATFORM [ $(printf "\"%s\" " "$@") ]" --show-trace
+nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOnMulti { env = $EFFECTIVE_PLATFORM; packages = [ $(printf "\"%s\" " "$@") ]; }" --show-trace
