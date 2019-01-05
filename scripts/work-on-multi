@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DIR2="$DIR/../nix-utils/work-on-multi"
 
 . "$DIR/scripts/common-setup.sh"
 
@@ -18,4 +19,4 @@ else
 fi
 
 terminate_logging
-nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOnMulti $EFFECTIVE_PLATFORM [ $(printf "\"%s\" " "$@") ]" --show-trace
+nix-shell $NIXOPTS -E "import "$DIR2/." { env = $EFFECTIVE_PLATFORM; packages = [ $(printf "\"%s\" " "$@") ]; }" --show-trace
