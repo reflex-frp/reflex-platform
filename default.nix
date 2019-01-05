@@ -497,10 +497,6 @@ in let this = rec {
     inherit buildInputs otherDeps;
   });
 
-  isSuffixOf = suffix: s:
-    let suffixLen = builtins.stringLength suffix;
-    in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
-
   reflexEnv = platform:
     let haskellPackages = builtins.getAttr platform this;
         ghcWithStuff = if platform == "ghc" || platform == "ghcjs"
