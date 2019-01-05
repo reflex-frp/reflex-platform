@@ -497,14 +497,6 @@ in let this = rec {
     inherit buildInputs otherDeps;
   });
 
-  # The systems that we want to build for on the current system
-  cacheTargetSystems = lib.warn "cacheTargetSystems has been deprecated, use cacheBuildSystems" cacheBuildSystems;
-  cacheBuildSystems = [
-    "x86_64-linux"
-    # "i686-linux"
-    "x86_64-darwin"
-  ];
-
   isSuffixOf = suffix: s:
     let suffixLen = builtins.stringLength suffix;
     in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;

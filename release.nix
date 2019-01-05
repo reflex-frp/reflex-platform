@@ -20,7 +20,13 @@ let
   drvListToAttrs = drvs:
     lib.listToAttrs (map (drv: { inherit (drv) name; value = drv; }) drvs);
 
-  perPlatform = lib.genAttrs local-self.cacheBuildSystems (system: let
+  cacheBuildSystems = [
+    "x86_64-linux"
+    # "i686-linux"
+    "x86_64-darwin"
+  ];
+
+  perPlatform = lib.genAttrs cacheBuildSystems (system: let
     getRP = args: import ./. ((self-args // { inherit system; }) // args);
     reflex-platform = getRP {};
     reflex-platform-profiled = getRP { enableLibraryProfiling = true; };
