@@ -75,8 +75,7 @@ let
     skeleton-test-ghcjs = skeleton-test.ghcjs;
     inherit benchmark;
     cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
-      (builtins.attrValues dep ++ reflex-platform.cachePackages)
-      otherDeps;
+      (builtins.attrValues dep ++ reflex-platform.cachePackages ++ otherDeps);
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
     inherit (reflex-platform) androidReflexTodomvc-8_4;
