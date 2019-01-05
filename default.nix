@@ -536,17 +536,6 @@ in let this = rec {
         iosReflexTodomvc
       ];
 
-  demoVM = (import "${nixpkgs.path}/nixos" {
-    configuration = {
-      imports = [
-        "${nixpkgs.path}/nixos/modules/virtualisation/virtualbox-image.nix"
-        "${nixpkgs.path}/nixos/modules/profiles/demo.nix"
-      ];
-      environment.systemPackages = tryReflexPackages;
-      nixpkgs = { localSystem.system = "x86_64-linux"; };
-    };
-  }).config.system.build.virtualBoxOVA;
-
   inherit cabal2nixResult system androidSupport iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
