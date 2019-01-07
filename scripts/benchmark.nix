@@ -108,7 +108,7 @@ SERVER_PORT="$((tail -f -n0 server.out & ) | grep -m 1 '127.0.0.1' | sed -e 's/.
 cd webdriver-ts
 ln -s "${nodePkgs.webdriver-ts}/node_modules/webdriver-ts/dist" .
 
-yarn run selenium --framework vanillajs-keyed reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
+yarn run selenium --framework reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
 
 kill "$SERVER_PID"
 
