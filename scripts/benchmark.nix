@@ -1,44 +1,12 @@
 { reflex-platform ? import ./.. {} }:
 let pkgs = reflex-platform.nixpkgs;
     nodejs = pkgs.nodejs-8_x;
-    # TODO remove in reunification since it is already bundled
-    yarn = pkgs.callPackage ({ stdenv, nodejs, fetchzip }:
-      stdenv.mkDerivation rec {
-        name = "yarn-${version}";
-        version = "1.9.4";
-
-        src = fetchzip {
-          url = "https://github.com/yarnpkg/yarn/releases/download/v${version}/yarn-v${version}.tar.gz";
-          sha256 = "0lxncqvz66167ijhsi76ds2yp8140d9ywn89y5vm92010irsgs20";
-        };
-
-        buildInputs = [ nodejs ];
-
-        installPhase = ''
-          mkdir -p $out/{bin,libexec/yarn/}
-          cp -R . $out/libexec/yarn
-          ln -s $out/libexec/yarn/bin/yarn.js $out/bin/yarn
-          ln -s $out/libexec/yarn/bin/yarn.js $out/bin/yarnpkg
-        '';
-
-        meta = with stdenv.lib; {
-          homepage = https://yarnpkg.com/;
-          description = "Fast, reliable, and secure dependency management for javascript";
-          license = licenses.bsd2;
-          maintainers = [ maintainers.offline ];
-        };
-      }) { inherit nodejs; };
     shellHook = linkNodeModulesHook + ''
       export PATH=node_modules/.bin:$PATH
     '';
     inherit (pkgs) fetchzip fetchFromGitHub;
     inherit (reflex-platform) dep;
-    yarn2nixSrc = fetchzip {
-      url = "https://github.com/moretea/yarn2nix/archive/v1.0.0.tar.gz";
-      sha256 = "02bzr9j83i1064r1r34cn74z7ccb84qb5iaivwdplaykyyydl1k8";
-    };
-    yarn2nix = import yarn2nixSrc { inherit pkgs nodejs yarn; };
-    inherit (yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
+    inherit (pkgs.yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
     nodePkgs = {
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
@@ -71,7 +39,7 @@ set -euo pipefail
 exec 3>&1
 exec 1>&2
 
-PATH="${yarn}/bin:${nodejs}/bin:${pkgs.chromedriver}/bin:$PATH"
+PATH="${pkgs.yarn}/bin:${nodejs}/bin:${pkgs.chromedriver}/bin:$PATH"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
   else ''--chromeBinary "${pkgs.chromium}/bin/chromium"''
