@@ -22,7 +22,7 @@ let pkgs = reflex-platform.nixpkgs;
       };
       vanillajs-keyed = mkYarnPackage {
         name = "vanillajs-keyed";
-        src = dep.js-framework-benchmark + /vanillajs-keyed;
+        src = dep.js-framework-benchmark + /frameworks/keyed/vanillajs;
         preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
@@ -58,11 +58,11 @@ cp -a "${dep.js-framework-benchmark}/"* .
 chmod -R +w .
 
 ln -s ${nodePkgs.js-framework-benchmark.node_modules} .
-rm -r yarn.lock vanillajs-keyed webdriver-ts-results
-ln -s ${nodePkgs.vanillajs-keyed}/node_modules/js-framework-benchmark-vanillajs ./vanillajs-keyed
+rm -r yarn.lock frameworks/keyed/vanillajs webdriver-ts-results
+ln -s ${nodePkgs.vanillajs-keyed}/node_modules/js-framework-benchmark-vanillajs ./frameworks/keyed/vanillajs
 ln -s ${nodePkgs.webdriver-ts-results}/node_modules/webdriver-ts-results .
 
-REFLEX_DOM_DIST=reflex-dom-v0.4-keyed/dist
+REFLEX_DOM_DIST=frameworks/keyed/reflex-dom/bundled-dist
 mkdir -p "$REFLEX_DOM_DIST"
 cp -a "${reflex-platform.ghcjs.reflex-dom}/bin/krausest.jsexe/"* "$REFLEX_DOM_DIST"
 
@@ -74,9 +74,10 @@ SERVER_PID=$!
 SERVER_PORT="$((tail -f -n0 server.out & ) | grep -m 1 '127.0.0.1' | sed -e 's/.*127.0.0.1://')"
 
 cd webdriver-ts
+ln -s "${nodePkgs.webdriver-ts.node_modules}" .
 ln -s "${nodePkgs.webdriver-ts}/node_modules/webdriver-ts/dist" .
 
-yarn run selenium --framework reflex --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
+yarn run selenium --framework reflex-dom-v0.4-keyed --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
 
 kill "$SERVER_PID"
 
