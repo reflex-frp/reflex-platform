@@ -71,7 +71,7 @@ set -euo pipefail
 exec 3>&1
 exec 1>&2
 
-PATH="${yarn}/bin:${nodejs}/bin:${pkgs.nodePackages.npm}/bin:${pkgs.chromedriver}/bin:$PATH"
+PATH="${yarn}/bin:${nodejs}/bin:${pkgs.chromedriver}/bin:$PATH"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
   else ''--chromeBinary "${pkgs.chromium}/bin/chromium"''
