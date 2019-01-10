@@ -40,7 +40,7 @@ let iosSupport = system == "x86_64-darwin";
           nixpkgs = self;
           inherit
             haskellLib
-            fetchFromGitHub hackGet fetchFromBitbucket
+            fetchFromGitHub fetchFromBitbucket dep
             ghcjsBaseSrc ghcjsBaseTextJSStringSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
@@ -49,7 +49,7 @@ let iosSupport = system == "x86_64-darwin";
             haskellOverlays;
           inherit ghcSavedSplices;
           inherit (self) lib;
-          androidActivity = hackGet ./android-activity;
+          androidActivity = dep.android-activity;
         };
       };
     };
@@ -153,14 +153,10 @@ let iosSupport = system == "x86_64-darwin";
         outPath = filterGit p;
       };
 
-    # All imports of sources need to go here, so that they can be explicitly cached
-    sources = {
-      ghcjs8_0 = {
-        boot = hackGet ./ghcjs-8.0/boot;
-        shims = hackGet ./ghcjs-8.0/shims;
-        ghcjs = hackGet ./ghcjs-8.0/ghcjs;
-      };
-    };
+    # Make an attribute set of source derivations for a directory containing thunks:
+    thunkSet = dir: lib.mapAttrs (name: _: hackGet (dir + "/${name}")) (builtins.readDir dir);
+
+    dep = thunkSet ./dep;
 
     optionalExtension = cond: overlay: if cond then overlay else _: _: {};
 
@@ -217,7 +213,7 @@ let iosSupport = system == "x86_64-darwin";
       buildCommand = ''
         echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
         patchShebangs .
-        ./gen-stage2.rb "${sources.ghcjs8_0.boot}" >"$out"
+        ./gen-stage2.rb "${dep."ghcjs-boot-8.0"}" >"$out"
       '';
       nativeBuildInputs = with nixpkgs; [
         ruby cabal2nix
@@ -369,9 +365,9 @@ let iosSupport = system == "x86_64-darwin";
       inherit (nixpkgs) cabal-install;
       inherit (nixpkgs.buildPackages) fetchgit fetchFromGitHub;
     }).override {
-      ghcjsSrc = sources.ghcjs8_0.ghcjs;
-      ghcjsBootSrc = sources.ghcjs8_0.boot;
-      shims = sources.ghcjs8_0.shims;
+      ghcjsSrc = dep."ghcjs-8.0";
+      ghcjsBootSrc = dep."ghcjs-boot-8.0";
+      shims = dep."ghcjs-shims-8.0";
       stage2 = import stage2Script;
     };
   }))).override {
@@ -469,7 +465,7 @@ let iosSupport = system == "x86_64-darwin";
   iosAarch32-8_4 = iosWithHaskellPackages ghcIosAarch32-8_4;
   iosAarch32-8_2 = iosWithHaskellPackages ghcIosAarch32-8_2;
   iosWithHaskellPackages = ghc: {
-    buildApp = import ./ios { inherit nixpkgs ghc; };
+    buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
 
 in let this = rec {
@@ -477,6 +473,8 @@ in let this = rec {
           nixpkgsCross
           overrideCabal
           hackGet
+          thunkSet
+          dep
           foreignLibSmuggleHeaders
           stage2Script
           ghc
@@ -644,6 +642,7 @@ in let this = rec {
       cabal-install
       ghcid
       hasktags
+      hdevtools
       hlint;
     inherit (nixpkgs)
       cabal2nix
@@ -656,7 +655,6 @@ in let this = rec {
     # ghc-mod doesn't currently work on ghc 8.2.2; revisit when https://github.com/DanielG/ghc-mod/pull/911 is closed
     # When ghc-mod is included in the environment without being wrapped in justStaticExecutables, it prevents ghc-pkg from seeing the libraries we install
     ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables haskellPackages.ghc-mod);
-    inherit (haskellPackages) hdevtools;
   }) // (lib.optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
   });
@@ -790,9 +788,8 @@ in let this = rec {
     };
   }).config.system.build.virtualBoxOVA;
 
-  inherit cabal2nixResult sources system androidSupport iosSupport;
+  inherit cabal2nixResult system androidSupport iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
-  js-framework-benchmark-src = hackGet ./js-framework-benchmark;
   ghcjsExternsJs = ./ghcjs.externs.js;
 }; in this

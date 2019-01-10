@@ -183,7 +183,7 @@ index 9205648846..04e46f961d 100644
          HsLit
          PlaceHolder
 diff --git a/compiler/hsSyn/HsBinds.hs b/compiler/hsSyn/HsBinds.hs
-index a9be2c1341..5c6b5e35ed 100644
+index a9be2c1341..a346667b2b 100644
 --- a/compiler/hsSyn/HsBinds.hs
 +++ b/compiler/hsSyn/HsBinds.hs
 @@ -12,6 +12,7 @@ Datatype for: @BindGroup@, @Bind@, @Sig@, @Bind@.
@@ -221,6 +221,17 @@ index a9be2c1341..5c6b5e35ed 100644
  
          -- | An ordinary fixity declaration
          --
+@@ -1063,7 +1064,9 @@ ppr_sig (TypeSig vars ty)    = pprVarSig (map unLoc vars) (ppr ty)
+ ppr_sig (ClassOpSig is_deflt vars ty)
+   | is_deflt                 = text "default" <+> pprVarSig (map unLoc vars) (ppr ty)
+   | otherwise                = pprVarSig (map unLoc vars) (ppr ty)
+-ppr_sig (IdSig id)           = pprVarSig [id] (ppr (varType id))
++ppr_sig (IdSig id)           = case getVarType id of
++  Nothing -> ppr id
++  Just t  -> pprVarSig [id] (ppr t)
+ ppr_sig (FixSig fix_sig)     = ppr fix_sig
+ ppr_sig (SpecSig var ty inl@(InlinePragma { inl_inline = spec }))
+   = pragSrcBrackets (inl_src inl) pragmaSrc (pprSpec (unLoc var)
 diff --git a/compiler/hsSyn/HsDecls.hs b/compiler/hsSyn/HsDecls.hs
 index 55d43fd058..dca809f7d1 100644
 --- a/compiler/hsSyn/HsDecls.hs
@@ -258,7 +269,7 @@ index 55d43fd058..dca809f7d1 100644
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  We kind-check declarations differently if they have a complete, user-supplied
 diff --git a/compiler/hsSyn/HsExpr.hs b/compiler/hsSyn/HsExpr.hs
-index 333ca32d72..96594d5f18 100644
+index 333ca32d72..87a43797e6 100644
 --- a/compiler/hsSyn/HsExpr.hs
 +++ b/compiler/hsSyn/HsExpr.hs
 @@ -10,7 +10,8 @@
@@ -297,17 +308,24 @@ index 333ca32d72..96594d5f18 100644
    -- For details on above see note [Api annotations] in ApiAnnotation
    | RecordUpd
        { rupd_expr :: LHsExpr p
-@@ -833,7 +833,9 @@ pprBinds b = pprDeeper (ppr b)
+@@ -833,7 +833,8 @@ pprBinds b = pprDeeper (ppr b)
  ppr_lexpr :: (SourceTextX p, OutputableBndrId p) => LHsExpr p -> SDoc
  ppr_lexpr e = ppr_expr (unLoc e)
  
 -ppr_expr :: forall p. (SourceTextX p, OutputableBndrId p) => HsExpr p -> SDoc
-+ppr_expr :: forall p. ( SourceTextX p, OutputableBndrId p
-+                      , RdrOrSeName p ~ RdrName )
++ppr_expr :: forall p. (SourceTextX p, OutputableBndrId p)
 +         => HsExpr p -> SDoc
  ppr_expr (HsVar (L _ v))  = pprPrefixOcc v
  ppr_expr (HsUnboundVar uv)= pprPrefixOcc (unboundVarOcc uv)
  ppr_expr (HsConLikeOut c) = pprPrefixOcc c
+@@ -859,6 +860,7 @@ ppr_expr (OpApp e1 op _ e2)
+   = pp_prefixly
+ 
+   where
++    should_print_infix :: HsExpr p -> Maybe SDoc
+     should_print_infix (HsVar (L _ v)) = Just (pprInfixOcc v)
+     should_print_infix (HsConLikeOut c)= Just (pprInfixOcc (conLikeName c))
+     should_print_infix (HsRecFld f)    = Just (pprInfixOcc f)
 @@ -891,6 +893,7 @@ ppr_expr (SectionL expr op)
  
      pp_prefixly = hang (hsep [text " \\ x_ ->", ppr op])
@@ -381,10 +399,10 @@ index bac8a5a183..2ef8dbc9a5 100644
  
 diff --git a/compiler/hsSyn/HsExprBin.hs b/compiler/hsSyn/HsExprBin.hs
 new file mode 100644
-index 0000000000..cce341ce63
+index 0000000000..1bf4b052f9
 --- /dev/null
 +++ b/compiler/hsSyn/HsExprBin.hs
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,118 @@
 +module HsExprBin
 +  ( getModuleSplicesPath
 +  , whenSet
@@ -398,14 +416,15 @@ index 0000000000..cce341ce63
 +  , declSE2PS
 +  , exprPS2SE
 +  , declPS2SE
++  , handleUnsupported
 +  ) where
 +
 +import Binary
 +import GhcPrelude
-+-- split into several modules because it was otherwise taking
-+-- too long and too much memory to compile.
 +import HsDecls
 +import HsExpr
++-- split into several modules because it was otherwise taking
++-- too long and too much memory to compile.
 +import HsExprBin_Conversions
 +import HsExprBin_Instances ()
 +import HsExtension
@@ -466,19 +485,42 @@ index 0000000000..cce341ce63
 +
 +-- * Converting Se -> Ps
 +
-+exprSE2PS :: LHsExpr GhcSe -> RnM (LHsExpr GhcPs)
-+exprSE2PS = cvLHsExpr
++exprSE2PS :: LHsExpr GhcSe -> RnM (ConvResult (LHsExpr GhcPs))
++exprSE2PS = runConv . cvLHsExpr
 +
-+declSE2PS :: LHsDecl GhcSe -> RnM (LHsDecl GhcPs)
-+declSE2PS = cvLHsDecl
++declSE2PS :: LHsDecl GhcSe -> RnM (ConvResult (LHsDecl GhcPs))
++declSE2PS = runConv . cvLHsDecl
 +
 +-- * Converting Ps -> Se
 +
-+exprPS2SE :: LHsExpr GhcPs -> RnM (LHsExpr GhcSe)
-+exprPS2SE = cvLHsExpr
++exprPS2SE :: LHsExpr GhcPs -> RnM (ConvResult (LHsExpr GhcSe))
++exprPS2SE = runConv . cvLHsExpr
 +
-+declPS2SE :: LHsDecl GhcPs -> RnM (LHsDecl GhcSe)
-+declPS2SE = cvLHsDecl
++declPS2SE :: LHsDecl GhcPs -> RnM (ConvResult (LHsDecl GhcSe))
++declPS2SE = runConv . cvLHsDecl
++
++-- * Error reporting
++
++-- | Panics with a nice error when we encounter an unsupported
++--   construct, or returns the actual result if the conversion
++--   succeeded.
++handleUnsupported
++  :: Located SDoc -- ^ TH expression that got evaluated
++  -> Maybe SDoc -- ^ code resulting from the evaluation of the 1st arg
++  -> ConvResult a -- ^ result of the conversion
++  -> RnM a
++handleUnsupported (L loc thDoc) resDoc convRes = case convRes of
++  ConvOK a -> pure a
++  ConvError (ConvUnsupported conName tyName subexprDoc) ->
++    pprPanic "HsExprBin.handleUnsupported" . vcat $
++      [ text "GHC encountered a Haskell construct not supported by -{load, save}-splices:"
++      , nest 4 $ subexprDoc <> text (" - constructor " ++ conName ++ " of type " ++ tyName)
++      , text "while evaluating the following expression from "  <> ppr loc <> text ":"
++      , nest 4 $ thDoc
++      ] ++
++      maybe [] (\d -> [text "which resulted in:" , nest 4 d]) resDoc
++
++  ConvError (ConvFailure errorStr) -> panic errorStr
 diff --git a/compiler/hsSyn/HsExprBin.hs-boot b/compiler/hsSyn/HsExprBin.hs-boot
 new file mode 100644
 index 0000000000..964847e097
@@ -492,11 +534,11 @@ index 0000000000..964847e097
 \ No newline at end of file
 diff --git a/compiler/hsSyn/HsExprBin_Conversions.hs b/compiler/hsSyn/HsExprBin_Conversions.hs
 new file mode 100644
-index 0000000000..885fa4c0f7
+index 0000000000..d54bd2a7d3
 --- /dev/null
 +++ b/compiler/hsSyn/HsExprBin_Conversions.hs
-@@ -0,0 +1,790 @@
-+{-# LANGUAGE ConstraintKinds #-}
+@@ -0,0 +1,977 @@
++{-# LANGUAGE ConstraintKinds, DeriveFunctor #-}
 +{-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 +{-# LANGUAGE MultiParamTypeClasses #-}
 +{-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
@@ -514,6 +556,7 @@ index 0000000000..885fa4c0f7
 +import BasicTypes (Fixity)
 +import Class
 +import ConLike
++import CoreSyn ( Tickish(..) )
 +import DynFlags
 +import FastString
 +import GhcPrelude
@@ -541,13 +584,52 @@ index 0000000000..885fa4c0f7
 +
 +import qualified NameSet as NameSet
 +
++data ConvError
++  = ConvUnsupported String String SDoc
++  -- constructor name, type name, text rendering
++  -- of the unsupported subexpression
++  | ConvFailure String
++
++data ConvResult a
++  = ConvError ConvError
++  | ConvOK a
++  deriving Functor
 +-- * Conversion utilities
 +
++newtype Conv a = Conv { runConv :: RnM (ConvResult a) }
++
++instance Functor Conv where
++  fmap f (Conv k) = Conv (fmap (fmap f) k)
++
++instance Applicative Conv where
++  pure = Conv . return . ConvOK
++  (<*>) = ap
++
++instance Monad Conv where
++  return = pure
++
++  Conv mx >>= f = Conv $ mx >>= \cvx -> case cvx of
++    ConvOK x    -> runConv (f x)
++    ConvError e -> pure (ConvError e)
++
++unsupported :: String -- ^ constructor name
++            -> String -- ^ type name
++            -> SDoc   -- ^ textual rendering of the unsupported subexpression
++            -> Conv a
++unsupported con ty subexpr = Conv $
++  pure (ConvError $ ConvUnsupported con ty subexpr)
++
++badInput :: String -> Conv a
++badInput str = Conv $ pure (ConvError $ ConvFailure str)
++
++liftRn :: RnM a -> Conv a
++liftRn = Conv . fmap ConvOK
++
 +class ConvertType t u where
-+  convertType :: t -> u
++  convertType :: t -> Conv u
 +
 +class ConvertName a b where
-+  convertName :: a -> RnM b
++  convertName :: a -> Conv b
 +
 +instance ConvertName a b => ConvertName [a] [b] where
 +  convertName = traverse convertName
@@ -565,13 +647,23 @@ index 0000000000..885fa4c0f7
 +  convertName = traverse convertName
 +
 +instance ConvertType Type IfaceType where
-+  convertType = toIfaceType
++  convertType = pure . toIfaceType
 +
 +instance ConvertType IfaceType Type where
-+  convertType (IfaceLitTy n) = LitTy (go n)
++  convertType (IfaceLitTy n) = pure $ LitTy (go n)
 +    where go (IfaceNumTyLit a) = NumTyLit a
 +          go (IfaceStrTyLit a) = StrTyLit a
-+  convertType _ = panic "convertType :: IfaceType -> Type: unsupported constructor"
++  convertType e@(IfaceFreeTyVar {}) = unsupported "IfaceFreeTyVar" "IfaceType" (ppr e)
++  convertType e@(IfaceTyVar {}) = unsupported "IfaceTyVar" "IfaceType" (ppr e)
++  convertType e@(IfaceAppTy {}) = unsupported "IfaceAppTy" "IfaceType" (ppr e)
++  convertType e@(IfaceFunTy {}) = unsupported "IfaceFunTy" "IfaceType" (ppr e)
++  convertType e@(IfaceDFunTy {}) = unsupported "IfaceDFunTy" "IfaceType" (ppr e)
++  convertType e@(IfaceForAllTy {}) = unsupported "IfaceForAllTy" "IfaceType" (ppr e)
++  convertType e@(IfaceTyConApp {}) = unsupported "IfaceTyConApp" "IfaceType" (ppr e)
++  convertType e@(IfaceCastTy {}) = unsupported "IfaceCastTy" "IfaceType" (ppr e)
++  convertType e@(IfaceCoercionTy {}) = unsupported "IfaceCoercion" "IfaceType" (ppr e)
++  convertType e@(IfaceTupleTy {}) = unsupported "IfaceTupleTy" "IfaceType" (ppr e)
++
 +
 +instance ConvertName RdrName SeName where
 +  convertName = pure . mkSeName
@@ -581,28 +673,29 @@ index 0000000000..885fa4c0f7
 +    Orig mod occn -> do
 +      -- TODO: introduce some caching here, to avoid doing the
 +      --       searchPackageId dance too often.
-+      liftIO . putStrLn $
++
++      {- liftIO . putStrLn $
 +        "/!!!\\ Processing name: module=" ++ moduleNameString (moduleName mod) ++
-+        ", occname = " ++ occNameString occn
-+      currentMod <- getModule
-+      liftIO . putStrLn $
++        ", occname = " ++ occNameString occn -}
++      currentMod <- liftRn getModule
++      {- liftIO . putStrLn $
 +        "Current module (" ++ moduleNameString (moduleName currentMod) ++ ") is in: " ++
-+        unitIdString (moduleUnitId currentMod)
++        unitIdString (moduleUnitId currentMod) -}
 +
 +      if samePackages currentMod mod
 +        then let newMod = mod { moduleUnitId = moduleUnitId currentMod } in
-+               liftIO $ putStrLn ("using the current module's unit id for name coming from: " ++ moduleNameString (moduleName mod)) >>
++               -- liftIO $ putStrLn ("using the current module's unit id for name coming from: " ++ moduleNameString (moduleName mod)) >>
 +               pure (Orig newMod occn)
-+        else do mnewmod <- findEquivalentModule mod
++        else do mnewmod <- liftRn (findEquivalentModule mod)
 +                case mnewmod of
-+                  Nothing   -> liftIO (putStrLn "keeping old name")
-+                            >> pure (Orig mod occn)
-+                  Just mod' -> liftIO (putStrLn "using new unitid!")
-+                            >> pure (Orig mod' occn)
++                  Nothing   -> {- liftIO (putStrLn "keeping old name")
++                            >> -} pure (Orig mod occn)
++                  Just mod' -> {- liftIO (putStrLn "using new unitid!")
++                            >> -} pure (Orig mod' occn)
 +
 +    _             -> pure n
 +
-+    where samePackages mod1 mod2 = fromMaybe False $ do
++    where samePackages mod1 mod2 = fromMaybe False $ do -- maybe monad
 +            let str1 = unitIdString (moduleUnitId mod1)
 +                str2 = unitIdString (moduleUnitId mod2)
 +            (pkg1, ver1, _mhash1) <- parseUnitId' str1
@@ -615,7 +708,7 @@ index 0000000000..885fa4c0f7
 +instance ConvertName SeName Name where
 +  convertName (SeName n) = case isExact_maybe n of
 +    Just a -> pure a
-+    _      -> panic "convertName :: SeName -> Name: non exact RdrName in SeName"
++    _      -> badInput "convertName :: SeName -> Name: non exact RdrName in SeName"
 +
 +instance ConvertName a b => ConvertName (Located a) (Located b) where
 +  convertName = traverse convertName
@@ -639,29 +732,19 @@ index 0000000000..885fa4c0f7
 +  , PostTc p ConLike ~ PostTc q ConLike
 +  , PostTc p [ConLike] ~ PostTc q [ConLike]
 +  , PostTc q Coercion ~ PostTc p Coercion
-+  , XHsDoublePrim p ~ XHsDoublePrim q
-+  , XHsFloatPrim p ~ XHsFloatPrim q
-+  , XHsRat p ~ XHsRat q
-+  , XHsInteger p ~ XHsInteger q
-+  , XHsWord64Prim p ~ XHsWord64Prim q
-+  , XHsInt64Prim p ~ XHsInt64Prim q
-+  , XHsWordPrim p ~ XHsWordPrim q
-+  , XHsIntPrim p ~ XHsIntPrim q
-+  , XHsInt p ~ XHsInt q
-+  , XHsStringPrim p ~ XHsStringPrim q
-+  , XHsString p ~ XHsString q
-+  , XHsCharPrim p ~ XHsCharPrim q
-+  , XHsChar p ~ XHsChar q
++  , ConvertIdX p q
++  , OutputableBndrId p
++  , SourceTextX p
 +  )
 +
 +-- * Actual conversion implementation
 +
 +-- declarations
 +
-+cvLHsDecl :: TypeConstraints p q => LHsDecl p -> RnM (LHsDecl q)
++cvLHsDecl :: TypeConstraints p q => LHsDecl p -> Conv (LHsDecl q)
 +cvLHsDecl = traverse cvHsDecl
 +
-+cvHsDecl :: TypeConstraints p q => HsDecl p -> RnM (HsDecl q)
++cvHsDecl :: TypeConstraints p q => HsDecl p -> Conv (HsDecl q)
 +cvHsDecl (TyClD a) = TyClD <$> cvTyClDecl a
 +cvHsDecl (InstD a) = InstD <$> cvInstDecl a
 +cvHsDecl (DerivD a) = DerivD <$> cvDerivDecl a
@@ -670,18 +753,22 @@ index 0000000000..885fa4c0f7
 +cvHsDecl (DefD a) = DefD <$> cvDefaultDecl a
 +cvHsDecl (ForD a) = ForD <$> cvForeignDecl a
 +cvHsDecl (WarningD a) = WarningD <$> cvWarningDecls a
-+cvHsDecl (AnnD {}) = panic "cvHsDecl: AnnD not supported"
-+cvHsDecl (RuleD {}) = panic "cvHsDecl: RuleD not supported"
-+cvHsDecl (SpliceD {}) = panic "cvHsDecl: SpliceD not supported"
-+cvHsDecl (DocD {}) = panic "cvHsDecl: DocD not supported"
-+cvHsDecl (RoleAnnotD {}) = panic "cvHsDecl: RoleAnnotD not supported"
++cvHsDecl (RoleAnnotD a) = RoleAnnotD <$> cvRoleAnnotDecl a
++cvHsDecl (AnnD a) = AnnD <$> cvAnnDecl a
++cvHsDecl (RuleD a) = RuleD <$> cvRuleDecls a
++cvHsDecl (SpliceD a) = SpliceD <$> cvSpliceDecl a
++cvHsDecl (DocD a) = pure (DocD a)
++cvHsDecl (VectD a) = VectD <$> cvVectDecl a
 +
-+cvInstDecl :: TypeConstraints p q => InstDecl p -> RnM (InstDecl q)
++cvAnnDecl :: TypeConstraints p q => AnnDecl p -> Conv (AnnDecl q)
++cvAnnDecl (HsAnnotation a b c) = HsAnnotation a <$> cvAnnProvenance b <*> cvLHsExpr c
++
++cvInstDecl :: TypeConstraints p q => InstDecl p -> Conv (InstDecl q)
 +cvInstDecl (ClsInstD a) = ClsInstD <$> cvClsInstDecl a
 +cvInstDecl (DataFamInstD a) = DataFamInstD <$> cvDataFamInstDecl a
 +cvInstDecl (TyFamInstD a) = TyFamInstD <$> cvTyFamInstDecl a
 +
-+cvClsInstDecl :: TypeConstraints p q => ClsInstDecl p -> RnM (ClsInstDecl q)
++cvClsInstDecl :: TypeConstraints p q => ClsInstDecl p -> Conv (ClsInstDecl q)
 +cvClsInstDecl (ClsInstDecl a b c d e f ) =
 +  ClsInstDecl
 +    <$> cvHsImplicitBndrs (traverse cvType) a
@@ -691,11 +778,11 @@ index 0000000000..885fa4c0f7
 +    <*> traverse (traverse cvDataFamInstDecl) e
 +    <*> pure f
 +
-+cvDerivDecl :: TypeConstraints p q => DerivDecl p -> RnM (DerivDecl q)
++cvDerivDecl :: TypeConstraints p q => DerivDecl p -> Conv (DerivDecl q)
 +cvDerivDecl (DerivDecl a b c) =
 +  DerivDecl <$> cvHsImplicitBndrs (traverse cvType) a <*> pure b <*> pure c
 +
-+cvTyClDecl :: TypeConstraints p q => TyClDecl p -> RnM (TyClDecl q)
++cvTyClDecl :: TypeConstraints p q => TyClDecl p -> Conv (TyClDecl q)
 +cvTyClDecl (FamDecl a) = FamDecl <$> cvFamilyDecl a
 +cvTyClDecl (SynDecl a b c d e) =
 +  SynDecl
@@ -720,16 +807,41 @@ index 0000000000..885fa4c0f7
 +    <*> traverse (traverse $ cvFamEqn cvLHsQTyVars (traverse cvType)) i
 +    <*> pure j <*> pure k
 +
++cvRoleAnnotDecl
++  :: TypeConstraints p q => RoleAnnotDecl p -> Conv (RoleAnnotDecl q)
++cvRoleAnnotDecl (RoleAnnotDecl a b) = RoleAnnotDecl <$> convertName a <*> pure b
++
++cvRuleDecls :: TypeConstraints p q => RuleDecls p -> Conv (RuleDecls q)
++cvRuleDecls (HsRules a b) = HsRules a <$> traverse (traverse cvRuleDecl) b
++
++cvRuleDecl :: TypeConstraints p q => RuleDecl p -> Conv (RuleDecl q)
++cvRuleDecl (HsRule a b c d e f g) =
++  HsRule a b <$> traverse (traverse cvRuleBndr) c <*> cvLHsExpr d
++             <*> pure e <*> cvLHsExpr f <*> pure g
++
++cvSpliceDecl :: TypeConstraints p q => SpliceDecl p -> Conv (SpliceDecl q)
++cvSpliceDecl (SpliceDecl a b) = SpliceDecl <$> traverse cvHsSplice a <*> pure b
++
++cvHsSplice :: TypeConstraints p q => HsSplice p -> Conv (HsSplice q)
++cvHsSplice (HsTypedSplice a b c) = HsTypedSplice a <$> convertName b <*> cvLHsExpr c
++cvHsSplice (HsUntypedSplice a b c) = HsUntypedSplice a <$> convertName b <*> cvLHsExpr c
++cvHsSplice (HsQuasiQuote a b c d) = HsQuasiQuote <$> convertName a <*> convertName b <*> pure c <*> pure d
++cvHsSplice e@(HsSpliced {}) = unsupported "HsSpliced" "HsSplice" (ppr e)
++
++cvRuleBndr :: TypeConstraints p q => RuleBndr p -> Conv (RuleBndr q)
++cvRuleBndr (RuleBndr a) = RuleBndr <$> convertName a
++cvRuleBndr (RuleBndrSig a b) = RuleBndrSig <$> convertName a <*> cvHsSigWcType b
++
 +cvFamEqn
 +  :: TypeConstraints p q
-+  => (a -> RnM c)
-+  -> (b -> RnM d)
++  => (a -> Conv c)
++  -> (b -> Conv d)
 +  -> FamEqn p a b
-+  -> RnM (FamEqn q c d)
++  -> Conv (FamEqn q c d)
 +cvFamEqn goPats goRhs (FamEqn a b c d) =
 +  FamEqn <$> convertName a <*> goPats b <*> pure c <*> goRhs d
 +
-+cvFamilyDecl :: TypeConstraints p q => FamilyDecl p -> RnM (FamilyDecl q)
++cvFamilyDecl :: TypeConstraints p q => FamilyDecl p -> Conv (FamilyDecl q)
 +cvFamilyDecl (FamilyDecl a b c d e f) =
 +  FamilyDecl
 +    <$> cvFamilyInfo a <*> convertName b
@@ -737,18 +849,23 @@ index 0000000000..885fa4c0f7
 +    <*> traverse cvFamilyResultSig e
 +    <*> traverse (traverse cvInjectivityAnn) f
 +
++cvAnnProvenance :: ConvertName a b => AnnProvenance a -> Conv (AnnProvenance b)
++cvAnnProvenance (ValueAnnProvenance a) = ValueAnnProvenance <$> convertName a
++cvAnnProvenance (TypeAnnProvenance a) = TypeAnnProvenance <$> convertName a
++cvAnnProvenance ModuleAnnProvenance = pure ModuleAnnProvenance
++
 +cvInjectivityAnn
-+  :: TypeConstraints p q => InjectivityAnn p -> RnM (InjectivityAnn q)
++  :: TypeConstraints p q => InjectivityAnn p -> Conv (InjectivityAnn q)
 +cvInjectivityAnn (InjectivityAnn a b) =
 +  InjectivityAnn <$> convertName a <*> convertName b
 +
 +cvFamilyResultSig
-+  :: TypeConstraints p q => FamilyResultSig p -> RnM (FamilyResultSig q)
++  :: TypeConstraints p q => FamilyResultSig p -> Conv (FamilyResultSig q)
 +cvFamilyResultSig NoSig = pure NoSig
 +cvFamilyResultSig (KindSig a) = KindSig <$> traverse cvType a
 +cvFamilyResultSig (TyVarSig a) = TyVarSig <$> traverse cvHsTyVarBndr a
 +
-+cvFamilyInfo :: TypeConstraints p q => FamilyInfo p -> RnM (FamilyInfo q)
++cvFamilyInfo :: TypeConstraints p q => FamilyInfo p -> Conv (FamilyInfo q)
 +cvFamilyInfo DataFamily = pure DataFamily
 +cvFamilyInfo OpenTypeFamily = pure OpenTypeFamily
 +cvFamilyInfo (ClosedTypeFamily a) =
@@ -756,18 +873,18 @@ index 0000000000..885fa4c0f7
 +
 +cvFamInstEqn
 +  :: TypeConstraints p q
-+  => (a -> RnM b)
++  => (a -> Conv b)
 +  -> FamInstEqn p a
-+  -> RnM (FamInstEqn q b)
++  -> Conv (FamInstEqn q b)
 +cvFamInstEqn f = cvHsImplicitBndrs (cvFamEqn (traverse (traverse cvType)) f)
 +
-+cvFunDep :: ConvertName a b => FunDep a -> RnM (FunDep b)
++cvFunDep :: ConvertName a b => FunDep a -> Conv (FunDep b)
 +cvFunDep (xs, ys) = (,) <$> convertName xs <*> convertName ys
 +
-+cvLHsQTyVars :: TypeConstraints p q => LHsQTyVars p -> RnM (LHsQTyVars q)
++cvLHsQTyVars :: TypeConstraints p q => LHsQTyVars p -> Conv (LHsQTyVars q)
 +cvLHsQTyVars (HsQTvs a b c) = HsQTvs a <$> traverse (traverse cvHsTyVarBndr) b <*> pure c
 +
-+cvForeignDecl :: TypeConstraints p q => ForeignDecl p -> RnM (ForeignDecl q)
++cvForeignDecl :: TypeConstraints p q => ForeignDecl p -> Conv (ForeignDecl q)
 +cvForeignDecl (ForeignImport a b c d) =
 +  ForeignImport
 +    <$> convertName a
@@ -779,27 +896,27 @@ index 0000000000..885fa4c0f7
 +    <*> cvHsImplicitBndrs (traverse cvType) b
 +    <*> pure c <*> pure d
 +
-+cvDefaultDecl :: TypeConstraints p q => DefaultDecl p -> RnM (DefaultDecl q)
++cvDefaultDecl :: TypeConstraints p q => DefaultDecl p -> Conv (DefaultDecl q)
 +cvDefaultDecl (DefaultDecl a) = DefaultDecl <$> traverse (traverse cvType) a
 +
 +cvTyFamInstDecl
-+  :: TypeConstraints p q => TyFamInstDecl p -> RnM (TyFamInstDecl q)
++  :: TypeConstraints p q => TyFamInstDecl p -> Conv (TyFamInstDecl q)
 +cvTyFamInstDecl (TyFamInstDecl d) =
 +  TyFamInstDecl <$> cvFamInstEqn (traverse cvType) d
 +
 +cvDataFamInstDecl
-+  :: TypeConstraints p q => DataFamInstDecl p -> RnM (DataFamInstDecl q)
++  :: TypeConstraints p q => DataFamInstDecl p -> Conv (DataFamInstDecl q)
 +cvDataFamInstDecl (DataFamInstDecl d) =
 +  DataFamInstDecl <$> cvFamInstEqn cvHsDataDefn d
 +
-+cvHsDataDefn :: TypeConstraints p q => HsDataDefn p -> RnM (HsDataDefn q)
++cvHsDataDefn :: TypeConstraints p q => HsDataDefn p -> Conv (HsDataDefn q)
 +cvHsDataDefn (HsDataDefn a b c d e f) =
 +  HsDataDefn a
 +    <$> traverse (traverse (traverse cvType)) b <*> pure c
 +    <*> traverse (traverse cvType) d
 +    <*> traverse (traverse cvConDecl) e <*> cvHsDeriving f
 +
-+cvConDecl :: TypeConstraints p q => ConDecl p -> RnM (ConDecl q)
++cvConDecl :: TypeConstraints p q => ConDecl p -> Conv (ConDecl q)
 +cvConDecl (ConDeclGADT a b c) =
 +  ConDeclGADT
 +    <$> convertName a
@@ -813,47 +930,47 @@ index 0000000000..885fa4c0f7
 +    <*> cvHsConDeclDetails d
 +    <*> pure e
 +
-+cvHsDeriving :: TypeConstraints p q => HsDeriving p -> RnM (HsDeriving q)
++cvHsDeriving :: TypeConstraints p q => HsDeriving p -> Conv (HsDeriving q)
 +cvHsDeriving = traverse (traverse (traverse cvHsDerivingClause))
 +
 +cvHsDerivingClause
-+  :: TypeConstraints p q => HsDerivingClause p -> RnM (HsDerivingClause q)
++  :: TypeConstraints p q => HsDerivingClause p -> Conv (HsDerivingClause q)
 +cvHsDerivingClause (HsDerivingClause a b) =
 +  HsDerivingClause a
 +    <$> traverse (traverse (cvHsImplicitBndrs (traverse cvType))) b
 +
 +cvHsConDeclDetails
-+  :: TypeConstraints p q => HsConDeclDetails p -> RnM (HsConDeclDetails q)
++  :: TypeConstraints p q => HsConDeclDetails p -> Conv (HsConDeclDetails q)
 +cvHsConDeclDetails =
 +  cvHsConDetails (traverse cvType)
 +                 (traverse (traverse (traverse cvConDeclField)))
 +
 +cvHsConDetails
-+  :: (a -> RnM c) -> (b -> RnM d) -> HsConDetails a b -> RnM (HsConDetails c d)
++  :: (a -> Conv c) -> (b -> Conv d) -> HsConDetails a b -> Conv (HsConDetails c d)
 +cvHsConDetails f _  (PrefixCon a) = PrefixCon <$> traverse f a
 +cvHsConDetails _ g     (RecCon a) = RecCon    <$> g a
 +cvHsConDetails f _ (InfixCon a b) = InfixCon  <$> f a <*> f b
 +
-+cvConDeclField :: TypeConstraints p q => ConDeclField p -> RnM (ConDeclField q)
++cvConDeclField :: TypeConstraints p q => ConDeclField p -> Conv (ConDeclField q)
 +cvConDeclField (ConDeclField a b c) =
 +  ConDeclField <$> traverse (traverse cvFieldOcc) a <*> traverse cvType b
 +               <*> pure c
 +
-+cvWarningDecls :: TypeConstraints p q => WarnDecls p -> RnM (WarnDecls q)
++cvWarningDecls :: TypeConstraints p q => WarnDecls p -> Conv (WarnDecls q)
 +cvWarningDecls (Warnings a b) =
 +  Warnings a <$> traverse (traverse cvWarningDecl) b
 +
-+cvWarningDecl :: TypeConstraints p q => WarnDecl p -> RnM (WarnDecl q)
++cvWarningDecl :: TypeConstraints p q => WarnDecl p -> Conv (WarnDecl q)
 +cvWarningDecl (Warning a b) = Warning <$> convertName a <*> pure b
 +
 +-- expressions
 +
 +cvLHsExpr
-+  :: TypeConstraints p q => LHsExpr p -> RnM (LHsExpr q)
++  :: TypeConstraints p q => LHsExpr p -> Conv (LHsExpr q)
 +cvLHsExpr = traverse cvHsExpr
 +
 +cvHsExpr
-+  :: TypeConstraints p q => HsExpr p -> RnM (HsExpr q)
++  :: TypeConstraints p q => HsExpr p -> Conv (HsExpr q)
 +cvHsExpr e = case e of
 +  HsVar a -> HsVar <$> convertName a
 +  HsUnboundVar a -> pure (HsUnboundVar a)
@@ -862,9 +979,9 @@ index 0000000000..885fa4c0f7
 +  HsOverLabel a b -> HsOverLabel <$> convertName a <*> pure b
 +  HsIPVar a -> pure (HsIPVar a)
 +  HsOverLit a -> HsOverLit <$> cvOverLit a
-+  HsLit a -> pure $ HsLit (cvLit a)
-+  HsLam a -> HsLam <$> cvMatchGroup a
-+  HsLamCase a -> HsLamCase <$> cvMatchGroup a
++  HsLit a -> HsLit <$> cvLit a
++  HsLam a -> HsLam <$> cvMatchGroup cvLHsExpr a
++  HsLamCase a -> HsLamCase <$> cvMatchGroup cvLHsExpr a
 +  HsApp a b -> HsApp <$> cvLHsExpr a <*> cvLHsExpr b
 +  HsAppType a b -> HsAppType <$> cvLHsExpr a <*> cvLHsWcType b
 +  OpApp a b c d -> OpApp <$> cvLHsExpr a <*> cvLHsExpr b
@@ -876,16 +993,20 @@ index 0000000000..885fa4c0f7
 +  ExplicitTuple a b -> ExplicitTuple <$> traverse (traverse cvHsTupArg) a <*> pure b
 +  ExplicitSum a b c d -> ExplicitSum a b <$> cvLHsExpr c <*> pure d
 +  ExplicitList a b c -> ExplicitList a <$> traverse cvSyntaxExpr b <*> traverse cvLHsExpr c
-+  HsCase a b -> HsCase <$> cvLHsExpr a <*> cvMatchGroup b
++  HsCase a b -> HsCase <$> cvLHsExpr a <*> cvMatchGroup cvLHsExpr b
 +  HsIf a b c d -> HsIf <$> traverse cvSyntaxExpr a
 +                       <*> cvLHsExpr b <*> cvLHsExpr c <*> cvLHsExpr d
-+  HsMultiIf a b -> HsMultiIf a <$> traverse (traverse cvGRHS) b
++  HsMultiIf a b -> HsMultiIf a <$> traverse (traverse (cvGRHS cvLHsExpr)) b
 +  HsLet a b -> HsLet <$> traverse cvHsLocalBinds a <*> cvLHsExpr b
-+  HsDo a b c -> HsDo <$> convertName a <*> traverse (traverse (traverse cvStmtLR)) b <*> pure c
-+  RecordCon a b c d -> RecordCon <$> convertName a <*> pure b <*> pure c <*> cvRecordBinds d
-+  RecordUpd a b c d e f -> RecordUpd <$> cvLHsExpr a
-+                                     <*> traverse (traverse cvHsRecUpdField) b
-+                                     <*> pure c <*> pure d <*> pure e <*> pure f
++  HsDo a b c -> HsDo
++    <$> convertName a <*> traverse (traverse (traverse (cvStmtLR cvLHsExpr))) b
++    <*> pure c
++  RecordCon a b c d -> RecordCon
++    <$> convertName a <*> pure b <*> pure c <*> cvRecordBinds d
++  RecordUpd a b c d e f -> RecordUpd
++    <$> cvLHsExpr a
++    <*> traverse (traverse cvHsRecUpdField) b
++    <*> pure c <*> pure d <*> pure e <*> pure f
 +  ExprWithTySig a b -> ExprWithTySig <$> cvLHsExpr a <*> cvHsSigWcType b
 +  ArithSeq a b c -> ArithSeq a <$> traverse cvSyntaxExpr b <*> cvArithSeqInfo c
 +  HsSCC a b c -> HsSCC a b <$> cvLHsExpr c
@@ -895,71 +1016,146 @@ index 0000000000..885fa4c0f7
 +  EAsPat a b -> EAsPat <$> convertName a <*> cvLHsExpr b
 +  EViewPat a b -> EViewPat <$> cvLHsExpr a <*> cvLHsExpr b
 +  ELazyPat a -> ELazyPat <$> cvLHsExpr a
++  HsProc a b -> HsProc <$> traverse cvPat a <*> traverse cvHsCmdTop b
++  HsBinTick a b c -> HsBinTick a b <$> cvLHsExpr c
++  HsTickPragma a b c d -> HsTickPragma a b c <$> cvLHsExpr d
++  HsSpliceE a -> HsSpliceE <$> cvHsSplice a
++  HsBracket a -> HsBracket <$> cvHsBracket a
++  HsTick a b -> HsTick <$> cvTickish a <*> cvLHsExpr b
++  e@(ExplicitPArr {}) -> unsupported "ExplicitPArr" "HsExpr" (ppr e)
++  e@(PArrSeq {})      -> unsupported "PArrSeq" "HsExpr" (ppr e)
++  e@(HsArrApp {})     -> unsupported "HsArrApp" "HsExpr" (ppr e)
++  e@(HsArrForm {})    -> unsupported "HsArrForm" "HsExpr" (ppr e)
++  e@(HsAppTypeOut {}) -> unsupported "HsAppTypeOut" "HsExpr" (ppr e)
++  e@(ExprWithTySigOut {}) -> unsupported "ExprWithTySigOut" "HsExpr" (ppr e)
++  e@(HsWrap {}) -> unsupported "HsWrap" "HsExpr" (ppr e)
++  e@(HsRnBracketOut {}) -> unsupported "HsRnBracketOut" "HsExpr" (ppr e)
++  e@(HsTcBracketOut {}) -> unsupported "HsTcBracketOut" "HsExpr" (ppr e)
 +
-+  HsProc {} -> panic "cvHsExpr: HsProc not supported"
-+  HsArrApp {} -> panic "cvHsExpr: HsArrAPp not supported"
-+  HsArrForm {} -> panic "cvHsExpr: HsArrForm not supported"
-+  HsTick {} -> panic "cvHsExpr: HsTick not supported"
-+  HsBinTick {} -> panic "cvHsExpr: HsBinTick not supported"
-+  HsTickPragma {} -> panic "cvHsExpr: HsTickPragma not supported"
++cvHsBracket :: TypeConstraints p q => HsBracket p -> Conv (HsBracket q)
++cvHsBracket (ExpBr a) = ExpBr <$> cvLHsExpr a
++cvHsBracket (PatBr a) = PatBr <$> traverse cvPat a
++cvHsBracket (DecBrL a) = DecBrL <$> traverse (traverse cvHsDecl) a
++cvHsBracket (DecBrG a) = DecBrG <$> cvHsGroup a
++cvHsBracket (TypBr a) = TypBr <$> traverse cvType a
++cvHsBracket (VarBr a b) = VarBr a <$> convertName b
++cvHsBracket (TExpBr a) = TExpBr <$> cvLHsExpr a
 +
-+  -- those are deliberately not supported for good reasons
-+  -- (involve typechecker types because used only later, not easily
-+  --  serialisable, used to describe splices that we are not going to
-+  --  encounter, etc)
-+  HsWrap {} -> panic "cvHsExpr: HsWrap not supported"
-+  HsBracket {} -> panic "cvHsExpr: HsBracket not supported"
-+  HsRnBracketOut {} -> panic "cvHsExpr: HsRnBracketOut not supported"
-+  HsTcBracketOut {} -> panic "cvHsExpr: HsTcBracketOut not supported"
-+  HsSpliceE {} -> panic "cvHsExpr: HsSpliceE not supported"
++cvTickish :: ConvertName a b => Tickish a -> Conv (Tickish b)
++cvTickish (ProfNote a b c) = pure (ProfNote a b c)
++cvTickish (HpcTick a b) = pure (HpcTick a b)
++cvTickish (Breakpoint a b) = Breakpoint a <$> convertName b
++cvTickish (SourceNote a b) = pure (SourceNote a b)
 +
-+cvArithSeqInfo :: TypeConstraints p q => ArithSeqInfo p -> RnM (ArithSeqInfo q)
++cvHsGroup :: TypeConstraints p q => HsGroup p -> Conv (HsGroup q)
++cvHsGroup (HsGroup a b c d e f g h i j k l) = HsGroup
++  <$> cvHsValBindsLR a <*> traverse (traverse cvSpliceDecl) b
++  <*> traverse cvTyClGroup c
++  <*> traverse (traverse cvDerivDecl) d
++  <*> traverse (traverse cvFixitySig) e
++  <*> traverse (traverse cvDefaultDecl) f
++  <*> traverse (traverse cvForeignDecl) g
++  <*> traverse (traverse cvWarningDecls) h
++  <*> traverse (traverse cvAnnDecl) i
++  <*> traverse (traverse cvRuleDecls) j
++  <*> traverse (traverse cvVectDecl) k
++  <*> pure l
++
++cvVectDecl :: TypeConstraints p q => VectDecl p -> Conv (VectDecl q)
++cvVectDecl (HsVect a b c) = HsVect a <$> convertName b <*> cvLHsExpr c
++cvVectDecl (HsNoVect a b) = HsNoVect a <$> convertName b
++cvVectDecl (HsVectTypeIn a b c d) = HsVectTypeIn a b
++  <$> convertName c <*> traverse convertName d
++cvVectDecl (HsVectClassIn a b) = HsVectClassIn a <$> convertName b
++cvVectDecl (HsVectInstIn a) = HsVectInstIn
++  <$> cvHsImplicitBndrs (traverse cvType) a
++cvVectDecl e@(HsVectTypeOut {}) = unsupported "HsVectTypeOut" "VectDecl" (ppr e)
++cvVectDecl e@(HsVectClassOut {}) = unsupported "HsVectClassOut" "VectDecl" (ppr e)
++cvVectDecl e@(HsVectInstOut {}) = unsupported "HsVectInstOut" "VectDecl" (ppr e)
++
++
++cvTyClGroup :: TypeConstraints p q => TyClGroup p -> Conv (TyClGroup q)
++cvTyClGroup (TyClGroup a b c) = TyClGroup
++  <$> traverse (traverse cvTyClDecl) a
++  <*> traverse (traverse cvRoleAnnotDecl) b
++  <*> traverse (traverse cvInstDecl) c
++
++cvHsCmdTop :: TypeConstraints p q => HsCmdTop p -> Conv (HsCmdTop q)
++cvHsCmdTop (HsCmdTop a b c d) = HsCmdTop
++  <$> traverse cvHsCmd a <*> pure b <*> pure c
++  <*> traverse (traverse cvHsExpr) d
++
++cvHsCmd :: TypeConstraints p q => HsCmd p -> Conv (HsCmd q)
++cvHsCmd (HsCmdArrApp a b c d e) = HsCmdArrApp
++  <$> cvLHsExpr a <*> cvLHsExpr b <*> pure c <*> pure d <*> pure e
++cvHsCmd (HsCmdArrForm a b c d) = HsCmdArrForm
++  <$> cvLHsExpr a <*> pure b <*> pure c
++  <*> traverse (traverse cvHsCmdTop) d
++cvHsCmd (HsCmdApp a b) = HsCmdApp <$> traverse cvHsCmd a <*> cvLHsExpr b
++cvHsCmd (HsCmdLam a) = HsCmdLam <$> cvMatchGroup (traverse cvHsCmd) a
++cvHsCmd (HsCmdPar a) = HsCmdPar <$> traverse cvHsCmd a
++cvHsCmd (HsCmdCase a b) = HsCmdCase
++  <$> cvLHsExpr a <*> cvMatchGroup (traverse cvHsCmd) b
++cvHsCmd (HsCmdIf a b c d) = HsCmdIf
++  <$> traverse cvSyntaxExpr a
++  <*> cvLHsExpr b
++  <*> traverse cvHsCmd c
++  <*> traverse cvHsCmd d
++cvHsCmd (HsCmdLet a b) = HsCmdLet
++  <$> traverse cvHsLocalBinds a <*> traverse cvHsCmd b
++cvHsCmd (HsCmdDo a b) = HsCmdDo
++  <$> traverse (traverse (traverse (cvStmtLR (traverse cvHsCmd)))) a
++  <*> pure b
++cvHsCmd e@(HsCmdWrap {}) = unsupported "HsCmdWrap" "HsCmd" (ppr e)
++
++cvArithSeqInfo :: TypeConstraints p q => ArithSeqInfo p -> Conv (ArithSeqInfo q)
 +cvArithSeqInfo (From e) = From <$> cvLHsExpr e
 +cvArithSeqInfo (FromThen a b) = FromThen <$> cvLHsExpr a <*> cvLHsExpr b
 +cvArithSeqInfo (FromTo a b) = FromTo <$> cvLHsExpr a <*> cvLHsExpr b
 +cvArithSeqInfo (FromThenTo a b c) = FromThenTo <$> cvLHsExpr a <*> cvLHsExpr b <*> cvLHsExpr c
 +
-+cvHsTupArg :: TypeConstraints p q => HsTupArg p -> RnM (HsTupArg q)
++cvHsTupArg :: TypeConstraints p q => HsTupArg p -> Conv (HsTupArg q)
 +cvHsTupArg (Present a) = Present <$> cvLHsExpr a
 +cvHsTupArg (Missing a) = pure (Missing a)
 +
 +cvAFieldOcc
-+  :: TypeConstraints p q => AmbiguousFieldOcc p -> RnM (AmbiguousFieldOcc q)
++  :: TypeConstraints p q => AmbiguousFieldOcc p -> Conv (AmbiguousFieldOcc q)
 +cvAFieldOcc (Unambiguous a b) = Unambiguous <$> convertName a <*> pure b
 +cvAFieldOcc (Ambiguous a b) = Ambiguous <$> convertName a <*> pure b
 +
-+cvOverLit :: TypeConstraints p q => HsOverLit p -> RnM (HsOverLit q)
++cvOverLit :: TypeConstraints p q => HsOverLit p -> Conv (HsOverLit q)
 +cvOverLit (OverLit a b c d) = OverLit a b <$> cvHsExpr c <*> pure d
 +
-+cvLit :: TypeConstraints p q => HsLit p -> HsLit q
-+cvLit (HsChar a b) = HsChar a b
-+cvLit (HsCharPrim a b) = HsCharPrim a b
-+cvLit (HsString a b) = HsString a b
-+cvLit (HsStringPrim a b) = HsStringPrim a b
-+cvLit (HsInt a b) = HsInt a b
-+cvLit (HsIntPrim a b) = HsIntPrim a b
-+cvLit (HsWordPrim a b) = HsWordPrim a b
-+cvLit (HsInt64Prim a b) = HsInt64Prim a b
-+cvLit (HsWord64Prim a b) = HsWord64Prim a b
-+cvLit (HsInteger a b c) = HsInteger a b (convertType c)
-+cvLit (HsRat a b c) = HsRat a b (convertType c)
-+cvLit (HsFloatPrim a b) = HsFloatPrim a b
-+cvLit (HsDoublePrim a b) = HsDoublePrim a b
++cvLit :: TypeConstraints p q => HsLit p -> Conv (HsLit q)
++cvLit (HsChar a b) = pure (HsChar a b)
++cvLit (HsCharPrim a b) = pure (HsCharPrim a b)
++cvLit (HsString a b) = pure (HsString a b)
++cvLit (HsStringPrim a b) = pure (HsStringPrim a b)
++cvLit (HsInt a b) = pure (HsInt a b)
++cvLit (HsIntPrim a b) = pure (HsIntPrim a b)
++cvLit (HsWordPrim a b) = pure (HsWordPrim a b)
++cvLit (HsInt64Prim a b) = pure (HsInt64Prim a b)
++cvLit (HsWord64Prim a b) = pure (HsWord64Prim a b)
++cvLit (HsInteger a b c) = HsInteger a b <$> convertType c
++cvLit (HsRat a b c) = HsRat a b <$> convertType c
++cvLit (HsFloatPrim a b) = pure (HsFloatPrim a b)
++cvLit (HsDoublePrim a b) = pure (HsDoublePrim a b)
 +
 +cvMatchGroup
 +  :: TypeConstraints p q
-+  => MatchGroup p (LHsExpr p) -> RnM (MatchGroup q (LHsExpr q))
-+cvMatchGroup (MG a b c d) = MG <$> traverse (traverse (traverse cvMatch)) a
-+                               <*> pure b <*> pure c <*> pure d
++  => (a -> Conv b) -> MatchGroup p a -> Conv (MatchGroup q b)
++cvMatchGroup f (MG a b c d) = MG
++  <$> traverse (traverse (traverse (cvMatch f))) a
++  <*> pure b <*> pure c <*> pure d
 +
 +cvMatch
 +  :: TypeConstraints p q
-+  => Match p (LHsExpr p) -> RnM (Match q (LHsExpr q))
-+cvMatch (Match a b c) = Match
++  => (a -> Conv b) -> Match p a -> Conv (Match q b)
++cvMatch f (Match a b c) = Match
 +   <$> convertName a
-+   <*> traverse (traverse cvPat) b <*> cvGRHSs c
++   <*> traverse (traverse cvPat) b <*> cvGRHSs f c
 +
-+cvPat :: TypeConstraints p q => Pat p -> RnM (Pat q)
++cvPat :: TypeConstraints p q => Pat p -> Conv (Pat q)
 +cvPat (WildPat a) = pure (WildPat a)
 +cvPat (VarPat a) = VarPat <$> convertName a
 +cvPat (LazyPat a) = LazyPat <$> traverse cvPat a
@@ -976,7 +1172,7 @@ index 0000000000..885fa4c0f7
 +                                <*> pure b <*> pure c <*> pure d
 +cvPat (ConPatIn a b) = ConPatIn <$> convertName a <*> cvHsConPatDetails b
 +cvPat (ViewPat a b c) = ViewPat <$> cvLHsExpr a <*> traverse cvPat b <*> pure c
-+cvPat (LitPat a) = pure $ LitPat (cvLit a)
++cvPat (LitPat a) = LitPat <$> cvLit a
 +cvPat (NPat a b c d) =
 +  NPat <$> traverse cvOverLit a <*> traverse cvSyntaxExpr b
 +       <*> cvSyntaxExpr c <*> pure d
@@ -986,38 +1182,41 @@ index 0000000000..885fa4c0f7
 +    <*> traverse cvOverLit b <*> cvOverLit c
 +    <*> cvSyntaxExpr d <*> cvSyntaxExpr e <*> pure f
 +cvPat (SigPatIn a b) = SigPatIn <$> traverse cvPat a <*> cvHsSigWcType b
-+-- deliberately not supported
-+cvPat (CoPat {}) = panic "cvPat: CoPat not supported"
-+cvPat (ConPatOut {}) = panic "cvPat: ConPatOut not supported"
-+cvPat (SplicePat {}) = panic "cvPat: SplicePat not supported"
++cvPat (SplicePat a) = SplicePat <$> cvHsSplice a
++cvPat e@(PArrPat {}) = unsupported "PArrPat" "Pat" (ppr e)
++cvPat e@(SigPatOut {}) = unsupported "SigPatOut" "Pat" (ppr e)
++cvPat e@(CoPat {}) = unsupported "CoPat" "Pat" (ppr e)
++cvPat e@(ConPatOut {}) = unsupported "ConPatOut" "Pat" (ppr e)
 +
 +cvGRHSs
 +  :: TypeConstraints p q
-+  => GRHSs p (LHsExpr p) -> RnM (GRHSs q (LHsExpr q))
-+cvGRHSs (GRHSs a b) = GRHSs <$> traverse (traverse cvGRHS) a
-+                            <*> traverse cvHsLocalBinds b
++  => (a -> Conv b) -> GRHSs p a -> Conv (GRHSs q b)
++cvGRHSs f (GRHSs a b) = GRHSs
++  <$> traverse (traverse (cvGRHS f)) a
++  <*> traverse cvHsLocalBinds b
 +
 +cvGRHS
 +  :: TypeConstraints p q
-+  => GRHS p (LHsExpr p) -> RnM (GRHS q (LHsExpr q))
-+cvGRHS (GRHS a b) = GRHS <$> traverse (traverse cvStmtLR) a <*> cvLHsExpr b
++  => (a -> Conv b) -> GRHS p a -> Conv (GRHS q b)
++cvGRHS f (GRHS a b) = GRHS
++  <$> traverse (traverse (cvStmtLR cvLHsExpr)) a <*> f b
 +
 +cvHsLocalBinds
 +  :: TypeConstraints p q
-+  => HsLocalBinds p -> RnM (HsLocalBinds q)
++  => HsLocalBinds p -> Conv (HsLocalBinds q)
 +cvHsLocalBinds (HsValBinds a) = HsValBinds <$> cvHsValBindsLR a
 +cvHsLocalBinds (HsIPBinds a) = HsIPBinds <$> cvHsIPBinds a
 +cvHsLocalBinds EmptyLocalBinds = pure EmptyLocalBinds
 +
 +cvHsValBindsLR
 +  :: TypeConstraints p q
-+  => HsValBindsLR p p -> RnM (HsValBindsLR q q)
++  => HsValBindsLR p p -> Conv (HsValBindsLR q q)
 +cvHsValBindsLR (ValBindsIn a b) = ValBindsIn <$> mapBagM (traverse cvHsBindLR) a
 +                                             <*> traverse (traverse cvSig) b
-+cvHsValBindsLR (ValBindsOut {}) = panic "cvHsValBindsLR: ValBindsOut not supported"
++cvHsValBindsLR e@(ValBindsOut {}) = unsupported "ValBindsOut" "HsValBindsLR" (ppr e)
 +
 +cvHsConPatDetails
-+  :: TypeConstraints p q => HsConPatDetails p -> RnM (HsConPatDetails q)
++  :: TypeConstraints p q => HsConPatDetails p -> Conv (HsConPatDetails q)
 +cvHsConPatDetails (PrefixCon a) = PrefixCon <$> traverse (traverse cvPat) a
 +cvHsConPatDetails (RecCon a) = RecCon <$> cvHsRecFieldsPat a
 +cvHsConPatDetails (InfixCon a b) = InfixCon <$> traverse cvPat a
@@ -1025,112 +1224,134 @@ index 0000000000..885fa4c0f7
 +
 +cvHsRecFields
 +  :: TypeConstraints p q
-+  => (thing -> RnM thing')
++  => (thing -> Conv thing')
 +  -> HsRecFields p thing
-+  -> RnM (HsRecFields q thing')
++  -> Conv (HsRecFields q thing')
 +cvHsRecFields f (HsRecFields a b) =
 +  HsRecFields <$> traverse (traverse (cvHsRecField' cvFieldOcc f)) a <*> pure b
 +
 +cvHsRecField'
-+  :: (id -> RnM id')
-+  -> (thing -> RnM thing')
++  :: (id -> Conv id')
++  -> (thing -> Conv thing')
 +  -> HsRecField' id thing
-+  -> RnM (HsRecField' id' thing')
++  -> Conv (HsRecField' id' thing')
 +cvHsRecField' f g (HsRecField a b c) =
 +  HsRecField <$> traverse f a <*> g b <*> pure c
 +
 +cvHsRecFieldsPat
 +  :: TypeConstraints p q
-+  => HsRecFields p (LPat p) -> RnM (HsRecFields q (LPat q))
++  => HsRecFields p (LPat p) -> Conv (HsRecFields q (LPat q))
 +cvHsRecFieldsPat = cvHsRecFields (traverse cvPat)
 +
 +cvHsRecUpdField
-+  :: TypeConstraints p q => HsRecUpdField p -> RnM (HsRecUpdField q)
++  :: TypeConstraints p q => HsRecUpdField p -> Conv (HsRecUpdField q)
 +cvHsRecUpdField = cvHsRecField' cvAFieldOcc cvLHsExpr
 +
 +cvRecordBinds
-+  :: TypeConstraints p q => HsRecordBinds p -> RnM (HsRecordBinds q)
++  :: TypeConstraints p q => HsRecordBinds p -> Conv (HsRecordBinds q)
 +cvRecordBinds = cvHsRecFields cvLHsExpr
 +
-+cvFieldOcc :: TypeConstraints p q => FieldOcc p -> RnM (FieldOcc q)
++cvFieldOcc :: TypeConstraints p q => FieldOcc p -> Conv (FieldOcc q)
 +cvFieldOcc (FieldOcc a b) = FieldOcc <$> convertName a <*> pure b
 +
 +cvStmtLR
 +  :: TypeConstraints p q
-+  => StmtLR p p (LHsExpr p) -> RnM (StmtLR q q (LHsExpr q))
-+cvStmtLR (LastStmt a b c) = LastStmt <$> cvLHsExpr a <*> pure b <*> cvSyntaxExpr c
-+cvStmtLR (BindStmt a b c d e) = BindStmt <$> traverse cvPat a <*> cvLHsExpr b
-+                                         <*> cvSyntaxExpr c <*> cvSyntaxExpr d
-+                                         <*> pure e
-+cvStmtLR (BodyStmt a b c d) = BodyStmt <$> cvLHsExpr a <*> cvSyntaxExpr b
-+                                       <*> cvSyntaxExpr c <*> pure d
-+cvStmtLR (ApplicativeStmt a b c) = ApplicativeStmt
++  => (a -> Conv b) -> StmtLR p p a -> Conv (StmtLR q q b)
++cvStmtLR k (LastStmt a b c) = LastStmt
++  <$> k a <*> pure b <*> cvSyntaxExpr c
++cvStmtLR k (BindStmt a b c d e) = BindStmt
++  <$> traverse cvPat a <*> k b
++  <*> cvSyntaxExpr c <*> cvSyntaxExpr d
++  <*> pure e
++cvStmtLR k (BodyStmt a b c d) = BodyStmt
++  <$> k a <*> cvSyntaxExpr b
++  <*> cvSyntaxExpr c <*> pure d
++cvStmtLR _ (ApplicativeStmt a b c) = ApplicativeStmt
 +  <$> traverse
 +        (\(se, aa) -> (,) <$> cvSyntaxExpr se <*> cvApplicativeArg aa)
 +        a
 +  <*> traverse cvSyntaxExpr b
 +  <*> pure c
-+cvStmtLR (LetStmt a) = LetStmt <$> traverse cvHsLocalBinds a
-+cvStmtLR (RecStmt a b c d e f g h i j) = RecStmt
-+  <$> traverse (traverse cvStmtLR) a
++cvStmtLR _ (LetStmt a) = LetStmt <$> traverse cvHsLocalBinds a
++cvStmtLR k (RecStmt a b c d e f g h i j) = RecStmt
++  <$> traverse (traverse (cvStmtLR k)) a
 +  <*> convertName b
 +  <*> convertName c
 +  <*> cvSyntaxExpr d
 +  <*> cvSyntaxExpr e
 +  <*> cvSyntaxExpr f
 +  <*> pure g <*> pure h <*> pure i <*> pure j
-+cvStmtLR (ParStmt {}) = panic "cvStmtLR: ParStmt not supported yet"
-+cvStmtLR (TransStmt {}) = panic "cvStmtLR: TransStmt not supported yet"
++cvStmtLR _ (ParStmt a b c d) = ParStmt
++  <$> traverse cvParStmtBlock a
++  <*> cvHsExpr b
++  <*> cvSyntaxExpr c
++  <*> pure d
++cvStmtLR _ (TransStmt a b c d e f g h i) = TransStmt a
++  <$> traverse (traverse (cvStmtLR cvLHsExpr)) b
++  <*> traverse (\(x, y) -> (,) <$> convertName x <*> convertName y) c
++  <*> cvLHsExpr d
++  <*> traverse cvLHsExpr e
++  <*> cvSyntaxExpr f
++  <*> cvSyntaxExpr g
++  <*> pure h
++  <*> cvHsExpr i
 +
-+cvSyntaxExpr :: TypeConstraints p q => SyntaxExpr p -> RnM (SyntaxExpr q)
++cvParStmtBlock
++  :: TypeConstraints p q => ParStmtBlock p p -> Conv (ParStmtBlock q q)
++cvParStmtBlock (ParStmtBlock a b c) = ParStmtBlock
++  <$> traverse (traverse (cvStmtLR cvLHsExpr)) a
++  <*> convertName b
++  <*> cvSyntaxExpr c
++
++cvSyntaxExpr :: TypeConstraints p q => SyntaxExpr p -> Conv (SyntaxExpr q)
 +cvSyntaxExpr (SyntaxExpr a b c) =
 +  SyntaxExpr <$> cvHsExpr a <*> pure b <*> pure c
 +
 +cvHsIPBinds
-+  :: TypeConstraints p q => HsIPBinds p -> RnM (HsIPBinds q)
++  :: TypeConstraints p q => HsIPBinds p -> Conv (HsIPBinds q)
 +cvHsIPBinds (IPBinds a b) = IPBinds <$> traverse (traverse cvIPBind) a <*> pure b
 +
 +cvIPBind
-+  :: TypeConstraints p q => IPBind p -> RnM (IPBind q)
++  :: TypeConstraints p q => IPBind p -> Conv (IPBind q)
 +cvIPBind (IPBind a b) = IPBind <$> convertName a <*> cvLHsExpr b
 +
 +cvHsBindLR
-+  :: TypeConstraints p q => HsBindLR p p -> RnM (HsBindLR q q)
++  :: TypeConstraints p q => HsBindLR p p -> Conv (HsBindLR q q)
 +cvHsBindLR (FunBind a b c d e) = FunBind
 +  <$> convertName a
-+  <*> cvMatchGroup b
++  <*> cvMatchGroup cvLHsExpr b
 +  <*> pure c <*> pure d <*> pure e
 +cvHsBindLR (PatBind a b c d e) = PatBind
 +                             <$> traverse cvPat a
-+                             <*> cvGRHSs b
++                             <*> cvGRHSs cvLHsExpr b
 +                             <*> pure c <*> pure d <*> pure e
 +cvHsBindLR (VarBind a b c) = VarBind <$> convertName a <*> cvLHsExpr b <*> pure c
-+cvHsBindLR (AbsBinds {}) = panic "cvHsBindLR: AbsBind not supported"
 +cvHsBindLR (PatSynBind a) = PatSynBind <$> cvPatSynBind a
++cvHsBindLR e@(AbsBinds {}) = unsupported "AbsBind" "HsBindLR" (ppr e)
 +
 +cvHsWildCardBndrs
 +  :: TypeConstraints p q
-+  => (thing -> RnM thing')
++  => (thing -> Conv thing')
 +  -> HsWildCardBndrs p thing
-+  -> RnM (HsWildCardBndrs q thing')
++  -> Conv (HsWildCardBndrs q thing')
 +cvHsWildCardBndrs thingF (HsWC a b) = HsWC a <$> thingF b
 +
 +cvLHsWcType
-+  :: TypeConstraints p q => LHsWcType p -> RnM (LHsWcType q)
++  :: TypeConstraints p q => LHsWcType p -> Conv (LHsWcType q)
 +cvLHsWcType = cvHsWildCardBndrs (traverse cvType)
 +
 +cvHsSigWcType
-+  :: TypeConstraints p q => LHsSigWcType p -> RnM (LHsSigWcType q)
++  :: TypeConstraints p q => LHsSigWcType p -> Conv (LHsSigWcType q)
 +cvHsSigWcType = cvHsWildCardBndrs (cvHsImplicitBndrs (traverse cvType))
 +
 +cvHsImplicitBndrs
 +  :: TypeConstraints p q
-+  => (thing -> RnM thing')
++  => (thing -> Conv thing')
 +  -> HsImplicitBndrs p thing
-+  -> RnM (HsImplicitBndrs q thing')
++  -> Conv (HsImplicitBndrs q thing')
 +cvHsImplicitBndrs f (HsIB a b c) = HsIB a <$> f b <*> pure c
 +
-+cvType :: TypeConstraints p q => HsType p -> RnM (HsType q)
++cvType :: TypeConstraints p q => HsType p -> Conv (HsType q)
 +cvType (HsForAllTy a b) = HsForAllTy
 +                      <$> traverse (traverse cvHsTyVarBndr) a
 +                      <*> traverse cvType b
@@ -1155,8 +1376,6 @@ index 0000000000..885fa4c0f7
 +                             <*> traverse cvType b
 +cvType (HsKindSig a b) = HsKindSig <$> traverse cvType a
 +                                   <*> traverse cvType b
-+cvType (HsSpliceTy {}) = panic "cvType: HsSpliceTy not supported"
-+cvType (HsDocTy {}) = panic "cvType: HsDocTy not supported"
 +cvType (HsBangTy a b) = HsBangTy a <$> traverse cvType b
 +cvType (HsRecTy a) = HsRecTy <$> traverse (traverse cvConDeclField) a
 +cvType (HsExplicitListTy a b c) = HsExplicitListTy a b
@@ -1165,44 +1384,54 @@ index 0000000000..885fa4c0f7
 +                             <$> traverse (traverse cvType) b
 +cvType (HsTyLit a) = pure (HsTyLit a)
 +cvType (HsWildCardTy (AnonWildCard a)) = pure (HsWildCardTy (AnonWildCard a))
-+cvType _ = panic "cvType: unsupported constructor"
++cvType (HsDocTy a b) = HsDocTy <$> traverse cvType a <*> pure b
++cvType (HsSpliceTy a b) = HsSpliceTy <$> cvHsSplice a <*> pure b
++cvType e@(HsPArrTy {}) = unsupported "HsPArrTy" "HsType" (ppr e)
++cvType e@(HsCoreTy {}) = unsupported "HsCoreTy" "HsType" (ppr e)
 +
 +cvHsAppType
-+  :: TypeConstraints p q => HsAppType p -> RnM (HsAppType q)
++  :: TypeConstraints p q => HsAppType p -> Conv (HsAppType q)
 +cvHsAppType (HsAppInfix a) = HsAppInfix <$> convertName a
 +cvHsAppType (HsAppPrefix a) = HsAppPrefix <$> traverse cvType a
 +
 +cvHsTyVarBndr
-+  :: TypeConstraints p q => HsTyVarBndr p -> RnM (HsTyVarBndr q)
++  :: TypeConstraints p q => HsTyVarBndr p -> Conv (HsTyVarBndr q)
 +cvHsTyVarBndr (UserTyVar a) = UserTyVar <$> convertName a
 +cvHsTyVarBndr (KindedTyVar a b) = KindedTyVar
 +                              <$> convertName a
 +                              <*> traverse cvType b
 +
 +cvApplicativeArg
-+  :: TypeConstraints p q => ApplicativeArg p a -> RnM (ApplicativeArg q b)
-+cvApplicativeArg (ApplicativeArgOne a b c) =
-+  ApplicativeArgOne <$> traverse cvPat a <*> cvLHsExpr b <*> pure c
-+cvApplicativeArg (ApplicativeArgMany a b c) =
-+  ApplicativeArgMany <$> traverse (traverse cvStmtLR) a <*> cvHsExpr b
-+                     <*> traverse cvPat c
++  :: TypeConstraints p q => ApplicativeArg p a -> Conv (ApplicativeArg q b)
++cvApplicativeArg (ApplicativeArgOne a b c) = ApplicativeArgOne
++  <$> traverse cvPat a <*> cvLHsExpr b <*> pure c
++cvApplicativeArg (ApplicativeArgMany a b c) = ApplicativeArgMany
++  <$> traverse (traverse (cvStmtLR cvLHsExpr)) a <*> cvHsExpr b
++  <*> traverse cvPat c
 +
-+cvSig :: TypeConstraints p q => Sig p -> RnM (Sig q)
++cvSig :: TypeConstraints p q => Sig p -> Conv (Sig q)
 +cvSig (TypeSig a b) = TypeSig <$> convertName a <*> cvHsSigWcType b
-+cvSig (PatSynSig a b) =
-+  PatSynSig <$> convertName a <*> cvHsImplicitBndrs (traverse cvType) b
-+cvSig (ClassOpSig a b c) =
-+  ClassOpSig a <$> convertName b <*> cvHsImplicitBndrs (traverse cvType) c
-+cvSig (IdSig {}) = panic "cvSig: IdSig not supported yet"
-+cvSig (FixSig {}) = panic "cvSig: FixSig not supported yet"
++cvSig (PatSynSig a b) = PatSynSig
++  <$> convertName a <*> cvHsImplicitBndrs (traverse cvType) b
++cvSig (ClassOpSig a b c) = ClassOpSig a
++  <$> convertName b <*> cvHsImplicitBndrs (traverse cvType) c
 +cvSig (InlineSig a b) = InlineSig <$> convertName a <*> pure b
-+cvSig (SpecSig {}) = panic "cvSig: SpecSig not supported yet"
-+cvSig (SpecInstSig {}) = panic "cvSig: SpecInstSig not supported yet"
-+cvSig (MinimalSig {}) = panic "cvSig: MinimalSig not supported yet"
-+cvSig (SCCFunSig {}) = panic "cvSig: SCCFunSig not supported yet"
-+cvSig (CompleteMatchSig {}) = panic "cvSig: CompleteMatchSig not supported yet"
++cvSig (FixSig a) = FixSig <$> cvFixitySig a
++cvSig (SpecSig a b c) = SpecSig
++  <$> convertName a
++  <*> traverse (cvHsImplicitBndrs (traverse cvType)) b
++  <*> pure c
++cvSig (SpecInstSig a b) = SpecInstSig a <$> cvHsImplicitBndrs (traverse cvType) b
++cvSig (SCCFunSig a b c) = SCCFunSig a <$> convertName b <*> pure c
++cvSig (CompleteMatchSig a b c) = CompleteMatchSig a
++  <$> convertName b <*> convertName c
++cvSig (MinimalSig a b) = MinimalSig a <$> traverse (traverse convertName) b
++cvSig e@(IdSig {}) = unsupported "IdSig" "Sig" (ppr e)
 +
-+cvPatSynBind :: TypeConstraints p q => PatSynBind p p -> RnM (PatSynBind q q)
++cvFixitySig :: TypeConstraints p q => FixitySig p -> Conv (FixitySig q)
++cvFixitySig (FixitySig a b) = FixitySig <$> convertName a <*> pure b
++
++cvPatSynBind :: TypeConstraints p q => PatSynBind p p -> Conv (PatSynBind q q)
 +cvPatSynBind (PSB a b c d e) =
 +  PSB <$> convertName a
 +      <*> pure b
@@ -1210,23 +1439,23 @@ index 0000000000..885fa4c0f7
 +      <*> cvHsPatSynDir e
 +
 +cvHsPatSynDetails
-+  :: (a -> RnM b)
++  :: (a -> Conv b)
 +  -> HsPatSynDetails a
-+  -> RnM (HsPatSynDetails b)
++  -> Conv (HsPatSynDetails b)
 +cvHsPatSynDetails f =
 +  cvHsConDetails f (traverse (cvRecordPatSynField f))
 +
 +cvRecordPatSynField
-+  :: (a -> RnM b)
++  :: (a -> Conv b)
 +  -> RecordPatSynField a
-+  -> RnM (RecordPatSynField b)
++  -> Conv (RecordPatSynField b)
 +cvRecordPatSynField f (RecordPatSynField a b) =
 +  RecordPatSynField <$> f a <*> f b
 +
-+cvHsPatSynDir :: TypeConstraints p q => HsPatSynDir p -> RnM (HsPatSynDir q)
++cvHsPatSynDir :: TypeConstraints p q => HsPatSynDir p -> Conv (HsPatSynDir q)
 +cvHsPatSynDir Unidirectional = pure Unidirectional
 +cvHsPatSynDir ImplicitBidirectional = pure ImplicitBidirectional
-+cvHsPatSynDir (ExplicitBidirectional a) = ExplicitBidirectional <$> cvMatchGroup a
++cvHsPatSynDir (ExplicitBidirectional a) = ExplicitBidirectional <$> cvMatchGroup cvLHsExpr a
 +
 +-- * Looking up modules/packages for Orig names
 +
@@ -1288,10 +1517,10 @@ index 0000000000..885fa4c0f7
 +  if null pkgs then pure Nothing else pure (Just $ packageConfigId (head pkgs))
 diff --git a/compiler/hsSyn/HsExprBin_Instances.hs b/compiler/hsSyn/HsExprBin_Instances.hs
 new file mode 100644
-index 0000000000..5eb5c95aae
+index 0000000000..09187bb7cc
 --- /dev/null
 +++ b/compiler/hsSyn/HsExprBin_Instances.hs
-@@ -0,0 +1,979 @@
+@@ -0,0 +1,1394 @@
 +-- too noisy during development...
 +{-# OPTIONS_GHC -fno-warn-orphans #-}
 +{-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -1304,6 +1533,7 @@ index 0000000000..5eb5c95aae
 +
 +import BasicTypes
 +import Binary
++import CoreSyn ( Tickish(..) )
 +import GhcPrelude
 +import HsBinds
 +import HsDecls
@@ -1318,85 +1548,210 @@ index 0000000000..5eb5c95aae
 +import PlaceHolder
 +import RdrName
 +import SeName
++import SrcLoc
 +import TcEvidence (HsWrapper(WpHole))
++
++putPanic :: String -> String -> a
++putPanic tyName conName =
++  panic ("Binary " ++ tyName ++ ".put: " ++ conName ++ " not supported")
++
++getPanic :: String -> a
++getPanic tyName =
++  panic ("Binary " ++ tyName ++ ".get: unknown (or unsupported) tag")
 +
 +-- * Binary instances
 +
 +instance Binary (HsExpr GhcSe) where
 +  put_ bh e = case e of
-+    HsVar a -> putByte bh 0 >> put_ bh a
-+    HsUnboundVar a -> putByte bh 1 >> put_ bh a
-+    HsConLikeOut {} -> panic "Binary HsExpr.put: HsConLikeOut not supported"
-+    HsRecFld a -> putByte bh 3 >> put_ bh a
-+    HsOverLabel a b -> putByte bh 4 >> put_ bh a >> put_ bh b
-+    HsIPVar a -> putByte bh 5 >> put_ bh a
-+    HsOverLit a -> putByte bh 6 >> put_ bh a
-+    HsLit a -> putByte bh 7 >> put_ bh a
-+    HsLam a -> putByte bh 8 >> put_ bh a
-+    HsLamCase a -> putByte bh 9 >> put_ bh a
-+    HsApp a b -> putByte bh 10 >> put_ bh a >> put_ bh b
-+    HsAppType a b -> putByte bh 11 >> put_ bh a >> put_ bh b
-+    OpApp a b c d -> putByte bh 12 >> put_ bh a >> put_ bh b >> put_ bh c
-+                                   >> put_ bh d
-+    NegApp a b -> putByte bh 13 >> put_ bh a >> put_ bh b
-+    HsPar a -> putByte bh 14 >> put_ bh a
-+    SectionL a b -> putByte bh 15 >> put_ bh a >> put_ bh b
-+    SectionR a b -> putByte bh 16 >> put_ bh a >> put_ bh b
-+    ExplicitTuple a b -> putByte bh 17 >> put_ bh a >> put_ bh b
-+    ExplicitSum a b c d -> putByte bh 18 >> put_ bh a >> put_ bh b
-+                                         >> put_ bh c >> put_ bh d
-+    HsCase a b -> putByte bh 19 >> put_ bh a >> put_ bh b
-+    HsIf a b c d -> putByte bh 20 >> put_ bh a >> put_ bh b >> put_ bh c
-+                                  >> put_ bh d
-+    HsMultiIf a b -> putByte bh 21 >> put_ bh a >> put_ bh b
-+    HsLet a b -> putByte bh 22 >> put_ bh a >> put_ bh b
-+    HsDo a b c -> putByte bh 23 >> put_ bh a >> put_ bh b >> put_ bh c
-+    ExplicitList a b c -> putByte bh 24 >> put_ bh a >> put_ bh b >> put_ bh c
-+    RecordCon a _b _c d -> putByte bh 26 >> put_ bh a >> put_ bh d
-+    RecordUpd a b c d e f -> putByte bh 27 >> put_ bh a >> put_ bh b >> put_ bh c
-+                                           >> put_ bh d >> put_ bh e >> put_ bh f
-+    ExprWithTySig a b -> putByte bh 28 >> put_ bh a >> put_ bh b
-+    ArithSeq _a b c -> putByte bh 29 >> put_ bh b >> put_ bh c
-+    _ -> panic "Binary HsExpr.put: unsupported Expr constructor"
++    HsVar a ->
++      putByte bh 0 >> put_ bh a
++    HsUnboundVar a ->
++      putByte bh 1 >> put_ bh a
++    HsRecFld a ->
++      putByte bh 2 >> put_ bh a
++    HsOverLabel a b ->
++      putByte bh 3 >> put_ bh a >> put_ bh b
++    HsIPVar a ->
++      putByte bh 4 >> put_ bh a
++    HsOverLit a ->
++      putByte bh 5 >> put_ bh a
++    HsLit a ->
++      putByte bh 6 >> put_ bh a
++    HsLam a ->
++      putByte bh 7 >> put_ bh a
++    HsLamCase a ->
++      putByte bh 8 >> put_ bh a
++    HsApp a b ->
++      putByte bh 9 >> put_ bh a >> put_ bh b
++    HsAppType a b ->
++      putByte bh 10 >> put_ bh a >> put_ bh b
++    OpApp a b c d ->
++      putByte bh 11 >> put_ bh a >> put_ bh b >> put_ bh c
++                    >> put_ bh d
++    NegApp a b ->
++      putByte bh 12 >> put_ bh a >> put_ bh b
++    HsPar a ->
++      putByte bh 13 >> put_ bh a
++    SectionL a b ->
++      putByte bh 14 >> put_ bh a >> put_ bh b
++    SectionR a b ->
++      putByte bh 15 >> put_ bh a >> put_ bh b
++    ExplicitTuple a b ->
++      putByte bh 16 >> put_ bh a >> put_ bh b
++    ExplicitSum a b c d ->
++      putByte bh 17 >> put_ bh a >> put_ bh b >> put_ bh c
++                    >> put_ bh d
++    HsCase a b ->
++      putByte bh 18 >> put_ bh a >> put_ bh b
++    HsIf a b c d ->
++      putByte bh 19 >> put_ bh a >> put_ bh b >> put_ bh c
++                    >> put_ bh d
++    HsMultiIf a b ->
++      putByte bh 20 >> put_ bh a >> put_ bh b
++    HsLet a b ->
++      putByte bh 21 >> put_ bh a >> put_ bh b
++    HsDo a b c ->
++      putByte bh 22 >> put_ bh a >> put_ bh b >> put_ bh c
++    ExplicitList a b c ->
++      putByte bh 23 >> put_ bh a >> put_ bh b >> put_ bh c
++    RecordCon a _b _c d ->
++      putByte bh 24 >> put_ bh a >> put_ bh d
++    RecordUpd a b c d e f ->
++      putByte bh 25 >> put_ bh a >> put_ bh b >> put_ bh c
++                    >> put_ bh d >> put_ bh e >> put_ bh f
++    ExprWithTySig a b ->
++      putByte bh 26 >> put_ bh a >> put_ bh b
++    ArithSeq _a b c ->
++      putByte bh 27 >> put_ bh b >> put_ bh c
++    EWildPat ->
++      putByte bh 28
++    EAsPat a b ->
++      putByte bh 29 >> put_ bh a >> put_ bh b
++    EViewPat a b ->
++      putByte bh 30 >> put_ bh a >> put_ bh b
++    ELazyPat a ->
++      putByte bh 31 >> put_ bh a
++    HsStatic a b ->
++      putByte bh 32 >> put_ bh a >> put_ bh b
++    HsProc a b ->
++      putByte bh 33 >> put_ bh a >> put_ bh b
++    HsBinTick a b c ->
++      putByte bh 34 >> put_ bh a >> put_ bh b >> put_ bh c
++    HsTickPragma a b c d ->
++      putByte bh 35 >> put_ bh a >> put_ bh b >> put_ bh c
++                    >> put_ bh d
++    HsSpliceE a ->
++      putByte bh 36 >> put_ bh a
++    HsSCC a b c ->
++      putByte bh 37 >> put_ bh a >> put_ bh b >> put_ bh c
++    HsCoreAnn a b c ->
++      putByte bh 38 >> put_ bh a >> put_ bh b >> put_ bh c
++    HsBracket a ->
++      putByte bh 39 >> put_ bh a
++    HsConLikeOut {} -> putPanic "HsExpr" "HsConLikeOut"
++    HsAppTypeOut {} -> putPanic "HsExpr" "HsAppTypeOut"
++    ExplicitPArr {} -> putPanic "HsExpr" "ExplicitPArr"
++    ExprWithTySigOut {} -> putPanic "HsExpr" "ExprWithTySigOut"
++    PArrSeq {} -> putPanic "HsExpr" "PArrSeq"
++    HsRnBracketOut {} -> putPanic "HsExpr" "HsRnBracketOut"
++    HsTcBracketOut {} -> putPanic "HsExpr" "HsTcBracketOut"
++    HsArrApp {} -> putPanic "HsExpr" "HsArrApp"
++    HsArrForm {} -> putPanic "HsExpr" "HsArrForm"
++    HsTick {} -> putPanic "HsExpr" "HsTick"
++    HsWrap {} -> putPanic "HsExpr" "HsWrap"
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
 +      0  -> HsVar <$> get bh
 +      1  -> HsUnboundVar <$> get bh
-+      -- 2  -> HsConLikeOut <$> get bh <*> get bh
-+      3  -> HsRecFld <$> get bh
-+      4  -> HsOverLabel <$> get bh <*> get bh
-+      5  -> HsIPVar <$> get bh
-+      6  -> HsOverLit <$> get bh
-+      7  -> HsLit <$> get bh
-+      8  -> HsLam <$> get bh
-+      9  -> HsLamCase <$> get bh
-+      10 -> HsApp <$> get bh <*> get bh
-+      11 -> HsAppType <$> get bh <*> get bh
-+      12 -> OpApp <$> get bh <*> get bh <*> get bh <*> get bh
-+      13 -> NegApp <$> get bh <*> get bh
-+      14 -> HsPar <$> get bh
-+      15 -> SectionL <$> get bh <*> get bh
-+      16 -> SectionR <$> get bh <*> get bh
-+      17 -> ExplicitTuple <$> get bh <*> get bh
-+      18 -> ExplicitSum <$> get bh <*> get bh <*> get bh <*> get bh
-+      19 -> HsCase <$> get bh <*> get bh
-+      20 -> HsIf <$> get bh <*> get bh <*> get bh <*> get bh
-+      21 -> HsMultiIf <$> get bh <*> get bh
-+      22 -> HsLet <$> get bh <*> get bh
-+      23 -> HsDo <$> get bh <*> get bh <*> get bh
-+      24 -> ExplicitList <$> get bh <*> get bh <*> get bh
-+      26 -> RecordCon <$> get bh <*> pure PlaceHolder <*> pure noPostTcExpr
-+                                 <*> get bh
-+      27 -> RecordUpd <$> get bh <*> get bh <*> get bh
++      2  -> HsRecFld <$> get bh
++      3  -> HsOverLabel <$> get bh <*> get bh
++      4  -> HsIPVar <$> get bh
++      5  -> HsOverLit <$> get bh
++      6  -> HsLit <$> get bh
++      7  -> HsLam <$> get bh
++      8  -> HsLamCase <$> get bh
++      9  -> HsApp <$> get bh <*> get bh
++      10 -> HsAppType <$> get bh <*> get bh
++      11 -> OpApp <$> get bh <*> get bh <*> get bh <*> get bh
++      12 -> NegApp <$> get bh <*> get bh
++      13 -> HsPar <$> get bh
++      14 -> SectionL <$> get bh <*> get bh
++      15 -> SectionR <$> get bh <*> get bh
++      16 -> ExplicitTuple <$> get bh <*> get bh
++      17 -> ExplicitSum <$> get bh <*> get bh <*> get bh <*> get bh
++      18 -> HsCase <$> get bh <*> get bh
++      19 -> HsIf <$> get bh <*> get bh <*> get bh <*> get bh
++      20 -> HsMultiIf <$> get bh <*> get bh
++      21 -> HsLet <$> get bh <*> get bh
++      22 -> HsDo <$> get bh <*> get bh <*> get bh
++      23 -> ExplicitList <$> get bh <*> get bh <*> get bh
++      24 -> RecordCon <$> get bh <*> pure PlaceHolder <*> pure noPostTcExpr
++                      <*> get bh
++      25 -> RecordUpd <$> get bh <*> get bh <*> get bh
 +                      <*> get bh <*> get bh <*> get bh
-+      28 -> ExprWithTySig <$> get bh <*> get bh
-+      29 -> ArithSeq <$> pure noPostTcExpr <*> get bh <*> get bh
-+      _ -> panic "Binary HsExpr.get: unsupported Expr constructor tag"
++      26 -> ExprWithTySig <$> get bh <*> get bh
++      27 -> ArithSeq <$> pure noPostTcExpr <*> get bh <*> get bh
++      28 -> pure EWildPat
++      29 -> EAsPat <$> get bh <*> get bh
++      30 -> EViewPat <$> get bh <*> get bh
++      31 -> ELazyPat <$> get bh
++      32 -> HsStatic <$> get bh <*> get bh
++      33 -> HsProc <$> get bh <*> get bh
++      34 -> HsBinTick <$> get bh <*> get bh <*> get bh
++      35 -> HsTickPragma <$> get bh <*> get bh <*> get bh <*> get bh
++      36 -> HsSpliceE <$> get bh
++      37 -> HsSCC <$> get bh <*> get bh <*> get bh
++      38 -> HsCoreAnn <$> get bh <*> get bh <*> get bh
++      39 -> HsBracket <$> get bh
++      _  -> getPanic "HsExpr"
++
++instance Binary (HsBracket GhcSe) where
++  put_ bh b = case b of
++    ExpBr a ->
++      putByte bh 0 >> put_ bh a
++    PatBr a ->
++      putByte bh 1 >> put_ bh a
++    DecBrL a ->
++      putByte bh 2 >> put_ bh a
++    DecBrG a ->
++      putByte bh 3 >> put_ bh a
++    TypBr a ->
++      putByte bh 4 >> put_ bh a
++    VarBr a b ->
++      putByte bh 5 >> put_ bh a >> put_ bh b
++    TExpBr a ->
++      putByte bh 6 >> put_ bh a
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> ExpBr <$> get bh
++      1 -> PatBr <$> get bh
++      2 -> DecBrL <$> get bh
++      3 -> DecBrG <$> get bh
++      4 -> TypBr <$> get bh
++      5 -> VarBr <$> get bh <*> get bh
++      6 -> TExpBr <$> get bh
++      _ -> getPanic "HsBracket"
 +
 +instance Binary SeName where
 +  put_ bh (SeName n) = put_ bh n
 +  get bh = mkSeName <$> get bh
++
++instance Binary RealSrcSpan where
++  put_ bh s =
++    put_ bh (srcSpanFile s) >>
++    put_ bh (srcSpanStartLine s) >>
++    put_ bh (srcSpanStartCol s) >>
++    put_ bh (srcSpanEndLine s) >>
++    put_ bh (srcSpanEndCol s)
++  get bh = do
++    file <- get bh
++    (startLine, startCol) <- (,) <$> get bh <*> get bh
++    (endLine, endCol) <- (,) <$> get bh <*> get bh
++    let startLoc = mkRealSrcLoc file startLine startCol
++        endLoc = mkRealSrcLoc file endLine endCol
++    return (mkRealSrcSpan startLoc endLoc)
 +
 +instance Binary UnboundVar where
 +  put_ bh v = case v of
@@ -1406,9 +1761,10 @@ index 0000000000..5eb5c95aae
 +    tag <- getByte bh
 +    case tag of
 +      0 -> OutOfScope <$> get bh <*> get bh
-+      _ -> TrueExprHole <$> get bh
++      1 -> TrueExprHole <$> get bh
++      _ -> getPanic "UnboundVar"
 +
-+instance Binary (StmtLR GhcSe GhcSe (LHsExpr GhcSe)) where
++instance Binary a => Binary (StmtLR GhcSe GhcSe a) where
 +  put_ bh s = case s of
 +    LastStmt a b c ->
 +      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
@@ -1423,11 +1779,13 @@ index 0000000000..5eb5c95aae
 +      putByte bh 4 >> put_ bh a
 +    ParStmt a b c d ->
 +      putByte bh 5 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
-+    -- FIXME: no support for the TransStmt constructor just yet
 +    RecStmt a b c d e f _g _h _i _j ->
-+      putByte bh 7 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++      putByte bh 6 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
 +                   >> put_ bh e >> put_ bh f
-+    _ -> panic "unsupported StmtLR constructor"
++    TransStmt a b c d e f g h i ->
++      putByte bh 7 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++                   >> put_ bh e >> put_ bh f >> put_ bh g >> put_ bh h
++                   >> put_ bh i
 +
 +  get bh = do
 +    tag <- getByte bh
@@ -1438,10 +1796,123 @@ index 0000000000..5eb5c95aae
 +      3 -> BodyStmt <$> get bh <*> get bh <*> get bh <*> get bh
 +      4 -> LetStmt <$> get bh
 +      5 -> ParStmt <$> get bh <*> get bh <*> get bh <*> get bh
-+      -- FIXME: 6 -> no support for TransStmt just yet
-+      7 -> RecStmt <$> get bh <*> get bh <*> get bh <*> get bh <*> get bh
-+                   <*> get bh <*> pure PlaceHolder <*> pure [] <*> pure [] <*> pure PlaceHolder
-+      _ -> panic "Binary StmtLR.get: unknown tag"
++      6 -> RecStmt <$> get bh <*> get bh <*> get bh <*> get bh <*> get bh
++                   <*> get bh <*> pure PlaceHolder <*> pure [] <*> pure []
++                   <*> pure PlaceHolder
++      7 -> TransStmt <$> get bh <*> get bh <*> get bh <*> get bh
++                     <*> get bh <*> get bh <*> get bh <*> get bh
++                     <*> get bh
++      _ -> getPanic "StmtLR"
++
++instance Binary (HsGroup GhcSe) where
++  put_ bh (HsGroup a b c d e f g h i j k l) =
++    put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++              >> put_ bh e >> put_ bh f >> put_ bh g
++              >> put_ bh h >> put_ bh i >> put_ bh j
++              >> put_ bh k >> put_ bh l
++  get bh = HsGroup
++       <$> get bh <*> get bh <*> get bh <*> get bh
++       <*> get bh <*> get bh <*> get bh <*> get bh
++       <*> get bh <*> get bh <*> get bh <*> get bh
++
++instance Binary (TyClGroup GhcSe) where
++  put_ bh (TyClGroup a b c) = put_ bh a >> put_ bh b >> put_ bh c
++  get bh = TyClGroup <$> get bh <*> get bh <*> get bh
++
++instance Binary (VectDecl GhcSe) where
++  put_ bh d = case d of
++    HsVect a b c ->
++      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
++    HsNoVect a b ->
++      putByte bh 1 >> put_ bh a >> put_ bh b
++    HsVectTypeIn a b c d ->
++      putByte bh 2 >> put_ bh a >> put_ bh b >> put_ bh c
++                   >> put_ bh d
++    HsVectClassIn a b ->
++      putByte bh 3 >> put_ bh a >> put_ bh b
++    HsVectInstIn a ->
++      putByte bh 4 >> put_ bh a
++    HsVectTypeOut {} -> putPanic "HsVectTypeOut" "VectDecl"
++    HsVectClassOut {} -> putPanic "HsVectClassOut" "VectDecl"
++    HsVectInstOut {} -> putPanic "HsVectInstOut" "VectDecl"
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> HsVect <$> get bh <*> get bh <*> get bh
++      1 -> HsNoVect <$> get bh <*> get bh
++      2 -> HsVectTypeIn <$> get bh <*> get bh <*> get bh <*> get bh
++      3 -> HsVectClassIn <$> get bh <*> get bh
++      4 -> HsVectInstIn <$> get bh
++      _ -> getPanic "VectDecl"
++
++instance Binary (HsCmdTop GhcSe) where
++  put_ bh (HsCmdTop a b c d) =
++    put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++  get bh = HsCmdTop <$> get bh <*> get bh <*> get bh <*> get bh
++
++instance Binary (HsCmd GhcSe) where
++  put_ bh c = case c of
++    HsCmdArrApp a b c d e ->
++      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
++                   >> put_ bh d >> put_ bh e
++    HsCmdArrForm a b c d ->
++      putByte bh 1 >> put_ bh a >> put_ bh b >> put_ bh c
++                   >> put_ bh d
++    HsCmdApp a b ->
++      putByte bh 2 >> put_ bh a >> put_ bh b
++    HsCmdLam a ->
++      putByte bh 3 >> put_ bh a
++    HsCmdPar a ->
++      putByte bh 4 >> put_ bh a
++    HsCmdCase a b ->
++      putByte bh 5 >> put_ bh a >> put_ bh b
++    HsCmdIf a b c d ->
++      putByte bh 6 >> put_ bh a >> put_ bh b >> put_ bh c
++                   >> put_ bh d
++    HsCmdLet a b ->
++      putByte bh 7 >> put_ bh a >> put_ bh b
++    HsCmdDo a b ->
++      putByte bh 8 >> put_ bh a >> put_ bh b
++    HsCmdWrap {} ->
++      putPanic "HsCmdWrap" "HsCmd"
++
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> HsCmdArrApp <$> get bh <*> get bh <*> get bh
++                       <*> get bh <*> get bh
++      1 -> HsCmdArrForm <$> get bh <*> get bh <*> get bh
++                        <*> get bh
++      2 -> HsCmdApp <$> get bh <*> get bh
++      3 -> HsCmdLam <$> get bh
++      4 -> HsCmdPar <$> get bh
++      5 -> HsCmdCase <$> get bh <*> get bh
++      6 -> HsCmdIf <$> get bh <*> get bh <*> get bh <*> get bh
++      7 -> HsCmdLet <$> get bh <*> get bh
++      8 -> HsCmdDo <$> get bh <*> get bh
++      _ -> getPanic "HsCmd"
++
++instance Binary HsArrAppType where
++  put_ bh t = putByte bh $ case t of
++    HsHigherOrderApp -> 0
++    HsFirstOrderApp  -> 1
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> pure HsHigherOrderApp
++      1 -> pure HsFirstOrderApp
++      _ -> getPanic "HsArrAppType"
++
++instance Binary TransForm where
++  put_ bh f = putByte bh $ case f of
++    ThenForm  -> 0
++    GroupForm -> 1
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> pure ThenForm
++      1 -> pure GroupForm
++      _ -> getPanic "TransForm"
 +
 +instance Binary (ApplicativeArg GhcSe GhcSe) where
 +  put_ bh a = case a of
@@ -1454,76 +1925,68 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> ApplicativeArgOne <$> get bh <*> get bh <*> get bh
 +      1 -> ApplicativeArgMany <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary ApplicativeAr.get: unknown tag"
++      _ -> getPanic "ApplicativeAr"
 +
 +instance Binary (ParStmtBlock GhcSe GhcSe) where
 +  put_ bh b = case b of
 +    ParStmtBlock a b c ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> ParStmtBlock <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary ParStmtBlock.get: unknown tag"
++      put_ bh a >> put_ bh b >> put_ bh c
++  get bh = ParStmtBlock <$> get bh <*> get bh <*> get bh
 +
 +instance Binary (SyntaxExpr GhcSe) where
 +  put_ bh (SyntaxExpr a [] WpHole) = put_ bh a
 +  put_ _ _ = panic "Binary SyntaxExpr.put: wrappers should be empty"
 +  get bh = SyntaxExpr <$> get bh <*> pure [] <*> pure WpHole
 +
-+instance Binary (GRHSs GhcSe (LHsExpr GhcSe)) where
++instance Binary a => Binary (GRHSs GhcSe a) where
 +  put_ bh g = case g of
 +    GRHSs a b -> putByte bh 0 >> put_ bh a >> put_ bh b
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
 +      0 -> GRHSs <$> get bh <*> get bh
-+      _ -> panic "Binary GRHSs.get: unknown tag"
++      _ -> getPanic "GRHSs"
 +
-+instance Binary (GRHS GhcSe (LHsExpr GhcSe)) where
++instance Binary a => Binary (GRHS GhcSe a) where
 +  put_ bh g = case g of
-+    GRHS a b -> putByte bh 0 >> put_ bh a >> put_ bh b
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> GRHS <$> get bh <*> get bh
-+      _ -> panic "Binary GRHS.get: unknown tag"
++    GRHS a b -> put_ bh a >> put_ bh b
++  get bh = GRHS <$> get bh <*> get bh
 +
-+instance Binary (MatchGroup GhcSe (LHsExpr GhcSe)) where
++instance Binary a => Binary (MatchGroup GhcSe a) where
 +  put_ bh g = case g of
-+    MG a b c d -> putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> MG <$> get bh <*> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary MatchGroup.get: unknown tag"
++    MG a b c d -> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++  get bh = MG <$> get bh <*> get bh <*> get bh <*> get bh
 +
-+instance Binary (Match GhcSe (LHsExpr GhcSe)) where
++instance Binary a => Binary (Match GhcSe a) where
 +  put_ bh m = case m of
 +    Match a b c ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> Match <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary Match.get: unknown tag"
-+
++      put_ bh a >> put_ bh b >> put_ bh c
++  get bh = Match <$> get bh <*> get bh <*> get bh
 +
 +instance Binary (HsMatchContext SeName) where
 +  put_ bh c = case c of
 +    FunRhs a b c ->
 +      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+    LambdaExpr -> putByte bh 1
-+    CaseAlt -> putByte bh 2
-+    IfAlt -> putByte bh 3
-+    ProcExpr -> putByte bh 4
-+    PatBindRhs -> putByte bh 5
-+    -- PatBindGuards -> putByte bh 6
-+    RecUpd -> putByte bh 7
-+    StmtCtxt a -> putByte bh 8 >> put_ bh a
-+    ThPatSplice -> putByte bh 9
-+    ThPatQuote -> putByte bh 10
-+    PatSyn -> putByte bh 11
++    LambdaExpr ->
++      putByte bh 1
++    CaseAlt ->
++      putByte bh 2
++    IfAlt ->
++      putByte bh 3
++    ProcExpr ->
++      putByte bh 4
++    PatBindRhs ->
++      putByte bh 5
++    RecUpd ->
++      putByte bh 6
++    StmtCtxt a ->
++      putByte bh 7 >> put_ bh a
++    ThPatSplice ->
++      putByte bh 8
++    ThPatQuote ->
++      putByte bh 9
++    PatSyn ->
++      putByte bh 10
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
@@ -1533,13 +1996,12 @@ index 0000000000..5eb5c95aae
 +      3  -> pure IfAlt
 +      4  -> pure ProcExpr
 +      5  -> pure PatBindRhs
-+      -- 6  -> pure PatBindGuards
-+      7  -> pure RecUpd
-+      8  -> StmtCtxt <$> get bh
-+      9  -> pure ThPatSplice
-+      10 -> pure ThPatQuote
-+      11 -> pure PatSyn
-+      _  -> panic "Binary HsMatchContext.get: unknown tag"
++      6  -> pure RecUpd
++      7  -> StmtCtxt <$> get bh
++      8  -> pure ThPatSplice
++      9  -> pure ThPatQuote
++      10 -> pure PatSyn
++      _  -> getPanic "HsMatchContext"
 +
 +instance Binary (HsStmtContext SeName) where
 +  put_ bh c = case c of
@@ -1552,6 +2014,7 @@ index 0000000000..5eb5c95aae
 +    PatGuard a      -> putByte bh 7 >> put_ bh a
 +    ParStmtCtxt a   -> putByte bh 8 >> put_ bh a
 +    TransStmtCtxt a -> putByte bh 9 >> put_ bh a
++    PArrComp {}     -> putPanic "HsStmtContext" "PArrComp"
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
@@ -1564,7 +2027,7 @@ index 0000000000..5eb5c95aae
 +      7 -> PatGuard <$> get bh
 +      8 -> ParStmtCtxt <$> get bh
 +      9 -> TransStmtCtxt <$> get bh
-+      _ -> panic "Binary HsStmtContext.get: unknown tag"
++      _ -> getPanic "HsStmtContext"
 +
 +instance Binary (ArithSeqInfo GhcSe) where
 +  put_ bh i = case i of
@@ -1583,7 +2046,7 @@ index 0000000000..5eb5c95aae
 +      1 -> FromThen <$> get bh <*> get bh
 +      2 -> FromTo <$> get bh <*> get bh
 +      3 -> FromThenTo <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary ArithSeqInfo.get: unknown tag"
++      _ -> getPanic "ArithSeqInfo"
 +
 +instance Binary (HsTupArg GhcSe) where
 +  put_ bh a = case a of
@@ -1594,7 +2057,7 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> Present <$> get bh
 +      1 -> Missing <$> get bh
-+      _ -> panic "Binary HsTupArg.get: unknown tag"
++      _ -> getPanic "HsTupArg"
 +
 +instance Binary (Pat GhcSe) where
 +  put_ bh p = case p of
@@ -1617,21 +2080,24 @@ index 0000000000..5eb5c95aae
 +    SumPat a b c d ->
 +      putByte bh 8 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
 +    ConPatIn a b ->
-+      putByte bh 10 >> put_ bh a >> put_ bh b
-+    ConPatOut {} -> panic "ConPatOut should not be serialised"
++      putByte bh 9 >> put_ bh a >> put_ bh b
 +    ViewPat a b c ->
-+      putByte bh 12 >> put_ bh a >> put_ bh b >> put_ bh c
-+    SplicePat {} -> panic "SplicePat should not be serialised"
++      putByte bh 10 >> put_ bh a >> put_ bh b >> put_ bh c
 +    LitPat a ->
-+      putByte bh 14 >> put_ bh a
++      putByte bh 11 >> put_ bh a
 +    NPat a b c d ->
-+      putByte bh 15 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++      putByte bh 12 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
 +    NPlusKPat a b c d e f ->
-+      putByte bh 16 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++      putByte bh 13 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
 +                    >> put_ bh e >> put_ bh f
 +    SigPatIn a b ->
-+      putByte bh 17 >> put_ bh a >> put_ bh b
-+    CoPat {} -> panic "CoPat should not be serialised"
++      putByte bh 14 >> put_ bh a >> put_ bh b
++    SplicePat a ->
++      putByte bh 15 >> put_ bh a
++    ConPatOut {} -> putPanic "Pat" "ConPatOut"
++    CoPat {} -> putPanic "Pat" "CoPat"
++    PArrPat {} -> putPanic "Pat" "PArrPat"
++    SigPatOut {} -> putPanic "Pat" "SigPatOut"
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
@@ -1644,17 +2110,15 @@ index 0000000000..5eb5c95aae
 +      6 -> ListPat <$> get bh <*> get bh <*> get bh
 +      7 -> TuplePat <$> get bh <*> get bh <*> get bh
 +      8 -> SumPat <$> get bh <*> get bh <*> get bh <*> get bh
-+      10 -> ConPatIn <$> get bh <*> get bh
-+      -- we don't support ConPatOut
-+      12 -> ViewPat <$> get bh <*> get bh <*> get bh
-+      -- we don't support SplicePat
-+      14 -> LitPat <$> get bh
-+      15 -> NPat <$> get bh <*> get bh <*> get bh <*> get bh
-+      16 -> NPlusKPat <$> get bh <*> get bh <*> get bh <*> get bh
++      9 -> ConPatIn <$> get bh <*> get bh
++      10 -> ViewPat <$> get bh <*> get bh <*> get bh
++      11 -> LitPat <$> get bh
++      12 -> NPat <$> get bh <*> get bh <*> get bh <*> get bh
++      13 -> NPlusKPat <$> get bh <*> get bh <*> get bh <*> get bh
 +                      <*> get bh <*> get bh
-+      17 -> SigPatIn <$> get bh <*> get bh
-+      -- we don't support CoPat
-+      _ -> panic "Binary (HsPat GhcSe).get: unknown tag"
++      14 -> SigPatIn <$> get bh <*> get bh
++      15 -> SplicePat <$> get bh
++      _ -> getPanic "HsPat"
 +
 +instance (Binary (FieldOcc a), Binary b) => Binary (HsRecFields a b) where
 +  put_ bh (HsRecFields a b) = put_ bh a >> put_ bh b
@@ -1681,33 +2145,37 @@ index 0000000000..5eb5c95aae
 +    HsListTy a ->
 +      putByte bh 6 >> put_ bh a
 +    HsTupleTy a b ->
-+      putByte bh 8 >> put_ bh a >> put_ bh b
++      putByte bh 7 >> put_ bh a >> put_ bh b
 +    HsSumTy a ->
-+      putByte bh 9 >> put_ bh a
++      putByte bh 8 >> put_ bh a
 +    HsOpTy a b c ->
-+      putByte bh 10 >> put_ bh a >> put_ bh b >> put_ bh c
++      putByte bh 9 >> put_ bh a >> put_ bh b >> put_ bh c
 +    HsParTy a ->
-+      putByte bh 11 >> put_ bh a
++      putByte bh 10 >> put_ bh a
 +    HsIParamTy a b ->
-+      putByte bh 12 >> put_ bh a >> put_ bh b
++      putByte bh 11 >> put_ bh a >> put_ bh b
 +    HsEqTy a b ->
-+      putByte bh 13 >> put_ bh a >> put_ bh b
++      putByte bh 12 >> put_ bh a >> put_ bh b
 +    HsKindSig a b ->
-+      putByte bh 14 >> put_ bh a >> put_ bh b
-+    HsSpliceTy _ _ -> panic "HsSpliceTy unsupported"
-+    HsDocTy _ _ -> panic "HsDocTy unsupported"
++      putByte bh 13 >> put_ bh a >> put_ bh b
 +    HsBangTy a b ->
-+      putByte bh 17 >> put_ bh a >> put_ bh b
++      putByte bh 14 >> put_ bh a >> put_ bh b
 +    HsRecTy a ->
-+      putByte bh 18 >> put_ bh a
++      putByte bh 15 >> put_ bh a
 +    HsExplicitListTy a b c ->
-+      putByte bh 19 >> put_ bh a >> put_ bh b >> put_ bh c
++      putByte bh 16 >> put_ bh a >> put_ bh b >> put_ bh c
 +    HsExplicitTupleTy a b ->
-+      putByte bh 20 >> put_ bh a >> put_ bh b
++      putByte bh 17 >> put_ bh a >> put_ bh b
 +    HsTyLit a ->
-+      putByte bh 21 >> put_ bh a
++      putByte bh 18 >> put_ bh a
 +    HsWildCardTy a ->
-+      putByte bh 22 >> put_ bh a
++      putByte bh 19 >> put_ bh a
++    HsDocTy a b ->
++      putByte bh 20 >> put_ bh a >> put_ bh b
++    HsSpliceTy a b ->
++      putByte bh 21 >> put_ bh a >> put_ bh b
++    HsPArrTy {} -> putPanic "HsType" "PArrTy"
++    HsCoreTy {} -> putPanic "HsType" "HsCoreTy"
 +
 +  get bh = do
 +    tag <- getByte bh
@@ -1719,21 +2187,22 @@ index 0000000000..5eb5c95aae
 +      4 -> HsAppTy <$> get bh <*> get bh
 +      5 -> HsFunTy <$> get bh <*> get bh
 +      6 -> HsListTy <$> get bh
-+      8 -> HsTupleTy <$> get bh <*> get bh
-+      9 -> HsSumTy <$> get bh
-+      10 -> HsOpTy <$> get bh <*> get bh <*> get bh
-+      11 -> HsParTy <$> get bh
-+      12 -> HsIParamTy <$> get bh <*> get bh
-+      13 -> HsEqTy <$> get bh <*> get bh
-+      14 -> HsKindSig <$> get bh <*> get bh
-+      -- 15 = HsSpliceTy, 16 = HsDocTy are not supported for now
-+      17 -> HsBangTy <$> get bh <*> get bh
-+      18 -> HsRecTy <$> get bh
-+      19 -> HsExplicitListTy <$> get bh <*> get bh <*> get bh
-+      20 -> HsExplicitTupleTy <$> get bh <*> get bh
-+      21 -> HsTyLit <$> get bh
-+      22 -> HsWildCardTy <$> get bh
-+      _  -> panic "Binary HsType.get: unknown tag"
++      7 -> HsTupleTy <$> get bh <*> get bh
++      8 -> HsSumTy <$> get bh
++      9 -> HsOpTy <$> get bh <*> get bh <*> get bh
++      10 -> HsParTy <$> get bh
++      11 -> HsIParamTy <$> get bh <*> get bh
++      12 -> HsEqTy <$> get bh <*> get bh
++      13 -> HsKindSig <$> get bh <*> get bh
++      14 -> HsBangTy <$> get bh <*> get bh
++      15 -> HsRecTy <$> get bh
++      16 -> HsExplicitListTy <$> get bh <*> get bh <*> get bh
++      17 -> HsExplicitTupleTy <$> get bh <*> get bh
++      18 -> HsTyLit <$> get bh
++      19 -> HsWildCardTy <$> get bh
++      20 -> HsDocTy <$> get bh <*> get bh
++      21 -> HsSpliceTy <$> get bh <*> get bh
++      _  -> getPanic "HsType"
 +
 +instance Binary HsTyLit where
 +  put_ bh l = case l of
@@ -1744,7 +2213,7 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> HsNumTy <$> get bh <*> get bh
 +      1 -> HsStrTy <$> get bh <*> get bh
-+      _ -> panic "Binary HsTyLit.get: unknown tag"
++      _ -> getPanic "HsTyLit"
 +
 +instance Binary (HsAppType GhcSe) where
 +  put_ bh t = case t of
@@ -1755,27 +2224,19 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> HsAppInfix <$> get bh
 +      1 -> HsAppPrefix <$> get bh
-+      _ -> panic "Binary HsAppType.get: unknown tag"
++      _ -> getPanic "HsAppType"
 +
 +deriving instance Binary (HsWildCardInfo GhcSe)
 +
 +instance Binary a => Binary (HsWildCardBndrs GhcSe a) where
 +  put_ bh w = case w of
-+    HsWC a b -> putByte bh 0 >> put_ bh a >> put_ bh b
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> HsWC <$> get bh <*> get bh
-+      _ -> panic "Binary HsWildCardBndrs.get: unknown tag"
++    HsWC a b -> put_ bh a >> put_ bh b
++  get bh = HsWC <$> get bh <*> get bh
 +
 +instance Binary a => Binary (HsImplicitBndrs GhcSe a) where
 +  put_ bh b = case b of
-+    HsIB a b c -> putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> HsIB <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary HsImplicitBndrs.get: unknown tag"
++    HsIB a b c -> put_ bh a >> put_ bh b >> put_ bh c
++  get bh = HsIB <$> get bh <*> get bh <*> get bh
 +
 +instance Binary Promoted where
 +  put_ bh p = putByte bh (case p of
@@ -1786,7 +2247,7 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> pure Promoted
 +      1 -> pure NotPromoted
-+      _ -> panic "Binary Promoted.get: unknown tag"
++      _ -> getPanic "Promoted"
 +
 +instance Binary HsTupleSort where
 +  put_ bh s = putByte bh (case s of
@@ -1801,26 +2262,18 @@ index 0000000000..5eb5c95aae
 +      1 -> pure HsBoxedTuple
 +      2 -> pure HsConstraintTuple
 +      3 -> pure HsBoxedOrConstraintTuple
-+      _ -> panic "Binary HsTupleSort.get: unknown tag"
++      _ -> getPanic "HsTupleSort"
 +
 +instance Binary (ConDeclField GhcSe) where
 +  put_ bh f = case f of
 +    ConDeclField a b c ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> ConDeclField <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary ConDeclField.get: unknown tag"
++      put_ bh a >> put_ bh b >> put_ bh c
++  get bh = ConDeclField <$> get bh <*> get bh <*> get bh
 +
 +instance Binary (FieldOcc GhcSe) where
 +  put_ bh o = case o of
-+    FieldOcc a b -> putByte bh 0 >> put_ bh a >> put_ bh b
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> FieldOcc <$> get bh <*> get bh
-+      _ -> panic "Binary FieldOcc.get: unknown tag"
++    FieldOcc a b -> put_ bh a >> put_ bh b
++  get bh = FieldOcc <$> get bh <*> get bh
 +
 +instance Binary (HsTyVarBndr GhcSe) where
 +  put_ bh v = case v of
@@ -1831,7 +2284,7 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> UserTyVar <$> get bh
 +      1 -> KindedTyVar <$> get bh <*> get bh
-+      _ -> panic "Binary HsTyVarBndr.get: unknown tag"
++      _ -> getPanic "HsTyVarBndr"
 +
 +instance (Binary a, Binary b) => Binary (HsConDetails a b) where
 +  put_ bh c = case c of
@@ -1844,7 +2297,7 @@ index 0000000000..5eb5c95aae
 +      0 -> PrefixCon <$> get bh
 +      1 -> RecCon <$> get bh
 +      2 -> InfixCon <$> get bh <*> get bh
-+      _ -> panic "Binary HsConDetails.get: unknown tag"
++      _ -> getPanic "HsConDetails"
 +
 +instance Binary (AmbiguousFieldOcc GhcSe) where
 +  put_ bh o = case o of
@@ -1855,16 +2308,12 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> Unambiguous <$> get bh <*> get bh
 +      1 -> Ambiguous <$> get bh <*> get bh
-+      _ -> panic "Binary AmbiguousOccField.get: unknown tag"
++      _ -> getPanic "AmbiguousOccField"
 +
 +instance Binary (LHsQTyVars GhcSe) where
 +  put_ bh v = case v of
 +    HsQTvs a b c -> putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> HsQTvs <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary LHsQTyVars.get: unknown tag"
++  get bh = HsQTvs <$> get bh <*> get bh <*> get bh
 +
 +instance Binary (Sig GhcSe) where
 +  put_ bh s = case s of
@@ -1880,8 +2329,16 @@ index 0000000000..5eb5c95aae
 +      putByte bh 4 >> put_ bh a
 +    InlineSig a b ->
 +      putByte bh 5 >> put_ bh a >> put_ bh b
-+    -- MinimalSig = 6, SCCFunSig = 7, CompleteMatchSig = 8
-+    _ -> panic "Binary Sig.put: unsupported constructor"
++    SpecSig a b c ->
++      putByte bh 6 >> put_ bh a >> put_ bh b >> put_ bh c
++    SpecInstSig a b ->
++      putByte bh 7 >> put_ bh a >> put_ bh b
++    SCCFunSig a b c ->
++      putByte bh 8 >> put_ bh a >> put_ bh b >> put_ bh c
++    CompleteMatchSig a b c ->
++      putByte bh 9 >> put_ bh a >> put_ bh b >> put_ bh c
++    MinimalSig a b ->
++      putByte bh 10 >> put_ bh a >> put_ bh b
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
@@ -1891,19 +2348,17 @@ index 0000000000..5eb5c95aae
 +      3 -> IdSig <$> get bh
 +      4 -> FixSig <$> get bh
 +      5 -> InlineSig <$> get bh <*> get bh
-+      -- 6 = MinimalSig, 7 = SCCFunSig, 8 = CompleteMatchSig
-+      -- not supported yet
-+      _ -> panic "Binary Sig.get: unknown tag"
++      6 -> SpecSig <$> get bh <*> get bh <*> get bh
++      7 -> SpecInstSig <$> get bh <*> get bh
++      8 -> SCCFunSig <$> get bh <*> get bh <*> get bh
++      9 -> CompleteMatchSig <$> get bh <*> get bh <*> get bh
++      10 -> MinimalSig <$> get bh <*> get bh
++      _ -> getPanic "Sig"
 +
 +instance Binary (FixitySig GhcSe) where
 +  put_ bh s = case s of
-+    FixitySig a b -> putByte bh 0 >> put_ bh a >> put_ bh b
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> FixitySig <$> get bh <*> get bh
-+      _ -> panic "Binary FixitySig.get: unknown tag"
-+
++    FixitySig a b -> put_ bh a >> put_ bh b
++  get bh = FixitySig <$> get bh <*> get bh
 +
 +instance Binary (HsBindLR GhcSe GhcSe) where
 +  put_ bh b = case b of
@@ -1924,10 +2379,9 @@ index 0000000000..5eb5c95aae
 +      putByte bh 1 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
 +    VarBind a b c ->
 +      putByte bh 2 >> put_ bh a >> put_ bh b >> put_ bh c
-+    AbsBinds {} ->
-+      panic "Binary HsBindsLR.put: AbsBinds not supported"
 +    PatSynBind a ->
-+      putByte bh 4 >> put_ bh a
++      putByte bh 3 >> put_ bh a
++    AbsBinds {} -> putPanic "HsBindsLR" "AbsBinds"
 +
 +  get bh = do
 +    tag <- getByte bh
@@ -1935,42 +2389,38 @@ index 0000000000..5eb5c95aae
 +      0 -> FunBind <$> get bh <*> get bh <*> pure WpHole <*> get bh <*> pure []
 +      1 -> PatBind <$> get bh <*> get bh <*> get bh <*> get bh <*> pure ([], [])
 +      2 -> VarBind <$> get bh <*> get bh <*> get bh
-+      4 -> PatSynBind <$> get bh
-+      _ -> panic "Binary HsBindsLR.get: unknown tag"
++      3 -> PatSynBind <$> get bh
++      _ -> getPanic "HsBindsLR"
 +
 +instance Binary (HsLocalBindsLR GhcSe GhcSe) where
 +  put_ bh b = case b of
 +    HsValBinds a    -> putByte bh 0 >> put_ bh a
-+    -- HsIPBinds a     -> putByte bh 1 >> put_ bh a
-+    EmptyLocalBinds -> putByte bh 2
++    EmptyLocalBinds -> putByte bh 1
++    HsIPBinds {}    -> putPanic "HsLocalBindsLR" "HsIPBinds"
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
-+      0 -> HsValBinds      <$> get bh
-+      -- 1 -> HsIPBinds       <$> get bh
-+      2 -> pure EmptyLocalBinds
++      0 -> HsValBinds <$> get bh
++      1 -> pure EmptyLocalBinds
++      _ -> getPanic "HsLocalBindsLR"
 +
 +instance Binary (HsValBindsLR GhcSe GhcSe) where
 +  put_ bh b = case b of
 +    ValBindsIn a b -> putByte bh 0 >> put_ bh a >> put_ bh b
-+    _ -> panic "Binary HsValBindsLR.put: ValBindsOut constructor not supported"
++    ValBindsOut {} -> putPanic "HsValBindsLR" "ValBindsOut"
++
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
 +      0 -> ValBindsIn <$> get bh <*> get bh
-+      _ -> panic "Binary HsValBindsLR.get: unknown tag"
++      _ -> getPanic "HsValBindsLR"
 +
 +instance Binary (PatSynBind GhcSe GhcSe) where
 +  put_ bh b = case b of
 +    PSB a b c d e ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
-+                   >> put_ bh e
++      put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d >> put_ bh e
 +
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> PSB <$> get bh <*> get bh <*> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary PatSynBind.get: unknown tag"
++  get bh = PSB <$> get bh <*> get bh <*> get bh <*> get bh <*> get bh
 +
 +instance Binary (HsPatSynDir GhcSe) where
 +  put_ bh d = case d of
@@ -1983,51 +2433,75 @@ index 0000000000..5eb5c95aae
 +      0 -> pure Unidirectional
 +      1 -> pure ImplicitBidirectional
 +      2 -> ExplicitBidirectional <$> get bh
-+      _ -> panic "Binary HsPatSynDir: unknown tag"
++      _ -> getPanic "HsPatSynDir"
 +
 +instance Binary a => Binary (RecordPatSynField a) where
 +  put_ bh (RecordPatSynField a b) = put_ bh a >> put_ bh b
 +  get bh = RecordPatSynField <$> get bh <*> get bh
 +
-+{-
-+instance Binary (HsIPBinds GhcSe) where
-+  put_ bh b = case b of
-+    IPBinds a b -> putByte bh 0 >> put_ bh a >> put_ bh b
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> IPBinds <$> get bh <*> get bh
-+      _ -> panic "Binary HsIPBinds.get: unknown tag"
-+-}
-+
 +instance Binary (IPBind GhcSe) where
 +  put_ bh b = case b of
-+    IPBind a b -> putByte bh 0 >> put_ bh a >> put_ bh b
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> IPBind <$> get bh <*> get bh
-+      _ -> panic "Binary IPBind.get: unknown tag"
++    IPBind a b -> put_ bh a >> put_ bh b
++  get bh = IPBind <$> get bh <*> get bh
 +
 +-- * HsDecls
 +
 +instance Binary (HsDecl GhcSe) where
 +  put_ bh d = case d of
-+    TyClD a    -> putByte bh 0 >> put_ bh a
-+    InstD a    -> putByte bh 1 >> put_ bh a
-+    DerivD a   -> putByte bh 2 >> put_ bh a
-+    ValD a     -> putByte bh 3 >> put_ bh a
-+    SigD a     -> putByte bh 4 >> put_ bh a
-+    _          -> panic "Binary HsDecl.put: unsupported constructor"
++    TyClD a      -> putByte bh 0 >> put_ bh a
++    InstD a      -> putByte bh 1 >> put_ bh a
++    DerivD a     -> putByte bh 2 >> put_ bh a
++    ValD a       -> putByte bh 3 >> put_ bh a
++    SigD a       -> putByte bh 4 >> put_ bh a
++    DefD a       -> putByte bh 5 >> put_ bh a
++    ForD a       -> putByte bh 6 >> put_ bh a
++    WarningD a   -> putByte bh 7 >> put_ bh a
++    RoleAnnotD a -> putByte bh 8 >> put_ bh a
++    RuleD a      -> putByte bh 9 >> put_ bh a
++    AnnD a       -> putByte bh 10 >> put_ bh a
++    SpliceD a    -> putByte bh 11 >> put_ bh a
++    DocD a       -> putByte bh 12 >> put_ bh a
++    VectD a      -> putByte bh 13 >> put_ bh a
++
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
-+      0 -> TyClD  <$> get bh
-+      1 -> InstD  <$> get bh
++      0 -> TyClD <$> get bh
++      1 -> InstD <$> get bh
 +      2 -> DerivD <$> get bh
-+      3 -> ValD   <$> get bh
-+      4 -> SigD   <$> get bh
-+      _ -> panic "Binary HsDecl.get: unsupported constructor"
++      3 -> ValD <$> get bh
++      4 -> SigD <$> get bh
++      5 -> DefD <$> get bh
++      6 -> ForD <$> get bh
++      7 -> WarningD <$> get bh
++      8 -> RoleAnnotD <$> get bh
++      9 -> RuleD <$> get bh
++      10 -> AnnD <$> get bh
++      11 -> SpliceD <$> get bh
++      12 -> DocD <$> get bh
++      13 -> VectD <$> get bh
++      _ -> getPanic "HsDecl"
++
++instance Binary (ForeignDecl GhcSe) where
++  put_ bh d = case d of
++    ForeignImport a b c d ->
++      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
++                   >> put_ bh d
++    ForeignExport a b c d ->
++      putByte bh 1 >> put_ bh a >> put_ bh b >> put_ bh c
++                   >> put_ bh d
++
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> ForeignImport <$> get bh <*> get bh <*> get bh <*> get bh
++      1 -> ForeignExport <$> get bh <*> get bh <*> get bh <*> get bh
++      _ -> getPanic "ForeignDecl"
++
++instance Binary (DefaultDecl GhcSe) where
++  put_ bh d = case d of
++    DefaultDecl a -> put_ bh a
++  get bh = DefaultDecl <$> get bh
 +
 +instance Binary (TyClDecl GhcSe) where
 +  put_ bh d = case d of
@@ -2053,7 +2527,7 @@ index 0000000000..5eb5c95aae
 +      3 -> ClassDecl <$> get bh <*> get bh <*> get bh <*> get bh <*> get bh
 +                     <*> get bh <*> get bh <*> get bh <*> get bh <*> get bh
 +                     <*> get bh
-+      _ -> panic "Binary TyClDecl.get: unknown tag"
++      _ -> getPanic "TyClDecl"
 +
 +instance Binary DocDecl where
 +  put_ bh d = case d of
@@ -2068,30 +2542,160 @@ index 0000000000..5eb5c95aae
 +      1 -> DocCommentPrev <$> get bh
 +      2 -> DocCommentNamed <$> get bh <*> get bh
 +      3 -> DocGroup <$> get bh <*> get bh
-+      _ -> panic "Binary DocDecl.get: unknown tag"
++      _ -> getPanic "DocDecl"
++
++instance Binary (WarnDecls GhcSe) where
++  put_ bh (Warnings a b) = put_ bh a >> put_ bh b
++  get bh = Warnings <$> get bh <*> get bh
++
++instance Binary (WarnDecl GhcSe) where
++  put_ bh (Warning a b) = put_ bh a >> put_ bh b
++  get bh = Warning <$> get bh <*> get bh
++
++instance Binary (RoleAnnotDecl GhcSe) where
++  put_ bh (RoleAnnotDecl a b) = put_ bh a >> put_ bh b
++  get bh = RoleAnnotDecl <$> get bh <*> get bh
++
++instance Binary (RuleDecls GhcSe) where
++  put_ bh (HsRules a b) = put_ bh a >> put_ bh b
++  get bh = HsRules <$> get bh <*> get bh
++
++instance Binary (RuleDecl GhcSe) where
++  put_ bh (HsRule a b c d e f g) =
++    put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++              >> put_ bh e >> put_ bh f >> put_ bh g
++  get bh = HsRule <$> get bh <*> get bh <*> get bh <*> get bh
++                  <*> get bh <*> get bh <*> get bh
++
++instance Binary (AnnDecl GhcSe) where
++  put_ bh (HsAnnotation a b c) = put_ bh a >> put_ bh b >> put_ bh c
++  get bh = HsAnnotation <$> get bh <*> get bh <*> get bh
++
++instance Binary (SpliceDecl GhcSe) where
++  put_ bh (SpliceDecl a b) = put_ bh a >> put_ bh b
++  get bh = SpliceDecl <$> get bh <*> get bh
++
++instance Binary a => Binary (Tickish a) where
++  put_ bh t = case t of
++    ProfNote a b c ->
++      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
++    HpcTick a b ->
++      putByte bh 1 >> put_ bh a >> put_ bh b
++    Breakpoint a b ->
++      putByte bh 2 >> put_ bh a >> put_ bh b
++    SourceNote a b ->
++      putByte bh 3 >> put_ bh a >> put_ bh b
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> ProfNote <$> get bh <*> get bh <*> get bh
++      1 -> HpcTick <$> get bh <*> get bh
++      2 -> Breakpoint <$> get bh <*> get bh
++      3 -> SourceNote <$> get bh <*> get bh
++      _ -> getPanic "Tickish"
++
++instance Binary SpliceExplicitFlag where
++  put_ bh f = putByte bh $ case f of
++    ExplicitSplice -> 0
++    ImplicitSplice -> 1
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> pure ExplicitSplice
++      1 -> pure ImplicitSplice
++      _ -> getPanic "SpliceExplicitFlag"
++
++instance Binary SpliceDecoration where
++  put_ bh d = putByte bh $ case d of
++    HasParens -> 0
++    HasDollar -> 1
++    NoParens  -> 2
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> pure HasParens
++      1 -> pure HasDollar
++      2 -> pure NoParens
++      _ -> getPanic "SpliceDecoration"
++
++instance Binary (HsSplice GhcSe) where
++  put_ bh s = case s of
++    HsTypedSplice a b c ->
++      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
++    HsUntypedSplice a b c ->
++      putByte bh 1 >> put_ bh a >> put_ bh b >> put_ bh c
++    HsQuasiQuote a b c d ->
++      putByte bh 2 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++    HsSpliced {} -> putPanic "HsSplice" "HsSpliced"
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> HsTypedSplice <$> get bh <*> get bh <*> get bh
++      1 -> HsUntypedSplice <$> get bh <*> get bh <*> get bh
++      2 -> HsQuasiQuote <$> get bh <*> get bh <*> get bh <*> get bh
++      _ -> getPanic "HsSplice"
++
++instance Binary (AnnProvenance SeName) where
++  put_ bh p = case p of
++    ValueAnnProvenance a -> putByte bh 0 >> put_ bh a
++    TypeAnnProvenance a -> putByte bh 1 >> put_ bh a
++    ModuleAnnProvenance -> putByte bh 2
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> ValueAnnProvenance <$> get bh
++      1 -> TypeAnnProvenance <$> get bh
++      2 -> pure ModuleAnnProvenance
++      _ -> getPanic "AnnProvenance"
++
++instance Binary ForeignImport where
++  put_ bh (CImport a b c d e) =
++    put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++              >> put_ bh e
++  get bh = CImport <$> get bh <*> get bh <*> get bh
++                   <*> get bh <*> get bh
++
++instance Binary CImportSpec where
++  put_ bh s = case s of
++    CLabel a -> putByte bh 0 >> put_ bh a
++    CFunction a -> putByte bh 1 >> put_ bh a
++    CWrapper -> putByte bh 2
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> CLabel <$> get bh
++      1 -> CFunction <$> get bh
++      2 -> pure CWrapper
++      _ -> getPanic "CImportSpec"
++
++instance Binary ForeignExport where
++  put_ bh (CExport a b) = put_ bh a >> put_ bh b
++  get bh = CExport <$> get bh <*> get bh
++
++instance Binary (RuleBndr GhcSe) where
++  put_ bh b = case b of
++    RuleBndr a -> putByte bh 0 >> put_ bh a
++    RuleBndrSig a b -> putByte bh 1 >> put_ bh a >> put_ bh b
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> RuleBndr <$> get bh
++      1 -> RuleBndrSig <$> get bh <*> get bh
++      _ -> getPanic "RuleBndr"
 +
 +instance (Binary a, Binary b) => Binary (FamEqn GhcSe a b) where
 +  put_ bh e = case e of
 +    FamEqn a b c d ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+                   >> put_ bh d
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> FamEqn <$> get bh <*> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary FamEqn.get: unknown tag"
++      put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++  get bh = FamEqn <$> get bh <*> get bh <*> get bh <*> get bh
 +
 +instance Binary (HsDataDefn GhcSe) where
 +  put_ bh d = case d of
 +    HsDataDefn a b c d e f ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+                   >> put_ bh d >> put_ bh e >> put_ bh f
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> HsDataDefn <$> get bh <*> get bh <*> get bh <*> get bh
++      put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++                >> put_ bh e >> put_ bh f
++  get bh = HsDataDefn <$> get bh <*> get bh <*> get bh <*> get bh
 +                      <*> get bh <*> get bh
-+      _ -> panic "Binary HsDataDefn.get: unknown tag"
 +
 +instance Binary NewOrData where
 +  put_ bh a = putByte bh (case a of
@@ -2100,25 +2704,75 @@ index 0000000000..5eb5c95aae
 +  get bh = getByte bh >>= \b -> case b of
 +    0 -> pure NewType
 +    1 -> pure DataType
-+    _ -> panic "Binary NewOrData.get: unknown tag"
++    _ -> getPanic "NewOrData"
 +
 +instance Binary (HsDerivingClause GhcSe) where
 +  put_ bh c = case c of
 +    HsDerivingClause a b ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b
++      put_ bh a >> put_ bh b
++  get bh = HsDerivingClause <$> get bh <*> get bh
++
++instance Binary (ConDecl GhcSe) where
++  put_ bh d = case d of
++    ConDeclGADT a b c ->
++      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
++    ConDeclH98 a b c d e ->
++      putByte bh 1 >> put_ bh a >> put_ bh b >> put_ bh c
++                   >> put_ bh d >> put_ bh e
 +  get bh = do
 +    tag <- getByte bh
 +    case tag of
-+      0 -> HsDerivingClause <$> get bh <*> get bh
-+      _ -> panic "Binary HsDerivingClause.get: unknown tag"
++      0 -> ConDeclGADT <$> get bh <*> get bh <*> get bh
++      1 -> ConDeclH98 <$> get bh <*> get bh <*> get bh <*> get bh <*> get bh
++      _ -> getPanic "ConDecl"
 +
-+instance Binary (ConDecl GhcSe) where
-+  put_ _ _ = panic "Binary ConDecl: not implemented"
-+  get _    = panic "Binary ConDecl: not implemented"
 +
 +instance Binary (FamilyDecl GhcSe) where
-+  put_ _ _ = panic "Binary FamilyDecl: not implemented"
-+  get _    = panic "Binary.FamilyDecl: not implemented"
++  put_ bh d = case d of
++    FamilyDecl a b c d e f ->
++      put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d >> put_ bh e >> put_ bh f
++
++  get bh = FamilyDecl <$> get bh <*> get bh <*> get bh <*> get bh <*> get bh
++                      <*> get bh
++
++instance Binary (InjectivityAnn GhcSe) where
++  put_ bh a = case a of
++    InjectivityAnn a b -> put_ bh a >> put_ bh b
++  get bh = InjectivityAnn <$> get bh <*> get bh
++
++instance Binary (FamilyInfo GhcSe) where
++  put_ bh i = case i of
++    DataFamily ->
++      putByte bh 0
++    OpenTypeFamily ->
++      putByte bh 1
++    ClosedTypeFamily a ->
++      putByte bh 2 >> put_ bh a
++
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> pure DataFamily
++      1 -> pure OpenTypeFamily
++      2 -> ClosedTypeFamily <$> get bh
++      _ -> getPanic "FamilyInfo"
++
++instance Binary (FamilyResultSig GhcSe) where
++  put_ bh s = case s of
++    NoSig ->
++      putByte bh 0
++    KindSig a ->
++      putByte bh 1 >> put_ bh a
++    TyVarSig a ->
++      putByte bh 2 >> put_ bh a
++
++  get bh = do
++    tag <- getByte bh
++    case tag of
++      0 -> pure NoSig
++      1 -> KindSig <$> get bh
++      2 -> TyVarSig <$> get bh
++      _ -> getPanic "FamilyResultSig"
 +
 +instance Binary (InstDecl GhcSe) where
 +  put_ bh d = case d of
@@ -2134,19 +2788,15 @@ index 0000000000..5eb5c95aae
 +      0 -> ClsInstD <$> get bh
 +      1 -> DataFamInstD <$> get bh
 +      2 -> TyFamInstD <$> get bh
-+      _ -> panic "Binary InstDecl.get: unknown tag"
++      _ -> getPanic "InstDecl"
 +
 +instance Binary (ClsInstDecl GhcSe) where
 +  put_ bh d = case d of
 +    ClsInstDecl a b c d e f ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
-+                   >> put_ bh e >> put_ bh f
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> ClsInstDecl <$> get bh <*> get bh <*> get bh <*> get bh
++      put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++                >> put_ bh e >> put_ bh f
++  get bh = ClsInstDecl <$> get bh <*> get bh <*> get bh <*> get bh
 +                       <*> get bh <*> get bh
-+      _ -> panic "Binary ClsInstDecl.get: unknown tag"
 +
 +instance Binary (DataFamInstDecl GhcSe) where
 +  put_ bh (DataFamInstDecl a) = put_ bh a
@@ -2159,12 +2809,8 @@ index 0000000000..5eb5c95aae
 +instance Binary (DerivDecl GhcSe) where
 +  put_ bh d = case d of
 +    DerivDecl a b c ->
-+      putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      0 -> DerivDecl <$> get bh <*> get bh <*> get bh
-+      _ -> panic "Binary DerivDecl.get: unknown tag"
++      put_ bh a >> put_ bh b >> put_ bh c
++  get bh = DerivDecl <$> get bh <*> get bh <*> get bh
 +
 +instance Binary DerivStrategy where
 +  put_ bh s = putByte bh (case s of
@@ -2177,7 +2823,7 @@ index 0000000000..5eb5c95aae
 +      0 -> pure StockStrategy
 +      1 -> pure AnyclassStrategy
 +      2 -> pure NewtypeStrategy
-+      _ -> panic "Binary DerivStrategy.get: unknown tag"
++      _ -> getPanic "DerivStrategy"
 +
 +instance Binary HsSrcBang where
 +  put_ bh (HsSrcBang a b c) =
@@ -2203,7 +2849,7 @@ index 0000000000..5eb5c95aae
 +      3 -> Exact <$> get bh
 +      4 -> fmap Exact (mkSystemNameAt <$> get bh <*> get bh <*> get bh)
 +      5 -> fmap Exact (mkInternalName <$> get bh <*> get bh <*> get bh)
-+      _ -> panic "Binary RdrName.get: unknown tag"
++      _ -> getPanic "RdrName"
 +
 +-- * HsDoc
 +
@@ -2245,15 +2891,12 @@ index 0000000000..5eb5c95aae
 +      10 -> HsRat        <$> get bh <*> get bh <*> get bh
 +      11 -> HsFloatPrim  <$> get bh <*> get bh
 +      12 -> HsDoublePrim <$> get bh <*> get bh
++      _ -> getPanic "Binary HsLit.get: unknown tag"
 +
 +instance Binary (HsOverLit GhcSe) where
-+  put_ bh lit
-+    = case lit of
-+        OverLit a b c d -> putByte bh 0 >> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
-+  get bh = do
-+    tag <- getByte bh
-+    case tag of
-+      _ -> OverLit <$> get bh <*> get bh <*> get bh <*> get bh
++  put_ bh lit = case lit of
++    OverLit a b c d -> put_ bh a >> put_ bh b >> put_ bh c >> put_ bh d
++  get bh = OverLit <$> get bh <*> get bh <*> get bh <*> get bh
 +
 +instance Binary OverLitVal where
 +  put_ bh v
@@ -2266,13 +2909,14 @@ index 0000000000..5eb5c95aae
 +    case tag of
 +      0 -> HsIntegral <$> get bh
 +      1 -> HsFractional <$> get bh
-+      _ -> HsIsString <$> get bh <*> get bh
++      2 -> HsIsString <$> get bh <*> get bh
++      _ -> getPanic "OverLitVal"
 +
 +instance Binary PlaceHolder where
 +  put_ _ _ = return ()
 +  get _ = pure PlaceHolder
 diff --git a/compiler/hsSyn/HsExtension.hs b/compiler/hsSyn/HsExtension.hs
-index 80dfa67ea3..8b493f9586 100644
+index 80dfa67ea3..dffae5af39 100644
 --- a/compiler/hsSyn/HsExtension.hs
 +++ b/compiler/hsSyn/HsExtension.hs
 @@ -23,7 +23,9 @@ import ConLike
@@ -2364,14 +3008,24 @@ index 80dfa67ea3..8b493f9586 100644
    , Data (PostRn p (IdP p))
    , Data (PostRn p (Located Name))
    , Data (PostRn p Bool)
-@@ -288,4 +311,25 @@ type DataId p =
+@@ -288,4 +311,35 @@ type DataId p =
  type OutputableBndrId id =
    ( OutputableBndr (NameOrRdrName (IdP id))
    , OutputableBndr (IdP id)
 +  , OutputableBndr (RdrOrSeName id)
-+  , IdSigId id ~ Id
-+  , RdrOrSeName id ~ RdrName
++  , OutputableBndr (IdSigId id)
++  , VarType (IdSigId id)
++  -- , RdrOrSeName id ~ RdrName
    )
++
++class VarType a where
++  getVarType :: a -> Maybe Type
++
++instance VarType Var where
++  getVarType = Just . varType
++
++instance VarType SeName where
++  getVarType _ = Nothing
 +
 +type family IdSigId pass where
 +  IdSigId GhcSe       = SeName
@@ -2486,7 +3140,7 @@ index 62bfa2e5c5..a5174cd3d5 100644
  module HsSyn (
          module HsBinds,
 diff --git a/compiler/hsSyn/HsTypes.hs b/compiler/hsSyn/HsTypes.hs
-index af30d227d3..c2be5735f3 100644
+index af30d227d3..77e70d79b9 100644
 --- a/compiler/hsSyn/HsTypes.hs
 +++ b/compiler/hsSyn/HsTypes.hs
 @@ -10,6 +10,7 @@ HsTypes: Abstract syntax: user-defined types
@@ -2565,12 +3219,12 @@ index af30d227d3..c2be5735f3 100644
  deriving instance DataId pass => Data (AmbiguousFieldOcc pass)
  
 -instance Outputable (AmbiguousFieldOcc pass) where
-+instance RdrOrSeName pass ~ RdrName
++instance Outputable (RdrOrSeName pass)
 +      => Outputable (AmbiguousFieldOcc pass) where
    ppr = ppr . rdrNameAmbiguousFieldOcc
  
 -instance OutputableBndr (AmbiguousFieldOcc pass) where
-+instance RdrOrSeName pass ~ RdrName
++instance OutputableBndr (RdrOrSeName pass)
 +      => OutputableBndr (AmbiguousFieldOcc pass) where
    pprInfixOcc  = pprInfixOcc . rdrNameAmbiguousFieldOcc
    pprPrefixOcc = pprPrefixOcc . rdrNameAmbiguousFieldOcc
@@ -2580,7 +3234,7 @@ index af30d227d3..c2be5735f3 100644
  
 -rdrNameAmbiguousFieldOcc :: AmbiguousFieldOcc pass -> RdrName
 +rdrNameAmbiguousFieldOcc
-+  :: RdrOrSeName pass ~ RdrName => AmbiguousFieldOcc pass -> RdrName
++  :: AmbiguousFieldOcc pass -> RdrOrSeName pass
  rdrNameAmbiguousFieldOcc (Unambiguous (L _ rdr) _) = rdr
  rdrNameAmbiguousFieldOcc (Ambiguous   (L _ rdr) _) = rdr
  
@@ -2688,17 +3342,20 @@ index 0b4711a364..e7a742ba99 100644
 +  NameOrRdrName SeName  = SeName
 diff --git a/compiler/hsSyn/SeName.hs b/compiler/hsSyn/SeName.hs
 new file mode 100644
-index 0000000000..cccf8fb5ae
+index 0000000000..f8bca59243
 --- /dev/null
 +++ b/compiler/hsSyn/SeName.hs
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,13 @@
++{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 +module SeName (SeName(..), mkSeName) where
 +
++import Outputable
 +import RdrName
 +
 +-- TODO: make this smarter, so as to check whether
 +-- the name is local or not.
 +newtype SeName = SeName RdrName
++  deriving (Outputable, OutputableBndr)
 +
 +mkSeName :: RdrName -> SeName
 +mkSeName = SeName
@@ -3193,7 +3850,7 @@ index e4c781f10d..25bd697f21 100644
  
  -- NB: topModIdentity, not topModSemantic!
 diff --git a/compiler/typecheck/TcSplice.hs b/compiler/typecheck/TcSplice.hs
-index 45e18e69fe..55734a7969 100644
+index 45e18e69fe..e9ee4ec540 100644
 --- a/compiler/typecheck/TcSplice.hs
 +++ b/compiler/typecheck/TcSplice.hs
 @@ -26,6 +26,7 @@ module TcSplice(
@@ -3260,7 +3917,7 @@ index 45e18e69fe..55734a7969 100644
  
  defaultRunMeta :: MetaHook TcM
  defaultRunMeta (MetaE r)
-@@ -689,29 +709,105 @@ defaultRunMeta (MetaAW r)
+@@ -689,29 +709,110 @@ defaultRunMeta (MetaAW r)
      -- the toAnnotationWrapper function that we slap around the user's code
  
  ----------------
@@ -3296,16 +3953,19 @@ index 45e18e69fe..55734a7969 100644
 +-- | Record the result (second argument) of evaluating the expression splice
 +--   represented by the first argument.
 +addSpliceExprResult :: LHsExpr GhcTc -> LHsExpr GhcPs -> TcM ()
-+addSpliceExprResult (L l _) resultE = do
-+  serialExpr <- exprPS2SE resultE
-+  modifyHsSpliceData (recordSpliceResult l (SRExpr serialExpr))
++addSpliceExprResult th@(L l _) resultE = do
++  serialExpr <- handleUnsupported (fmap ppr th) (Just $ ppr resultE)
++            =<< exprPS2SE resultE
++  modifyHsSpliceData $ recordSpliceResult l (SRExpr serialExpr)
 +
 +-- | Record the result (second argument) of evaluating the declaration splice
 +--   represented by the first argument.
 +addSpliceDeclsResult :: LHsExpr GhcTc -> [LHsDecl GhcPs] -> TcM ()
-+addSpliceDeclsResult (L l _) resultDs = do
-+  serialDecls <- traverse declPS2SE resultDs
-+  modifyHsSpliceData (recordSpliceResult l (SRDecls serialDecls))
++addSpliceDeclsResult th@(L l _) resultDs = do
++  serialDecls <- traverse
++     (declPS2SE >=> handleUnsupported (fmap ppr th) (Just $ ppr resultDs))
++     resultDs
++  modifyHsSpliceData $ recordSpliceResult l (SRDecls serialDecls)
 +
 +-- | Look up the result of evaluating the splice represented by the first
 +--   argument in an .hs-splice file, using the given function to extract
@@ -3321,14 +3981,16 @@ index 45e18e69fe..55734a7969 100644
 +-- | Look up the result of evaluating an expression splice.
 +getSpliceExprResult :: LHsExpr GhcTc -> TcM (LHsExpr GhcPs)
 +getSpliceExprResult spliceE = getSpliceResult spliceE $ \res -> case res of
-+    SRExpr e  -> exprSE2PS e
++    SRExpr e  -> exprSE2PS e >>= handleUnsupported (fmap ppr spliceE) Nothing
 +    SRDecls _ -> panic ("Expected an expression splice but found a declaration one")
 +
 +-- | Look up the result of evaluating a declaration splice.
 +getSpliceDeclsResult :: LHsExpr GhcTc -> TcM [LHsDecl GhcPs]
 +getSpliceDeclsResult spliceE = getSpliceResult spliceE $ \res -> case res of
 +    SRExpr _   -> panic ("Expected a declaration splice result but found an expression one")
-+    SRDecls ds -> traverse declSE2PS ds
++    SRDecls ds -> traverse
++      (declSE2PS >=> handleUnsupported (fmap ppr spliceE) Nothing)
++      ds
 +
  runMetaAW :: LHsExpr GhcTc         -- Of type AnnotationWrapper
            -> TcM Serialized
@@ -3369,7 +4031,7 @@ index 45e18e69fe..55734a7969 100644
           -> (SrcSpan -> ForeignHValue -> TcM (Either MsgDoc hs_syn))        -- How to run x
           -> LHsExpr GhcTc        -- Of type x; typically x = Q TH.Exp, or
                                   --    something like that
-@@ -722,7 +818,7 @@ runMeta' show_code ppr_hs run_and_convert expr
+@@ -722,7 +823,7 @@ runMeta' show_code ppr_hs run_and_convert expr
                              -- we catch all kinds of splices and annotations.
  
          -- Check that we've had no errors of any sort so far.

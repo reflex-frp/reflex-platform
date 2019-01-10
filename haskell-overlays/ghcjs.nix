@@ -1,4 +1,4 @@
-{ haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer, hackGet, ghcjsBaseSrc }:
+{ haskellLib, nixpkgs, fetchFromGitHub, useReflexOptimizer, ghcjsBaseSrc }:
 
 let inherit (nixpkgs) lib; in
 with haskellLib;
@@ -16,10 +16,6 @@ self: super: {
   ghc = super.ghc // {
     withPackages = self.ghcWithPackages;
   };
-
-  hlint = null;
-  hscolour = null;
-  cabal-macosx = null;
 
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = lib.warn "ignoring dependency on doctest" null;

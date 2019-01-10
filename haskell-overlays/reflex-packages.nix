@@ -1,6 +1,6 @@
 { haskellLib
 , lib, nixpkgs
-, fetchFromGitHub, hackGet, fetchFromBitbucket
+, fetchFromGitHub, fetchFromBitbucket, dep
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
 }:
 
@@ -9,10 +9,10 @@ with haskellLib;
 self: super:
 
 let
-  reflexDom = import (hackGet ../reflex-dom) self nixpkgs;
-  jsaddleSrc = hackGet ../jsaddle;
-  gargoylePkgs = self.callPackage (hackGet ../gargoyle) self;
-  ghcjsDom = import (hackGet ../ghcjs-dom) self;
+  reflexDom = import dep.reflex-dom self nixpkgs;
+  jsaddleSrc = dep.jsaddle;
+  gargoylePkgs = self.callPackage dep.gargoyle self;
+  ghcjsDom = import dep.ghcjs-dom self;
   addReflexTraceEventsFlag = drv: if enableTraceReflexEvents
     then appendConfigureFlag drv "-fdebug-trace-events"
     else drv;
@@ -28,16 +28,12 @@ in
   ## Reflex family
   ##
 
-  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ../reflex) {}))));
-  reflex-todomvc = self.callPackage (hackGet ../reflex-todomvc) {};
-  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ../reflex-aeson-orphans) {};
-
-  # Broken Haddock - Please fix!
-  # : error is: haddock: internal error: internal: extractDecl
-  # No idea where it hits?
-  reflex-dom = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom);
+  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage dep.reflex {}))));
+  reflex-todomvc = self.callPackage dep.reflex-todomvc {};
+  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" dep.reflex-aeson-orphans {};
+  reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
   reflex-dom-core = appendConfigureFlags
-    (dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core))
+    (addReflexOptimizerFlag reflexDom.reflex-dom-core)
     (lib.optional enableLibraryProfiling "-fprofile-reflex");
 
   ##
@@ -72,7 +68,7 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
-  jsaddle-dom = self.callPackage (hackGet ../jsaddle-dom) {};
+  jsaddle-dom = self.callPackage dep.jsaddle-dom {};
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   ##
@@ -87,12 +83,7 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "monoidal-containers";
-    rev = "79c25ac6bb469bfa92f8fd226684617b6753e955";
-    sha256 = "0j2mwf5zhz7cmn01x9v51w8vpx16hrl9x9rcx8fggf21slva8lf8";
-  }) {};
+  monoidal-containers = self.callHackage "monoidal-containers" "0.4.0.0" {};
 
   # Needs additional instances
   dependent-sum = self.callCabal2nix "dependent-sum" (fetchFromGitHub {
