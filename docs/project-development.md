@@ -260,23 +260,32 @@ Haskell process. This is recommended to allow testing different
 browsers, and to make use of a browser's significantly better
 developer tools.
 
-To use it, add `jsaddle-warp` and `reflex-dom-core` to your frontend's
-dependencies, and change `main` like so:
+To use it, enable the `useWarp` option in `default.nix`.
 
-```haskell
-import Language.Javascript.JSaddle.Warp
-import Reflex.Dom.Core (mainWidget)
-import Reflex.Dom hiding (mainWidget)
+```nix
+# default.nix
+(import ./reflex-platform {}).project ({ pkgs, ... }: {
+  useWarp = true;
 
-main :: IO ()
-main = run 3911 $ mainWidget app
+  packages = {
+    common = ./common;
+    backend = ./backend;
+    frontend = ./frontend;
+  };
+
+  shells = {
+    ghc = ["common" "backend" "frontend"];
+    ghcjs = ["common" "frontend"];
+  };
+})
 ```
 
-This will spawn the Warp server on port 3911, which you can connect
-your browser to to run the app. It will also compile under GHCJS as
-is, automatically defaulting back to the GHCJS backend. Both
-`jsaddle-warp` and `jsaddle-webkit2gtk` are safe to use from GHCi, so
-you can test changes even more quickly with `:r`.
+Running the GHC-built frontend with this option will spawn the Warp
+server on port 3003, which you can connect your browser to to run the
+app. It will also compile under GHCJS as is, automatically defaulting
+back to the GHCJS backend. Both `jsaddle-warp` and
+`jsaddle-webkit2gtk` are safe to use from GHCi, so you can test
+changes even more quickly with `:r`.
 
 **Note:** The native backends for JSaddle have much much better
 runtime performance than the GHCJS backend. To put it in perspective,

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+OPEN=$( if on_darwin_host; then echo "open"; else echo "xdg-open"; fi)
+export OPEN
+
+if [[ $# -eq 0 ]] ; then
+    echo "Usage: $0 <packagename> [<packagename...>]"
+    echo "Uses the '$OPEN' to open the documentation for given (Haskell) packages"
+    echo "from the nix-store. For example, try"
+    echo " $0 reflex reflex-dom-core jsaddle jsaddle-dom lens"
+else
+    export DOCSFOR_PKGLIST="$@"
+    function openTheDocs () {
+        echo $DOCSFOR_PKGLIST | xargs -d' ' -n1 --replace ghc-pkg field {} haddock-html | sed 's#.*: \(.*\)#\1/index.html#' | xargs -n1 "$OPEN"
+    }
+    export -f openTheDocs
+    try_reflex_shell --command "openTheDocs"
+fi

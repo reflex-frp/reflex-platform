@@ -2,15 +2,22 @@ this:
 { config, options, lib }: let
   pkgs = this.nixpkgs;
   inherit (lib) mapAttrs mapAttrsToList escapeShellArg
-    optionalString concatStringsSep concatMapStringsSep;
+    optionalAttrs optionalString concatStringsSep concatMapStringsSep;
   inherit (config) packages shells overrides tools
     withHoogle android ios;
   preparePackageConfig =
     name: appConfig:
       builtins.removeAttrs appConfig ["_module"]
       // lib.optionalAttrs (appConfig.package == null) { package = p: p.${name}; };
-  overrides' = lib.composeExtensions
-    (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages) overrides;
+  overrides' = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+    (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages)
+    (self: super: {
+      reflex-dom = if useWarp && (with self.ghc.stdenv; hostPlatform == targetPlatform) && !(self.ghc.isGhcjs or false)
+        then nixpkgs.haskell.lib.addBuildDepend (nixpkgs.haskell.lib.enableCabalFlag super.reflex-dom "use-warp") self.jsaddle-warp
+        else super.reflex-dom;
+    })
+    overrides
+  ];
   mkPkgSet = name: _: this.${name}.override { overrides = overrides'; };
   prj = mapAttrs mkPkgSet shells // {
     shells = mapAttrs (name: pnames:
@@ -19,31 +26,29 @@ this:
           ghcWithPackages = self.ghcWithHoogle;
         }; };
         packageNames = pnames;
-        inherit tools;
+        inherit tools shellToolOverrides;
       }
     ) shells;
 
     android =
       mapAttrs (name: appConfig:
         let
-          ghcAndroidArm64 = this.ghcAndroidArm64.override { overrides = overrides'; };
-          ghcAndroidArmv7a = this.ghcAndroidArmv7a.override { overrides = overrides'; };
-        in (this.androidWithHaskellPackages { inherit ghcAndroidArm64 ghcAndroidArmv7a; }).buildApp
+          ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
+          ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
+        in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
           (preparePackageConfig name appConfig)
-      ) android;
+      ) (optionalAttrs this.androidSupport android);
 
     ios =
       mapAttrs (name: appConfig:
-        let ghcIosArm64 = this.ghcIosArm64.override { overrides = overrides'; };
-        in (this.iosWithHaskellPackages ghcIosArm64).buildApp
+        let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
+        in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
           (preparePackageConfig name appConfig)
-      ) ios;
+      ) (optionalAttrs this.iosSupport ios);
 
     reflex = this;
 
-    all = all true;
-
-    inherit config options;
+    inherit all passthru config options;
   };
 
   ghcLinks = mapAttrsToList (name: pnames: optionalString (pnames != []) ''
@@ -59,34 +64,13 @@ this:
     '') mobile)}
   '';
 
-  all = includeRemoteBuilds:
-    let tracedMobileLinks = mobileName: system: mobile:
-      let
-        build = mobileLinks mobileName mobile;
-        msg = ''
-
-
-          Skipping ${mobileName} apps; system is ${this.system}, but ${system} is needed.
-          Use `nix-build -A all` to build with remote machines.
-          See: https://nixos.org/nixos/manual/options.html#opt-nix.buildMachines
-
-        '';
-      in if mobile == {} then ""
-        else if includeRemoteBuilds then build
-          else if system != this.system then builtins.trace msg ""
-            # TODO: This is a bit of a hack. `this.iosSupport` prints
-            # a warning and returns false when *the local system*
-            # doesn't have the SDK. Just because `includeRemoteBuilds`
-            # is off doesn't mean we know this is the system iOS apps
-            # will build on. Nonetheless, it's important not to
-            # evaluate `this.iosSupport` if we don't need to, as it
-            # may `trace` an unnecessary warning.
-            else if system == "x86_64-darwin" -> this.iosSupport then build
-              else "";
+  all =
+    let tracedMobileLinks = mobileName: mobile:
+          optionalString (mobile != {}) (mobileLinks mobileName mobile);
     in pkgs.runCommand config.name { passthru = prj; preferLocalBuild = true; } ''
       ${concatStringsSep "\n" ghcLinks}
-      ${tracedMobileLinks "android" "x86_64-linux" prj.android}
-      ${tracedMobileLinks "ios" "x86_64-darwin" prj.ios}
+      ${tracedMobileLinks "android" prj.android}
+      ${tracedMobileLinks "ios" prj.ios}
     '';
 in {
   options = {

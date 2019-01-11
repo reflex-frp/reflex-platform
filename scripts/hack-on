@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+
+. "$DIR/scripts/common-setup.sh"
+
+REPO="$(echo "$1" | sed 's_/$__')"
+
+if [ ! -d "$REPO" ] ; then
+    echo "Error: no such directory: $REPO"
+    exit 1
+fi
+
+DIFF="$(git -C "$REPO/.." diff HEAD -- "$REPO")"
+DIFF_ERR=$?
+STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$REPO")"
+STATUS_ERR=$?
+
+if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
+    >&2 echo "Error: could not determine whether $REPO contains unsaved modifications"
+    exit 1
+elif [ -n "$DIFF" -o -n "$STATUS" ] ; then
+    >&2 echo "$DIFF"
+    >&2 echo "$STATUS"
+    >&2 echo "Error: $REPO contains unsaved modifications"
+    exit 1
+fi
+
+if [ -e "$REPO/git.json" ] ; then
+    JSON_FILE="$REPO/git.json"
+    URL="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).url")")"
+    REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/git.json)).rev")")"
+elif [ -e "$REPO/github.json" ] ; then
+    JSON_FILE="$REPO/github.json"
+    GITHUB_OWNER="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).owner")")"
+    GITHUB_REPO="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).repo")")"
+    URL="git://github.com/$GITHUB_OWNER/$GITHUB_REPO"
+    REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).rev")")"
+fi
+
+echo "Checking out $URL at revision $REV"
+
+if [ -f "$REPO/default.nix" ] ; then
+    rm "$REPO/default.nix"
+fi
+rm "$JSON_FILE"
+rmdir "$REPO"
+
+git clone -n "$URL" "$REPO"
+REMOTE_URL="$(git -C "$REPO" config --get remote.origin.url)"
+FIXED_REMOTE_URL="$(echo "$REMOTE_URL" | sed 's_^git://github.com/_git@github.com:_')"
+if [ "$REMOTE_URL" != "$FIXED_REMOTE_URL" ] ; then
+    echo "Changing remote URL from $REMOTE_URL to $FIXED_REMOTE_URL"
+    git -C "$REPO" remote set-url origin "$FIXED_REMOTE_URL"
+fi
+git -C "$REPO" checkout "$REV"
+
+echo
+echo "The following remote branches contain this commit:"
+git -C "$REPO" branch -r --contains HEAD | sed -n s_origin/__p
+echo "You should probably 'git checkout' one of them to get started.  Happy hacking!"

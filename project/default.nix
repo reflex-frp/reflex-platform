@@ -88,6 +88,38 @@ let
         default = _: _: {};
       };
 
+      shellToolOverrides = mkOption {
+        description = ''
+          A function returning a record of tools to provide in the
+          nix-shells.  Some tools, like `ghc-mod`, have to be built
+          with the same GHC as your project. The argument to the
+          `tools` function is the haskell package set of the platform
+          we are developing for, allowing you to build tools with the
+          correct Haskell package set.
+
+          Some tools, like `ghc-mod`, have to be built with the same GHC as
+          your project. The argument to the `tools` function is the haskell
+          package set of the platform we are developing for, allowing you to
+          build tools with the correct Haskell package set.
+  
+          The second argument, `super`, is the record of tools provided by
+          default. You can override these defaults by returning values with
+          the same name in your record. They can be disabled by setting them
+          to null.
+        '';
+        type = unspecified;
+        example = literalExample ''
+          ghc: super: {
+            inherit (ghc) hpack;
+            inherit (pkgs) chromium;
+            ghc-mod = null;
+            cabal-install = ghc.callHackage "cabal-install" "2.0.0.1" {};
+            ghcid = pkgs.haskell.lib.justStaticExecutables super.ghcid;
+          };
+        '';
+        default = _: _: {};
+      };
+
       tools = mkOption {
         description = ''
           A function returning the list of tools to provide in the
@@ -114,6 +146,14 @@ let
         '';
         type = bool;
         default = true;
+      };
+
+      useWarp = mkOption {
+        description = ''
+          Configure `reflex-dom` to use `jsaddle-warp`.
+        '';
+        type = bool;
+        default = false;
       };
 
       android = mkOption {
@@ -149,6 +189,8 @@ let
               description = ''
                 The Haskell package to get your frontend executable
                 from. Defaults to `<name>`.
+                The `package` argument can be set to use a different Haskell
+                package than the one named <app name>.
               '';
               type = unspecified;
               example = literalExample "p: p.frontend";
@@ -199,6 +241,8 @@ let
               description = ''
                 The Haskell package to get your frontend executable
                 from. Defaults to `<name>`.
+                The `package` argument can be set to use a different Haskell
+                package than the one named <app name>.
               '';
               type = unspecified;
               example = literalExample "p: p.frontend";
@@ -213,6 +257,15 @@ let
             bundleName = "Example iOS App";
           };
         };
+        default = {};
+      };
+      passthru = mkOption {
+        description = ''
+          Specify arbitrary nix expressions.
+        '';
+        type = unspecified;
+        example = literalExample ''
+        '';
         default = {};
       };
     };

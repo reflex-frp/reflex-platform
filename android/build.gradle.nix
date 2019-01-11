@@ -25,8 +25,8 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '26.0.1'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
 
     sourceSets {
       main {
@@ -40,7 +40,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode ${version.code}
         versionName "${version.name}"
     }
@@ -61,6 +61,7 @@ android {
         ${if releaseKey == null then "" else ''
             release {
                 minifyEnabled false
+                zipAlignEnabled true
                 signingConfig signingConfigs.release
             }
           ''
