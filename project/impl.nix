@@ -3,17 +3,17 @@ this:
   pkgs = this.nixpkgs;
   inherit (lib) mapAttrs mapAttrsToList escapeShellArg
     optionalAttrs optionalString concatStringsSep concatMapStringsSep;
-  inherit (config) packages shells overrides tools
+  inherit (config) packages shells overrides tools useWarp shellToolOverrides passthru
     withHoogle android ios;
   preparePackageConfig =
     name: appConfig:
       builtins.removeAttrs appConfig ["_module"]
       // lib.optionalAttrs (appConfig.package == null) { package = p: p.${name}; };
-  overrides' = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
+  overrides' = pkgs.lib.foldr pkgs.lib.composeExtensions (_: _: {}) [
     (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages)
     (self: super: {
       reflex-dom = if useWarp && (with self.ghc.stdenv; hostPlatform == targetPlatform) && !(self.ghc.isGhcjs or false)
-        then nixpkgs.haskell.lib.addBuildDepend (nixpkgs.haskell.lib.enableCabalFlag super.reflex-dom "use-warp") self.jsaddle-warp
+        then pkgs.haskell.lib.addBuildDepend (pkgs.haskell.lib.enableCabalFlag super.reflex-dom "use-warp") self.jsaddle-warp
         else super.reflex-dom;
     })
     overrides
@@ -88,7 +88,7 @@ in {
   };
 
   config = {
-    project = all false;
+    project = all;
     reflex = this;
     _module.args = { pkgs = this.nixpkgs; inherit (config) project reflex; };
   };
