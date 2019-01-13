@@ -102,7 +102,8 @@ project. In the root directory of your project, create this
 
 ```nix
 # default.nix
-(import ./reflex-platform {}).project ({ pkgs, ... }: {
+{ system ? builtins.currentSystem }:
+(import ./reflex-platform { inherit system; }).project ({ pkgs, ... }: {
   packages = {
     common = ./common;
     backend = ./backend;
@@ -370,3 +371,25 @@ use `-A all` and make sure to have Nix [distributed
 builds](https://nixos.org/nixos/manual/options.html#opt-nix.buildMachines)
 set up. Nix will delegate builds to remote machines automatically to
 build the apps on their required systems.
+
+Building via remote Nix Builder
+---
+
+For some use-cases it can be required to build derivations to be deployed on a
+different system than the one used for building. For example, a derivation needs
+to be deployed to `x86_64-linux` but the system used for building is
+`x86_64-darwin`.
+
+Nix supports delegating builds to other machines using [remote
+builders](https://nixos.org/nix/manual/#chap-distributed-builds). For the above
+example, the [nix-docker](https://github.com/LnL7/nix-docker) project might be
+useful, as it provides a Docker-based Linux build environment usable on Darwin
+machines. After having set up remote builders, the Reflex application can be
+built for x86_64-linux by passing the appropriate `system` argument:
+
+```bash
+$ nix-build --argstr system x86_64-linux
+```
+
+In order to speed up future builds, integrating [Cachix](https://cachix.org) can
+be useful.
