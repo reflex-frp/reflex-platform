@@ -70,7 +70,7 @@
 
         inputMd = pkgs.writeText "in-doc.md" (sortAndRender (fromFile (config.options-docs.optionsJSON + /share/doc/nixos/options.json)));
       in pkgs.runCommand "out-doc.md" { nativeBuildInputs = [pkgs.pandoc]; } ''
-        pandoc --toc-depth=1 --toc -s -o $out -f markdown_github -t markdown_github ${inputMd}
+        pandoc --toc-depth=1 --toc -s -o $out -f gfm -t markdown_github ${inputMd}
       '';
   };
 }

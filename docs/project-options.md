@@ -1,18 +1,21 @@
 -   [`android`](#android)
--   [`android.<name>.applicationId`](#android.name.applicationid)
--   [`android.<name>.displayName`](#android.name.displayname)
--   [`android.<name>.executableName`](#android.name.executablename)
--   [`android.<name>.package`](#android.name.package)
+-   [`android.<name>.applicationId`](#androidnameapplicationid)
+-   [`android.<name>.displayName`](#androidnamedisplayname)
+-   [`android.<name>.executableName`](#androidnameexecutablename)
+-   [`android.<name>.package`](#androidnamepackage)
 -   [`ios`](#ios)
--   [`ios.<name>.bundleIdentifier`](#ios.name.bundleidentifier)
--   [`ios.<name>.bundleName`](#ios.name.bundlename)
--   [`ios.<name>.executableName`](#ios.name.executablename)
--   [`ios.<name>.package`](#ios.name.package)
+-   [`ios.<name>.bundleIdentifier`](#iosnamebundleidentifier)
+-   [`ios.<name>.bundleName`](#iosnamebundlename)
+-   [`ios.<name>.executableName`](#iosnameexecutablename)
+-   [`ios.<name>.package`](#iosnamepackage)
 -   [`name`](#name)
 -   [`overrides`](#overrides)
 -   [`packages`](#packages)
+-   [`passthru`](#passthru)
+-   [`shellToolOverrides`](#shelltooloverrides)
 -   [`shells`](#shells)
 -   [`tools`](#tools)
+-   [`useWarp`](#usewarp)
 -   [`withHoogle`](#withhoogle)
 
 ------------------------------------------------------------------------
@@ -22,8 +25,8 @@
 
 #### Description
 
-Use this argument to configure android apps. The returned
-derivations will be in `android.<app name>`.
+Use this argument to configure android apps. The returned derivations
+will be in `android.<app name>`.
 
 #### Example
 
@@ -80,8 +83,7 @@ The app name displayed to the user.
 
 #### Description
 
-The name of the executable component in your packages
-cabal file.
+The name of the executable component in your packages cabal file.
 
 #### Example
 
@@ -96,8 +98,9 @@ cabal file.
 
 #### Description
 
-The Haskell package to get your frontend executable
-from. Defaults to `<name>`.
+The Haskell package to get your frontend executable from. Defaults to
+`<name>`. The `package` argument can be set to use a different Haskell
+package than the one named <app name>.
 
 #### Example
 
@@ -118,8 +121,8 @@ null
 
 #### Description
 
-Use this argument to configure ios apps. The returned
-derivations will be in `ios.<app name>`.
+Use this argument to configure ios apps. The returned derivations will
+be in `ios.<app name>`.
 
 #### Example
 
@@ -176,8 +179,7 @@ The app name displayed to the user.
 
 #### Description
 
-The name of the executable component in your packages
-cabal file.
+The name of the executable component in your packages cabal file.
 
 #### Example
 
@@ -192,8 +194,9 @@ cabal file.
 
 #### Description
 
-The Haskell package to get your frontend executable
-from. Defaults to `<name>`.
+The Haskell package to get your frontend executable from. Defaults to
+`<name>`. The `package` argument can be set to use a different Haskell
+package than the one named <app name>.
 
 #### Example
 
@@ -214,8 +217,8 @@ null
 
 #### Description
 
-An optional name for your project. This is only used for the
-name of the untargeted `nix-build`.
+An optional name for your project. This is only used for the name of the
+untargeted `nix-build`.
 
 #### Default
 
@@ -230,9 +233,9 @@ name of the untargeted `nix-build`.
 
 #### Description
 
-A function for overriding Haskell packages. You can use
-`callHackage` and `callCabal2nix` to bump package versions
-or build them from GitHub. e.g.
+A function for overriding Haskell packages. You can use `callHackage`
+and `callCabal2nix` to bump package versions or build them from GitHub.
+e.g.
 
 #### Example
 
@@ -246,6 +249,7 @@ self: super: {
     sha256 = "0vh3hj5rj98d448l647jc6b6q1km4nd4k01s9rajgkc2igigfp6s";
   }) {};
 }
+
 ```
 
 #### Default
@@ -261,9 +265,9 @@ self: super: {
 
 #### Description
 
-An attribute set for defining packages easily. Keys are the
-cabal package name and values are the path to the source
-directory, or derivations returning sources.
+An attribute set for defining packages easily. Keys are the cabal
+package name and values are the path to the source directory, or
+derivations returning sources.
 
 #### Example
 
@@ -280,6 +284,7 @@ directory, or derivations returning sources.
     sha256 = "<...>";
   };
 }
+
 ```
 
 #### Default
@@ -290,19 +295,80 @@ directory, or derivations returning sources.
 
 ------------------------------------------------------------------------
 
+`passthru`
+----------
+
+#### Description
+
+Specify arbitrary nix expressions.
+
+#### Example
+
+``` nix
+
+```
+
+#### Default
+
+``` nix
+{}
+```
+
+------------------------------------------------------------------------
+
+`shellToolOverrides`
+--------------------
+
+#### Description
+
+A function returning a record of tools to provide in the nix-shells.
+Some tools, like `ghc-mod`, have to be built with the same GHC as your
+project. The argument to the `tools` function is the haskell package set
+of the platform we are developing for, allowing you to build tools with
+the correct Haskell package set.
+
+Some tools, like `ghc-mod`, have to be built with the same GHC as your
+project. The argument to the `tools` function is the haskell package set
+of the platform we are developing for, allowing you to build tools with
+the correct Haskell package set.
+
+The second argument, `super`, is the record of tools provided by
+default. You can override these defaults by returning values with the
+same name in your record. They can be disabled by setting them to null.
+
+#### Example
+
+``` nix
+ghc: super: {
+  inherit (ghc) hpack;
+  inherit (pkgs) chromium;
+  ghc-mod = null;
+  cabal-install = ghc.callHackage "cabal-install" "2.0.0.1" {};
+  ghcid = pkgs.haskell.lib.justStaticExecutables super.ghcid;
+};
+
+```
+
+#### Default
+
+``` nix
+"<function>"
+```
+
+------------------------------------------------------------------------
+
 `shells`
 --------
 
 #### Description
 
-The `shells` field defines which platforms we'd like to
-develop for, and which packages' dependencies we want
-available in the development sandbox for that platform. Note
-in the example that specifying `common` is important;
-otherwise it will be treated as a dependency that needs to
-be built by Nix for the sandbox. You can use these shells
-with `cabal.project` files to build all three packages in a
-shared incremental environment, for both GHC and GHCJS.
+The `shells` field defines which platforms we'd like to develop for, and
+which packages' dependencies we want available in the development
+sandbox for that platform. Note in the example that specifying `common`
+is important; otherwise it will be treated as a dependency that needs to
+be built by Nix for the sandbox. You can use these shells with
+`cabal.project` files to build all three packages in a shared
+incremental environment, for both GHC and GHCJS.
 
 #### Example
 
@@ -333,12 +399,11 @@ shared incremental environment, for both GHC and GHCJS.
 
 #### Description
 
-A function returning the list of tools to provide in the
-nix-shells. Some tools, like `ghc-mod`, have to be built
-with the same GHC as your project. The argument to the
-`tools` function is the haskell package set of the platform
-we are developing for, allowing you to build tools with the
-correct Haskell package set.
+A function returning the list of tools to provide in the nix-shells.
+Some tools, like `ghc-mod`, have to be built with the same GHC as your
+project. The argument to the `tools` function is the haskell package set
+of the platform we are developing for, allowing you to build tools with
+the correct Haskell package set.
 
 #### Example
 
@@ -347,6 +412,7 @@ ghc: with ghc; [
   hpack
   pkgs.chromium
 ]
+
 ```
 
 #### Default
@@ -357,13 +423,28 @@ ghc: with ghc; [
 
 ------------------------------------------------------------------------
 
+`useWarp`
+---------
+
+#### Description
+
+Configure `reflex-dom` to use `jsaddle-warp`.
+
+#### Default
+
+``` nix
+false
+```
+
+------------------------------------------------------------------------
+
 `withHoogle`
 ------------
 
 #### Description
 
-Set to false to disable building the hoogle database when
-entering the nix-shell.
+Set to false to disable building the hoogle database when entering the
+nix-shell.
 
 #### Default
 
