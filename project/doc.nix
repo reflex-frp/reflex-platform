@@ -13,6 +13,11 @@
       internal = true;
       visible = false;
     };
+
+    project-dev-docs-md = lib.mkOption {
+      internal = true;
+      visible = false;
+    };
   };
 
   config = {
@@ -72,5 +77,20 @@
       in pkgs.runCommand "out-doc.md" { nativeBuildInputs = [pkgs.pandoc]; } ''
         pandoc --toc-depth=1 --toc -s -o $out -f gfm -t markdown_github ${inputMd}
       '';
+
+    project-dev-docs-md = inputMd:
+      let
+        header = ''
+          Project Development
+          -------------------
+
+          This document describes how to build real-world applications written in
+          Reflex. You will see how to:
+        '';
+
+      in pkgs.runCommand "out-doc.md" { nativeBuildInputs = [pkgs.pandoc]; } ''
+          echo "${header}" > $out
+          pandoc --toc-depth=1 --toc -s -f gfm -t markdown_github ${inputMd} >> $out
+        '';
   };
 }
