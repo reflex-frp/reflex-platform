@@ -267,10 +267,12 @@ package_invocation() {
     if echo "$PACKAGE" | grep -q / ; then
         # Package name includes a slash
         local PACKAGE_PATH="$(cleanup_nix_path "$PACKAGE")"
-        if ( echo "$PACKAGE_PATH" | grep -q '\.nix$' && [ -f "$PACKAGE_PATH" ] ) || [ -f "$PACKAGE_PATH/default.nix" ] ; then
+        if ( echo "$PACKAGE_PATH" | grep -q '\.nix$' && [ -f "$PACKAGE_PATH" ] ); then
             echo -n "($EFFECTIVE_PLATFORM.callPackage $PACKAGE_PATH {})"
         elif test -n "$(shopt -s nullglob ; echo "$PACKAGE_PATH"/*.cabal)" ; then
             echo -n "($EFFECTIVE_PLATFORM.callCabal2nix \"$(basename "$PACKAGE_PATH"/*.cabal | sed 's/\.cabal$//')\" $PACKAGE_PATH {})"
+        elif [ -f "$PACKAGE_PATH/default.nix" ] ; then
+            echo -n "($EFFECTIVE_PLATFORM.callPackage $PACKAGE_PATH {})"
         else
             user_error 1 "Error: The given path must be a nix expression, a directory with a default.nix, or a directory with a cabal file"
         fi
