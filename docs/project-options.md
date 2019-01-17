@@ -1,8 +1,21 @@
 -   [`android`](#android)
+-   [`android.<name>.activityAttributes`](#androidnameactivityattributes)
 -   [`android.<name>.applicationId`](#androidnameapplicationid)
+-   [`android.<name>.assets`](#androidnameassets)
 -   [`android.<name>.displayName`](#androidnamedisplayname)
 -   [`android.<name>.executableName`](#androidnameexecutablename)
+-   [`android.<name>.googleServicesJson`](#androidnamegoogleservicesjson)
+-   [`android.<name>.iconPath`](#androidnameiconpath)
+-   [`android.<name>.intentFilters`](#androidnameintentfilters)
 -   [`android.<name>.package`](#androidnamepackage)
+-   [`android.<name>.permissions`](#androidnamepermissions)
+-   [`android.<name>.releaseKey`](#androidnamereleasekey)
+-   [`android.<name>.resources`](#androidnameresources)
+-   [`android.<name>.services`](#androidnameservices)
+-   [`android.<name>.universalApk`](#androidnameuniversalapk)
+-   [`android.<name>.version`](#androidnameversion)
+-   [`android.<name>.version.code`](#androidnameversioncode)
+-   [`android.<name>.version.name`](#androidnameversionname)
 -   [`ios`](#ios)
 -   [`ios.<name>.bundleIdentifier`](#iosnamebundleidentifier)
 -   [`ios.<name>.bundleName`](#iosnamebundlename)
@@ -48,17 +61,47 @@ will be in `android.<app name>`.
 
 ------------------------------------------------------------------------
 
+`android.<name>.activityAttributes`
+-----------------------------------
+
+#### Description
+
+Additional activity attributes
+
+#### Example
+
+``` nix
+"android:launchMode=\"singleInstance\""
+```
+
+------------------------------------------------------------------------
+
 `android.<name>.applicationId`
 ------------------------------
 
 #### Description
 
-The application ID to make the APK with.
+The [Application
+ID](https://developer.android.com/studio/build/application-id.html) for
+your Android package
 
 #### Example
 
 ``` nix
 "org.example.frontend"
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.assets`
+-----------------------
+
+#### Description
+
+#### Default
+
+``` nix
+"./assets"
 ```
 
 ------------------------------------------------------------------------
@@ -83,12 +126,49 @@ The app name displayed to the user.
 
 #### Description
 
-The name of the executable component in your packages cabal file.
+The name of the executable in the Cabal file that will become the main
+activity in the Android package
 
 #### Example
 
 ``` nix
 "frontend"
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.googleServicesJson`
+-----------------------------------
+
+#### Description
+
+------------------------------------------------------------------------
+
+`android.<name>.iconPath`
+-------------------------
+
+#### Description
+
+#### Default
+
+``` nix
+"@drawable/ic_launcher"
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.intentFilters`
+------------------------------
+
+#### Description
+
+Manifest XML for additional intent filters
+
+#### Example
+
+``` nix
+concatStrings (map intentFilterXml deepLinkUris)
+
 ```
 
 ------------------------------------------------------------------------
@@ -112,6 +192,129 @@ p: p.frontend
 
 ``` nix
 null
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.permissions`
+----------------------------
+
+#### Description
+
+Manifest XML for additional permissions
+
+------------------------------------------------------------------------
+
+`android.<name>.releaseKey`
+---------------------------
+
+#### Description
+
+To create a release build, set this to a value like:
+
+#### Example
+
+``` nix
+{ storeFile = ./path/to/keystore;
+  storePassword = "password";
+  keyAlias = "myKey";
+  keyPassword = "password";
+}
+
+```
+
+#### Default
+
+``` nix
+null
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.resources`
+--------------------------
+
+#### Description
+
+#### Default
+
+``` nix
+"./res"
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.services`
+-------------------------
+
+#### Description
+
+------------------------------------------------------------------------
+
+`android.<name>.universalApk`
+-----------------------------
+
+#### Description
+
+Set this to false to build one APK per target platform. This will
+automatically transform the version code to 1000 \* versionCode + offset
+where "offset" is a per-platform constant.
+
+#### Default
+
+``` nix
+true
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.version`
+------------------------
+
+#### Description
+
+Version information.
+
+#### Example
+
+``` nix
+{
+  version = {
+    code = 2;
+    name = "1.1";
+  };
+}
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.version.code`
+-----------------------------
+
+#### Description
+
+Must be a monotonically increasing number; defines what it means to
+"upgrade" the app.
+
+#### Example
+
+``` nix
+2
+```
+
+------------------------------------------------------------------------
+
+`android.<name>.version.name`
+-----------------------------
+
+#### Description
+
+The version that is displayed to the end user
+
+#### Example
+
+``` nix
+"1.1"
 ```
 
 ------------------------------------------------------------------------

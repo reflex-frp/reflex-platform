@@ -165,15 +165,16 @@ let
           options = {
             executableName = mkOption {
               description = ''
-                The name of the executable component in your packages
-                cabal file.
+                The name of the executable in the Cabal file that will become the main
+                activity in the Android package
               '';
               type = str;
               example = "frontend";
             };
             applicationId = mkOption {
               description = ''
-                The application ID to make the APK with.
+                The [Application ID](https://developer.android.com/studio/build/application-id.html)
+                for your Android package
               '';
               type = str;
               example = "org.example.frontend";
@@ -184,6 +185,103 @@ let
               '';
               type = str;
               example = "Example Android App";
+            };
+            version = mkOption {
+              description = ''
+                Version information.
+              '';
+              type = (submodule (_: {
+                options = {
+                  code = mkOption {
+                    description = ''
+                      Must be a monotonically increasing number; defines what it means to "upgrade" the app.
+                    '';
+                    type = int;
+                    example = 2;
+                  };
+                  name = mkOption {
+                    description = ''
+                      The version that is displayed to the end user
+                    '';
+                    type = str;
+                    example = "1.1";
+                  };
+                };
+              }));
+              example = { version = { code = 2; name = "1.1"; }; };
+            };
+            releaseKey = mkOption {
+              description = ''
+                To create a release build, set this to a value like:
+              '';
+              type = unspecified;
+              example = literalExample ''
+                { storeFile = ./path/to/keystore;
+                  storePassword = "password";
+                  keyAlias = "myKey";
+                  keyPassword = "password";
+                }
+              '';
+              default = null;
+            };
+            resources = mkOption {
+              description = ''
+              '';
+              type = path;
+              default = "./res";
+            };
+            assets = mkOption {
+              description = ''
+              '';
+              type = path;
+              default = "./assets";
+            };
+            iconPath = mkOption {
+              description = ''
+              '';
+              type = unspecified;
+              default = "@drawable/ic_launcher";
+            };
+            activityAttributes = mkOption {
+              description = ''
+                Additional activity attributes
+              '';
+              type = unspecified;
+              example = "android:launchMode=\"singleInstance\"";
+            };
+            permissions = mkOption {
+              description = ''
+                Manifest XML for additional permissions
+              '';
+              type = str;
+            };
+            services = mkOption {
+              description = ''
+              '';
+              type = str;
+            };
+            intentFilters = mkOption {
+              description = ''
+                Manifest XML for additional intent filters
+              '';
+              type = str;
+              example = literalExample ''
+                concatStrings (map intentFilterXml deepLinkUris)
+              '';
+            };
+            googleServicesJson = mkOption {
+              description = ''
+              '';
+              type = unspecified;
+            };
+            universalApk = mkOption {
+              description = ''
+                Set this to false to build one APK per target platform.  This will
+                automatically transform the version code to 1000 * versionCode + offset
+                where "offset" is a per-platform constant.
+              '';
+              type = bool;
+              default = true;
             };
             package = mkOption {
               description = ''
