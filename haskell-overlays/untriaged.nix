@@ -43,5 +43,12 @@ self: super: {
 
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
+    postFixup = ''
+      ${expr.postFixup or ""}
+      mkdir -p $out/nix-support
+      for index in $doc/share/doc/*/html/index.html; do
+        echo "doc manual $index" >> $out/nix-support/hydra-build-products
+      done
+    '';
   });
 }
