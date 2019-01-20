@@ -5,10 +5,6 @@ this:
     optionalAttrs optionalString concatStringsSep concatMapStringsSep;
   inherit (config) packages shells overrides tools useWarp shellToolOverrides passthru
     withHoogle android ios;
-  preparePackageConfig =
-    name: appConfig:
-      builtins.removeAttrs appConfig ["_module"]
-      // lib.optionalAttrs (appConfig.package == null) { package = p: p.${name}; };
   overrides' = pkgs.lib.foldr pkgs.lib.composeExtensions (_: _: {}) [
     (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages)
     (self: super: {
@@ -31,19 +27,19 @@ this:
     ) shells;
 
     android =
-      mapAttrs (name: appConfig:
+      mapAttrs (name: config:
         let
           ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
           ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
         in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
-          (preparePackageConfig name appConfig)
+          ({ package = p: p.${name}; } // config)
       ) (optionalAttrs this.androidSupport android);
 
     ios =
-      mapAttrs (name: appConfig:
+      mapAttrs (name: config:
         let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
         in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
-          (preparePackageConfig name appConfig)
+          ({ package = p: p.${name}; } // config)
       ) (optionalAttrs this.iosSupport ios);
 
     reflex = this;

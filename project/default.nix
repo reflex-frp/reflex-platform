@@ -161,43 +161,7 @@ let
           Use this argument to configure android apps. The returned
           derivations will be in `android.<app name>`.
         '';
-        type = attrsOf (submodule (_: {
-          options = {
-            executableName = mkOption {
-              description = ''
-                The name of the executable component in your packages
-                cabal file.
-              '';
-              type = str;
-              example = "frontend";
-            };
-            applicationId = mkOption {
-              description = ''
-                The application ID to make the APK with.
-              '';
-              type = str;
-              example = "org.example.frontend";
-            };
-            displayName = mkOption {
-              description = ''
-                The app name displayed to the user.
-              '';
-              type = str;
-              example = "Example Android App";
-            };
-            package = mkOption {
-              description = ''
-                The Haskell package to get your frontend executable
-                from. Defaults to `<name>`.
-                The `package` argument can be set to use a different Haskell
-                package than the one named <app name>.
-              '';
-              type = unspecified;
-              example = literalExample "p: p.frontend";
-              default = null;
-            };
-          };
-        }));
+        type = attrsOf (attrs);
         example = {
           frontend = {
             executableName = "frontend";
@@ -213,43 +177,7 @@ let
           Use this argument to configure ios apps. The returned
           derivations will be in `ios.<app name>`.
         '';
-        type = attrsOf (submodule (_: {
-          options = {
-            executableName = mkOption {
-              description = ''
-                The name of the executable component in your packages
-                cabal file.
-              '';
-              type = str;
-              example = "frontend";
-            };
-            bundleIdentifier = mkOption {
-              description = ''
-                The bundle identifier to make the app with.
-              '';
-              type = str;
-              example = "org.example.frontend";
-            };
-            bundleName = mkOption {
-              description = ''
-                The app name displayed to the user.
-              '';
-              type = str;
-              example = "Example iOS App";
-            };
-            package = mkOption {
-              description = ''
-                The Haskell package to get your frontend executable
-                from. Defaults to `<name>`.
-                The `package` argument can be set to use a different Haskell
-                package than the one named <app name>.
-              '';
-              type = unspecified;
-              example = literalExample "p: p.frontend";
-              default = null;
-            };
-          };
-        }));
+        type = attrsOf (attrs);
         example = {
           frontend = {
             executableName = "frontend";
