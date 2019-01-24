@@ -43,5 +43,6 @@ self: super: {
 
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
+    enableSharedExecutables = expr.enableSharedExecutables or true;
   });
 }
