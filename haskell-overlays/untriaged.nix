@@ -1,6 +1,7 @@
 { haskellLib
 , fetchFromGitHub
 , enableLibraryProfiling
+, nixpkgs
 }:
 
 with haskellLib;
@@ -47,5 +48,10 @@ self: super: {
 
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
+    enableSharedExecutables = expr.enableSharedExecutables or nixpkgs.stdenv.isDarwin;
+  });
+
+  cabal2nix = overrideCabal super.cabal2nix (_: {
+    enableSharedExecutables = false;
   });
 }

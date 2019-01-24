@@ -134,6 +134,7 @@ rec {
     inherit haskellLib;
     inherit fetchFromGitHub;
     inherit enableLibraryProfiling;
+    inherit nixpkgs;
   };
 
   hie = import ./hie {
