@@ -8,7 +8,7 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true
 , __useLegacyCompilers ? false # Interface unstable
-, iosSdkVersion ? "10.2"
+, iosSdkVersion ? "12.1", xcodeVersion ? "10.1"
 , nixpkgsOverlays ? []
 , haskellOverlays ? []
 }:
@@ -118,16 +118,19 @@ let iosSupport = system == "x86_64-darwin";
         simulator64 = {
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
+            xcodeVer = xcodeVersion;
           };
         };
         aarch64 = {
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
+            xcodeVer = xcodeVersion;
           };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
+            xcodeVer = xcodeVersion;
           };
         };
         # Back compat
