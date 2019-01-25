@@ -45,4 +45,8 @@ self: super: {
     inherit enableLibraryProfiling;
     enableSharedExecutables = expr.enableSharedExecutables or true;
   });
+
+  cabal2nix = overrideCabal super.cabal2nix (_: {
+    enableSharedExecutables = false;
+  });
 }
