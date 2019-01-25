@@ -19,14 +19,14 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          ghcSplices-8_4 = super.haskell.compiler.ghc843.overrideAttrs (drv: {
+          ghcSplices-8_4 = super.haskell.compiler.ghc844.overrideAttrs (drv: {
             enableParallelBuilding = false;
             patches = (drv.patches or [])
               ++ [ ./splices-load-save.patch ./haddock.patch ];
           });
         };
         packages = super.haskell.packages // {
-          ghcSplices-8_4 = super.haskell.packages.ghc843.override {
+          ghcSplices-8_4 = super.haskell.packages.ghc844.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_4;
             ghc = self.buildPackages.haskell.compiler.ghcSplices-8_4;
           };
@@ -381,7 +381,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghc8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc843).override {
+  ghc8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc844).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_2 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc822).override {
