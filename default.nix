@@ -657,6 +657,10 @@ in let this = rec {
     ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables haskellPackages.ghc-mod);
   }) // (lib.optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
+  }) // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.4" >= 0) {
+    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (haskellPackages.override {
+      overrides = nixpkgs.haskell.overlays.hie;
+    }).haskell-ide-engine;
   });
 
   generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
