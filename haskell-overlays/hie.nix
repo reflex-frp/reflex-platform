@@ -29,6 +29,18 @@ in self: super: {
     rev = "8fecf6a7754424ed1653dce632382707e8f03499";
     sha256 = "1lypls1zkyg7pq2xcg6mm25x7rgndy2553yakdkayg4m8msr7f8f";
   }) {});
+  monad-dijkstra = self.callCabal2nix "monad-dijkstra" (fetchFromGitHub {
+    owner = "ennocramer";
+    repo = "monad-dijkstra";
+    rev = "53a1bf93774171fe722c6470e8a03ac0cb0f22fa"; # 0.1.1.2
+    sha256 = "08fzq8m81m831bg0w86cqwpskmf892np7wjvpk90m9jd5cdg4rd5";
+  }) {};
+  floskell = self.callCabal2nix "floskell" (fetchFromGitHub {
+    owner = "ennocramer";
+    repo = "floskell";
+    rev = "059abe627647d97c23579a14194d143d84e3e2f1";
+    sha256 = "1nzdb1kf6q1kynln4iqcm5mkswh4a0cl1a91inycbaiq82y9r739";
+  }) {};
   HaRe = haskellLib.dontHaddock (haskellLib.dontCheck (haskellLib.doJailbreak (self.callCabal2nix "HaRe" (fetchFromGitHub {
     owner = "alanz";
     repo = "HaRe";
