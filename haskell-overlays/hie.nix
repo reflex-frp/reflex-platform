@@ -1,6 +1,7 @@
 { haskellLib
 , fetchFromGitHub
 , dep
+, nixpkgs
 }:
 let
   ghc-mod-src = fetchFromGitHub {
@@ -47,6 +48,7 @@ in self: super: {
     rev = "53979f062bebcaa132390d1fd0cec74a51662952";
     sha256 = "1986pb1h5fahas38igj71yz4r6x31hml4v1a59gb63q2xivp6sip";
   }) {})));
+  ghc-exactprint = if nixpkgs.stdenv.isDarwin then haskellLib.dontCheck super.ghc-exactprint else super.ghc-exactprint;
   ghc-mod = haskellLib.dontCheck (haskellLib.doJailbreak (self.callCabal2nix "ghc-mod" ghc-mod-src {}));
   ghc-mod-core = haskellLib.doJailbreak (self.callCabal2nix "ghc-mod-core" (ghc-mod-src + "/core") {});
   hie-plugin-api = self.callCabal2nix "hie-ide-engine" (dep.haskell-ide-engine + "/hie-plugin-api") {};

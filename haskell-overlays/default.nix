@@ -162,6 +162,7 @@ rec {
     inherit haskellLib;
     inherit fetchFromGitHub;
     inherit dep;
+    inherit nixpkgs;
   };
 
   user-custom = foldExtensions haskellOverlays;
