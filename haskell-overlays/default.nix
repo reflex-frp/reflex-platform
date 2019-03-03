@@ -158,5 +158,12 @@ rec {
     inherit enableLibraryProfiling;
   };
 
+  hie = import ./hie.nix {
+    inherit haskellLib;
+    inherit fetchFromGitHub;
+    inherit dep;
+    inherit nixpkgs;
+  };
+
   user-custom = foldExtensions haskellOverlays;
 }
