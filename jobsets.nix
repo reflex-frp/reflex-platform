@@ -27,9 +27,9 @@ let
         value = "https://github.com/NixOS/nixpkgs-channels nixos-unstable";
         emailresponsible = false;
       };
-      config = {
+      self-args = {
         type = "nix";
-        value = "{ android_sdk.accept_license = true; }";
+        value = "{ config.android_sdk.accept_license = true; }";
         emailresponsible = false;
       };
     };
