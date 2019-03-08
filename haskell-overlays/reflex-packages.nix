@@ -35,6 +35,7 @@ in
   reflex-dom-core = appendConfigureFlags
     (addReflexOptimizerFlag reflexDom.reflex-dom-core)
     (lib.optional enableLibraryProfiling "-fprofile-reflex");
+  chrome-test-utils = reflexDom.chrome-test-utils;
 
   ##
   ## GHCJS and JSaddle
