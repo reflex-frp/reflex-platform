@@ -192,7 +192,7 @@ data InputElement er d t
                   }
 ```
 
-Here we are using `_inputElement_value` to access the `Dynamic Text` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
+Here we are using `_inputElement_value` to access the `Dynamic Text` value of the `InputElement`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
 
  ### A Number Input
 A calculator was promised, I know. We'll start building the calculator by creating an input for numbers.
