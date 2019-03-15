@@ -17,6 +17,10 @@ self: super: {
   hinotify = self.callHackage "hinotify" "0.3.10" {};
   fsnotify = self.callHackage "fsnotify" "0.3.0.1" {};
 
+  # These take over an hour to run, each
+  cryptonite = dontCheck super.cryptonite;
+  scientific = dontCheck super.scientific;
+
   ########################################################################
   # Packages not in hackage
   ########################################################################
