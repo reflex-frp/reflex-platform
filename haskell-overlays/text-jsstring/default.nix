@@ -65,7 +65,6 @@ self: super: {
     ];
   });
   aeson = appendPatch super.aeson ./aeson.patch;
-  text-show = appendPatch super.text-show ./text-show.patch;
   # Bellow 8.4 text was not a boot pkg.
   text = if !(versionWildcard [ 8 0 ] super.ghc.ghcVersion)
     then super.text
