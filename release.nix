@@ -1,4 +1,5 @@
-{ local-self ? import ./. {}
+{ self-args ? {}
+, local-self ? import ./. self-args
 }:
 
 let
@@ -21,7 +22,7 @@ let
     lib.listToAttrs (map (drv: { inherit (drv) name; value = drv; }) drvs);
 
   perPlatform = lib.genAttrs local-self.cacheBuildSystems (system: let
-    getRP = args: import ./. ({ inherit system; } // args);
+    getRP = args: import ./. ((self-args // { inherit system; }) // args);
     reflex-platform = getRP {};
     reflex-platform-profiled = getRP { enableLibraryProfiling = true; };
     reflex-platform-legacy-compilers = getRP { __useLegacyCompilers = true; };

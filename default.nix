@@ -40,7 +40,7 @@ let iosSupport = system == "x86_64-darwin";
           nixpkgs = self;
           inherit
             haskellLib
-            fetchFromGitHub dep
+            fetchFromGitHub fetchFromBitbucket dep
             ghcjsBaseSrc ghcjsBaseTextJSStringSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
@@ -93,7 +93,7 @@ let iosSupport = system == "x86_64-darwin";
 
     nixpkgs = nixpkgsFunc nixpkgsArgs;
 
-    inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
+    inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
@@ -657,6 +657,10 @@ in let this = rec {
     ghc-mod = (nixpkgs.haskell.lib.justStaticExecutables haskellPackages.ghc-mod);
   }) // (lib.optionalAttrs (builtins.compareVersions haskellPackages.ghc.version "7.10" >= 0) {
     inherit (nativeHaskellPackages) stylish-haskell; # Recent stylish-haskell only builds with AMP in place
+  }) // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false) && builtins.compareVersions haskellPackages.ghc.version "8.4" >= 0) {
+    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (haskellPackages.override {
+      overrides = nixpkgs.haskell.overlays.hie;
+    }).haskell-ide-engine;
   });
 
   generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
