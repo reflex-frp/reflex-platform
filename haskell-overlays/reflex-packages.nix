@@ -1,6 +1,6 @@
 { haskellLib
 , lib, nixpkgs
-, fetchFromGitHub, hackGet
+, fetchFromGitHub, fetchFromBitbucket, dep
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
 }:
 
@@ -9,10 +9,10 @@ with haskellLib;
 self: super:
 
 let
-  reflexDom = import (hackGet ../reflex-dom) self nixpkgs;
-  jsaddleSrc = hackGet ../jsaddle;
-  gargoylePkgs = self.callPackage (hackGet ../gargoyle) self;
-  ghcjsDom = import (hackGet ../ghcjs-dom) self;
+  reflexDom = import dep.reflex-dom self nixpkgs;
+  jsaddleSrc = dep.jsaddle;
+  gargoylePkgs = self.callPackage dep.gargoyle self;
+  ghcjsDom = import dep.ghcjs-dom self;
   addReflexTraceEventsFlag = drv: if enableTraceReflexEvents
     then appendConfigureFlag drv "-fdebug-trace-events"
     else drv;
@@ -28,17 +28,14 @@ in
   ## Reflex family
   ##
 
-  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage (hackGet ../reflex) {}))));
-  reflex-todomvc = self.callPackage (hackGet ../reflex-todomvc) {};
-  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" (hackGet ../reflex-aeson-orphans) {};
-
-  # Broken Haddock - Please fix!
-  # : error is: haddock: internal error: internal: extractDecl
-  # No idea where it hits?
-  reflex-dom = dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom);
+  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage dep.reflex {}))));
+  reflex-todomvc = self.callPackage dep.reflex-todomvc {};
+  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" dep.reflex-aeson-orphans {};
+  reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
   reflex-dom-core = appendConfigureFlags
-    (dontHaddock (addReflexOptimizerFlag reflexDom.reflex-dom-core))
+    (addReflexOptimizerFlag reflexDom.reflex-dom-core)
     (lib.optional enableLibraryProfiling "-fprofile-reflex");
+  chrome-test-utils = reflexDom.chrome-test-utils;
 
   ##
   ## GHCJS and JSaddle
@@ -72,7 +69,7 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
-  jsaddle-dom = self.callPackage (hackGet ../jsaddle-dom) {};
+  jsaddle-dom = self.callPackage dep.jsaddle-dom {};
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   ##
@@ -110,5 +107,12 @@ in
     rev = "8c28c09991cd7c3588ae6db1be59a0540758f5f5";
     sha256 = "0dg32s2mgxav68yw6g7b15w0h0z116zx0qri26gprafgy23bxanm";
   }) {};
+  # Version 1.2.1 not on Hackage yet
+  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
+    owner = "wuzzeb";
+    repo = "webdriver-utils";
+    rev = "a8b15525a1cceb0ddc47cfd4d7ab5a29fdbe3127";
+    sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
+  } + "/hspec-webdriver") {};
 
 }
