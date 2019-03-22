@@ -40,7 +40,7 @@ let iosSupport = system == "x86_64-darwin";
           nixpkgs = self;
           inherit
             haskellLib
-            fetchFromGitHub dep
+            fetchFromGitHub fetchFromBitbucket dep
             ghcjsBaseSrc ghcjsBaseTextJSStringSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
@@ -93,7 +93,7 @@ let iosSupport = system == "x86_64-darwin";
 
     nixpkgs = nixpkgsFunc nixpkgsArgs;
 
-    inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub;
+    inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {

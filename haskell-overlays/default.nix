@@ -1,6 +1,6 @@
 { lib
 , haskellLib
-, nixpkgs, fetchFromGitHub, dep
+, nixpkgs, fetchFromGitHub, fetchFromBitbucket, dep
 , ghcjsBaseSrc, ghcjsBaseTextJSStringSrc
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
@@ -89,7 +89,7 @@ rec {
   ##
 
   reflexPackages = import ./reflex-packages.nix {
-    inherit haskellLib lib nixpkgs fetchFromGitHub dep useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling;
+    inherit haskellLib lib nixpkgs fetchFromGitHub dep useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling fetchFromBitbucket;
   };
   disableTemplateHaskell = import ./disable-template-haskell.nix {
     inherit haskellLib fetchFromGitHub;
