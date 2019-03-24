@@ -28,10 +28,10 @@ setup-info:
 # Local packages, usually specified by relative directory name
 packages:
 - location:
-    git: https://github.com/ryantrinkle/reflex
+    git: https://github.com/reflex-frp/reflex
     commit: "cc62c11a6cde31412582758c236919d4bb766ada"
 - location:
-    git: https://github.com/ryantrinkle/reflex-dom
+    git: https://github.com/reflex-frp/reflex-dom
     commit: "639d9ca13c2def075e83344c9afca6eafaf24219"
 - location:
     git: https://github.com/ghcjs/ghcjs-dom
@@ -91,10 +91,10 @@ nix:
 # Local packages, usually specified by relative directory name
 packages:
 - location:
-    git: https://github.com/ryantrinkle/reflex
+    git: https://github.com/reflex-frp/reflex
     commit: "cc62c11a6cde31412582758c236919d4bb766ada"
 - location:
-    git: https://github.com/ryantrinkle/reflex-dom
+    git: https://github.com/reflex-frp/reflex-dom
     commit: "639d9ca13c2def075e83344c9afca6eafaf24219"
 - location:
     git: https://github.com/ghcjs/ghcjs-dom
@@ -150,7 +150,7 @@ Notes:
 
 3. You might be able to get away with fewer buildInputs.  For webkitgtk, all you should need is webkitgtk24x and darwin.security_tool.  But if you download sources from github (as in the example webkit_stack.yaml), you will need git.  And if your project uses packages that require other binaries (e.g., alex or happy), you will likely need a gcc.  The default gcc in nixpkgs is gcc 5.3 but that build failed for me so I switched to gcc49.  YMMV.  Also, you could install all the binaries by doing a stack install of each one--using the same resolver!!--and they should be found when you build using nix.  I found it easier to equip the nix-shell with gcc so things could get built as stack needed them.
 
-4.  There is a cached build of webkitgtk in Ryan's cache (Ryan, do you want to put that info here?) but it didn't work for me--some dependency must not have matched.  If you need to build webkit from source it will take a long time.
+4.  There is a cached build of webkitgtk in the reflex-frp.org binary cache but it didn't work for me--some dependency must not have matched.  If you need to build webkit from source it will take a long time.
 
 5. If you use both configurations with the same cabal file you will need to make the ghcjs-base dependency conditional on ghcjs by placing the following under your build-depends rather than just depending on ghcjs-base:
 ```

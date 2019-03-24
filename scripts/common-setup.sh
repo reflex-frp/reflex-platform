@@ -10,7 +10,7 @@ NIX_CONF="/etc/nix/nix.conf"
 if [ -e "$NIX_CONF" ] && grep -q 'https://ryantrinkle\.com:5443' "$NIX_CONF"; then
   >&2 echo "Warning: The reflex-platform cache server has moved from https://ryantrinkle.com:5443 to https://nixcache.reflex-frp.org.  Please update your /etc/nixos/configuration/nix or /etc/nix/nix.conf accordingly"
   if ! grep -q 'https://nixcache\.reflex-frp\.org' ; then
-    NIXOPTS+=" --option extra-binary-caches https://ryantrinkle.com:5443"
+    NIXOPTS+=" --option extra-binary-caches https://nixcache.reflex-frp.org.org"
   fi
 fi
 
@@ -109,7 +109,7 @@ enable_cache() {
   fi
 
   caches_line="binary-caches = https://cache.nixos.org $our_cache"
-  keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:$our_key"
+  keys_line="binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nixcache.reflex-frp.org-1:$our_key"
   if ! nixconf_has_cache_settings; then
     if ! nixconf_exists; then
       echo "Creating $nixconf - $sudo_msg";
@@ -129,7 +129,7 @@ EOF
       sudo sed -i.bak 's|^\(binary-caches[ =].*\)$|\1 '"$our_cache"'|' "$nixconf"
     fi
     if ! nixconf_has_reflex_key; then
-      sudo sed -i.bak 's|^\(binary-cache-public-keys[ =].*\)$|\1 ryantrinkle.com-1:'"$our_key"'|' "$nixconf"
+      sudo sed -i.bak 's|^\(binary-cache-public-keys[ =].*\)$|\1 nixcache.reflex-frp.org-1:'"$our_key"'|' "$nixconf"
     fi
     reset_daemon
   fi

@@ -14,4 +14,4 @@ Make your change. Don't forget to add tests and documentation for your change! S
 
 Push to your fork and [submit a pull request][pr].
 
-[pr]: https://github.com/ryantrinkle/reflex/compare/
+[pr]: https://github.com/reflex-frp/reflex/compare/

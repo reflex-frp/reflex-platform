@@ -5,7 +5,7 @@ The Reflex Platform is a collection of libraries and tools that are useful for d
 
 To get started with Reflex development, follow the instructions below.
 
-Try Reflex lets you set up an environment from which you can use [Reflex](https://github.com/ryantrinkle/reflex) with GHC or [GHCJS](https://github.com/ghcjs/ghcjs).
+Try Reflex lets you set up an environment from which you can use [Reflex](https://github.com/reflex-frp/reflex) with GHC or [GHCJS](https://github.com/ghcjs/ghcjs).
 
 To use Reflex Platform as a build/development system for your own projects, refer to `HACKING.md`.
 

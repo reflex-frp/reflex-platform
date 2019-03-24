@@ -14,7 +14,7 @@ trap "rm -rf \"$TMPDIR\"" EXIT
     cd "$DIR"
 
     # TODO: Rewrite this for Nix 2.0; nix-push is gone
-    nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/ryantrinkle.com-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache.drv" --indirect ./release.nix -A metaCache "$@")"
+    nix-push --dest "$TMPDIR" --key-file ~/.reflex-platform/nixcache.reflex-frp.org-1 "$(nix-instantiate $NIXOPTS --add-root "$DIR/gc-roots/cache.drv" --indirect ./release.nix -A metaCache "$@")"
 
     sed -i '/^\(System\|Deriver\): /d' "$TMPDIR/"*.narinfo # Get rid of these, because they can vary in apparently-meaningless between systems
 
