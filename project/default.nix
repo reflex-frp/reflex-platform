@@ -176,21 +176,23 @@ let
       }
     ) shells;
 
-    android =
-      mapAttrs (name: config:
-        let
-          ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
-          ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
-        in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
-          ({ package = p: p.${name}; } // config)
-      ) (optionalAttrs this.androidSupport android);
+    android = if this.androidSupport
+      then mapAttrs (name: config:
+             let
+               ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
+               ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
+             in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
+               ({ package = p: p.${name}; } // config)
+           ) android
+      else throw "Android builds are not supported on this platform.";
 
-    ios =
-      mapAttrs (name: config:
-        let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
-        in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
-          ({ package = p: p.${name}; } // config)
-      ) (optionalAttrs this.iosSupport ios);
+    ios = if this.iosSupport
+      then mapAttrs (name: config:
+             let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
+             in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
+               ({ package = p: p.${name}; } // config)
+           ) ios
+      else throw "iOS builds are not supported on this platform.";
 
     reflex = this;
 
