@@ -33,12 +33,7 @@ possible platforms include:
 - ghc
 - ghcHEAD
 - ghc8_4
-- ghc8_2
-- ghc8_0
-- ghc7
 - ghcjs
-- ghcjs8_0
-- ghcjs8_2
 - ghcjs8_4
 
 In addition, instead of specifying the name of the platform, you can
