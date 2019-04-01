@@ -25,7 +25,6 @@ let
     getRP = args: import ./. ((self-args // { inherit system; }) // args);
     reflex-platform = getRP {};
     reflex-platform-profiled = getRP { enableLibraryProfiling = true; };
-    reflex-platform-legacy-compilers = getRP { __useLegacyCompilers = true; };
     otherDeps = getOtherDeps reflex-platform;
 
     jsexeHydra = exe: exe.overrideAttrs (attrs: {
@@ -55,8 +54,6 @@ let
       a = reflex-platform-profiled.ghcIosAarch64.a;
     };
     skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
-    # TODO update reflex-project-skeleton to also cover ghc80 instead of using legacy compilers option
-    skeleton-test-legacy-compilers = import ./skeleton-test.nix { reflex-platform = reflex-platform-legacy-compilers; };
     benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
     cache = reflex-platform.pinBuildInputs
       "reflex-platform-${system}"
