@@ -196,28 +196,6 @@ let
 
     reflex = this;
 
-    inherit all passthru;
+    inherit passthru;
   };
-
-  ghcLinks = mapAttrsToList (name: pnames: optionalString (pnames != []) ''
-    mkdir -p $out/${escapeShellArg name}
-    ${concatMapStringsSep "\n" (n: ''
-      ln -s ${prj.${name}.${n}} $out/${escapeShellArg name}/${escapeShellArg n}
-    '') pnames}
-  '') shells;
-  mobileLinks = mobileName: mobile: ''
-    mkdir -p $out/${escapeShellArg mobileName}
-    ${concatStringsSep "\n" (mapAttrsToList (name: app: ''
-      ln -s ${app} $out/${escapeShellArg mobileName}/${escapeShellArg name}
-    '') mobile)}
-  '';
-
-  all =
-    let tracedMobileLinks = mobileName: mobile:
-          optionalString (mobile != {}) (mobileLinks mobileName mobile);
-    in nixpkgs.runCommand name { passthru = prj; preferLocalBuild = true; } ''
-      ${concatStringsSep "\n" ghcLinks}
-      ${tracedMobileLinks "android" prj.android}
-      ${tracedMobileLinks "ios" prj.ios}
-    '';
-in all
+in prj
