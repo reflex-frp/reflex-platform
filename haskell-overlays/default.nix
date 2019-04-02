@@ -72,6 +72,7 @@ rec {
   combined-ghcjs = self: super: foldExtensions [
     ghcjs
     (optionalExtension (versionWildcard [ 8 4 ] super.ghc.ghcVersion) ghcjs-8_4)
+    (optionalExtension useFastWeak ghcjs-fast-weak)
   ] self super;
 
   ##
