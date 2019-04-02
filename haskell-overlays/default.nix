@@ -1,17 +1,19 @@
 { lib
 , haskellLib
-, nixpkgs, fetchFromGitHub, fetchFromBitbucket, dep
-, ghcjsBaseSrc, ghcjsBaseTextJSStringSrc
+, nixpkgs
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
-, stage2Script
-, optionalExtension
-, androidActivity
 , ghcSavedSplices
 , haskellOverlays
 }:
 
+let
+  inherit (nixpkgs.buildPackages) thunkSet runCommand fetchgit fetchFromGitHub fetchFromBitbucket;
+in
+
 rec {
+  optionalExtension = cond: overlay: if cond then overlay else _: _: {};
+
   versionWildcard = versionList: let
     versionListInc = lib.init versionList ++ [ (lib.last versionList + 1) ];
     bottom = lib.concatStringsSep "." (map toString versionList);
@@ -70,21 +72,22 @@ rec {
   combined-ghcjs = self: super: foldExtensions [
     ghcjs
     (optionalExtension (versionWildcard [ 8 4 ] super.ghc.ghcVersion) ghcjs-8_4)
+    (optionalExtension useFastWeak ghcjs-fast-weak)
   ] self super;
 
   ##
   ## Constituent
   ##
 
-  reflexPackages = import ./reflex-packages.nix {
-    inherit haskellLib lib nixpkgs fetchFromGitHub dep useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling fetchFromBitbucket;
+  reflexPackages = import ./reflex-packages {
+    inherit haskellLib lib nixpkgs thunkSet fetchFromGitHub useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling fetchFromBitbucket;
   };
   disableTemplateHaskell = import ./disable-template-haskell.nix {
     inherit haskellLib fetchFromGitHub;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
-    inherit lib haskellLib fetchFromGitHub ghcjsBaseTextJSStringSrc versionWildcard;
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
     inherit (nixpkgs) fetchpatch;
   };
 
@@ -109,19 +112,18 @@ rec {
 
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
-    inherit haskellLib nixpkgs fetchFromGitHub ghcjsBaseSrc useReflexOptimizer;
+    inherit lib haskellLib nixpkgs fetchgit fetchFromGitHub useReflexOptimizer;
   };
-  ghcjs-8_4 = optionalExtension useTextJSString (_: _: {
-    dlist = null;
-    ghcjs-base = null;
-    primitive = null;
-    vector = null;
-  });
+  ghcjs-fast-weak = import ./ghcjs-fast-weak {
+   inherit lib;
+  };
+  ghcjs-8_4 = optionalExtension useTextJSString
+    (import ./ghcjs-8.4-text-jsstring.nix { inherit lib fetchgit; });
 
   android = import ./android {
     inherit haskellLib;
     inherit nixpkgs;
-    inherit androidActivity;
+    inherit thunkSet;
   };
   ios = import ./ios.nix {
     inherit haskellLib;
@@ -134,11 +136,11 @@ rec {
     inherit enableLibraryProfiling;
   };
 
-  hie = import ./hie.nix {
+  hie = import ./hie {
     inherit haskellLib;
     inherit fetchFromGitHub;
-    inherit dep;
     inherit nixpkgs;
+    inherit thunkSet;
   };
 
   user-custom = foldExtensions haskellOverlays;
