@@ -5,7 +5,6 @@
 let
   inherit (local-self.nixpkgs) lib;
   getOtherDeps = reflex-platform: [
-    reflex-platform.stage2Script
     reflex-platform.nixpkgs.cabal2nix
     reflex-platform.ghc.cabal2nix
   ] ++ builtins.concatLists (map
@@ -35,8 +34,20 @@ let
         echo $out/bin/reflex-todomvc.jsexe >> $out/nix-support/hydra-build-products
       '';
     });
+
+    benchmark = import ./scripts/benchmark { inherit reflex-platform; };
+
+    # TODO do we still need to do these to ensure srcs (only used at build time)
+    # make it to the cache? If not, we can just drop this and all the `_dep`
+    # attributes in the overlays.
+
+    dep = {}
+      // reflex-platform.ghcjs8_4._dep
+      // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
+      // benchmark.dep
+      ;
   in {
-    inherit (reflex-platform) dep;
+    inherit dep;
     tryReflexShell = reflex-platform.tryReflexShell;
     ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
     # Doesn't currently build. Removing from CI until fixed.
@@ -56,14 +67,10 @@ let
     };
     skeleton-test-ghc = skeleton-test.ghc;
     skeleton-test-ghcjs = skeleton-test.ghcjs;
-    benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
-    cache = reflex-platform.pinBuildInputs
-      "reflex-platform-${system}"
-      (builtins.attrValues reflex-platform.dep ++ reflex-platform.cachePackages)
-      (otherDeps);
-  } // lib.optionalAttrs (system == "x86_64-linux") {
-    # The node build is uncached and slow
-    benchmark = import ./scripts/benchmark.nix { inherit reflex-platform; };
+    inherit benchmark;
+    cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
+      (builtins.attrValues dep ++ reflex-platform.cachePackages)
+      otherDeps;
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
     inherit (reflex-platform) androidReflexTodomvc-8_4;

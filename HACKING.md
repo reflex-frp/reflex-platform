@@ -78,12 +78,12 @@ The `hack-on` script is provided for conveniently checking out a
 sub-repository.
 
 ```
-~/reflex-platform/scripts/hack-on dep/reflex
+~/reflex-platform/scripts/hack-on haskell-overlays/reflex-packages/dep/reflex
 ```
 
-This will check out the same version of `reflex` currently being used
-by the Reflex Platform. Note that `dep/reflex`, here, is a path
-relative to the current directory, so you must be in this folder when
+This will check out the same version of `reflex` currently being used by the
+Reflex Platform. Note that `haskell-overlays/reflex-packages/dep/reflex`, here,
+is a path relative to the current directory, so you must be in this folder when
 you execute this.
 
 Once the repository is checked out, you can make modifications to it,
@@ -96,7 +96,7 @@ can use the `hack-add` script to check your changes into this
 repository without needing to delete the repository, like so:
 
 ```
-~/reflex-platform/scripts/hack-add dep/reflex
+~/reflex-platform/scripts/hack-add haskell-overlays/reflex-packages/dep/reflex
 ```
 
 You can then commit and push reflex-platform without needing to delete
@@ -106,7 +106,7 @@ When you are completely done with a sub-repository, you can remove it
 using `hack-off`:
 
 ```
-~/reflex-platform/scripts/hack-off dep/reflex
+~/reflex-platform/scripts/hack-add haskell-overlays/reflex-packages/dep/reflex
 ```
 
 This will remove the repository and replace the `default.nix` and

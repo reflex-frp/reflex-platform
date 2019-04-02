@@ -1,6 +1,6 @@
 { haskellLib
 , lib, nixpkgs
-, fetchFromGitHub, fetchFromBitbucket, dep
+, thunkSet, fetchFromGitHub, fetchFromBitbucket
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
 }:
 
@@ -9,10 +9,10 @@ with haskellLib;
 self: super:
 
 let
-  reflexDom = import dep.reflex-dom self nixpkgs;
-  jsaddleSrc = dep.jsaddle;
-  gargoylePkgs = self.callPackage dep.gargoyle self;
-  ghcjsDom = import dep.ghcjs-dom self;
+  reflexDom = import self._dep.reflex-dom self nixpkgs;
+  jsaddleSrc = self._dep.jsaddle;
+  gargoylePkgs = self.callPackage self._dep.gargoyle self;
+  ghcjsDom = import self._dep.ghcjs-dom self;
   addReflexTraceEventsFlag = drv: if enableTraceReflexEvents
     then appendConfigureFlag drv "-fdebug-trace-events"
     else drv;
@@ -24,13 +24,15 @@ let
     else drv;
 in
 {
+  _dep = super._dep or {} // thunkSet ./dep;
+
   ##
   ## Reflex family
   ##
 
-  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage dep.reflex {}))));
-  reflex-todomvc = self.callPackage dep.reflex-todomvc {};
-  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" dep.reflex-aeson-orphans {};
+  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage self._dep.reflex {}))));
+  reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
+  reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
   reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
   reflex-dom-core = appendConfigureFlags
     (addReflexOptimizerFlag reflexDom.reflex-dom-core)
@@ -69,7 +71,7 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
-  jsaddle-dom = self.callPackage dep.jsaddle-dom {};
+  jsaddle-dom = self.callPackage self._dep.jsaddle-dom {};
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   ##
