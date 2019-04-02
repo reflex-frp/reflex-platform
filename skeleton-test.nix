@@ -26,7 +26,7 @@ let
     '';
   });
 in {
-  project = skeleton.all;
+  project = skeleton;
   ghc = mkCabalProject {
     shellDrv = skeleton.shells.ghc;
     projectFile = "cabal.project";
