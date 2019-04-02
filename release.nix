@@ -37,6 +37,10 @@ let
 
     benchmark = import ./scripts/benchmark { inherit reflex-platform; };
 
+    # TODO do we still need to do these to ensure srcs (only used at build time)
+    # make it to the cache? If not, we can just drop this and all the `_dep`
+    # attributes in the overlays.
+
     dep = {}
       // reflex-platform.ghcjs8_4._dep
       // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
