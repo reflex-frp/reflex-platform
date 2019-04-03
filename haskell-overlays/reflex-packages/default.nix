@@ -71,7 +71,11 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
-  jsaddle-dom = self.callPackage self._dep.jsaddle-dom {};
+  jsaddle-dom = overrideCabal (self.callPackage self._dep.jsaddle-dom {}) (drv: {
+    # On macOS, the jsaddle-dom build may run out of file handles the first time it runs
+    preBuild = ''./setup build || true'';
+  });
+
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   ##
