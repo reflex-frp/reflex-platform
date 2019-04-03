@@ -21,7 +21,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
-    acceptAndroidSdkLicenses = true;
+    inherit acceptAndroidSdkLicenses;
     buildDirectory = "./.";
     # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
     gradleTask = if releaseKey == null
