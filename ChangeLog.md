@@ -2,6 +2,10 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released, and the date should reflect that release.
 
+## Unreleased
+
+* Document how to accept android sdk license agreement and pass acceptance through to android infrastructure.
+
 ## v0.1.0.0 - 2019-04-03
 
 * Move git "thunks" to `dep/` dirs within each overlay, rather than one big
