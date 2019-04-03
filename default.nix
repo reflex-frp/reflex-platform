@@ -240,6 +240,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     inherit nixpkgs nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
+    acceptAndroidSdkLicenses = config.android_sdk.accept_license or false;
   };
   iosAarch64 = iosWithHaskellPackages ghcIosAarch64;
   iosAarch64-8_4 = iosWithHaskellPackages ghcIosAarch64-8_4;

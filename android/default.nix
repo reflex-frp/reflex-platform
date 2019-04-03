@@ -4,6 +4,7 @@ env@{
 , ghcAndroidAarch64
 , ghcAndroidAarch32
 , overrideCabal
+, acceptAndroidSdkLicenses
 }:
 with nixpkgs.lib.strings;
 let impl = import ./impl.nix env;
@@ -101,6 +102,7 @@ in rec {
     assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
     nixpkgs.lib.makeOverridable impl.buildApp {
       inherit package
+              acceptAndroidSdkLicenses
               executableName
               applicationId
               displayName

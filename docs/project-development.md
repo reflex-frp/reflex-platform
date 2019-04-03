@@ -279,7 +279,9 @@ Building mobile apps
 The project Nix expression also supports defining mobile apps.
 
 ```nix
-(import ./reflex-platform {}).project ({ pkgs, ... }: {
+(import ./reflex-platform {
+  config.android_sdk.accept_license = true;
+}).project ({ pkgs, ... }: {
   packages = {
     common = ./common;
     backend = ./backend;
@@ -304,6 +306,11 @@ The project Nix expression also supports defining mobile apps.
   };
 })
 ```
+
+Note that you must accept the
+[Android Software Development Kit License Agreement](https://developer.android.com/studio/terms)
+and indicate so by setting `config.android_sdk.accept_license` when instantiating
+Reflex Platform in order to build Android apps.
 
 Build them with `nix-build`:
 
