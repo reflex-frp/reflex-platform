@@ -33,22 +33,20 @@ let iosSupport = system == "x86_64-darwin";
       };
     };
 
+    hackGetOverlay = self: super:
+      import ./nixpkgs-overlays/hack-get { inherit lib; } self;
+
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
         overlays = super.overlays or {} // import ./haskell-overlays {
           nixpkgs = self;
+          inherit (self) lib;
+          haskellLib = self.haskell.lib;
           inherit
-            haskellLib
-            fetchFromGitHub fetchFromBitbucket dep
-            ghcjsBaseSrc ghcjsBaseTextJSStringSrc
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
-            stage2Script
-            optionalExtension
             haskellOverlays;
           inherit ghcSavedSplices;
-          inherit (self) lib;
-          androidActivity = dep.android-activity;
         };
       };
     };
@@ -71,6 +69,7 @@ let iosSupport = system == "x86_64-darwin";
     nixpkgsArgs = {
       inherit system;
       overlays = [
+        hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
         mobileGhcOverlay
@@ -136,47 +135,7 @@ let iosSupport = system == "x86_64-darwin";
 
     haskellLib = nixpkgs.haskell.lib;
 
-    filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
-
-    # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
-    hackGet = p:
-      let filterArgs = x: removeAttrs x [ "branch" ];
-      in if builtins.pathExists (p + "/git.json") then (
-        let gitArgs = filterArgs (builtins.fromJSON (builtins.readFile (p + "/git.json")));
-        in if builtins.elem "@" (lib.stringToCharacters gitArgs.url)
-        then fetchgitPrivate gitArgs
-        else fetchgit gitArgs)
-      else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (filterArgs (builtins.fromJSON (builtins.readFile (p + "/github.json"))))
-      else {
-        name = baseNameOf p;
-        outPath = filterGit p;
-      };
-
-    # Make an attribute set of source derivations for a directory containing thunks:
-    thunkSet = dir: lib.mapAttrs (name: _: hackGet (dir + "/${name}")) (builtins.readDir dir);
-
-    dep = thunkSet ./dep;
-
-    optionalExtension = cond: overlay: if cond then overlay else _: _: {};
-
-    applyPatch = patch: src: nixpkgs.runCommand "applyPatch" {
-      inherit src patch;
-    } ''
-      cp -r "$src" "$out"
-
-      cd "$out"
-      chmod -R +w .
-      patch -p1 <"$patch"
-    '';
-
     overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCabal pkg f;
-
-    replaceSrc = pkg: src: version: overrideCabal pkg (drv: {
-      inherit src version;
-      sha256 = null;
-      revision = null;
-      editedCabalFile = null;
-    });
 
     combineOverrides = old: new: old // new // lib.optionalAttrs (old ? overrides && new ? overrides) {
       overrides = lib.composeExtensions old.overrides new.overrides;
@@ -190,122 +149,11 @@ let iosSupport = system == "x86_64-darwin";
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
 
-    foreignLibSmuggleHeaders = pkg: overrideCabal pkg (drv: {
-      postInstall = ''
-        cd dist/build/${pkg.pname}/${pkg.pname}-tmp
-        for header in $(find . | grep '\.h'$); do
-          local dest_dir=$out/include/$(dirname "$header")
-          mkdir -p "$dest_dir"
-          cp "$header" "$dest_dir"
-        done
-      '';
-    });
-
     cabal2nixResult = src: builtins.trace "cabal2nixResult is deprecated; use ghc.haskellSrc2nix or ghc.callCabal2nix instead" (ghc.haskellSrc2nix {
       name = "for-unknown-package";
       src = "file://${src}";
       sha256 = null;
     });
-
-    stage2Script = nixpkgs.runCommand "stage2.nix" {
-      GEN_STAGE2 = builtins.readFile (nixpkgs.path + "/pkgs/development/compilers/ghcjs/gen-stage2.rb");
-      buildCommand = ''
-        echo "$GEN_STAGE2" > gen-stage2.rb && chmod +x gen-stage2.rb
-        patchShebangs .
-        ./gen-stage2.rb "${dep."ghcjs-boot-8.0"}" >"$out"
-      '';
-      nativeBuildInputs = with nixpkgs; [
-        ruby cabal2nix
-      ];
-    } "";
-
-    ghcjsApplyFastWeak = ghcjs: ghcjs.overrideAttrs (drv: {
-      patches = (drv.patches or [])
-        ++ lib.optional useFastWeak ./fast-weak.patch;
-      phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
-    });
-    useTextJSStringAsBootPkg = ghcjs: if !useTextJSString then ghcjs else ghcjs.overrideAttrs (_: {
-      postUnpack = ''
-        set -x
-        (
-          echo $sourceRoot
-          cd $sourceRoot
-          rm -r lib/boot/pkg/text
-          cp --no-preserve=mode -r "${textSrc}" lib/boot/pkg/text
-          cp --no-preserve=mode -r "${ghcjsBaseTextJSStringSrc}" lib/boot/pkg/ghcjs-base
-          cp --no-preserve=mode -r "${dlistSrc}" lib/boot/pkg/dlist
-          rm -r lib/boot/pkg/vector
-          cp --no-preserve=mode -r "${vectorSrc}" lib/boot/pkg/vector
-          sed -i 's/.\/pkg\/mtl/.\/pkg\/mtl\n    - .\/pkg\/ghcjs-base\n    - .\/pkg\/dlist\n    - .\/pkg\/primitive\n    - .\/pkg\/vector/' lib/boot/boot.yaml
-          cat lib/boot/boot.yaml
-        )
-      '';
-    });
-    ghcjsBaseSrc = fetchgit {
-      url = "https://github.com/ghcjs/ghcjs-base.git";
-      rev = "01014ade3f8f5ae677df192d7c2a208bd795b96c";
-      sha256 = "173h98m7namxj0kfy8fj29qcxmcz6ilg04x8mwkc3ydjqrvk77hh";
-      postFetch = ''
-        ( cd $out
-          patch -p1 < ${nixpkgs.fetchpatch {
-            url = "https://github.com/ghcjs/ghcjs-base/commit/2d0d674e54c273ed5fcb9a13f588819c3303a865.patch"; #ghcjs-base/114
-            sha256 = "15vbxnxa1fpdcmmx5zx1z92bzsxyb0cbs3hs3g7fb1rkds5qbvgp";
-          }}
-          patch -p1 < ${nixpkgs.fetchpatch {
-            url = "https://github.com/ghcjs/ghcjs-base/commit/8eccb8d937041ba323d62dea6fe8eb1b04b3cc47.patch"; #ghcjs-base/116
-            sha256 = "1lqjpg46ydpm856wcq1g7c97d69qcnnqs5jxp2b788z9cfd5n64c";
-          }}
-          patch -p1 < ${nixpkgs.fetchpatch {
-            url = "https://github.com/ghcjs/ghcjs-base/commit/ce91c525b5d4377ba4aefd0d8072dc1659f75ef1.patch"; #ghcjs-base/118
-            sha256 = "0f6qca1i60cjzpbq4bc74baa7xrf417cja8nmhfims1fflvsx3wy";
-          }}
-          patch -p1 < ${nixpkgs.fetchpatch {
-            url = "https://github.com/ghcjs/ghcjs-base/commit/213bfc74a051242668edf0533e11a3fafbbb1bfe.patch"; #ghcjs-base/120
-            sha256 = "0d5dwy22hxa79l8b4y6nn53nbcs74686s0rmfr5l63sdvqxhdy3x";
-          }}
-          patch -p1 < ${nixpkgs.fetchpatch {
-            url = "https://github.com/ghcjs/ghcjs-base/commit/82d76814ab40dc9116990f69f16df330462f27d4.patch"; #ghcjs-base/121
-            sha256 = "0qa74h6w8770csad0bky4hhss1b1s86i6ccpd3ky4ljx00272gqh";
-          }}
-          patch -p1 < ${nixpkgs.fetchpatch {
-            url = "https://github.com/ghcjs/ghcjs-base/commit/5eb34b3dfc6fc9196931178a7a6e2c8a331a8e53.patch"; #ghcjs-base/122
-            sha256 = "1wrfi0rscy8qa9pi4siv54pq5alplmy56ym1fbs8n93xwlqhddii";
-          }}
-          patch -p1 < ${nixpkgs.fetchpatch {
-            url = "https://github.com/ghcjs/ghcjs-base/commit/0cf64df77cdd6275d86ec6276fcf947fa58e548b.patch"; #ghcjs-base/122
-            sha256 = "16wdghfsrzrb1y7lscbf9aawgxi3kvbgdjwvl1ga2zzm4mq139dr";
-          }}
-          cat ghcjs-base.cabal
-        )
-      '';
-    };
-    ghcjsBaseTextJSStringSrc = ghcjsBaseSrc.overrideAttrs (drv: {
-      outputHash = "1ggfklrmawqh54ins98rpr7qy3zbcqaqp1w7qmh90mq5jf711x9r";
-      postFetch = (drv.postFetch or "") + ''
-        ( cd $out
-          patch -p1 < ${./haskell-overlays/text-jsstring/ghcjs-base-text-jsstring.patch}
-        )
-      '';
-    });
-
-    textSrc = fetchgit {
-      url = "https://github.com/obsidiansystems/text.git";
-      rev = "50076be0262203f0d2afdd0b190a341878a08e21";
-      sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
-    };
-    dlistSrc = fetchgit {
-      url = "https://github.com/spl/dlist.git";
-      rev = "03d91a3000cba49bd2c8588cf1b0d71e229ad3b0"; #v0.8.0.4
-      sha256 = "0asvz1a2rp174r3vvgs1qaidxbdxly4mnlra33dipd0gxrrk15sq";
-    };
-    vectorSrc = fetchgit {
-      url = "https://github.com/haskell/vector.git";
-      rev = "1d208ee9e3a252941ebd112e14e8cd5a982ac2bb"; #v0.12.0.1
-      sha256 = "18qm1c2zqr8h150917djfc0xk62hv99b1clxfs9a79aavrsqi5hs";
-      postFetch = ''
-        substituteInPlace $out/vector.cabal --replace 'base >= 4.5 && < 4.10' 'base >= 4.5 && < 5'
-      '';
-    };
 
   ghcSavedSplices = ghcSavedSplices-8_4;
   ghcSavedSplices-8_4 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_4).override {
@@ -325,14 +173,14 @@ let iosSupport = system == "x86_64-darwin";
   };
   ghcjs = ghcjs8_4;
   ghcjs8_4 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs84.override (old: {
-    ghc = useTextJSStringAsBootPkg (ghcjsApplyFastWeak (old.ghc.override {
+    ghc = old.ghc.override {
       ghcjsSrc = fetchgit {
         url = "https://github.com/obsidiansystems/ghcjs.git";
         rev = "584eaa138c32c5debb3aae571c4153d537ff58f1";
         sha256 = "1ib0vsv2wrwf5iivnq6jw2l9g5izs0fjpp80jrd71qyywx4xcm66";
         fetchSubmodules = true;
       };
-    }));
+    };
   }))).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -392,6 +240,7 @@ let iosSupport = system == "x86_64-darwin";
   };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     inherit nixpkgs nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
+    acceptAndroidSdkLicenses = config.android_sdk.accept_license or false;
   };
   iosAarch64 = iosWithHaskellPackages ghcIosAarch64;
   iosAarch64-8_4 = iosWithHaskellPackages ghcIosAarch64-8_4;
@@ -402,14 +251,14 @@ let iosSupport = system == "x86_64-darwin";
   };
 
 in let this = rec {
+  inherit (nixpkgs)
+    filterGit
+    hackGet
+    thunkSet
+    ;
   inherit nixpkgs
           nixpkgsCross
           overrideCabal
-          hackGet
-          thunkSet
-          dep
-          foreignLibSmuggleHeaders
-          stage2Script
           ghc
           ghcHEAD
           ghc8_4
@@ -430,7 +279,7 @@ in let this = rec {
           iosAarch32
           iosAarch64
           iosWithHaskellPackages
-          filterGit;
+          ;
 
   # Back compat
   ios = iosAarch64;
