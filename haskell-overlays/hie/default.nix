@@ -1,7 +1,7 @@
 { haskellLib
 , fetchFromGitHub
-, dep
 , nixpkgs
+, thunkSet
 }:
 let
   ghc-mod-src = fetchFromGitHub {
@@ -11,6 +11,8 @@ let
     sha256 = "1m5q8znw2lqvhg1sl1cjrw9ywxrnbbrmpb0vc5x8daxp0i7d74gr";
   };
 in self: super: {
+  _dep = super._dep or {} // thunkSet ./dep;
+
   haskell-lsp = self.callHackage "haskell-lsp" "0.8.0.1" {};
   haskell-lsp-types = self.callHackage "haskell-lsp-types" "0.8.0.1" {};
   # https://github.com/bubba/lsp-test/commit/a9cff941ac28ce31c8463b6bd84237c0eeee06ea
@@ -51,6 +53,6 @@ in self: super: {
   ghc-exactprint = if nixpkgs.stdenv.isDarwin then haskellLib.dontCheck super.ghc-exactprint else super.ghc-exactprint;
   ghc-mod = haskellLib.dontCheck (haskellLib.doJailbreak (self.callCabal2nix "ghc-mod" ghc-mod-src {}));
   ghc-mod-core = haskellLib.doJailbreak (self.callCabal2nix "ghc-mod-core" (ghc-mod-src + "/core") {});
-  hie-plugin-api = self.callCabal2nix "hie-ide-engine" (dep.haskell-ide-engine + "/hie-plugin-api") {};
-  haskell-ide-engine = haskellLib.dontCheck (self.callCabal2nix "haskell-ide-engine" dep.haskell-ide-engine {});
+  hie-plugin-api = self.callCabal2nix "hie-ide-engine" (self._dep.haskell-ide-engine + "/hie-plugin-api") {};
+  haskell-ide-engine = haskellLib.dontCheck (self.callCabal2nix "haskell-ide-engine" self._dep.haskell-ide-engine {});
 }

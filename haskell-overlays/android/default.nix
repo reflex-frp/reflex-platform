@@ -1,7 +1,9 @@
-{ haskellLib, nixpkgs, androidActivity }:
+{ haskellLib, nixpkgs, thunkSet }:
 
 self: super: {
-  android-activity = self.callPackage androidActivity {
+  _dep = super._dep or {} // thunkSet ./dep;
+
+  android-activity = self.callPackage self._dep.android-activity {
     inherit (nixpkgs.buildPackages) jdk;
   };
 
