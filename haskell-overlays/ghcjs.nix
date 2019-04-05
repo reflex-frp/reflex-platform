@@ -39,6 +39,9 @@ self: super: {
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
 
+  # These tests never complete
+  tasty-quickcheck = dontCheck super.tasty-quickcheck;
+
   # Convenience: tests take long to finish
   megaparsec = dontCheck super.megaparsec;
 
