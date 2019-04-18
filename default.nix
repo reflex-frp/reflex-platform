@@ -33,9 +33,6 @@ let iosSupport = system == "x86_64-darwin";
       };
     };
 
-    hackGetOverlay = self: super:
-      import ./nixpkgs-overlays/hack-get { inherit lib; } self;
-
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
         overlays = super.overlays or {} // import ./haskell-overlays {
@@ -69,7 +66,6 @@ let iosSupport = system == "x86_64-darwin";
     nixpkgsArgs = {
       inherit system;
       overlays = [
-        hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
         mobileGhcOverlay
@@ -251,11 +247,8 @@ let iosSupport = system == "x86_64-darwin";
   };
 
 in let this = rec {
-  inherit (nixpkgs)
-    filterGit
-    hackGet
-    thunkSet
-    ;
+  inherit (import ./lib { inherit nixpkgs; })
+    hackGet thunkSet filterGit;
   inherit nixpkgs
           nixpkgsCross
           overrideCabal

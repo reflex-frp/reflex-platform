@@ -8,7 +8,9 @@
 }:
 
 let
-  inherit (nixpkgs.buildPackages) thunkSet runCommand fetchgit fetchFromGitHub fetchFromBitbucket;
+  inherit (nixpkgs.buildPackages) runCommand fetchgit fetchFromGitHub fetchFromBitbucket;
+
+  inherit (import ../lib { inherit nixpkgs; }) thunkSet;
 in
 
 rec {
