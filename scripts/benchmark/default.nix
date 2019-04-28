@@ -5,7 +5,7 @@ let pkgs = reflex-platform.nixpkgs;
       export PATH=node_modules/.bin:$PATH
     '';
     inherit (pkgs) fetchzip fetchFromGitHub;
-    inherit (reflex-platform) dep;
+    dep = reflex-platform.thunkSet ./dep;
     inherit (pkgs.yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
     nodePkgs = {
       webdriver-ts = mkYarnPackage {
@@ -87,4 +87,4 @@ echo "[";
 paste -d ',' results/*;
 echo "]";
 '';
-in { inherit bin nodePkgs; }
+in { inherit bin dep nodePkgs; }
