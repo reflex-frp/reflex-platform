@@ -70,6 +70,8 @@ let iosSupport = system == "x86_64-darwin";
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
+    allCabalHashesOverlay = import ./nixpkgs-overlays/all-cabal-hashes;
+
     nixpkgsArgs = {
       inherit system;
       overlays = [
@@ -77,6 +79,7 @@ let iosSupport = system == "x86_64-darwin";
         bindHaskellOverlays
         forceStaticLibs
         mobileGhcOverlay
+        allCabalHashesOverlay
         splicesEval
       ] ++ nixpkgsOverlays;
       config = {
