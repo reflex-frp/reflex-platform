@@ -21,7 +21,11 @@ let iosSupport = system == "x86_64-darwin";
           ghcSplices-8_4 = super.haskell.compiler.ghc844.overrideAttrs (drv: {
             enableParallelBuilding = false;
             patches = (drv.patches or [])
-              ++ [ ./splices-load-save.patch ./haddock.patch ];
+              ++ [
+                ./splices-load-save.patch
+                ./ghc-fix-T14251-on-ARM-2e23e1c7.patch # NB: Without this patch, GHC 8.4.4 doesn't build on ARM. This is fixed in 8.6.3
+                ./haddock.patch
+              ];
           });
         };
         packages = super.haskell.packages // {
