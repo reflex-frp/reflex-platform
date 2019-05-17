@@ -27,8 +27,8 @@ self: super: {
   servant-reflex = self.callCabal2nix "servant-reflex" (fetchFromGitHub {
     owner = "imalsogreg";
     repo = "servant-reflex";
-    rev = "5cd3098880741e6ade52ef4477422d9c776e5478";
-    sha256 = "18yjfamx3k9xd8pz251jsmvhlj4riw0brk2fyvjq00r87cx67a6f";
+    rev = "44595630e2d1597911ecb204e792d17db7e4a4ee";
+    sha256 = "009d8vr6mxfm9czywhb8haq8pwvnl9ha2cdmaagk1hp6q4yhfq1n";
   }) {};
   concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
     owner = "conal";
