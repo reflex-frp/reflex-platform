@@ -94,6 +94,12 @@ in rec {
 
     , additionalDependencies ? ""
 
+    , nativeDependencies ? {}
+      # Allows to copy native .so libraries into APK. Example:
+      # nativeDependencies = nixpkgs: {
+      #   "libsodium.so" = "${nixpkgs.libsodium}/lib/libsodium.so";
+      # };
+
     , universalApk ? true
       # Set this to false to build one APK per target platform.  This will
       # automatically transform the version code to 1000 * versionCode + offset
@@ -117,6 +123,7 @@ in rec {
               intentFilters
               googleServicesJson
               additionalDependencies
+              nativeDependencies
               universalApk;
     };
 }

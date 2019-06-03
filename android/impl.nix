@@ -18,7 +18,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       '';
       buildInputs = [ nixpkgs.androidenv.androidsdk_8_0 ];
     } "";
-    inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
+    inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs mapAttrsToList attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
     inherit acceptAndroidSdkLicenses;
@@ -39,6 +39,8 @@ in {
       let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
+            nativeDeps = nativeDependencies myNixpkgs;
+            /* libsodium = myNixpkgs.libsodium; */
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
@@ -89,7 +91,15 @@ in {
           ln -s "$applicationMk" "$out/jni/Application.mk"
 
         '' + concatStrings (builtins.map (arch:
-          let inherit (appSOs.${arch}) hsApp;
+          let inherit (appSOs.${arch}) hsApp nativeDeps;
+            nativeDepsCmd = concatStrings (mapAttrsToList (destName: destPath: ''
+              local exe="${destPath}"
+              if [ ! -f "$exe" ] ; then
+                >&2 echo 'Error: executable "${destName}" not found'
+                exit 1
+              fi
+              cp --no-preserve=mode "$exe" "$ARCH_LIB/${destName}"
+              '') nativeDeps);
           in ''
             {
               ARCH_LIB=$out/lib/${arch}
@@ -101,6 +111,8 @@ in {
                 exit 1
               fi
               cp --no-preserve=mode "$exe" "$ARCH_LIB/libHaskellActivity.so"
+
+              '' + nativeDepsCmd + ''
             }
         '') abiVersions) + ''
           rsync -r --chmod=+w "${assets}"/ "$out/assets/"
