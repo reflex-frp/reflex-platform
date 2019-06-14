@@ -88,26 +88,12 @@ in
 
   monoidal-containers = self.callHackage "monoidal-containers" "0.4.0.0" {};
 
-  # Needs additional instances
-  dependent-sum = self.callCabal2nix "dependent-sum" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "dependent-sum";
-    rev = "9c649ba33fa95601621b4a3fa3808104dd1ababd";
-    sha256 = "1msnzdb79bal1xl2xq2j415n66gi48ynb02pf03wkahymi5dy4yj";
-  }) {};
-  # Misc new features since Hackage relasese
-  dependent-sum-template = self.callCabal2nix "dependent-sum-template" (fetchFromGitHub {
-    owner = "mokus0";
-    repo = "dependent-sum-template";
-    rev = "bfe9c37f4eaffd8b17c03f216c06a0bfb66f7df7";
-    sha256 = "1w3s7nvw0iw5li3ry7s8r4651qwgd22hmgz6by0iw3rm64fy8x0y";
-  }) {};
   # Not on Hackage yet
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" (fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "dependent-sum-universe-orphans";
-    rev = "8c28c09991cd7c3588ae6db1be59a0540758f5f5";
-    sha256 = "0dg32s2mgxav68yw6g7b15w0h0z116zx0qri26gprafgy23bxanm";
+    rev = "3d492554bfbed81ebfcf3fa6db60ff46ecad3b8e";
+    sha256 = "086fdbqbgj2fix4sicp49afmq2xhi7h18cq8wn8a5s0f39888gj4";
   }) {};
   # Version 1.2.1 not on Hackage yet
   hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
