@@ -1,6 +1,12 @@
 { pkgs, haskellLib, fetchFromGitHub }:
 with haskellLib;
-self: super: {
+let callHackageDirect = self: {pkg, ver, sha256}@args:
+      let pkgver = "${pkg}-${ver}";
+      in self.callCabal2nix pkg (pkgs.fetchzip {
+           url = "mirror://hackage/${pkgver}/${pkgver}.tar.gz";
+           inherit sha256;
+    });
+in self: super: {
   cabal-macosx = dontCheck super.cabal-macosx;
   enclosed-exceptions = dontCheck super.enclosed-exceptions; # see https://github.com/jcristovao/enclosed-exceptions/issues/12
   haddock-library-ghcjs = dontCheck super.haddock-library-ghcjs;
@@ -19,4 +25,8 @@ self: super: {
   # doctests: doctests: could not execute: markdown-unlit
   # Test suite doctests: FAIL
   rank2classes = dontCheck super.rank2classes;
+
+  dependent-sum = callHackageDirect self { pkg = "dependent-sum"; ver = "0.5"; sha256 = "1px7gl6f9ppz12fh1kl1lgkf11vvi86agxyv6pb6z270wcmnghxq"; } {};
+  dependent-sum-template = doJailbreak super.dependent-sum-template;
+
 }
