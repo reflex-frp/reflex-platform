@@ -1,4 +1,4 @@
-{ self-args ? { config.android_sdk.accept_license = true; }
+{ self-args ? {}
 , local-self ? import ./. self-args
 }:
 
