@@ -19,4 +19,5 @@ self: super: {
   # doctests: doctests: could not execute: markdown-unlit
   # Test suite doctests: FAIL
   rank2classes = dontCheck super.rank2classes;
+
 }
