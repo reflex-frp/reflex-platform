@@ -9,6 +9,7 @@ with haskellLib;
 self: super:
 
 let
+  universeRepo = nixpkgs.hackGet ./dep/universe;
   reflexDom = import self._dep.reflex-dom self nixpkgs;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
@@ -22,6 +23,7 @@ let
   addFastWeakFlag = drv: if useFastWeak
     then enableCabalFlag drv "fast-weak"
     else drv;
+  hackGet = nixpkgs.hackGet;
 in
 {
   _dep = super._dep or {} // thunkSet ./dep;
@@ -89,12 +91,6 @@ in
   monoidal-containers = self.callHackage "monoidal-containers" "0.4.0.0" {};
 
   # Not on Hackage yet
-  dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "dependent-sum-universe-orphans";
-    rev = "3d492554bfbed81ebfcf3fa6db60ff46ecad3b8e";
-    sha256 = "086fdbqbgj2fix4sicp49afmq2xhi7h18cq8wn8a5s0f39888gj4";
-  }) {};
   # Version 1.2.1 not on Hackage yet
   hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
     owner = "wuzzeb";
@@ -102,5 +98,19 @@ in
     rev = "a8b15525a1cceb0ddc47cfd4d7ab5a29fdbe3127";
     sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
   } + "/hspec-webdriver") {};
+
+  constraints-extras = self.callCabal2nix "constraints-extras" (hackGet ./dep/constraints-extras) {};
+  dependent-map = self.callCabal2nix "dependent-map" (hackGet ./dep/dependent-map) {};
+  dependent-sum = self.callCabal2nixWithOptions "dependent-sum" (hackGet ./dep/dependent-sum) "--subpath dependent-sum" {};
+  dependent-sum-template = self.callCabal2nixWithOptions "dependent-sum-template" (hackGet ./dep/dependent-sum) "--subpath dependent-sum-template" {};
+  dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" (hackGet ./dep/dependent-sum-universe-orphans) {};
+
+  universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
+  universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};
+  universe-dependent-sum = pkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-dependent-sum" {});
+  universe-instances-extended = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-instances-extended" {};
+  universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
+  universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
+
 
 }
