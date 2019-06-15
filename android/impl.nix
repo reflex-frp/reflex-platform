@@ -39,7 +39,7 @@ in {
       let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
-            nativeDeps = nativeDependencies myNixpkgs;
+            nativeDeps = nativeDependencies myNixpkgs myHaskellPackages;
             /* libsodium = myNixpkgs.libsodium; */
           }) {
             "arm64-v8a" = {
