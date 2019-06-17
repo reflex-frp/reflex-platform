@@ -40,7 +40,6 @@ in {
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
             nativeDeps = nativeDependencies myNixpkgs myHaskellPackages;
-            /* libsodium = myNixpkgs.libsodium; */
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
@@ -74,7 +73,7 @@ in {
           paths = [
             (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
             (ghcAndroidAarch64.reflex-dom.src + "/java")
-          ];
+          ] ++ javaSources ghcAndroidAarch64;
         };
         src = ./src;
         nativeBuildInputs = [ nixpkgs.rsync ];

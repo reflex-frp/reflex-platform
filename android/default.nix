@@ -94,12 +94,18 @@ in rec {
 
     , additionalDependencies ? ""
 
-    , nativeDependencies ? {}
+    , nativeDependencies ? (_: _: {})
       # Allows to copy native .so libraries into APK. Example:
-      # nativeDependencies = nixpkgs: {
+      # nativeDependencies = nixpkgs haskellPackages: {
       #   "libsodium.so" = "${nixpkgs.libsodium}/lib/libsodium.so";
       # };
 
+    , javaSources ? (_: [])
+      # Additional java files or folders with java files that are inlcuded
+      # in resulted APK.
+      # javaSources = pkgs: [
+      #   ./java
+      # ];
     , universalApk ? true
       # Set this to false to build one APK per target platform.  This will
       # automatically transform the version code to 1000 * versionCode + offset
@@ -124,6 +130,7 @@ in rec {
               googleServicesJson
               additionalDependencies
               nativeDependencies
+              javaSources
               universalApk;
     };
 }
