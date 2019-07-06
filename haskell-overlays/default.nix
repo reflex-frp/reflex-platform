@@ -71,7 +71,7 @@ rec {
 
   combined-ghcjs = self: super: foldExtensions [
     ghcjs
-    (optionalExtension (versionWildcard [ 8 4 ] super.ghc.ghcVersion) ghcjs-8_4)
+    (optionalExtension (versionWildcard [ 8 6 ] super.ghc.ghcVersion) ghcjs-8_6)
     (optionalExtension useFastWeak ghcjs-fast-weak)
   ] self super;
 
@@ -117,7 +117,7 @@ rec {
   ghcjs-fast-weak = import ./ghcjs-fast-weak {
    inherit lib;
   };
-  ghcjs-8_4 = optionalExtension useTextJSString
+  ghcjs-8_6 = optionalExtension useTextJSString
     (import ./ghcjs-8.4-text-jsstring.nix { inherit lib fetchgit; });
 
   android = import ./android {

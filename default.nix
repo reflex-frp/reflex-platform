@@ -18,14 +18,14 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          ghcSplices-8_6 = super.haskell.compiler.ghc864.overrideAttrs (drv: {
+          ghcSplices-8_6 = super.haskell.compiler.ghc863.overrideAttrs (drv: {
             enableParallelBuilding = false;
             patches = (drv.patches or [])
               ++ [ ./splices-load-save.patch ./haddock.patch ];
           });
         };
         packages = super.haskell.packages // {
-          ghcSplices-8_6 = super.haskell.packages.ghc864.override {
+          ghcSplices-8_6 = super.haskell.packages.ghc863.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_6;
             ghc = self.buildPackages.haskell.compiler.ghcSplices-8_6;
           };
@@ -174,8 +174,8 @@ let iosSupport = system == "x86_64-darwin";
       })
     ]);
   };
-  ghcjs = ghcjs8_4;
-  ghcjs8_4 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs84.override (old: {
+  ghcjs = ghcjs8_6;
+  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
       ghcjsSrc = fetchgit {
         url = "https://github.com/obsidiansystems/ghcjs.git";
@@ -192,7 +192,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc864).override {
+  ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc863).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
 
@@ -275,7 +275,7 @@ in let this = rec {
           ghcAndroidAarch32
           ghcAndroidAarch32-8_6
           ghcjs
-          ghcjs8_4
+          ghcjs8_6
           ghcSavedSplices
           android
           androidWithHaskellPackages
