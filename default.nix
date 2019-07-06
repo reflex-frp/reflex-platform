@@ -178,9 +178,9 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
       ghcjsSrc = fetchgit {
-        url = "https://github.com/obsidiansystems/ghcjs.git";
-        rev = "584eaa138c32c5debb3aae571c4153d537ff58f1";
-        sha256 = "1ib0vsv2wrwf5iivnq6jw2l9g5izs0fjpp80jrd71qyywx4xcm66";
+        url = "https://github.com/ghcjs/ghcjs.git";
+        rev = "00a8993a8d9c35b33b84a83b0aec5171c582a4f3";
+        sha256 = "0a9qna5qffskfgw9a4jwvzfd81c41vw36k46hw52hw9xxynvk7x9";
         fetchSubmodules = true;
       };
     };
