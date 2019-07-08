@@ -52,4 +52,12 @@ self: super: {
       sha256 = "1sy51nz096sv91nxqk6yk7b92b5a40axv9183xakvki2nc09yhqg";
     };
   }));
+  stringsearch = doJailbreak super.stringsearch;
+  entropy = super.entropy.overrideAttrs (drv: {
+    src = nixpkgs.buildPackages.fetchurl {
+      url = "http://hackage.haskell.org/package/entropy-0.4.1.4/entropy-0.4.1.4.tar.gz";
+      sha256 = "1fgf47l9klwn1xssbcbq6by651vikd8hlfxhiwd5bqzxr1jnlgrf";
+    };
+    version = "0.4.1.4";
+  });
 }

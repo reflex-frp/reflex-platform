@@ -118,7 +118,7 @@ rec {
    inherit lib;
   };
   ghcjs-8_6 = optionalExtension useTextJSString
-    (import ./ghcjs-8.4-text-jsstring.nix { inherit lib fetchgit; });
+    (import ./ghcjs-8.6-text-jsstring.nix { inherit lib fetchgit; });
 
   android = import ./android {
     inherit haskellLib;
@@ -134,6 +134,7 @@ rec {
     inherit haskellLib;
     inherit fetchFromGitHub;
     inherit enableLibraryProfiling;
+    inherit nixpkgs;
   };
 
   hie = import ./hie {

@@ -18,14 +18,14 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          ghcSplices-8_6 = super.haskell.compiler.ghc863.overrideAttrs (drv: {
+          ghcSplices-8_6 = super.haskell.compiler.ghc865.overrideAttrs (drv: {
             enableParallelBuilding = false;
             patches = (drv.patches or [])
               ++ [ ./splices-load-save.patch ./haddock.patch ];
           });
         };
         packages = super.haskell.packages // {
-          ghcSplices-8_6 = super.haskell.packages.ghc863.override {
+          ghcSplices-8_6 = super.haskell.packages.ghc865.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_6;
             ghc = self.buildPackages.haskell.compiler.ghcSplices-8_6;
           };
@@ -83,7 +83,7 @@ let iosSupport = system == "x86_64-darwin";
           "webkitgtk-2.4.11"
         ];
         packageOverrides = pkgs: {
-          webkitgtk = pkgs.webkitgtk220x;
+          webkitgtk = pkgs.webkitgtk; #24x-gtk3; # TODO should this be gtk3?
         };
 
         # XCode needed for native macOS app
@@ -179,8 +179,8 @@ let iosSupport = system == "x86_64-darwin";
     ghc = old.ghc.override {
       ghcjsSrc = fetchgit {
         url = "https://github.com/ghcjs/ghcjs.git";
-        rev = "00a8993a8d9c35b33b84a83b0aec5171c582a4f3";
-        sha256 = "0a9qna5qffskfgw9a4jwvzfd81c41vw36k46hw52hw9xxynvk7x9";
+        rev = "05afd14691ac7170355f6ffd51a05226f394eb76";
+        sha256 = "048glad43j0nnpmlqh9v4si4bp01h6ifv1db5ca0nnpwkyb0h9v4";
         fetchSubmodules = true;
       };
     };
@@ -192,7 +192,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc863).override {
+  ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc865).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
 

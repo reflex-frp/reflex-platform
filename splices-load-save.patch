@@ -4788,7 +4788,7 @@ index 15a19b117f..5a7f761d32 100644
                _ -> do { t <- get bh; return (GenericDM t) }
 --}
 diff --git a/compiler/main/DynFlags.hs b/compiler/main/DynFlags.hs
-index 9d305efd09..95a7122a57 100644
+index 5f217a6a8f..539132653e 100644
 --- a/compiler/main/DynFlags.hs
 +++ b/compiler/main/DynFlags.hs
 @@ -916,8 +916,6 @@ data DynFlags = DynFlags {
@@ -5546,17 +5546,3 @@ index 7a7c40ecfc..a80880f4e5 100644
  equalKeysUFM :: UniqFM a -> UniqFM b -> Bool
  equalKeysUFM (UFM m1) (UFM m2) = liftEq (\_ _ -> True) m1 m2
  
-diff --git a/libraries/process b/libraries/process
-index 36a3ad577e..7a2dfa0b48 160000
---- a/libraries/process
-+++ b/libraries/process
-@@ -1 +1 @@
--Subproject commit 36a3ad577e31e8c3336c7464b252fc2c9b01a20c
-+Subproject commit 7a2dfa0b48bbb48a22174cb4c2281d4000191cb0
-diff --git a/libraries/transformers b/libraries/transformers
-index 80557845cd..def8c55d0c 160000
---- a/libraries/transformers
-+++ b/libraries/transformers
-@@ -1 +1 @@
--Subproject commit 80557845cdc0e72bc05cec19cf7a1bf5495e9e69
-+Subproject commit def8c55d0c47c1c40de985d83f052f3659b40cfd
