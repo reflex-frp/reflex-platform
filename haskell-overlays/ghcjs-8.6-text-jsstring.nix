@@ -23,8 +23,14 @@ self: super: {
     };
     primitiveSrc = fetchgit {
       url = "https://github.com/haskell/primitive.git";
-      rev = " 53f72ce69a4dfde5345cf5809a8b4a1993523367";
-      sha256 = "17dr8rdfaj5sscdg5xaaaj1dj96w54l53bca2jbl211sr2004z9h";
+      rev = "53f72ce69a4dfde5345cf5809a8b4a1993523367";
+      sha256 = "0ywmn7pc7n7qafd7478dvih8pwyq0d9mrggfd8wnb5jdk3lf5xba";
+      postFetch = ''
+        sed -i.bak 's/\(base .*\)4\.12/\15/' $out/primitive.cabal
+        # substituteInPlace $out/primitive.cabal --replace 'base >= 4.5 && < 4.12' 'base >= 4.5 && < 5'
+        cat $out/primitive.cabal
+      '';
+
     };
   };
 

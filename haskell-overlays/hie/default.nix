@@ -23,9 +23,10 @@ in self: super: {
   ghc-mod-core = doJailbreak (self.callCabal2nix "ghc-mod-core" ghcModCoreSrc {});
   ghc-project-types = doJailbreak (self.callCabal2nix "ghc-project-types" ghcProjectTypesSrc {});
   hie-plugin-api = self.callCabal2nix "hie-ide-engine" (hieSrc + "/hie-plugin-api") {};
-  haskell-ide-engine = dontCheck (self.callCabal2nix "haskell-ide-engine" hieSrc {});
+  haskell-ide-engine = dontHaddock (dontCheck (self.callCabal2nix "haskell-ide-engine" hieSrc {}));
   HaRe = dontHaddock (dontCheck (doJailbreak (self.callCabal2nix "HaRe" HaReSrc {})));
-  hlint = doJailbreak super.hlint;
   haskell-lsp = self.callHackage "haskell-lsp" "0.15.0.0" {};
+  haskell-lsp-types = self.callHackage "haskell-lsp-types" "0.15.0.0" {};
   rope-utf16-splay = self.callHackage "rope-utf16-splay" "0.3.1.0" {};
+  unix-time = self.callHackage "unix-time" "0.4.7" {};
 }
