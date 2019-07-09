@@ -1,8 +1,8 @@
 diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
-index 45e54b1..4c2d36b 100644
+index abe5afc..0e058c1 100644
 --- a/Data/Aeson/Types/Internal.hs
 +++ b/Data/Aeson/Types/Internal.hs
-@@ -74,6 +74,19 @@ module Data.Aeson.Types.Internal
+@@ -75,6 +75,20 @@ module Data.Aeson.Types.Internal
      , DotNetTime(..)
      ) where
  
@@ -19,10 +19,11 @@ index 45e54b1..4c2d36b 100644
 +import qualified JavaScript.Object.Internal as OI
 +#endif
 +
- import Prelude ()
++
  import Prelude.Compat
  
-@@ -686,3 +699,40 @@ camelTo2 c = map toLower . go2 . go1
+ import Control.Applicative (Alternative(..))
+@@ -687,3 +701,40 @@ camelTo2 c = map toLower . go2 . go1
            go2 "" = ""
            go2 (l:u:xs) | isLower l && isUpper u = l : c : u : go2 xs
            go2 (x:xs) = x : go2 xs
@@ -64,10 +65,10 @@ index 45e54b1..4c2d36b 100644
 +  {-# INLINE toJSVal #-}
 +#endif
 diff --git a/aeson.cabal b/aeson.cabal
-index 3d33078..80b3308 100644
+index 6193894..3e3618c 100644
 --- a/aeson.cabal
 +++ b/aeson.cabal
-@@ -163,6 +163,8 @@ library
+@@ -169,6 +169,8 @@ library
      ghc-options: -O2
  
    include-dirs: include

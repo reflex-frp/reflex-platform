@@ -19,6 +19,7 @@ in self: super: {
 
   # TODO
   reflex-dom-core = dontCheck super.reflex-dom-core;
+  reflex-dom = doJailbreak super.reflex-dom;
   jsaddle-webkit2gtk = doJailbreak super.jsaddle-webkit2gtk;
 
   language-nix = dontCheck super.language-nix;

@@ -39,6 +39,9 @@ self: super: {
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
 
+  # These tests are not expected to support ghcjs
+  QuickCheck = dontCheck super.QuickCheck;
+
   # These tests never complete
   tasty-quickcheck = dontCheck super.tasty-quickcheck;
 
