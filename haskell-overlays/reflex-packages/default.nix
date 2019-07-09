@@ -45,11 +45,11 @@ in
   ## GHCJS and JSaddle
   ##
 
-  jsaddle = self.callCabal2nix "jsaddle" "${jsaddleSrc}/jsaddle" {};
-  jsaddle-clib = self.callCabal2nix "jsaddle-clib" "${jsaddleSrc}/jsaddle-clib" {};
-  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" "${jsaddleSrc}/jsaddle-webkit2gtk" {};
-  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" "${jsaddleSrc}/jsaddle-webkitgtk" {};
-  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" "${jsaddleSrc}/jsaddle-wkwebview" {}) (drv: {
+  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + /jsaddle) {};
+  jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + /jsaddle-clib) {};
+  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + /jsaddle-webkit2gtk) {};
+  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + /jsaddle-webkitgtk) {};
+  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + /jsaddle-wkwebview) {}) (drv: {
     # HACK(matthewbauer): Can’t figure out why cf-private framework is
     #                     not getting pulled in correctly. Has something
     #                     to with how headers are looked up in xcode.
@@ -71,7 +71,7 @@ in
   # another broken test
   # phantomjs has issues with finding the right port
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
-  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
+  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + /jsaddle-warp) {});
 
   jsaddle-dom = self.callPackage self._dep.jsaddle-dom {};
   inherit (ghcjsDom) ghcjs-dom-jsffi;
