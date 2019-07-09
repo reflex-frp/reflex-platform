@@ -42,7 +42,7 @@ let
     # attributes in the overlays.
 
     dep = {}
-      // reflex-platform.ghcjs8_4._dep
+      // reflex-platform.ghcjs8_6._dep
       // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
       // benchmark.dep
       ;
@@ -51,18 +51,18 @@ let
     tryReflexShell = reflex-platform.tryReflexShell;
     ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
     # Doesn't currently build. Removing from CI until fixed.
-    ghcjs8_4.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_4.reflex-todomvc;
+    ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
     ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
-    ghc8_4.reflexTodomvc = reflex-platform.ghc8_4.reflex-todomvc;
+    ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
     profiled = {
-      ghc8_4.reflexTodomvc = reflex-platform-profiled.ghc8_4.reflex-todomvc;
+      ghc8_6.reflexTodomvc = reflex-platform-profiled.ghc8_6.reflex-todomvc;
     } // lib.optionalAttrs (reflex-platform.androidSupport) {
       inherit (reflex-platform-profiled) androidReflexTodomvc;
-      inherit (reflex-platform-profiled) androidReflexTodomvc-8_4;
+      inherit (reflex-platform-profiled) androidReflexTodomvc-8_6;
       a = reflex-platform-profiled.ghcAndroidAarch64.a;
     } // lib.optionalAttrs (reflex-platform.iosSupport) {
       inherit (reflex-platform-profiled) iosReflexTodomvc;
-      inherit (reflex-platform-profiled) iosReflexTodomvc-8_4;
+      inherit (reflex-platform-profiled) iosReflexTodomvc-8_6;
       a = reflex-platform-profiled.ghcIosAarch64.a;
     };
     skeleton-test-ghc = skeleton-test.ghc;
@@ -73,12 +73,12 @@ let
       otherDeps;
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
-    inherit (reflex-platform) androidReflexTodomvc-8_4;
+    inherit (reflex-platform) androidReflexTodomvc-8_6;
     a = reflex-platform.ghcAndroidAarch64.a;
     skeleton-test-project-android = skeleton-test.project.android;
   } // lib.optionalAttrs (reflex-platform.iosSupport) {
     inherit (reflex-platform) iosReflexTodomvc;
-    inherit (reflex-platform) iosReflexTodomvc-8_4;
+    inherit (reflex-platform) iosReflexTodomvc-8_6;
     a = reflex-platform.ghcIosAarch64.a;
     skeleton-test-project-ios = skeleton-test.project.ios;
   } // drvListToAttrs otherDeps
