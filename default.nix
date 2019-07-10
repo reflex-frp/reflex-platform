@@ -83,7 +83,7 @@ let iosSupport = system == "x86_64-darwin";
           "webkitgtk-2.4.11"
         ];
         packageOverrides = pkgs: {
-          webkitgtk = pkgs.webkitgtk; #24x-gtk3; # TODO should this be gtk3?
+          webkitgtk = pkgs.webkitgtk;
         };
 
         # XCode needed for native macOS app
@@ -177,6 +177,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs = ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
+      bootPkgs = nixpkgs.haskell.packages.ghc865;
       ghcjsSrc = fetchgit {
         url = "https://github.com/ghcjs/ghcjs.git";
         rev = "05afd14691ac7170355f6ffd51a05226f394eb76";
