@@ -21,7 +21,7 @@ self: super: {
       self.ghcjs-prim
     ];
   });
-  # TODO remove dontCheck from attoparsec - not sure why  it semeingly hangs
+  # TODO remove dontCheck from attoparsec - not sure why it hangs
   attoparsec = dontCheck (doJailbreak (self.callCabal2nix "attoparsec" (fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "attoparsec";
