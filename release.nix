@@ -59,11 +59,9 @@ let
     } // lib.optionalAttrs (reflex-platform.androidSupport) {
       inherit (reflex-platform-profiled) androidReflexTodomvc;
       inherit (reflex-platform-profiled) androidReflexTodomvc-8_6;
-      a = reflex-platform-profiled.ghcAndroidAarch64.a;
     } // lib.optionalAttrs (reflex-platform.iosSupport) {
       inherit (reflex-platform-profiled) iosReflexTodomvc;
       inherit (reflex-platform-profiled) iosReflexTodomvc-8_6;
-      a = reflex-platform-profiled.ghcIosAarch64.a;
     };
     skeleton-test-ghc = skeleton-test.ghc;
     skeleton-test-ghcjs = skeleton-test.ghcjs;
@@ -74,12 +72,10 @@ let
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
     inherit (reflex-platform) androidReflexTodomvc-8_6;
-    a = reflex-platform.ghcAndroidAarch64.a;
     skeleton-test-project-android = skeleton-test.project.android;
   } // lib.optionalAttrs (reflex-platform.iosSupport) {
     inherit (reflex-platform) iosReflexTodomvc;
     inherit (reflex-platform) iosReflexTodomvc-8_6;
-    a = reflex-platform.ghcIosAarch64.a;
     skeleton-test-project-ios = skeleton-test.project.ios;
   } // drvListToAttrs otherDeps
     // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages) # TODO no filter
