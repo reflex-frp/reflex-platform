@@ -101,11 +101,11 @@ rec {
   ghc-8_6 = _: _: {};
   ghc-head = _: _: {};
 
-  saveSplices = import ./save-splices.nix {
+  saveSplices = import ./splices-load-save/save-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
   };
 
-  loadSplices = import ./load-splices.nix {
+  loadSplices = import ./splices-load-save/load-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
     splicedHaskellPackages = ghcSavedSplices;
   };

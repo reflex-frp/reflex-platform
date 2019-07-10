@@ -1,0 +1,13 @@
+diff --git a/haddock-api/src/Haddock/Types.hs b/haddock-api/src/Haddock/Types.hs
+index a4ef5f82..faa9e1c9 100644
+--- a/haddock-api/src/Haddock/Types.hs
++++ b/haddock-api/src/Haddock/Types.hs
+@@ -298,7 +298,7 @@ data DocName
+ data DocNameI
+ 
+ type instance IdP DocNameI = DocName
+-
++type instance RdrOrSeName DocNameI = RdrName
+ 
+ instance NamedThing DocName where
+   getName (Documented name _) = name
