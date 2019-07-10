@@ -6,3 +6,4 @@ let
       }
     else (import <nixpkgs> {}).fetchFromGitHub;
 in import (fetchFromGitHub (builtins.fromJSON (builtins.readFile ./github.json)))
+/* in import ../../../nixpkgs */

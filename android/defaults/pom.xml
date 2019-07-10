@@ -20,13 +20,23 @@
       <id>jcenter</id>
       <url>https://jcenter.bintray.com/</url>
     </repository>
+    <repository>
+      <id>google</id>
+      <url>https://maven.google.com/</url>
+    </repository>
   </repositories>
 
   <dependencies>
     <dependency>
       <groupId>com.android.tools.build</groupId>
       <artifactId>gradle</artifactId>
-      <version>2.3.0</version>
+      <version>3.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.android.tools.build</groupId>
+      <artifactId>aapt2</artifactId>
+      <version>3.2.0-4818971</version>
+      <classifier>linux</classifier>
     </dependency>
   </dependencies>
 </project>
