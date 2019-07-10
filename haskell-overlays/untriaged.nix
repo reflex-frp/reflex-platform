@@ -22,11 +22,17 @@ in self: super: {
   reflex-dom = doJailbreak super.reflex-dom;
   jsaddle-webkit2gtk = doJailbreak super.jsaddle-webkit2gtk;
 
+  # Recently uploaded to hackage:
+  haven = self.callHackageDirect {
+    pkg = "haven";
+    ver = "0.2.0.2";
+    sha256 = "1hz0ngzd2gbmi45lv52465zrvsfvm6gpc42g7ms0hpa0v52if0w9";
+  } {};
+
   language-nix = dontCheck super.language-nix;
   hasktags = dontCheck super.hasktags;
   http-reverse-proxy = dontCheck super.http-reverse-proxy;
   xmlhtml = dontCheck super.xmlhtml;
-  haven = doJailbreak super.haven;
   mmorph = doJailbreak super.mmorph;
   async = self.callHackage "async" "2.2.1" {};
   hinotify = self.callHackage "hinotify" "0.3.10" {};
