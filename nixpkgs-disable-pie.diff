@@ -1,0 +1,30 @@
+diff --git a/pkgs/build-support/bintools-wrapper/default.nix b/pkgs/build-support/bintools-wrapper/default.nix
+index 59a7ded4bdd8..8d81e0af9029 100644
+--- a/pkgs/build-support/bintools-wrapper/default.nix
++++ b/pkgs/build-support/bintools-wrapper/default.nix
+@@ -303,6 +303,10 @@ stdenv.mkDerivation {
+       done
+     ''
+ 
++    + optionalString targetPlatform.useAndroidPrebuilt ''
++      hardening_unsupported_flags+=" pie"
++    ''
++
+     + ''
+       set +u
+       substituteAll ${./add-flags.sh} $out/nix-support/add-flags.sh
+diff --git a/pkgs/build-support/cc-wrapper/default.nix b/pkgs/build-support/cc-wrapper/default.nix
+index 176df51cbd9a..46a85132b95b 100644
+--- a/pkgs/build-support/cc-wrapper/default.nix
++++ b/pkgs/build-support/cc-wrapper/default.nix
+@@ -295,6 +295,10 @@ stdenv.mkDerivation {
+       hardening_unsupported_flags+=" stackprotector fortify pie pic"
+     ''
+ 
++    + optionalString targetPlatform.useAndroidPrebuilt ''
++      hardening_unsupported_flags+=" pie"
++    ''
++
+     + optionalString (libc != null && targetPlatform.isAvr) ''
+       for isa in avr5 avr3 avr4 avr6 avr25 avr31 avr35 avr51 avrxmega2 avrxmega4 avrxmega5 avrxmega6 avrxmega7 tiny-stack; do
+         echo "-B${getLib libc}/avr/lib/$isa" >> $out/nix-support/libc-cflags
