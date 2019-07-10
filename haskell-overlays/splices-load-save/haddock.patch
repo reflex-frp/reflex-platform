@@ -1,7 +1,7 @@
-diff --git a/haddock-api/src/Haddock/Types.hs b/haddock-api/src/Haddock/Types.hs
+diff --git a/utils/haddock/haddock-api/src/Haddock/Types.hs b/utils/haddock/haddock-api/src/Haddock/Types.hs
 index a4ef5f82..faa9e1c9 100644
---- a/haddock-api/src/Haddock/Types.hs
-+++ b/haddock-api/src/Haddock/Types.hs
+--- a/utils/haddock/haddock-api/src/Haddock/Types.hs
++++ b/utils/haddock/haddock-api/src/Haddock/Types.hs
 @@ -298,7 +298,7 @@ data DocName
  data DocNameI
  
