@@ -22,6 +22,7 @@ let iosSupport = system == "x86_64-darwin";
             enableParallelBuilding = false;
             patches = (drv.patches or []) ++ [
               ./haskell-overlays/splices-load-save/ghc.patch
+              ./haskell-overlays/splices-load-save/ghc-backport-issue16331-mr885-e172a6d1.patch
               ./haskell-overlays/splices-load-save/haddock.patch
             ];
           });
