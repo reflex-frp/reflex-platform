@@ -1,0 +1,193 @@
+diff --git a/compiler/hsSyn/HsExprBin.hs b/compiler/hsSyn/HsExprBin.hs
+index 7967f934fb123c9507b5e8cc147868427f483794..eb2eb2766200475a88dee8249b394d1052cc83eb 100644
+--- a/compiler/hsSyn/HsExprBin.hs
++++ b/compiler/hsSyn/HsExprBin.hs
+@@ -80,17 +80,22 @@ nonEmptyHsSpliceData = not . Map.null . hsSpliceMap
+ data SpliceResult
+   = SRExpr  (LHsExpr GhcSe)
+   | SRDecls [LHsDecl GhcSe] -- TODO: change to HsGroup ?
+-  -- TODO: add patterns and types?
++  | SRPat   (LHsPat GhcSe)
++  | SRTy    (LHsType GhcSe)
+ 
+ instance Binary SpliceResult where
+   put_ bh r = case r of
+     SRExpr e -> putByte bh 0 >> put_ bh e
+     SRDecls ds -> putByte bh 1 >> put_ bh ds
++    SRPat p -> putByte bh 2 >> put_ bh p
++    SRTy t  -> putByte bh 3 >> put_ bh t
+   get bh = do
+     tag <- getByte bh
+     case tag of
+       0 -> SRExpr <$> get bh
+       1 -> SRDecls <$> get bh
++      2 -> SRPat <$> get bh
++      3 -> SRTy <$> get bh
+       _ -> panic "Binary SpliceResult: unknown tag"
+ 
+ instance Binary HsSpliceData where
+@@ -115,6 +120,14 @@ exprSE2PS = runConv . SE2PS.cvLHsExpr
+ declSE2PS :: LHsDecl GhcSe -> RnM (ConvResult (LHsDecl GhcPs))
+ declSE2PS = runConv . SE2PS.cvLHsDecl
+ 
++-- | Convert a serialisable pattern AST to a parsed pattern AST
++patSE2PS :: LHsPat GhcSe -> RnM (ConvResult (LHsPat GhcPs))
++patSE2PS = runConv . SE2PS.cvLHsPat
++
++-- | Convert a serialisable type AST to a parsed type ST
++tySE2PS :: LHsType GhcSe -> RnM (ConvResult (LHsType GhcPs))
++tySE2PS = runConv . SE2PS.cvLHsType
++
+ -- Converting Ps -> Se
+ 
+ -- | Convert a parsed expression AST to a serialisable expression AST
+@@ -125,6 +138,14 @@ exprPS2SE = runConv . PS2SE.cvLHsExpr
+ declPS2SE :: LHsDecl GhcPs -> RnM (ConvResult (LHsDecl GhcSe))
+ declPS2SE = runConv . PS2SE.cvLHsDecl
+ 
++-- | Convert a serialisable pattern AST to a parsed pattern AST
++patPS2SE :: LHsPat GhcPs -> RnM (ConvResult (LHsPat GhcSe))
++patPS2SE = runConv . PS2SE.cvLHsPat
++
++-- | Convert a serialisable type AST to a parsed type ST
++tyPS2SE :: LHsType GhcPs -> RnM (ConvResult (LHsType GhcSe))
++tyPS2SE = runConv . PS2SE.cvLHsType
++
+ -- * Error reporting
+ 
+ -- | Panics with a nice error when we encounter an unsupported
+diff --git a/compiler/hsSyn/HsExprBin_ConversionPS2SE.hs b/compiler/hsSyn/HsExprBin_ConversionPS2SE.hs
+index 839564fbfe21ceabcb180b4b1eb4cd71ac1bf95a..401f431b77c1e409766c70683114ef4f0ef85f34 100644
+--- a/compiler/hsSyn/HsExprBin_ConversionPS2SE.hs
++++ b/compiler/hsSyn/HsExprBin_ConversionPS2SE.hs
+@@ -488,6 +488,9 @@ cvMatch f (Match a b c d) = Match a
+    <$> convertName b <*> traverse (traverse cvPat) c <*> cvGRHSs f d
+ cvMatch _ (XMatch a) = pure (XMatch a)
+ 
++cvLHsPat :: LHsPat GhcPs -> Conv (LHsPat GhcSe)
++cvLHsPat = traverse cvPat
++
+ cvPat :: Pat GhcPs -> Conv (Pat GhcSe)
+ cvPat (WildPat a) = pure (WildPat a)
+ cvPat (VarPat a b) = VarPat a <$> convertName b
+@@ -704,6 +707,9 @@ cvHsImplicitBndrs
+ cvHsImplicitBndrs f (HsIB a b) = HsIB a <$> f b
+ cvHsImplicitBndrs _ (XHsImplicitBndrs a) = pure (XHsImplicitBndrs a)
+ 
++cvLHsType :: LHsType GhcPs -> Conv (HsType GhcSe)
++cvLHsType = traverse cvType
++
+ cvType :: HsType GhcPs -> Conv (HsType GhcSe)
+ cvType (HsForAllTy a b c) = HsForAllTy a
+   <$> traverse (traverse cvHsTyVarBndr) b
+diff --git a/compiler/hsSyn/HsExprBin_ConversionSE2PS.hs b/compiler/hsSyn/HsExprBin_ConversionSE2PS.hs
+index 8fbc941a71339ea1154b8fb1cab4c18c0f094172..cea4c619605cde2a288840c782bba1c3076b8cac 100644
+--- a/compiler/hsSyn/HsExprBin_ConversionSE2PS.hs
++++ b/compiler/hsSyn/HsExprBin_ConversionSE2PS.hs
+@@ -489,6 +489,9 @@ cvMatch f (Match a b c d) = Match a
+    <$> convertName b <*> traverse (traverse cvPat) c <*> cvGRHSs f d
+ cvMatch _ (XMatch a) = pure (XMatch a)
+ 
++cvLHsPat :: LHsPat GhcSe -> Conv (LHsPat GhcPs)
++cvLHsPat = traverse cvPat
++
+ cvPat :: Pat GhcSe -> Conv (Pat GhcPs)
+ cvPat (WildPat a) = pure (WildPat a)
+ cvPat (VarPat a b) = VarPat a <$> convertName b
+@@ -705,6 +708,9 @@ cvHsImplicitBndrs
+ cvHsImplicitBndrs f (HsIB a b) = HsIB a <$> f b
+ cvHsImplicitBndrs _ (XHsImplicitBndrs a) = pure (XHsImplicitBndrs a)
+ 
++cvLHsType :: LHsType GhcSe -> Conv (LHsType GhcPs)
++cvLHsType = traverse cvType
++
+ cvType :: HsType GhcSe -> Conv (HsType GhcPs)
+ cvType (HsForAllTy a b c) = HsForAllTy a
+   <$> traverse (traverse cvHsTyVarBndr) b
+diff --git a/compiler/typecheck/TcSplice.hs b/compiler/typecheck/TcSplice.hs
+index c6dd542937c3b706a39343100ce858571b1b1dd6..be3443cba8737eea6e9c3a25b9b0a86db86dbb87 100644
+--- a/compiler/typecheck/TcSplice.hs
++++ b/compiler/typecheck/TcSplice.hs
+@@ -760,6 +760,22 @@ addSpliceDeclsResult th@(L l _) resultDs = do
+      resultDs
+   modifyHsSpliceData $ recordSpliceResult l (SRDecls serialDecls)
+ 
++-- | Record the result (second argument) of evaluating the pattern splice
++--   represented by the first argument.
++addSplicePatResult :: LHsExpr GhcTc -> LHsPat GhcPs -> TcM ()
++addSplicePatResult th@(L l _) resultE = do
++  serialPat <- handleUnsupported (fmap ppr th) (Just $ ppr resultE)
++            =<< patPS2SE resultE
++  modifyHsSpliceData $ recordSpliceResult l (SRExpr serialPat)
++
++-- | Record the result (second argument) of evaluating the type splice
++--   represented by the first argument.
++addSpliceTypeResult :: LHsExpr GhcTc -> LHsType GhcPs -> TcM ()
++addSpliceTypeResult th@(L l _) resultE = do
++  serialTy <- handleUnsupported (fmap ppr th) (Just $ ppr resultE)
++          =<< tyPS2SE resultE
++  modifyHsSpliceData $ recordSpliceResult l (SRExpr serialTy)
++
+ -- | Look up the result of evaluating the splice represented by the first
+ --   argument in an .hs-splice file, using the given function to extract
+ --   the result in question (when found).
+@@ -775,16 +791,39 @@ getSpliceResult (L l _) f = do
+ getSpliceExprResult :: LHsExpr GhcTc -> TcM (LHsExpr GhcPs)
+ getSpliceExprResult spliceE = getSpliceResult spliceE $ \res -> case res of
+     SRExpr e  -> exprSE2PS e >>= handleUnsupported (fmap ppr spliceE) Nothing
+-    SRDecls _ -> panic ("Expected an expression splice but found a declaration one")
++    SRPat _   -> expectedFoundSplice "expression" "pattern"
++    SRTy _    -> expectedFoundSplice "expression" "type"
++    SRDecls _ -> expectedFoundSplice "expression" "declarations"
++
++-- | Look up the result of evaluating a pattern splice.
++getSplicePatResult :: LHsExpr GhcTc -> TcM (LHsPat GhcPs)
++getSplicePatResult spliceE = getSpliceResult spliceE $ \res -> case res of
++    SRPat e   -> patSE2PS e >>= handleUnsupported (fmap ppr spliceE) Nothing
++    SRExpr _  -> expectedFoundSplice "pattern" "expression"
++    SRTy _    -> expectedFoundSplice "pattern" "type"
++    SRDecls _ -> expectedFoundSplice "pattern" "declarations"
++
++-- | Look up the result of evaluating a type splice.
++getSpliceTypeResult :: LHsExpr GhcTc -> TcM (LHsType GhcPs)
++getSpliceTypeResult spliceE = getSpliceResult spliceE $ \res -> case res of
++    SRTy e    -> tySE2PS e >>= handleUnsupported (fmap ppr spliceE) Nothing
++    SRExpr _  -> expectedFoundSplice "type" "expression"
++    SRPat _   -> expectedFoundSplice "type" "pattern"
++    SRDecls _ -> expectedFoundSplice "type" "declarations"
+ 
+ -- | Look up the result of evaluating a declaration splice.
+ getSpliceDeclsResult :: LHsExpr GhcTc -> TcM [LHsDecl GhcPs]
+ getSpliceDeclsResult spliceE = getSpliceResult spliceE $ \res -> case res of
+-    SRExpr _   -> panic ("Expected a declaration splice result but found an expression one")
++    SRExpr _   -> expectedFoundSplice "declarations" "expression"
++    SRPat _    -> expectedFoundSplice "declarations" "pattern"
++    SRTy _     -> expectedFoundSplice "delcarations" "type"
+     SRDecls ds -> traverse
+       (declSE2PS >=> handleUnsupported (fmap ppr spliceE) Nothing)
+       ds
+ 
++expectedFoundSplice exp found =
++  panic ("Expected a " ++ exp ++ " splice result but found: " ++ found)
++
+ runMetaAW :: LHsExpr GhcTc         -- Of type AnnotationWrapper
+           -> TcM Serialized
+ runMetaAW = runMeta metaRequestAW
+@@ -801,15 +840,11 @@ runMetaE = runMeta metaRequestE getSpliceExprResult addSpliceExprResult
+ 
+ runMetaP :: LHsExpr GhcTc          -- Of type (Q Pat)
+          -> TcM (LPat GhcPs)
+-runMetaP = runMeta metaRequestP
+-  (panic "runMetaP doesn't support splice caching (read)")
+-  (panic "runMetaP doesn't support splice caching (write)")
++runMetaP = runMeta metaRequestP getSplicePatResult addSplicePatResult
+ 
+ runMetaT :: LHsExpr GhcTc          -- Of type (Q Type)
+          -> TcM (LHsType GhcPs)
+-runMetaT = runMeta metaRequestT
+-  (panic "runMetaT doesn't support splice caching (read)")
+-  (panic "runMetaT doesn't support splice caching (write)")
++runMetaT = runMeta metaRequestT getSpliceTypeResult addSpliceTypeResult
+ 
+ runMetaD :: LHsExpr GhcTc          -- Of type Q [Dec]
+          -> TcM [LHsDecl GhcPs]

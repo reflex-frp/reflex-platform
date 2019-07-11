@@ -23,6 +23,7 @@ let iosSupport = system == "x86_64-darwin";
             patches = (drv.patches or []) ++ [
               ./haskell-overlays/splices-load-save/ghc.patch
               ./haskell-overlays/splices-load-save/ghc-backport-issue16331-mr885-e172a6d1.patch
+              ./haskell-overlays/splices-load-save/ghc-pattern-splices-1229eee8.patch
               ./haskell-overlays/splices-load-save/haddock.patch
             ];
           });
