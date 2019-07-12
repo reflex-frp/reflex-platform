@@ -1,0 +1,17 @@
+diff --git a/compiler/hsSyn/HsExprBin.hs b/compiler/hsSyn/HsExprBin.hs
+index eb2eb2766200475a88dee8249b394d1052cc83eb..affecc7e1489a60538f7a9ace3c2c21059170d14 100644
+--- a/compiler/hsSyn/HsExprBin.hs
++++ b/compiler/hsSyn/HsExprBin.hs
+@@ -9,8 +9,12 @@ module HsExprBin
+   , lookupSpliceResult
+   , exprSE2PS
+   , declSE2PS
++  , patSE2PS
++  , tySE2PS
+   , exprPS2SE
+   , declPS2SE
++  , patPS2SE
++  , tyPS2SE
+   , handleUnsupported
+   ) where
+ 

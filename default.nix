@@ -24,6 +24,8 @@ let iosSupport = system == "x86_64-darwin";
               ./haskell-overlays/splices-load-save/ghc.patch
               ./haskell-overlays/splices-load-save/ghc-backport-issue16331-mr885-e172a6d1.patch
               ./haskell-overlays/splices-load-save/ghc-pattern-splices-1229eee8.patch
+              ./haskell-overlays/splices-load-save/ghc-pattern-splices-f1384f4d.patch
+              ./haskell-overlays/splices-load-save/ghc-pattern-splices-33647e08.patch
               ./haskell-overlays/splices-load-save/haddock.patch
             ];
           });
