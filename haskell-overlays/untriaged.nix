@@ -18,8 +18,6 @@ let addGIDeps = p: extraBuildInputs: girSearchPathPackages: p.overrideAttrs (drv
 in self: super: {
 
   # TODO
-  reflex-dom-core = dontCheck super.reflex-dom-core;
-  reflex-dom = doJailbreak super.reflex-dom;
   jsaddle-webkit2gtk = doJailbreak super.jsaddle-webkit2gtk;
 
   # Recently uploaded to hackage:
@@ -30,7 +28,7 @@ in self: super: {
   } {};
 
   # Update hlint and add new dependency
-  hlint = self.callHackage "hlint" "2.1.26" {};
+  hlint = self.callHackage "hlint" "2.2" {};
   ghc-lib-parser = self.callHackage "ghc-lib-parser" "8.8.0.20190424" {};
   haskell-src-exts = super.haskell-src-exts_1_21_0;
   haskell-src-exts-util = self.callHackage "haskell-src-exts-util" "0.2.5" {};
