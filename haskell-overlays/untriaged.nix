@@ -4,7 +4,10 @@
 , nixpkgs
 }:
 with haskellLib;
-let addGIDeps = p: extraBuildInputs: girSearchPathPackages: p.overrideAttrs (drv: {
+let # Adds additional arguments to 'buildInputs' and the 'HASKELL_GI_GIR_SEARCH_PATH' environment variable
+    # used by haskell-gi to specify non-standard locations .gir file locations
+    # addGIDeps :: haskellPackage -> [nixPackage] -> [nixPackage] -> haskellPackage
+    addGIDeps = p: extraBuildInputs: girSearchPathPackages: p.overrideAttrs (drv: {
       # cabal2nix puts these deps in libraryPkgconfigDepends but that doesn't seem to suffice.
       buildInputs = with nixpkgs; drv.buildInputs or [] ++ [ pkgconfig gobjectIntrospection ] ++ extraBuildInputs;
       libraryPkgconfigDepends = drv.libraryPkgconfigDepends or [] ++ [nixpkgs.gobject-introspection];
@@ -16,9 +19,6 @@ let addGIDeps = p: extraBuildInputs: girSearchPathPackages: p.overrideAttrs (drv
           (map (x: "${x.dev}/share/gir-1.0") ([nixpkgs.gobjectIntrospection] ++ girSearchPathPackages));
     });
 in self: super: {
-
-  # TODO
-  jsaddle-webkit2gtk = doJailbreak super.jsaddle-webkit2gtk;
 
   # Recently uploaded to hackage:
   haven = self.callHackageDirect {
@@ -44,7 +44,7 @@ in self: super: {
   webkit2gtk3-javascriptcore = self.callHackage "webkit2gtk3-javascriptcore" "0.14.2.1" {};
   haskell-gi = self.callHackage "haskell-gi" "0.22.6" {};
 
-  # Overrides for gi-* family of libraries
+  # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.22.2" {}) [nixpkgs.glib] [];
   gi-glib = addGIDeps (self.callHackage "gi-glib" "2.0.19" {}) [] [];
   gi-cairo = addGIDeps (self.callHackage "gi-cairo" "1.0.19" {}) [nixpkgs.cairo] [];
