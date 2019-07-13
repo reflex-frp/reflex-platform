@@ -5,6 +5,8 @@ This project's release branch is `master`. This log is written from the perspect
 ## Unreleased
 
 * Document how to accept android sdk license agreement and pass acceptance through to android infrastructure.
+* Update to GHC(JS) 8.6.5
+* Update to the nixos-19.03 nixpkgs channel
 
 ## v0.1.0.0 - 2019-04-03
 
