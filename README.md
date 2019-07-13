@@ -1,7 +1,30 @@
-Reflex Platform
+reflex-platform
 ===============
 
-The Reflex Platform is a collection of libraries and tools that are useful for developing and deploying [Reflex](https://github.com/reflex-frp/reflex)-based applications.
+reflex-platform is a nix-based development tool and dependency management system for Haskell projects. The goal of reflex-platform is to conveniently provide a nix environemnt from which you can develop haskell packages targeting multiple platforms.
+
+reflex-plaform includes:
+
+  * A pinned package set, in the form of a specific checkout of nixpkgs and sets of overridden packages ("overlays" in nix parlance) ([./nixpkgs](nixpkgs) and [./haskell-overlays](haskell-overlays))
+
+  * A framework for developing haskell projects ([./project/default.nix](project/default.nix))
+
+  * Convenience functions for working with git repository dependencies ("thunks") ([./nixpkgs-overlays/hack-get/default.nix](nixpkgs-overlays/hack-get/default.nix))
+
+  * Cross-platform build infrastructure targeting Javascript (via GHCJS), Linux, macOS, iOS, and Android
+    * Automatic template haskell splice generation and loading, for platforms that don't directly support template haskell (./haskell-overlays/splices-load-save)
+    * iOS-specific GHC and haskell package overrides (./haskell-overlays/ios.nix) and build infrastructure (./ios/default.nix)
+    * Android-specific GHC and haskell package overrides (./haskell-overlays/android) and build infrastructure (./android/default.nix)
+    * GHCJS (./haskell-overlays/ghcjs.nix) and GHCJS-specific performance improvements
+      * text-jsstring: replaces 'Text' with js-native 'JSString' (./haskell-overlays/ghcjs-8.6-text-jsstring.nix)
+      * fast-weak: faster implementation of weak references (./haskell-overlays/ghcjs-fast-weak)
+
+  * A pinned version of the *reflex* ecosystem and related haskell packages (./haskell-overlays/reflex-packages), including:
+    * [reflex](https://github.com/reflex-frp/reflex)
+    * [reflex-dom](https://github.com/reflex-frp/reflex-dom)
+    * [jsaddle](https://github.com/ghcjs/jsaddle)
+    * [jsaddle-dom](https://github.com/ghcjs/jsaddle-dom)
+    * [ghcjs-dom](https://github.com/ghcjs/ghcjs-dom)
 
 To get started with Reflex development, follow the instructions below.
 
