@@ -50,10 +50,10 @@ in {
               myNixpkgs = nixpkgsCross.android.aarch64;
               myHaskellPackages = ghcAndroidAarch64;
             };
-            # "armeabi-v7a" = {
-            #   myNixpkgs = nixpkgsCross.android.aarch32;
-            #   myHaskellPackages = ghcAndroidAarch32;
-            # };
+            "armeabi-v7a" = {
+              myNixpkgs = nixpkgsCross.android.aarch32;
+              myHaskellPackages = ghcAndroidAarch32;
+            };
           };
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
