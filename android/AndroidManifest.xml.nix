@@ -16,6 +16,7 @@
                  android:icon="${iconPath}"
                  android:hardwareAccelerated="true">
         <activity android:name="systems.obsidian.HaskellActivity"
+                  android:screenOrientation="portrait"
                   android:label="@string/app_name"
                   android:configChanges="orientation|screenSize"
                   android:windowSoftInputMode="adjustResize"
