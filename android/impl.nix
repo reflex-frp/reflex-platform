@@ -39,7 +39,7 @@ in {
     keyStorePassword = releaseKey.storePassword or null;
     mavenDeps = import ./defaults/deps.nix;
     name = applicationId;
-    platformVersions = [ "26" ];
+    platformVersions = [ "28" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;
@@ -114,7 +114,7 @@ in {
           [ -d "$out/assets" ]
           [ -d "$out/res" ]
         '');
-    # useExtraSupportLibs = true; #TODO: Should this be enabled by default?
+    useGooglePlayServices = true; # TODO: Should this be enabled by default?
     useGoogleAPIs = true; #TODO: Should this be enabled by default?
 
     # We use the NDK build process
