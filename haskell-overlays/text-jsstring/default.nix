@@ -1,4 +1,4 @@
-{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard }:
+{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard, hackGet }:
 
 with lib;
 with haskellLib;
@@ -21,13 +21,7 @@ self: super: {
       self.ghcjs-prim
     ];
   });
-  # TODO remove dontCheck from attoparsec - not sure why it hangs
-  attoparsec = dontCheck (doJailbreak (self.callCabal2nix "attoparsec" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "attoparsec";
-    rev = "5569fbd47ae235a800653134a06bf51186c91f8f";
-    sha256 = "0qgr9xcmwzbxxm84l9api7bib6bspmkii1d7dlg8bcgk9icqwbcw";
-  }) {}));
+  attoparsec = self.callCabal2nix "attoparsec" (hackGet ./dep/attoparsec) {};
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {
@@ -66,7 +60,7 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  # TODO Remove dontCheck. There seems to be an issue with floating point precision and with unescape of U+d800
-  aeson = dontCheck (appendPatch super.aeson ./aeson.patch);
+  # Tests are disabled because of an issue with floating-point precision
+  aeson = dontCheck (self.callCabal2nix "aeson" (hackGet ./dep/aeson) {});
   text-show = appendPatch super.text-show ./text-show.patch;
 }
