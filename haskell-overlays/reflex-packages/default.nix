@@ -50,22 +50,11 @@ in
   jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + /jsaddle-webkit2gtk) {};
   jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + /jsaddle-webkitgtk) {};
   jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + /jsaddle-wkwebview) {}) (drv: {
-    # HACK(matthewbauer): Can’t figure out why cf-private framework is
-    #                     not getting pulled in correctly. Has something
-    #                     to with how headers are looked up in xcode.
-    preBuild = lib.optionalString (!nixpkgs.stdenv.hostPlatform.useiOSPrebuilt) ''
-      mkdir include
-      ln -s ${nixpkgs.buildPackages.darwin.cf-private}/Library/Frameworks/CoreFoundation.framework/Headers include/CoreFoundation
-      export NIX_CFLAGS_COMPILE="-I$PWD/include $NIX_CFLAGS_COMPILE"
-    '';
-
     libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
       (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
          "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
-       ] else with nixpkgs.buildPackages.darwin; with apple_sdk.frameworks; [
-         Cocoa
-         WebKit
-       ]);
+       ] else (with nixpkgs.buildPackages.darwin.apple_sdk.frameworks; [ Cocoa WebKit  ]));
+    buildDepends = lib.optional (!nixpkgs.stdenv.hostPlatform.useiOSPrebuilt) [ nixpkgs.buildPackages.darwin.cf-private ];
   });
 
   # another broken test
