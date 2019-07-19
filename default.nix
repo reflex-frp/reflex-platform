@@ -396,7 +396,7 @@ in let this = rec {
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
-    nixpkgs.androidsdk
+    nixpkgs.androidsdk_9_0
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
