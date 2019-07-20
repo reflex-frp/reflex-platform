@@ -7,7 +7,7 @@ This program gives an example of how to construct a simple framework that
 allows programmers to write FRP applications that process keystrokes (of
 type Char) to produce a view (of type String).  This model, where programmers
 process Event(s) to produce Behavior(s) is akin to the OpenGL/GLUT model, where
-input is pushed into the application via callbacks and and output is pulled
+input is pushed into the application via callbacks and an output is pulled
 via periodic sampling in a render function.  Other application models work
 differently; for example, DOM applications built with reflex-dom ultimately
 produce Events rather than Behaviors as their output, since changes need to be
@@ -56,7 +56,7 @@ host myGuest =
   runSpiderHost $ do
 
     -- Create an event to be used as input.
-    -- It will fire wehenver we use eTriggerRef.
+    -- It will fire whenever we use eTriggerRef.
     (e, eTriggerRef) <- newEventWithTriggerRef
 
     -- Evaluate our user's program to set up the data flow graph.
