@@ -1,8 +1,18 @@
-{ lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub, useReflexOptimizer }:
+{ system, lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub, useReflexOptimizer }:
 
 with haskellLib;
 
-self: super: {
+self: super:
+
+let dontHardcodeLinux = package: cabalFile:
+  if ! self.ghc.isGhcjs then package
+  else nixpkgs.haskell.lib.overrideCabal package (drv: {
+    postPatch = (drv.postPatch or "") + nixpkgs.lib.optionalString (system == "x86_64-darwin") ''
+      substituteInPlace ${cabalFile}.cabal --replace 'if os(linux)' 'if os(linux) && !impl(ghcjs)'
+      substituteInPlace ${cabalFile}.cabal --replace 'if os(osx)' 'if os(linux) && impl(ghcjs)'
+    '';
+  });
+in {
   _dep = super._dep or {} // {
     ghcjsBaseSrc = fetchgit {
       url = "https://github.com/ghcjs/ghcjs-base.git";
@@ -82,4 +92,6 @@ self: super: {
       sha256 = "1sy51nz096sv91nxqk6yk7b92b5a40axv9183xakvki2nc09yhqg";
     };
   }));
+
+  foundation = dontHardcodeLinux super.foundation "foundation";
 }
