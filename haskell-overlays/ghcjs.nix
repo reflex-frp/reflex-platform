@@ -4,6 +4,8 @@ with haskellLib;
 
 self: super:
 
+# Workaround for https://github.com/ghcjs/ghcjs/issues/674
+# 'os (osx)' will always evaluate to 'false'
 let dontHardcodeLinux = package: cabalFile:
   if ! self.ghc.isGhcjs then package
   else nixpkgs.haskell.lib.overrideCabal package (drv: {
