@@ -1,4 +1,5 @@
-{ lib
+{ system
+, lib
 , haskellLib
 , nixpkgs
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
@@ -112,7 +113,7 @@ rec {
 
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
-    inherit lib haskellLib nixpkgs fetchgit fetchFromGitHub useReflexOptimizer;
+    inherit system lib haskellLib nixpkgs fetchgit fetchFromGitHub useReflexOptimizer;
   };
   ghcjs-fast-weak = import ./ghcjs-fast-weak {
    inherit lib;
