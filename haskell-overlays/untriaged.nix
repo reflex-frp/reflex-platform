@@ -28,8 +28,16 @@ in self: super: {
   } {};
 
   # Update hlint and add new dependency
-  hlint = self.callHackage "hlint" "2.2" {};
-  ghc-lib-parser = self.callHackage "ghc-lib-parser" "8.8.0.20190424" {};
+  hlint = self.callHackageDirect {
+    pkg = "hlint";
+    ver = "2.2.2";
+    sha256 = "0m0mx1cvq2m4w6kf0armfgdayqxwapnf5k8ffjxild8amc8ysn4a";
+  } {};
+  ghc-lib-parser = self.callHackageDirect {
+    pkg = "ghc-lib-parser";
+    ver = "8.8.0.20190723";
+    sha256 = "0l0ffxmszjrcj8qiqwwmsdygy2sgw6vrlm1xfqrbdx60bwgc07m5";
+  } {};
   haskell-src-exts = super.haskell-src-exts_1_21_0;
   haskell-src-exts-util = self.callHackage "haskell-src-exts-util" "0.2.5" {};
   stylish-haskell = self.callHackage "stylish-haskell" "0.9.2.2" {};
