@@ -88,9 +88,6 @@ let iosSupport = system == "x86_64-darwin";
         permittedInsecurePackages = [
           "webkitgtk-2.4.11"
         ];
-        packageOverrides = pkgs: {
-          webkitgtk = pkgs.webkitgtk;
-        };
 
         # XCode needed for native macOS app
         # Obelisk needs it to for some reason
