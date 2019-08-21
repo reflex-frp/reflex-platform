@@ -178,8 +178,8 @@ let iosSupport = system == "x86_64-darwin";
       bootPkgs = nixpkgs.haskell.packages.ghc865;
       ghcjsSrc = fetchgit {
         url = "https://github.com/ghcjs/ghcjs.git";
-        rev = "05afd14691ac7170355f6ffd51a05226f394eb76";
-        sha256 = "048glad43j0nnpmlqh9v4si4bp01h6ifv1db5ca0nnpwkyb0h9v4";
+        rev = "c3922ede190a7dda6c0b673a3b7441cf41afcc9c";
+        sha256 = "0201d42747brfafi28yd9na2hlqah5kcf4pkzbzxq0j6k1sck6fj";
         fetchSubmodules = true;
       };
     };

@@ -61,6 +61,6 @@ self: super: {
     ];
   });
   # Tests are disabled because of an issue with floating-point precision
-  aeson = dontCheck (self.callCabal2nix "aeson" (hackGet ./dep/aeson) {});
+  aeson = self.callPackage (hackGet ./dep/aeson) {};
   text-show = appendPatch super.text-show ./text-show.patch;
 }
