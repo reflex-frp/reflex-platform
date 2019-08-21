@@ -6,7 +6,7 @@
 , enableTraceReflexEvents ? false
 , useFastWeak ? true
 , useReflexOptimizer ? false
-, useTextJSString ? true
+, useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? []
