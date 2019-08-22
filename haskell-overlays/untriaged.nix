@@ -52,6 +52,11 @@ in self: super: {
   webkit2gtk3-javascriptcore = self.callHackage "webkit2gtk3-javascriptcore" "0.14.2.1" {};
   haskell-gi = self.callHackage "haskell-gi" "0.22.6" {};
 
+  # Snap and deps are marked broken in 19.03 but needed by obelisk
+  snap = self.callHackage "snap" "1.1.2.0" {};
+  heist = dontCheck (self.callHackage "heist" "1.1.0.1" {});
+  map-syntax = doJailbreak (self.callHackage "map-syntax" "0.3" {});
+
   # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.22.2" {}) [nixpkgs.glib] [];
   gi-glib = addGIDeps (self.callHackage "gi-glib" "2.0.19" {}) [] [];
