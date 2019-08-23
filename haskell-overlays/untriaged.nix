@@ -80,6 +80,10 @@ in self: super: {
   cryptonite = dontCheck super.cryptonite;
   scientific = dontCheck super.scientific;
 
+  # Packages not yet in 19.03
+  semialign = self.callHackage "semialign" "1" {};
+  these = self.callHackage "these" "1" {};
+
   ########################################################################
   # Packages not in hackage
   ########################################################################
@@ -89,6 +93,13 @@ in self: super: {
     rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
     sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
   }) {}));
+  # This can be removed when 0.6 is released to hackage:
+  monoidal-containers = self.callCabal2nix "monoidal-containers" (fetchFromGitHub {
+    owner = "bgamari";
+    repo = "monoidal-containers";
+    rev = "021685cf252a328ab34441b721e3d85c3a2402d5";
+    sha256 = "0kdhagv7sy7pg60q7z8n98rvqznybplimplwbhn0kdpraiaw4860";
+  }) {};
 
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
