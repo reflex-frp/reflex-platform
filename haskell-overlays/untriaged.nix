@@ -81,7 +81,7 @@ in self: super: {
   scientific = dontCheck super.scientific;
 
   # Packages not yet in 19.03
-  semialign = self.callHackage "semialign" "1" {};
+  semialign = doJailbreak (self.callHackage "semialign" "1" {});
   these = self.callHackage "these" "1" {};
 
   ########################################################################
