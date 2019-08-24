@@ -77,7 +77,11 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = self.callHackage "monoidal-containers" "0.4.0.0" {};
+  monoidal-containers = self.callHackageDirect {
+    pkg = "monoidal-containers";
+    ver = "0.6";
+    sha256 = "0vc889wlxs1r99k3615yk30d935jhn45rc8sc6bayi83lyb9a8cj";
+  } {};
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
