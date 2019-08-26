@@ -77,7 +77,11 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = self.callHackage "monoidal-containers" "0.4.0.0" {};
+  monoidal-containers = self.callHackageDirect {
+    pkg = "monoidal-containers";
+    ver = "0.6";
+    sha256 = "0vc889wlxs1r99k3615yk30d935jhn45rc8sc6bayi83lyb9a8cj";
+  } {};
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
@@ -88,10 +92,22 @@ in
     sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
   } + "/hspec-webdriver") {};
 
-  constraints-extras = self.callCabal2nix "constraints-extras" (hackGet ./dep/constraints-extras) {};
-  dependent-map = self.callCabal2nix "dependent-map" (hackGet ./dep/dependent-map) {};
-  dependent-sum = self.callCabal2nixWithOptions "dependent-sum" (hackGet ./dep/dependent-sum) "--subpath dependent-sum" {};
-  dependent-sum-template = self.callCabal2nixWithOptions "dependent-sum-template" (hackGet ./dep/dependent-sum) "--subpath dependent-sum-template" {};
+  constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
+  dependent-map = self.callHackageDirect {
+    pkg = "dependent-map";
+    ver = "0.3";
+    sha256 = "1r4n7ivbkrrm6h8s124gj23bjv2kcx5sb4bfp1hriqsng3fgkifi";
+  } {};
+  dependent-sum = self.callHackageDirect {
+    pkg = "dependent-sum";
+    ver = "0.6.2.0";
+    sha256 = "12k9wfl0i7g5mp9klh2720wz8rqxz4jl63zjzir9nxycb90qkxd5";
+  } {};
+  dependent-sum-template = self.callHackageDirect {
+    pkg = "dependent-sum-template";
+    ver = "0.1.0.0";
+    sha256 = "0fm73cbja570lfxznv66daya5anp4b0m24jjm5fwn95f49dp9d4n";
+  } {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" (hackGet ./dep/dependent-sum-universe-orphans) {};
 
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
@@ -100,6 +116,5 @@ in
   universe-instances-extended = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-instances-extended" {};
   universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
-
 
 }
