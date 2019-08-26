@@ -80,6 +80,10 @@ in self: super: {
   cryptonite = dontCheck super.cryptonite;
   scientific = dontCheck super.scientific;
 
+  # Packages not yet in 19.03
+  semialign = doJailbreak (self.callHackage "semialign" "1" {});
+  these = self.callHackage "these" "1" {};
+
   ########################################################################
   # Packages not in hackage
   ########################################################################
