@@ -43,22 +43,6 @@ self: super: {
     };
   });
 
-  entropy = haskellLib.overrideCabal super.entropy (drv: {
-    src = fetchFromGitHub {
-      owner = "TomMD";
-      repo = "entropy";
-      rev = "c682fcd6cc2bcaa5cab9f6e59a93faf8c9938221";
-      sha256 = "162pazw91zp3kzvivxdn3n8ffsdxi9bfwm24vwkp96sgds59xs31";
-    };
-  });
-
-  vector-algorithms = haskellLib.overrideCabal super.entropy (drv: {
-    src = fetchFromGitHub {
-      owner = "matthewbauer";
-      repo = "vector-algorithms";
-      rev = "7acf1e142f352d728b0b3a050da825d472fe6471";
-      sha256 = "0b5pnjfwgjm2jk2hhld4y217qa3j1vvzv68h8daxnwrp07q1fyka";
-    };
-  });
+  entropy = self.callHackage "entropy" "0.4.1.4" {};
 
 }

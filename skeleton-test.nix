@@ -1,11 +1,8 @@
 { reflex-platform }:
 
 let
-  skeletonSrc = reflex-platform.nixpkgs.fetchFromGitHub {
-    owner = "ElvishJerricco";
-    repo = "reflex-project-skeleton";
-    rev = "d1cf6b26a9aa08b192e3e81ae07a4ba00064d6d2";
-    sha256 = "05a3rq4ar77fpwl05z7niz025lp5wrwxzzz804jvwkamvyjxsyf2";
+  skeletonSrc = reflex-platform.nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./examples/project/reflex-project-skeleton/github.json))
+  // {
     fetchSubmodules = false; # Not interested in its reflex-platform checkout
   };
 

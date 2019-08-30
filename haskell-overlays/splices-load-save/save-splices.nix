@@ -21,10 +21,6 @@ self: super: {
           // { inherit SPLICE_DIR; })
      else super.mkDerivation attrs;
 
-  haddock = super.haddock.overrideAttrs (drv: {
-    patches = (drv.patches or []) ++ [ ./haddock.patch ];
-  });
-
   vector-th-unbox = haskellLib.dontCheck super.vector-th-unbox;
   lens = haskellLib.dontCheck super.lens;
 
