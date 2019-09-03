@@ -24,6 +24,7 @@ let
     getRP = args: import ./. ((self-args // { inherit system; }) // args);
     reflex-platform = getRP {};
     reflex-platform-profiled = getRP { enableLibraryProfiling = true; };
+    reflex-platform-nojsstring = getRP { useTextJSString = false; };
     otherDeps = getOtherDeps reflex-platform;
     skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
 
@@ -62,6 +63,9 @@ let
     } // lib.optionalAttrs (reflex-platform.iosSupport) {
       inherit (reflex-platform-profiled) iosReflexTodomvc;
       inherit (reflex-platform-profiled) iosReflexTodomvc-8_6;
+    };
+    nojsstring = {
+      ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
     };
     skeleton-test-ghc = skeleton-test.ghc;
     skeleton-test-ghcjs = skeleton-test.ghcjs;
