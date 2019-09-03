@@ -41,8 +41,4 @@ in {
     '';
   });
 
-  haddock = super.haddock.overrideAttrs (drv: {
-    patches = (drv.patches or []) ++ [ ./haddock.patch ];
-  });
-
 }

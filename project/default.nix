@@ -39,7 +39,6 @@ in
 # > example commands
 #
 #     $ nix-build
-#     $ nix-build -A all
 #     $ nix-build -A ghc.backend
 #     $ nix-build -A ghcjs.frontend
 #     $ nix-build -A android.frontend

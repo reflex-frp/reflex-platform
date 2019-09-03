@@ -1,4 +1,4 @@
-{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard }:
+{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard, hackGet }:
 
 with lib;
 with haskellLib;
@@ -6,7 +6,7 @@ with haskellLib;
 self: super: {
   _dep = super._dep or {} // {
     ghcjsBaseTextJSStringSrc = self._dep.ghcjsBaseSrc.overrideAttrs (drv: {
-      outputHash = "1ggfklrmawqh54ins98rpr7qy3zbcqaqp1w7qmh90mq5jf711x9r";
+      outputHash = "0l7xadhcmc8wg9l6p91gi1a5bjbil8gqmd7jkx2758b73y8faxzi";
       postFetch = (drv.postFetch or "") + ''
         ( cd $out
           patch -p1 < ${./ghcjs-base-text-jsstring.patch}
@@ -15,28 +15,13 @@ self: super: {
     });
   };
 
-  # text = (doCheck (self.callCabal2nix "text" (fetchFromGitHub {
-  #   owner = "obsidiansystems";
-  #   repo = "text";
-  #   rev = "50076be0262203f0d2afdd0b190a341878a08e21";
-  #   sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
-  # }) {})).overrideScope (self: super: {
-  #   text = null;
-  #   QuickCheck = haskellLib.addBuildDepend (self.callHackage "QuickCheck" "2.9.2" {}) self.tf-random;
-  # });
-  # parsec = dontCheck (self.callHackage "parsec" "3.1.13.0" {});
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
       self.ghcjs-prim
     ];
   });
-  attoparsec = self.callCabal2nix "attoparsec" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "attoparsec";
-    rev = "5569fbd47ae235a800653134a06bf51186c91f8f";
-    sha256 = "0qgr9xcmwzbxxm84l9api7bib6bspmkii1d7dlg8bcgk9icqwbcw";
-  }) {};
+  attoparsec = self.callCabal2nix "attoparsec" (hackGet ./dep/attoparsec) {};
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {
@@ -75,6 +60,7 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  aeson = appendPatch super.aeson ./aeson.patch;
+  # Tests are disabled because of an issue with floating-point precision
+  aeson = self.callPackage (hackGet ./dep/aeson) {};
   text-show = appendPatch super.text-show ./text-show.patch;
 }
