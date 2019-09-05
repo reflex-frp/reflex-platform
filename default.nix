@@ -177,9 +177,9 @@ let iosSupport = system == "x86_64-darwin";
     ghc = old.ghc.override {
       bootPkgs = nixpkgs.haskell.packages.ghc865;
       ghcjsSrc = fetchgit {
-        url = "https://github.com/ghcjs/ghcjs.git";
-        rev = "c3922ede190a7dda6c0b673a3b7441cf41afcc9c";
-        sha256 = "0201d42747brfafi28yd9na2hlqah5kcf4pkzbzxq0j6k1sck6fj";
+        url = "https://github.com/obsidiansystems/ghcjs.git";
+        rev = "06f81b44c3cc6c7f75e1a5a20d918bad37294b52";
+        sha256 = "02mwkf7aagxqi142gcmq048244apslrr72p568akcab9s0fn2gvy";
         fetchSubmodules = true;
       };
     };
