@@ -38,7 +38,7 @@ self: super: {
   # Nixpkgs splices it to the android version. Haskell splicing
   # appears to be broken! /cc @ericson2314
   haskell-src-exts = haskellLib.overrideCabal super.haskell-src-exts ({
-    libraryToolDepends = [ nixpkgs.buildPackages.haskell.packages.ghc843.happy ];
+    libraryToolDepends = [ nixpkgs.buildPackages.haskell.packages.ghc844.happy ];
   });
 
 }
