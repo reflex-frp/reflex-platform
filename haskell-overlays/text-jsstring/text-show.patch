@@ -1,0 +1,74 @@
+diff --git a/src/TextShow/Data/Text.hs b/src/TextShow/Data/Text.hs
+index daeaf1b..ebf8c14 100644
+--- a/src/TextShow/Data/Text.hs
++++ b/src/TextShow/Data/Text.hs
+@@ -21,7 +21,9 @@ module TextShow.Data.Text () where
+ 
+ import qualified Data.Text as TS
+ import           Data.Text.Encoding.Error (UnicodeException(..))
++#ifndef ghcjs_HOST_OS
+ import           Data.Text.Foreign (I16)
++#endif
+ import qualified Data.Text.Lazy as TL
+ import           Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
+ 
+@@ -61,7 +63,9 @@ instance TextShow Builder where
+     {-# INLINE showb #-}
+ 
+ -- | /Since: 2/
++#ifndef ghcjs_HOST_OS
+ $(deriveTextShow ''I16)
++#endif
+ 
+ -- | /Since: 2/
+ instance TextShow UnicodeException where
+diff --git a/tests/Instances/Data/Text.hs b/tests/Instances/Data/Text.hs
+index 6a4b4f0..df3876e 100644
+--- a/tests/Instances/Data/Text.hs
++++ b/tests/Instances/Data/Text.hs
+@@ -17,7 +17,9 @@ Portability: GHC
+ module Instances.Data.Text () where
+ 
+ import Data.Text.Encoding.Error (UnicodeException(..))
++#ifndef ghcjs_HOST_OS
+ import Data.Text.Foreign (I16)
++#endif
+ import Data.Text.Lazy.Builder (Builder, fromString)
+ 
+ #if MIN_VERSION_text(1,0,0)
+@@ -43,8 +45,10 @@ import Test.QuickCheck.Instances ()
+ instance Arbitrary Builder where
+     arbitrary = fromString <$> arbitrary
+ 
++#ifndef ghcjs_HOST_OS
+ instance Arbitrary I16 where
+     arbitrary = arbitraryBoundedEnum
++#endif
+ 
+ instance Arbitrary UnicodeException where
+     arbitrary = genericArbitrary
+diff --git a/tests/Spec/Data/TextSpec.hs b/tests/Spec/Data/TextSpec.hs
+index 0476012..b19194f 100644
+--- a/tests/Spec/Data/TextSpec.hs
++++ b/tests/Spec/Data/TextSpec.hs
+@@ -26,7 +26,9 @@ import qualified Data.Text as TL
+ import           Data.Text.Encoding (Decoding)
+ #endif
+ import           Data.Text.Encoding.Error (UnicodeException)
++#ifndef ghcjs_HOST_OS
+ import           Data.Text.Foreign (I16)
++#endif
+ #if MIN_VERSION_text(1,1,0)
+ import           Data.Text.Internal.Fusion.Size (Size)
+ #endif
+@@ -43,8 +45,10 @@ spec = parallel $ do
+         matchesTextShowSpec (Proxy :: Proxy TS.Text)
+     describe "lazy Text" $
+         matchesTextShowSpec (Proxy :: Proxy TL.Text)
++#ifndef ghcjs_HOST_OS
+     describe "I16" $
+         matchesTextShowSpec (Proxy :: Proxy I16)
++#endif
+     describe "UnicodeException" $
+         matchesTextShowSpec (Proxy :: Proxy UnicodeException)
+ #if MIN_VERSION_text(1,0,0)

@@ -1,7 +1,9 @@
-{ haskellLib, nixpkgs, androidActivity }:
+{ haskellLib, nixpkgs, thunkSet }:
 
 self: super: {
-  android-activity = self.callPackage androidActivity {
+  _dep = super._dep or {} // thunkSet ./dep;
+
+  android-activity = self.callPackage self._dep.android-activity {
     inherit (nixpkgs.buildPackages) jdk;
   };
 
@@ -36,7 +38,7 @@ self: super: {
   # Nixpkgs splices it to the android version. Haskell splicing
   # appears to be broken! /cc @ericson2314
   haskell-src-exts = haskellLib.overrideCabal super.haskell-src-exts ({
-    libraryToolDepends = [ nixpkgs.buildPackages.haskell.packages.ghc843.happy ];
+    libraryToolDepends = [ nixpkgs.buildPackages.haskell.packages.ghc844.happy ];
   });
 
 }
