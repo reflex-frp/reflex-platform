@@ -31,10 +31,9 @@ Many different platform are provided for you. A partial list of
 possible platforms include:
 
 - ghc
-- ghcHEAD
-- ghc8_4
+- ghc8_6
 - ghcjs
-- ghcjs8_4
+- ghcjs8_6
 
 In addition, instead of specifying the name of the platform, you can
 specify a path to a Nix expression file representing a Haskell

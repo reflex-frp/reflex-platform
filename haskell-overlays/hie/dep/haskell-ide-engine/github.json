@@ -1,6 +1,8 @@
 {
   "owner": "haskell",
   "repo": "haskell-ide-engine",
-  "rev": "89988b66a7b2d305740a9a085009a21fd4c80adf",
-  "sha256": "02mi3f5n4zblc0amk1xgmz40dp9a7k6wmqkscrx1bydbzx6a6ipq"
+  "rev": "05855748c1149b267004eccab90f6f43fbb4d40d",
+  "sha256": "0hf2a760mm0samxsyrb0l847227mk8lby5ny2rdvs3lixxnc004f",
+  "fetchSubmodules": true
+
 }
