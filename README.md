@@ -40,7 +40,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
     git clone https://github.com/reflex-frp/reflex-platform
     ```
 
-1. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
+1. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time (but it shouldn't take more than a few minutes, if your binary cache is configured properly):
 
     ```bash
     cd reflex-platform
