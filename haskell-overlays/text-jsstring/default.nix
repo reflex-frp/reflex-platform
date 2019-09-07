@@ -21,7 +21,7 @@ self: super: {
       self.ghcjs-prim
     ];
   });
-  attoparsec = self.callCabal2nix "attoparsec" (hackGet ./dep/attoparsec) {};
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" (hackGet ./dep/attoparsec) {});
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {
@@ -60,7 +60,6 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  # Tests are disabled because of an issue with floating-point precision
   aeson = self.callPackage (hackGet ./dep/aeson) {};
   text-show = appendPatch super.text-show ./text-show.patch;
 }
