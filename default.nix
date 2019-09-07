@@ -500,14 +500,6 @@ in let this = rec {
     inherit buildInputs;
   });
 
-  # The systems that we want to build for on the current system
-  cacheTargetSystems = lib.warn "cacheTargetSystems has been deprecated, use cacheBuildSystems" cacheBuildSystems;
-  cacheBuildSystems = [
-    "x86_64-linux"
-    # "i686-linux"
-    "x86_64-darwin"
-  ];
-
   reflexEnv = platform:
     let haskellPackages = builtins.getAttr platform this;
         ghcWithStuff = if platform == "ghc" || platform == "ghcjs"
