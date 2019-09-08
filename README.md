@@ -9,6 +9,8 @@ Try Reflex lets you set up an environment from which you can use [Reflex](https:
 
 To use Reflex Platform as a build/development system for your own projects, refer to `HACKING.md`.
 
+To see what has changed since a previous version of Reflex Platform, see `ChangeLog.md`.
+
 Important Notes
 ---------------
 
@@ -38,7 +40,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
     git clone https://github.com/reflex-frp/reflex-platform
     ```
 
-1. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
+1. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time (but it shouldn't take more than a few minutes, if your binary cache is configured properly):
 
     ```bash
     cd reflex-platform
@@ -109,7 +111,7 @@ Most Reflex apps will start the same way: a call to `mainWidget` with a starting
 el :: MonadWidget t m => Text -> m a -> m a
 ```
 
-The first argument to `el` is a `Text`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced.
+The first argument to `el` is a `Text`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced. We turned on the `OverloadedStrings` extension so that the literal string in our source file would be interpreted as the appropriate type (`Text` rather than `String`).
 
  > #### Sidebar: Interpreting the MonadWidget type
  > FRP-enabled datatypes in Reflex take an argument `t`, which identifies the FRP subsystem being used.  This ensures that wires don't get crossed if a single program uses Reflex in multiple different contexts.  You can think of `t` as identifying a particular "timeline" of the FRP system.
@@ -192,7 +194,7 @@ data InputElement er d t
                   }
 ```
 
-Here we are using `_inputElement_value` to access the `Dynamic Text` value of the `TextInput`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
+Here we are using `_inputElement_value` to access the `Dynamic Text` value of the `InputElement`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
 
  ### A Number Input
 A calculator was promised, I know. We'll start building the calculator by creating an input for numbers.

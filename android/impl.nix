@@ -4,6 +4,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         sed -i 's%^executable *\(.*\)$%executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog%i' *.cabal
       '';
     });
+    androidenv = nixpkgs.androidenv;
     #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
     addDeployScript = src: nixpkgs.runCommand "android-app" {
       inherit src;
@@ -16,12 +17,17 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         EOF
         chmod +x "$out/bin/deploy"
       '';
-      buildInputs = [ nixpkgs.androidenv.androidsdk_8_0 ];
+      buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
     } "";
+    buildGradleApp = import ./build-gradle-app.nix {
+      inherit (nixpkgs) stdenv jdk gnumake gawk file runCommand
+                     which gradle fetchurl buildEnv;
+      inherit androidenv;
+    };
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
-  buildApp = args: with args; addDeployScript (nixpkgs.androidenv.buildGradleApp {
-    acceptAndroidSdkLicenses = true;
+  buildApp = args: with args; addDeployScript (buildGradleApp {
+    inherit acceptAndroidSdkLicenses;
     buildDirectory = "./.";
     # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
     gradleTask = if releaseKey == null
@@ -33,7 +39,7 @@ in {
     keyStorePassword = releaseKey.storePassword or null;
     mavenDeps = import ./defaults/deps.nix;
     name = applicationId;
-    platformVersions = [ "26" ];
+    platformVersions = [ "28" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;
@@ -108,7 +114,7 @@ in {
           [ -d "$out/assets" ]
           [ -d "$out/res" ]
         '');
-    useExtraSupportLibs = true; #TODO: Should this be enabled by default?
+    useGooglePlayServices = true; # TODO: Should this be enabled by default?
     useGoogleAPIs = true; #TODO: Should this be enabled by default?
 
     # We use the NDK build process

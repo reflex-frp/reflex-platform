@@ -1,9 +1,0 @@
-name: a
-version: 0.1
-cabal-version: >= 1.2
-build-type: Simple
-
-library
-  build-depends: base, rank2classes
-  exposed-modules: A
-  ghc-options: -Wall

@@ -1,31 +1,27 @@
-{ lib, haskellLib, fetchFromGitHub, fetchpatch, ghcjsBaseTextJSStringSrc, versionWildcard }:
+{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard, hackGet }:
 
 with lib;
 with haskellLib;
 
 self: super: {
-  # text = (doCheck (self.callCabal2nix "text" (fetchFromGitHub {
-  #   owner = "obsidiansystems";
-  #   repo = "text";
-  #   rev = "50076be0262203f0d2afdd0b190a341878a08e21";
-  #   sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
-  # }) {})).overrideScope (self: super: {
-  #   text = null;
-  #   QuickCheck = haskellLib.addBuildDepend (self.callHackage "QuickCheck" "2.9.2" {}) self.tf-random;
-  # });
-  # parsec = dontCheck (self.callHackage "parsec" "3.1.13.0" {});
+  _dep = super._dep or {} // {
+    ghcjsBaseTextJSStringSrc = self._dep.ghcjsBaseSrc.overrideAttrs (drv: {
+      outputHash = "0l7xadhcmc8wg9l6p91gi1a5bjbil8gqmd7jkx2758b73y8faxzi";
+      postFetch = (drv.postFetch or "") + ''
+        ( cd $out
+          patch -p1 < ${./ghcjs-base-text-jsstring.patch}
+        )
+      '';
+    });
+  };
+
   jsaddle = overrideCabal super.jsaddle (drv: {
     buildDepends = (drv.buildDepends or []) ++ [
       self.ghcjs-base
       self.ghcjs-prim
     ];
   });
-  attoparsec = self.callCabal2nix "attoparsec" (fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "attoparsec";
-    rev = "5569fbd47ae235a800653134a06bf51186c91f8f";
-    sha256 = "0qgr9xcmwzbxxm84l9api7bib6bspmkii1d7dlg8bcgk9icqwbcw";
-  }) {};
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" (hackGet ./dep/attoparsec) {});
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {
@@ -42,7 +38,7 @@ self: super: {
     doCheck = false;
     libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
       self.text
-    ] ++ optional (versionWildcard [ 8 0 ] super.ghc.ghcVersion) self.ghcjs-base;
+    ];
     patches = (drv.patches or []) ++ [
       ./hashable.patch
     ];
@@ -64,18 +60,6 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  aeson = appendPatch super.aeson ./aeson.patch;
-  # Bellow 8.4 text was not a boot pkg.
-  text = if !(versionWildcard [ 8 0 ] super.ghc.ghcVersion)
-    then super.text
-    else haskellLib.dontCheck (self.callCabal2nix "text"
-      (fetchFromGitHub { # TODO use this src in useTextJSStringAsBootPkg; Currently here to avoid ghcjs8.4 boot rebuild
-        owner = "obsidiansystems";
-        repo = "text";
-        rev = "3ea808e8cabede6e67f565376376afcb2dfb94b8";
-        sha256 = "1ffiyvfq4diwpmm8sv8k7fm58p37rbr24baxbmm8b2h8bkrnwg9y";
-      }) {});
-  ghcjs-base = with haskellLib; if (versionWildcard [ 8 0 ] super.ghc.ghcVersion)
-    then dontCheck (doJailbreak (self.callCabal2nix "ghcjs-base" ghcjsBaseTextJSStringSrc {}))
-    else super.ghcjs-base;
+  aeson = self.callPackage (hackGet ./dep/aeson) {};
+  text-show = appendPatch super.text-show ./text-show.patch;
 }
