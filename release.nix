@@ -20,7 +20,13 @@ let
   drvListToAttrs = drvs:
     lib.listToAttrs (map (drv: { inherit (drv) name; value = drv; }) drvs);
 
-  perPlatform = lib.genAttrs local-self.cacheBuildSystems (system: let
+  cacheBuildSystems = [
+    "x86_64-linux"
+    # "i686-linux"
+    "x86_64-darwin"
+  ];
+
+  perPlatform = lib.genAttrs cacheBuildSystems (system: let
     getRP = args: import ./. ((self-args // { inherit system; }) // args);
     reflex-platform = getRP {};
     reflex-platform-profiled = getRP { enableLibraryProfiling = true; };
@@ -71,8 +77,7 @@ let
     skeleton-test-ghcjs = skeleton-test.ghcjs;
     inherit benchmark;
     cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
-      (builtins.attrValues dep ++ reflex-platform.cachePackages)
-      otherDeps;
+      (builtins.attrValues dep ++ reflex-platform.cachePackages ++ otherDeps);
   } // lib.optionalAttrs (reflex-platform.androidSupport) {
     inherit (reflex-platform) androidReflexTodomvc;
     inherit (reflex-platform) androidReflexTodomvc-8_6;
@@ -85,9 +90,7 @@ let
     // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages) # TODO no filter
   );
 
-  metaCache = local-self.pinBuildInputs
-    "reflex-platform-everywhere"
-    (map (a: a.cache) (builtins.attrValues perPlatform))
-    [];
+  metaCache = local-self.pinBuildInputs "reflex-platform-everywhere"
+    (map (a: a.cache) (builtins.attrValues perPlatform));
 
 in perPlatform // { inherit metaCache; }

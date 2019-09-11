@@ -490,27 +490,15 @@ in let this = rec {
   # A simple derivation that just creates a file with the names of all
   # of its inputs. If built, it will have a runtime dependency on all
   # of the given build inputs.
-  pinBuildInputs = name: buildInputs: otherDeps: (nixpkgs.releaseTools.aggregate {
+  pinBuildInputs = name: buildInputs: (nixpkgs.releaseTools.aggregate {
     inherit name;
-    constituents = buildInputs ++ otherDeps;
+    constituents = buildInputs;
   }).overrideAttrs (old: {
     buildCommand = old.buildCommand + ''
-      echo "$propagatedBuildInputs $buildInputs $nativeBuildInputs $propagatedNativeBuildInputs $otherDeps" > "$out/deps"
+      echo "$propagatedBuildInputs $buildInputs $nativeBuildInputs $propagatedNativeBuildInputs" > "$out/deps"
     '';
-    inherit buildInputs otherDeps;
+    inherit buildInputs;
   });
-
-  # The systems that we want to build for on the current system
-  cacheTargetSystems = lib.warn "cacheTargetSystems has been deprecated, use cacheBuildSystems" cacheBuildSystems;
-  cacheBuildSystems = [
-    "x86_64-linux"
-    # "i686-linux"
-    "x86_64-darwin"
-  ];
-
-  isSuffixOf = suffix: s:
-    let suffixLen = builtins.stringLength suffix;
-    in builtins.substring (builtins.stringLength s - suffixLen) suffixLen s == suffix;
 
   reflexEnv = platform:
     let haskellPackages = builtins.getAttr platform this;
@@ -552,6 +540,6 @@ in let this = rec {
 
   inherit cabal2nixResult system androidSupport iosSupport;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
-  tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages [];
+  tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
 }; in this
