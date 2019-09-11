@@ -30,6 +30,12 @@ self: super: {
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = lib.warn "ignoring dependency on doctest" null;
 
+  network = haskellLib.overrideCabal super.network (drv: {
+    revision = null;
+    editedCabalFile = null;
+    patches = (drv.patches or []) ++ [ ./ghcjs-network.patch ];
+  });
+
   # These packages require doctest
   comonad = dontCheck super.comonad;
   http-types = dontCheck super.http-types;
