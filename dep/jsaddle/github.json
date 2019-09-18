@@ -1,6 +1,7 @@
 {
-  "owner": "ghcjs",
+  "owner": "obsidiansystems",
   "repo": "jsaddle",
-  "rev": "471b4426e73613086229895b8a8d26e20d89a78a",
-  "sha256": "0c12dfql336pbq6vnhgarfy8hklam56jm7dqbwf96fwmf5wv6myg"
+  "branch": "solve-timer-hang",
+  "rev": "ee15bda43a81dfc1a3e4ae254881ab0eef5f2f21",
+  "sha256": "1kzsbk9yi9jsppjp1naajb44nz41ndmh552ipzxymbfki1qd53rk"
 }
