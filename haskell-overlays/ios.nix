@@ -17,6 +17,7 @@ self: super: {
   jsaddle = haskellLib.appendConfigureFlag super.jsaddle "--enable-optimization=0";
 
   blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+  cryptonite = haskellLib.disableCabalFlag super.cryptonite "integer-gmp";
 
   reflex-todomvc = haskellLib.overrideCabal super.reflex-todomvc (drv: {
     postFixup = ''
