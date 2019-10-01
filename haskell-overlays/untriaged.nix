@@ -38,7 +38,6 @@ in self: super: {
     ver = "8.8.0.20190723";
     sha256 = "0l0ffxmszjrcj8qiqwwmsdygy2sgw6vrlm1xfqrbdx60bwgc07m5";
   } {};
-  haskell-src-exts = super.haskell-src-exts_1_21_0;
   haskell-src-exts-util = self.callHackage "haskell-src-exts-util" "0.2.5" {};
   stylish-haskell = self.callHackage "stylish-haskell" "0.9.2.2" {};
 
