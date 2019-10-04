@@ -84,6 +84,19 @@ in self: super: {
   semialign = doJailbreak (self.callHackage "semialign" "1" {});
   these = self.callHackage "these" "1" {};
 
+  # Something needed newer version.
+  aeson = dontCheck (self.callHackageDirect {
+    pkg = "aeson";
+    ver = "1.4.5.0";
+    sha256 = "0imcy5kkgrdrdv7zkhkjvwpdp4sms5jba708xsap1vl9c2s63n5a";
+  } {});
+  # needed by aeson
+  time-compat = doJailbreak (self.callHackageDirect {
+    pkg = "time-compat";
+    ver = "1.9.2.2";
+    sha256 = "11kdcw1g8m9hl6ps9i8hqrcpgidmv0r19sbxcwm1qrp9wf0bfq1y";
+  } {});
+
   ########################################################################
   # Packages not in hackage
   ########################################################################
