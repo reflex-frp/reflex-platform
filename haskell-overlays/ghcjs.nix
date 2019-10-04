@@ -47,6 +47,7 @@ self: super: {
 
   # These tests are not expected to support ghcjs
   QuickCheck = dontCheck super.QuickCheck;
+  temporary = dontCheck super.temporary;
 
   # These tests never complete
   tasty-quickcheck = dontCheck super.tasty-quickcheck;
