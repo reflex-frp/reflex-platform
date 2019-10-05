@@ -244,7 +244,7 @@ Let's do more than just take the input value and print it out. First, let's make
 >   let numberString = fmap (pack . show) x
 >   dynText numberString
 
-> numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+> numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   n <- inputElement $ def
 >     & inputElementConfig_initialValue .~ "0"
@@ -286,7 +286,7 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 >       resultString = fmap (pack . show) result
 >   dynText resultString
 
-> numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+> numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   n <- inputElement $ def
 >     & inputElementConfig_initialValue .~ "0"
@@ -358,7 +358,7 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 >   text " = "
 >   dynText resultText
 >
-> numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+> numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   n <- inputElement $ def
 >     & inputElementConfig_initialValue .~ "0"
@@ -398,7 +398,7 @@ Running the app at this point will give us our two number inputs with a dropdown
 Let's spare a thought for the user of our calculator and add a little UI styling. Our number input currently looks like this:
 
 ```haskell
-numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 numberInput = do
   n <- inputElement $ def
     & inputElementConfig_initialValue .~ "0"
@@ -409,7 +409,7 @@ numberInput = do
 Let's give it some html attributes to work with:
 
 ```haskell
-numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 numberInput = do
   let initAttrs = (("type" =: "number") <> ("style" =: "border-color: blue"))
   n <- inputElement $ def
@@ -425,8 +425,9 @@ Instead of just making the `InputElement` blue, let's change it's color based on
 
 ```haskell
 {-# LANGUAGE RecursiveDo #-}
+import Control.Monad.Fix (MonadFix)
 ...
-numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+numberInput :: (DomBuilder t m, MonadFix m) => m (Dynamic t (Maybe Double))
 numberInput = do
   let initAttrs = ("type" =: "number") <> (style False)
       color error = if error then "red" else "green"
@@ -446,7 +447,7 @@ numberInput = do
   return result
 ```
 
-Note that we need to add a language pragma here to enable the `RecursiveDo` language extension.
+Note that we need to add a language pragma here to enable the `RecursiveDo` language extension, and then we need to import `MonadFix`.
 Here `style` function takes a `Bool` value, whether input is correct or not, and it gives a `Map` of attributes with green or red color respectively.
 The next function `styleChange` actually produces a `Map` which tells which attribute to change.
 If the value of a key in the `Map` is a `Just` value then the attribute is either added or modified.
@@ -472,6 +473,7 @@ The complete program now looks like this:
 > import qualified Data.Map as Map
 > import Data.Text (pack, unpack, Text)
 > import Text.Read (readMaybe)
+> import Control.Monad.Fix (MonadFix)
 >
 > main = mainWidget $ el "div" $ do
 >   nx <- numberInput
@@ -483,7 +485,7 @@ The complete program now looks like this:
 >   text " = "
 >   dynText resultText
 >
-> numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+> numberInput :: (DomBuilder t m, MonadFix m) => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   let initAttrs = ("type" =: "number") <> (style False)
 >       color error = if error then "red" else "green"
