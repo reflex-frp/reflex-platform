@@ -167,6 +167,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.combined
       haskellOverlays.saveSplices
       (self: super: with haskellLib; {
+        blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";

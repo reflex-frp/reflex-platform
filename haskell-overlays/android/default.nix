@@ -15,6 +15,7 @@ self: super: {
   safe-exceptions = haskellLib.doJailbreak super.safe-exceptions;
 
   blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+  cryptonite = haskellLib.disableCabalFlag super.cryptonite "integer-gmp";
 
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;
