@@ -276,7 +276,6 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 > import qualified Data.Map as Map
 > import Data.Text (pack, unpack)
 > import Text.Read (readMaybe)
-> import Control.Applicative ((<*>), (<$>))
 >
 > main = mainWidget $ el "div" $ do
 >   nx <- numberInput
@@ -307,7 +306,7 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 
 You can see that it takes a function that combines two pure values and produces some other pure value, and two `Dynamic`s, and produces a `Dynamic`.
 
-In our case, `zipDynWith` is combining the results of our two `numberInput`s (with a little help from `Control.Applicative`) into a sum.
+In our case, `zipDynWith` is combining the results of our two `numberInput`s (with a little help from `<$>` and `<*>`) into a sum.
 
 We use `fmap` again to apply `pack . show` to `result` (a `Dynamic (Maybe Double)`) resulting in a `Dynamic Text`. This `resultText` is then displayed using `dynText`.
 
@@ -348,7 +347,6 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 > import qualified Data.Map as Map
 > import Data.Text (pack, unpack, Text)
 > import Text.Read (readMaybe)
-> import Control.Applicative ((<*>), (<$>))
 >
 > main = mainWidget $ el "div" $ do
 >   nx <- numberInput
@@ -474,7 +472,6 @@ The complete program now looks like this:
 > import qualified Data.Map as Map
 > import Data.Text (pack, unpack, Text)
 > import Text.Read (readMaybe)
-> import Control.Applicative ((<*>), (<$>))
 >
 > main = mainWidget $ el "div" $ do
 >   nx <- numberInput
