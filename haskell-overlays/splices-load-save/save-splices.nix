@@ -11,15 +11,7 @@ self: super: {
 
     SPLICE_DIR = "/lib/${drv.compiler.name}/${drv.name}";
 
-    # Not all packages can be spliced with our patched ghc.
-    shouldSplice = !(builtins.elem attrs.pname [
-      "math-functions"
-    ]);
-
-  in if shouldSplice
-     then ((drv.overrideAttrs (_: { inherit SPLICE_DIR; }))
-          // { inherit SPLICE_DIR; })
-     else super.mkDerivation attrs;
+  in ((drv.overrideAttrs (_: { inherit SPLICE_DIR; })) // { inherit SPLICE_DIR; });
 
   vector-th-unbox = haskellLib.dontCheck super.vector-th-unbox;
   lens = haskellLib.dontCheck super.lens;
