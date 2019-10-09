@@ -108,12 +108,12 @@ Most Reflex apps will start the same way: a call to `mainWidget` with a starting
 `el` has the type signature:
 
 ```haskell
-el :: MonadWidget t m => Text -> m a -> m a
+el :: DomBuilder t m => Text -> m a -> m a
 ```
 
 The first argument to `el` is a `Text`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced. We turned on the `OverloadedStrings` extension so that the literal string in our source file would be interpreted as the appropriate type (`Text` rather than `String`).
 
- > #### Sidebar: Interpreting the MonadWidget type
+ > #### Sidebar: Interpreting the DomBuilder type
  > FRP-enabled datatypes in Reflex take an argument `t`, which identifies the FRP subsystem being used.  This ensures that wires don't get crossed if a single program uses Reflex in multiple different contexts.  You can think of `t` as identifying a particular "timeline" of the FRP system.
  > Because most simple programs will only deal with a single timeline, we won't revisit the `t` parameters in this tutorial.  As long as you make sure your `Event`, `Behavior`, and `Dynamic` values all get their `t` argument, it'll work itself out.
 
@@ -122,7 +122,7 @@ In our example, `el "div" $ text "Welcome to Reflex"`, the first argument to `el
 The second argument to `el` was `text "Welcome to Reflex"`. The type signature of `text` is:
 
 ```haskell
-text :: MonadWidget t m => Text -> m ()
+text :: DomBuilder t m => Text -> m ()
 ```
 
 `text` takes a `Text` and produces a `Widget`. The `Text` becomes a text DOM node in the parent element of the `text`. Of course, instead of a `Text`, we could have used `el` here as well to continue building arbitrarily complex DOM. For instance, if we wanted to make a unordered list:
@@ -314,7 +314,7 @@ We use `fmap` again to apply `pack . show` to `result` (a `Dynamic (Maybe Double
 Next, we'll add support for other operations. We're going to add a dropdown so that the user can select the operation to apply. The function `dropdown` has the type:
 
 ```haskell
-dropdown :: (MonadWidget t m, Ord k) => k -> Dynamic t (Map k Text) -> DropdownConfig t k -> m (Dropdown t k)
+dropdown :: (DomBuilder t m, MonadFix m, MonadHold t m, PostBuild t m, Ord k) => k -> Dynamic t (Map k Text) -> DropdownConfig t k -> m (Dropdown t k)
 ```
 
 The first argument is the initial value of the `Dropdown`. The second argument is a `Dynamic (Map k Text)` that represents the options in the dropdown. The `Text` values of the `Map` are the strings that will be displayed to the user. If the initial key is not in the `Map`, it is added and given a `Text` value of `""`. The final argument is a `DropdownConfig`.
