@@ -20,7 +20,13 @@ let
   drvListToAttrs = drvs:
     lib.listToAttrs (map (drv: { inherit (drv) name; value = drv; }) drvs);
 
-  perPlatform = lib.genAttrs local-self.cacheBuildSystems (system: let
+  cacheBuildSystems = [
+    "x86_64-linux"
+    # "i686-linux"
+    "x86_64-darwin"
+  ];
+
+  perPlatform = lib.genAttrs cacheBuildSystems (system: let
     getRP = args: import ./. ((self-args // { inherit system; }) // args);
     reflex-platform = getRP {};
     reflex-platform-profiled = getRP { enableLibraryProfiling = true; };
@@ -36,7 +42,8 @@ let
       '';
     });
 
-    benchmark = import ./scripts/benchmark { inherit reflex-platform; };
+    benchmark = import ./nix-utils/benchmark { inherit reflex-platform; };
+    demoVM = import ./nix-utils/demo-vm { inherit reflex-platform; };
 
     # TODO do we still need to do these to ensure srcs (only used at build time)
     # make it to the cache? If not, we can just drop this and all the `_dep`
@@ -69,7 +76,7 @@ let
     };
     skeleton-test-ghc = skeleton-test.ghc;
     skeleton-test-ghcjs = skeleton-test.ghcjs;
-    inherit benchmark;
+    inherit benchmark demoVM;
     cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
       (builtins.attrValues dep ++ reflex-platform.cachePackages ++ otherDeps);
   } // lib.optionalAttrs (reflex-platform.androidSupport) {

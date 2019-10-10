@@ -84,9 +84,6 @@ rec {
   reflexPackages = import ./reflex-packages {
     inherit haskellLib lib nixpkgs thunkSet fetchFromGitHub useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling fetchFromBitbucket;
   };
-  disableTemplateHaskell = import ./disable-template-haskell.nix {
-    inherit haskellLib fetchFromGitHub;
-  };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
     inherit lib haskellLib fetchFromGitHub versionWildcard;
