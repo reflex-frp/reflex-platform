@@ -61,5 +61,4 @@ self: super: {
     ];
   });
   aeson = self.callPackage (hackGet ./dep/aeson) {};
-  text-show = appendPatch super.text-show ./text-show.patch;
 }
