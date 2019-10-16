@@ -10,7 +10,7 @@ self: super:
 
 let
   universeRepo = nixpkgs.hackGet ./dep/universe;
-  reflexDom = import self._dep.reflex-dom self nixpkgs;
+  reflexDom = import self._dep.reflex-dom self;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
   ghcjsDom = import self._dep.ghcjs-dom self;
