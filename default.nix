@@ -476,7 +476,12 @@ in let this = rec {
         depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
           (map getHaskellConfig (lib.attrVals packageNames env))
           [{
-            buildTools = overriddenTools ++ tools env;
+            buildTools = [(nixpkgs.buildEnv {
+              name = "build-tools-wrapper";
+              paths = overriddenTools ++ tools env;
+              pathsToLink = [ "/bin" ];
+              extraOutputsToInstall = [ "bin" ];
+            })];
           }]
         ]));
 
