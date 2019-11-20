@@ -1,0 +1,19 @@
+
+Issue #16893 reveals that the unsafeCoercion# in eqTypeRep can float in
+a way that compromises type safety. A real solution for this sadly won't
+be ready for 8.10 so this is a stop-gap measure for 8.4.
+
+diff --git a/libraries/base/Data/Typeable/Internal.hs b/libraries/base/Data/Typeable/Internal.hs
+index a01a9ff859..c37cee4e74 100644
+--- a/libraries/base/Data/Typeable/Internal.hs
++++ b/libraries/base/Data/Typeable/Internal.hs
+@@ -567,6 +567,9 @@ eqTypeRep a b
+   | typeRepFingerprint a == typeRepFingerprint b = Just (unsafeCoerce HRefl)
+   | otherwise                                    = Nothing
+ 
++-- Due to #16893 it is currently unsafe to inline eqTypeRep so, hence
++-- the NOINLINE.
++{-# NOINLINE eqTypeRep #-}
+ 
+ -------------------------------------------------------------
+ --
