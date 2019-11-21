@@ -75,9 +75,12 @@ let iosSupport = system == "x86_64-darwin";
 
     allCabalHashesOverlay = import ./nixpkgs-overlays/all-cabal-hashes;
 
+    chromedriverOverlay = import ./nixpkgs-overlays/chromedriver;
+
     nixpkgsArgs = {
       inherit system;
       overlays = [
+        chromedriverOverlay
         hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
