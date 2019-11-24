@@ -9,6 +9,15 @@ This project's release branch is `master`. This log is written from the perspect
 * Update to the nixos-19.03 nixpkgs channel
 * Update to gradle build tools 3.1.0, androidsdk 9, and default to android platform version 28
 * Bump reflex-dom 0.5.2
+* The following attributes have been moved to `nix-utils/hackage.nix`:
+  * `attrsToList`
+  * `mapSet`
+  * `mkSdist`
+  * `sdists`
+  * `mkHackageDocs`
+  * `hackageDocs`
+  * `mkReleaseCandidate`
+  * `releaseCandidates`
 
 ## v0.1.0.0 - 2019-04-03
 
