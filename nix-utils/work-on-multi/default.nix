@@ -4,12 +4,13 @@ let
   inherit (reflex-platform)
     nixpkgs
     ghc
-    lib
     overrideCabal
+    generalDevToolsAttrs
     ;
+  inherit (nixpkgs) lib;
 in
 
-{ env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
+{ envFunc, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
   let inherit (builtins) listToAttrs filter attrValues all concatLists;
       combinableAttrs = [
         "benchmarkDepends"
@@ -47,6 +48,7 @@ in
         };
       })).out;
       notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
+      env = envFunc reflex-platform;
       baseTools = generalDevToolsAttrs env;
       overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
       depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
