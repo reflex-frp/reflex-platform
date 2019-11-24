@@ -9,6 +9,20 @@ This project's release branch is `master`. This log is written from the perspect
 * Update to the nixos-19.03 nixpkgs channel
 * Update to gradle build tools 3.1.0, androidsdk 9, and default to android platform version 28
 * Bump reflex-dom 0.5.2
+* `workOnMulti` and `workOnMulti'` are removed from the top-level.
+  If you used them, instead of
+  ```nix
+  let
+    inherit (import /path/to/reflex-platform {}) workOnMulti';
+  in workOnMulti' { env = let rp = import /path/to/reflex-platform {} in ...; packageNames = ...] }
+  ```
+  do
+  ```nix
+  let
+    workOnMulti' = import /path/to/reflex-platform/nix-utils/work-on-multi {};
+  in workOnMulti' { env = rp: ...; packageNames = ...] }
+  ```
+  All that said, if you just used `script/work-on-multi`, nothing has changed.
 
 ## v0.1.0.0 - 2019-04-03
 
