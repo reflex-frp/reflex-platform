@@ -1,7 +1,7 @@
 {
-  "owner": "nixos",
-  "repo": "nixpkgs-channels",
-  "branch": "nixos-19.09",
-  "rev": "ef8c34c4721761af0a9258129cad55be5bd9c696",
-  "sha256": "1d90yrhc3i0d940rc0zkm7c1rx3v7nn9rzpbzxm11vqaa3v8y37x"
+  "owner": "matthewbauer",
+  "repo": "nixpkgs",
+  "branch": "ios-with-xcode-11-for-19-09",
+  "rev": "8537a4c6408ff808419325da4e60f815fb6dc43b",
+  "sha256": "1cdwl3dqd4bs157m3fmfi61nh4kq1344xcpp0k39ndj19wz30363"
 }
