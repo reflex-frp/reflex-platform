@@ -8,11 +8,9 @@ self: _: {
 
             };
 
-            #FIXME:  get sha
             x86_64-darwin = {
             system = "mac64";
-            # sha256 = "0f8j7m8ardaaw8pv02vxhwkqbcm34366bln0np0j0ig21d4fag09";
-            sha256 = "0000000000000000000000000000000000000000000000000000";
+            "sha256" = "11rrzgkvhq6im5v8bqki1w4graf9dy502mdqhc4a0mwgc1r1xl6v";
             };
         };
 
