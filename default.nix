@@ -398,9 +398,7 @@ in let this = rec {
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
-  generalDevToolsAttrs = haskellPackages:
-    let nativeHaskellPackages = ghc;
-    in {
+  generalDevToolsAttrs = { nativeHaskellPackages ? ghc }: {
     inherit (nativeHaskellPackages)
       Cabal
       cabal-install
@@ -408,21 +406,22 @@ in let this = rec {
       hasktags
       hdevtools
       hlint
-      stylish-haskell; # Recent stylish-haskell only builds with AMP in place
+      stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      ;
     inherit (nixpkgs)
       cabal2nix
       curl
       nix-prefetch-scripts
       nodejs
       pkgconfig
-      closurecompiler;
-  } // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false)) {
-    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (haskellPackages.override {
+      closurecompiler
+      ;
+    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
       overrides = nixpkgs.haskell.overlays.hie;
     }).haskell-ide-engine;
-  });
+  };
 
-  generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
+  generalDevTools = { nativeHaskellPackages ? ghc }: builtins.attrValues (generalDevToolsAttrs { inherit nativeHaskellPackages; });
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -471,7 +470,7 @@ in let this = rec {
           };
         })).out;
         notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
-        baseTools = generalDevToolsAttrs env;
+        baseTools = generalDevToolsAttrs {};
         overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
         depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
           (map getHaskellConfig (lib.attrVals packageNames env))
@@ -511,7 +510,7 @@ in let this = rec {
       inherit platform;
     });
 
-  tryReflexPackages = generalDevTools ghc
+  tryReflexPackages = generalDevTools {}
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
