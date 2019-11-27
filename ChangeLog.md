@@ -12,6 +12,10 @@ This project's release branch is `master`. This log is written from the perspect
 * Update to the nixos-19.03 nixpkgs channel
 * Update to gradle build tools 3.1.0, androidsdk 9, and default to android platform version 28
 * Bump reflex-dom 0.5.2
+* Before, `generalDevTools`, and `generalDevToolsAttrs` took a single argument
+  of a package set. Now they have a `{ nativeHaskellPackages ? ghc }` parameter
+  so either `{}` can be passed, in which case it will use the default `ghc`,
+  or `{ nativeHaskellPackages = ..; }` to pass a package set as before.
 
 ## v0.1.0.0 - 2019-04-03
 
