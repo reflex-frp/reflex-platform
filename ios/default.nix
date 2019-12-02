@@ -273,10 +273,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
     chmod +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
-    cp "$1" "$tmpdir/${executableName}.app/config/route"
-
-    # focus????
-    focus/reflex-platform/scripts/run-in-ios-sim "$tmpdir/${executableName}.app"
+    (cd "$(dirname $0)/../../scripts" && ./run-in-ios-sim "$tmpdir/${executableName}.app")
   '';
 }) ''
   set -x
