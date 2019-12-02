@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-uuid="$(xcrun simctl create reflex-todomvc com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-10-2)"
+uuid="$(xcrun simctl create reflex-todomvc com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-12-4)"
 
 function cleanup {
   if [ -n "$uuid" ]; then

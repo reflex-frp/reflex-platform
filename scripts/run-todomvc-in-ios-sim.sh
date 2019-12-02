@@ -14,7 +14,7 @@ trap cleanup EXIT
 
 nix-build -A ghcIosSimulator64.reflex-todomvc
 
-uuid=$(xcrun simctl create reflex-todomvc com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-10-2)
+uuid=$(xcrun simctl create reflex-todomvc com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-12-4)
 open -a Simulator --args -CurrentDeviceUDID $uuid
 xcrun simctl install $uuid `nix-build -A ghcIosSimulator64.reflex-todomvc`/reflex-todomvc.app
 xcrun simctl launch --console $uuid reflex-todomvc
