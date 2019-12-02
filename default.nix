@@ -7,7 +7,7 @@
 , useFastWeak ? true
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
-, iosSdkVersion ? "12.4"
+, iosSdkVersion ? "12.4", xcodeVersion ? "10.3"
 , nixpkgsOverlays ? []
 , haskellOverlays ? []
 }:
@@ -121,16 +121,19 @@ let iosSupport = system == "x86_64-darwin";
         simulator64 = {
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
+            xcodeVer = xcodeVersion;
           };
         };
         aarch64 = {
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
+            xcodeVer = xcodeVersion;
           };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
+            xcodeVer = xcodeVersion;
           };
         };
         # Back compat
