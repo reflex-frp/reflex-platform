@@ -256,6 +256,9 @@ let iosSupport = system == "x86_64-darwin";
   iosAarch64-8_6 = iosWithHaskellPackages ghcIosAarch64-8_6;
   iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
   iosAarch32-8_6 = iosWithHaskellPackages ghcIosAarch32-8_6;
+  iosSimulator = {
+    buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs; ghc = ghcIosSimulator64; withSimulator = true; });
+  };
   iosWithHaskellPackages = ghc: {
     buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
@@ -288,6 +291,7 @@ in let this = rec {
           androidWithHaskellPackages
           iosAarch32
           iosAarch64
+          iosSimulator
           iosWithHaskellPackages
           ;
 
@@ -320,6 +324,12 @@ in let this = rec {
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc.via_8_6";
     bundleName = "Reflex TodoMVC via GHC 8.6";
+  };
+  iosSimulatorReflexTodomvc = iosSimulator.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleName = "Reflex TodoMVC";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
@@ -525,14 +535,17 @@ in let this = rec {
     let otherPlatforms = lib.optionals androidSupport [
           "ghcAndroidAarch64"
           "ghcAndroidAarch32"
-        ] ++ lib.optional iosSupport "ghcIosAarch64";
+        ] ++ lib.optionals iosSupport [
+          "ghcIosAarch64"
+          "ghcIosSimulator"
+        ];
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
       ++ lib.optionals androidSupport [
         androidDevTools
         androidReflexTodomvc
       ] ++ lib.optionals iosSupport [
-        iosReflexTodomvc
+        iosReflexTodomvc iosSimulatorReflexTodomvc
       ];
 
   inherit cabal2nixResult system androidSupport iosSupport;
