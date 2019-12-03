@@ -1,0 +1,16 @@
+diff --git a/Network/Socket.hsc b/Network/Socket.hsc
+index 4edebd4..43ecdb7 100644
+--- a/Network/Socket.hsc
++++ b/Network/Socket.hsc
+@@ -479,11 +479,7 @@ setNonBlockIfNeeded fd =
+ --
+ --   Since 2.7.0.0.
+ setCloseOnExecIfNeeded :: CInt -> IO ()
+-#if defined(mingw32_HOST_OS)
+ setCloseOnExecIfNeeded _ = return ()
+-#else
+-setCloseOnExecIfNeeded fd = System.Posix.Internals.setCloseOnExec fd
+-#endif
+ 
+ #if !defined(mingw32_HOST_OS)
+ foreign import ccall unsafe "fcntl"

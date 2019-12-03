@@ -5,6 +5,16 @@ This project's release branch is `master`. This log is written from the perspect
 ## Unreleased
 
 * Document how to accept android sdk license agreement and pass acceptance through to android infrastructure.
+* Update to GHC(JS) 8.6.5
+  * Apply workaround patch for
+    [ghc#16893](https://gitlab.haskell.org/ghc/ghc/issues/16893),
+    avoiding segmentation fault when using base.
+* Update to the nixos-19.03 nixpkgs channel
+* Update to gradle build tools 3.1.0, androidsdk 9, and default to android platform version 28
+* Bump reflex-dom 0.5.2
+* Fixes an inconsistency between nix-shell and nix-build where certain
+  Haskell build tools were not being overriden
+  ([#548](https://github.com/reflex-frp/reflex-platform/pull/548)
 
 ## v0.1.0.0 - 2019-04-03
 

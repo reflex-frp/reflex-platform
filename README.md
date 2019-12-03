@@ -40,7 +40,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
     git clone https://github.com/reflex-frp/reflex-platform
     ```
 
-1. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time:
+1. Navigate into the `reflex-platform` folder and run the `try-reflex` command. This will install Nix, if you don't have it already, and use it to wrangle all the dependencies you'll need and drop you in an environment from which you can use Reflex. Be warned, this might take a little while the first time (but it shouldn't take more than a few minutes, if your binary cache is configured properly):
 
     ```bash
     cd reflex-platform
@@ -108,12 +108,12 @@ Most Reflex apps will start the same way: a call to `mainWidget` with a starting
 `el` has the type signature:
 
 ```haskell
-el :: MonadWidget t m => Text -> m a -> m a
+el :: DomBuilder t m => Text -> m a -> m a
 ```
 
 The first argument to `el` is a `Text`, which will become the tag of the html element produced. The second argument is a `Widget`, which will become the child of the element being produced. We turned on the `OverloadedStrings` extension so that the literal string in our source file would be interpreted as the appropriate type (`Text` rather than `String`).
 
- > #### Sidebar: Interpreting the MonadWidget type
+ > #### Sidebar: Interpreting the DomBuilder type
  > FRP-enabled datatypes in Reflex take an argument `t`, which identifies the FRP subsystem being used.  This ensures that wires don't get crossed if a single program uses Reflex in multiple different contexts.  You can think of `t` as identifying a particular "timeline" of the FRP system.
  > Because most simple programs will only deal with a single timeline, we won't revisit the `t` parameters in this tutorial.  As long as you make sure your `Event`, `Behavior`, and `Dynamic` values all get their `t` argument, it'll work itself out.
 
@@ -122,7 +122,7 @@ In our example, `el "div" $ text "Welcome to Reflex"`, the first argument to `el
 The second argument to `el` was `text "Welcome to Reflex"`. The type signature of `text` is:
 
 ```haskell
-text :: MonadWidget t m => Text -> m ()
+text :: DomBuilder t m => Text -> m ()
 ```
 
 `text` takes a `Text` and produces a `Widget`. The `Text` becomes a text DOM node in the parent element of the `text`. Of course, instead of a `Text`, we could have used `el` here as well to continue building arbitrarily complex DOM. For instance, if we wanted to make a unordered list:
@@ -244,7 +244,7 @@ Let's do more than just take the input value and print it out. First, let's make
 >   let numberString = fmap (pack . show) x
 >   dynText numberString
 
-> numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+> numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   n <- inputElement $ def
 >     & inputElementConfig_initialValue .~ "0"
@@ -276,7 +276,6 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 > import qualified Data.Map as Map
 > import Data.Text (pack, unpack)
 > import Text.Read (readMaybe)
-> import Control.Applicative ((<*>), (<$>))
 >
 > main = mainWidget $ el "div" $ do
 >   nx <- numberInput
@@ -287,7 +286,7 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 >       resultString = fmap (pack . show) result
 >   dynText resultString
 
-> numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+> numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   n <- inputElement $ def
 >     & inputElementConfig_initialValue .~ "0"
@@ -307,7 +306,7 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 
 You can see that it takes a function that combines two pure values and produces some other pure value, and two `Dynamic`s, and produces a `Dynamic`.
 
-In our case, `zipDynWith` is combining the results of our two `numberInput`s (with a little help from `Control.Applicative`) into a sum.
+In our case, `zipDynWith` is combining the results of our two `numberInput`s (with a little help from `<$>` and `<*>`) into a sum.
 
 We use `fmap` again to apply `pack . show` to `result` (a `Dynamic (Maybe Double)`) resulting in a `Dynamic Text`. This `resultText` is then displayed using `dynText`.
 
@@ -315,7 +314,7 @@ We use `fmap` again to apply `pack . show` to `result` (a `Dynamic (Maybe Double
 Next, we'll add support for other operations. We're going to add a dropdown so that the user can select the operation to apply. The function `dropdown` has the type:
 
 ```haskell
-dropdown :: (MonadWidget t m, Ord k) => k -> Dynamic t (Map k Text) -> DropdownConfig t k -> m (Dropdown t k)
+dropdown :: (DomBuilder t m, MonadFix m, MonadHold t m, PostBuild t m, Ord k) => k -> Dynamic t (Map k Text) -> DropdownConfig t k -> m (Dropdown t k)
 ```
 
 The first argument is the initial value of the `Dropdown`. The second argument is a `Dynamic (Map k Text)` that represents the options in the dropdown. The `Text` values of the `Map` are the strings that will be displayed to the user. If the initial key is not in the `Map`, it is added and given a `Text` value of `""`. The final argument is a `DropdownConfig`.
@@ -348,7 +347,6 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 > import qualified Data.Map as Map
 > import Data.Text (pack, unpack, Text)
 > import Text.Read (readMaybe)
-> import Control.Applicative ((<*>), (<$>))
 >
 > main = mainWidget $ el "div" $ do
 >   nx <- numberInput
@@ -360,7 +358,7 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 >   text " = "
 >   dynText resultText
 >
-> numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+> numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   n <- inputElement $ def
 >     & inputElementConfig_initialValue .~ "0"
@@ -400,7 +398,7 @@ Running the app at this point will give us our two number inputs with a dropdown
 Let's spare a thought for the user of our calculator and add a little UI styling. Our number input currently looks like this:
 
 ```haskell
-numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 numberInput = do
   n <- inputElement $ def
     & inputElementConfig_initialValue .~ "0"
@@ -411,7 +409,7 @@ numberInput = do
 Let's give it some html attributes to work with:
 
 ```haskell
-numberInput :: MonadWidget t m => m (Dynamic t (Maybe Double))
+numberInput :: DomBuilder t m => m (Dynamic t (Maybe Double))
 numberInput = do
   let initAttrs = (("type" =: "number") <> ("style" =: "border-color: blue"))
   n <- inputElement $ def
@@ -427,8 +425,9 @@ Instead of just making the `InputElement` blue, let's change it's color based on
 
 ```haskell
 {-# LANGUAGE RecursiveDo #-}
+import Control.Monad.Fix (MonadFix)
 ...
-numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+numberInput :: (DomBuilder t m, MonadFix m) => m (Dynamic t (Maybe Double))
 numberInput = do
   let initAttrs = ("type" =: "number") <> (style False)
       color error = if error then "red" else "green"
@@ -448,7 +447,7 @@ numberInput = do
   return result
 ```
 
-Note that we need to add a language pragma here to enable the `RecursiveDo` language extension.
+Note that we need to add a language pragma here to enable the `RecursiveDo` language extension, and then we need to import `MonadFix`.
 Here `style` function takes a `Bool` value, whether input is correct or not, and it gives a `Map` of attributes with green or red color respectively.
 The next function `styleChange` actually produces a `Map` which tells which attribute to change.
 If the value of a key in the `Map` is a `Just` value then the attribute is either added or modified.
@@ -474,7 +473,7 @@ The complete program now looks like this:
 > import qualified Data.Map as Map
 > import Data.Text (pack, unpack, Text)
 > import Text.Read (readMaybe)
-> import Control.Applicative ((<*>), (<$>))
+> import Control.Monad.Fix (MonadFix)
 >
 > main = mainWidget $ el "div" $ do
 >   nx <- numberInput
@@ -486,7 +485,7 @@ The complete program now looks like this:
 >   text " = "
 >   dynText resultText
 >
-> numberInput :: (MonadWidget t m) => m (Dynamic t (Maybe Double))
+> numberInput :: (DomBuilder t m, MonadFix m) => m (Dynamic t (Maybe Double))
 > numberInput = do
 >   let initAttrs = ("type" =: "number") <> (style False)
 >       color error = if error then "red" else "green"
