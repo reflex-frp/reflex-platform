@@ -40,7 +40,6 @@ in {
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
             nativeDeps = nativeDependencies myNixpkgs;
-            /* libsodium = myNixpkgs.libsodium; */
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
