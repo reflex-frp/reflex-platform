@@ -2,6 +2,6 @@
   "owner": "matthewbauer",
   "repo": "nixpkgs",
   "branch": "ios-with-xcode-11-for-19-09",
-  "rev": "1a988b1efbcf148c8598cb792ef974504d5a264b",
-  "sha256": "0cwah99sv19c2rxpw1nz0i2b4isxmh01a8l5ahrcaimknvis2am5"
+  "rev": "5a1a486fe64803255fe4bfd639129d94846334b8",
+  "sha256": "081hs9m9k30f9pv8zlw1gbpvfk40chdl5ciblxqv0hgwvsqf4yk3"
 }
