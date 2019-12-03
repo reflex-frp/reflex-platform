@@ -84,9 +84,9 @@ let iosSupport = system == "x86_64-darwin";
         hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
+        splicesEval
         mobileGhcOverlay
         allCabalHashesOverlay
-        splicesEval
       ] ++ nixpkgsOverlays;
       config = {
         permittedInsecurePackages = [
