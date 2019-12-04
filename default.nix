@@ -83,6 +83,7 @@ let iosSupport = system == "x86_64-darwin";
         mobileGhcOverlay
         allCabalHashesOverlay
         splicesEval
+        (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
       config = {
         permittedInsecurePackages = [
@@ -471,11 +472,19 @@ in let this = rec {
         })).out;
         notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
         baseTools = generalDevToolsAttrs {};
-        overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
+        overriddenTools = baseTools // shellToolOverrides env baseTools;
         depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
           (map getHaskellConfig (lib.attrVals packageNames env))
           [{
-            buildTools = overriddenTools ++ tools env;
+            buildTools = [
+              (nixpkgs.buildEnv {
+                name = "build-tools-wrapper";
+                paths = attrValues overriddenTools ++ tools env;
+                pathsToLink = [ "/bin" ];
+                extraOutputsToInstall = [ "bin" ];
+              })
+              overriddenTools.Cabal
+            ];
           }]
         ]));
 
