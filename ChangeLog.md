@@ -21,6 +21,7 @@ This project's release branch is `master`. This log is written from the perspect
   or `{ nativeHaskellPackages = ..; }` to pass a package set as before.
   These attributes are exposed but not widely used (to our knowledge). They are
   mainly just used from `scripts/work-on*`, whose interface is unchanged.
+* Fix work-on-multi to respect the do-check of the haskell-config derivations
 
 ## v0.1.0.0 - 2019-04-03
 
