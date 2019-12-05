@@ -24,7 +24,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
                      which gradle fetchurl buildEnv;
       inherit androidenv;
     };
-    inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs mapAttrsToList attrNames concatStrings optionalString;
+    inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (buildGradleApp {
     inherit acceptAndroidSdkLicenses;
@@ -45,7 +45,7 @@ in {
       let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
-            nativeDeps = nativeDependencies myNixpkgs;
+            sharedLibs = runtimeSharedLibs myNixpkgs;
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
@@ -97,15 +97,15 @@ in {
 
         '' + concatStrings (builtins.map (arch:
           let
-            inherit (appSOs.${arch}) hsApp nativeDeps;
-            nativeDepsCmd = concatStrings (mapAttrsToList (destName: destPath: ''
-              local exe="${destPath}"
-              if [ ! -f "$exe" ] ; then
-                >&2 echo 'Error: executable "${destName}" not found'
+            inherit (appSOs.${arch}) hsApp sharedLibs;
+            sharedLibsCmd = concatStrings (map (libPath: ''
+              local lib="${libPath}"
+              if [ ! -f "$lib" ] ; then
+                >&2 echo 'Error: library $lib not found'
                 exit 1
               fi
-              cp --no-preserve=mode "$exe" "$ARCH_LIB/${destName}"
-              '') nativeDeps);
+              cp --no-preserve=mode "$lib" "$ARCH_LIB"
+              '') sharedLibs);
           in ''
             {
               ARCH_LIB=$out/lib/${arch}
@@ -118,7 +118,7 @@ in {
               fi
               cp --no-preserve=mode "$exe" "$ARCH_LIB/libHaskellActivity.so"
 
-              '' + nativeDepsCmd + ''
+              '' + sharedLibsCmd + ''
             }
         '') abiVersions) + ''
           rsync -r --chmod=+w "${assets}"/ "$out/assets/"

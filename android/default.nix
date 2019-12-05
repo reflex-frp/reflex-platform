@@ -94,11 +94,11 @@ in rec {
 
     , additionalDependencies ? ""
 
-    , nativeDependencies ? {}
+    , runtimeSharedLibs ? (_: [])
       # Allows to copy native .so libraries into APK. Example:
-      # nativeDependencies = nixpkgs: {
-      #   "libsodium.so" = "${nixpkgs.libsodium}/lib/libsodium.so";
-      # };
+      # runtimeSharedLibs = nixpkgs: [
+      #   "${nixpkgs.libsodium}/lib/libsodium.so"
+      # ];
 
     , universalApk ? true
       # Set this to false to build one APK per target platform.  This will
@@ -123,7 +123,7 @@ in rec {
               intentFilters
               googleServicesJson
               additionalDependencies
-              nativeDependencies
+              runtimeSharedLibs
               universalApk;
     };
 }
