@@ -96,7 +96,8 @@ in {
           ln -s "$applicationMk" "$out/jni/Application.mk"
 
         '' + concatStrings (builtins.map (arch:
-          let inherit (appSOs.${arch}) hsApp nativeDeps;
+          let
+            inherit (appSOs.${arch}) hsApp nativeDeps;
             nativeDepsCmd = concatStrings (mapAttrsToList (destName: destPath: ''
               local exe="${destPath}"
               if [ ! -f "$exe" ] ; then
