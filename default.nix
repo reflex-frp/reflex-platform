@@ -435,7 +435,7 @@ in let this = rec {
 
   workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
     let inherit (builtins) listToAttrs filter attrValues all concatLists;
-        combinableAttrs = [
+        combinableAttrs = p: [
           "benchmarkDepends"
           "benchmarkFrameworkDepends"
           "benchmarkHaskellDepends"
@@ -457,6 +457,7 @@ in let this = rec {
           "libraryToolDepends"
           "pkgconfigDepends"
           "setupHaskellDepends"
+        ] ++ lib.optionals (p.doCheck or true) [
           "testDepends"
           "testFrameworkDepends"
           "testHaskellDepends"
@@ -464,7 +465,19 @@ in let this = rec {
           "testSystemDepends"
           "testToolDepends"
         ];
-        concatCombinableAttrs = haskellConfigs: lib.filterAttrs (n: v: v != []) (lib.listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs));
+
+        concatCombinableAttrs = haskellConfigs: lib.filterAttrs
+          (n: v: v != [])
+          (lib.zipAttrs (map
+            (haskellConfig: lib.listToAttrs (map
+              (name: {
+                inherit name;
+                value = haskellConfig.${name} or [];
+              })
+              (combinableAttrs haskellConfig)))
+            haskellConfigs
+            ));
+
         getHaskellConfig = p: (overrideCabal p (args: {
           passthru = (args.passthru or {}) // {
             out = args;
