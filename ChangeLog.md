@@ -15,6 +15,9 @@ This project's release branch is `master`. This log is written from the perspect
 * Fixes an inconsistency between nix-shell and nix-build where certain
   Haskell build tools were not being overriden
   ([#548](https://github.com/reflex-frp/reflex-platform/pull/548)
+* Removing long-since-broken `nixpkgs.haskell.compiler.ghcSplices` attribute,
+  leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
+  intended replacement.
 
 ## v0.1.0.0 - 2019-04-03
 
