@@ -1,4 +1,4 @@
-{ reflex-platform ? import ./.. {} }:
+{ reflex-platform ? import ./../.. {} }:
 let pkgs = reflex-platform.nixpkgs;
     nodejs = pkgs.nodejs-8_x;
     shellHook = linkNodeModulesHook + ''

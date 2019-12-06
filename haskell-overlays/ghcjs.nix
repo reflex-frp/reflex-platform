@@ -44,9 +44,11 @@ self: super: {
   prettyprinter = dontCheck super.prettyprinter;
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
+  email-validate = dontCheck super.email-validate;
 
   # These tests are not expected to support ghcjs
   QuickCheck = dontCheck super.QuickCheck;
+  temporary = dontCheck super.temporary;
 
   # These tests never complete
   tasty-quickcheck = dontCheck super.tasty-quickcheck;

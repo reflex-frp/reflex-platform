@@ -83,6 +83,8 @@ in self: super: {
   # Packages not yet in 19.03
   semialign = doJailbreak (self.callHackage "semialign" "1" {});
   these = self.callHackage "these" "1" {};
+  these-lens = self.callHackage "these-lens" "1" {};
+  which = self.callHackage "which" "0.1.0.0" {};
 
   ########################################################################
   # Packages not in hackage
