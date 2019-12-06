@@ -1,7 +1,7 @@
 {
-  "owner": "obsidiansystems",
-  "repo": "nixpkgs",
-  "branch": "bump/chromedriver",
-  "rev": "9bf985deb449f0c534dce532c52ab80f16357804",
-  "sha256": "0b0zsyr8cgbp0sa8a1zcdfnyz80asa6n19jwg3gb4cnfs4hzvkdv"
+  "owner": "nixos",
+  "repo": "nixpkgs-channels",
+  "branch": "nixos-19.09",
+  "rev": "2ed8568d837ac7aaa5c802fa87f4aa9b8c7a4ea6",
+  "sha256": "0jsj6p1jxc51wpfq34g2jvplfmwdc34zaw4gwq2qcqi8x794d3h3"
 }
