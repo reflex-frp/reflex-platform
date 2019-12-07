@@ -430,7 +430,7 @@ in let this = rec {
     else haskellPackages;
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
+    buildDepends = (drv.buildDepends or []) ++ generalDevTools { nativeHaskellPackages = nativeHaskellPackages haskellPackages; };
   })).env;
 
   workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
