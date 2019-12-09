@@ -60,5 +60,6 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  aeson = self.callPackage (hackGet ./dep/aeson) {};
+  aeson = dontCheck (self.callCabal2nix "aeson" (hackGet ./dep/aeson) {});
+
 }
