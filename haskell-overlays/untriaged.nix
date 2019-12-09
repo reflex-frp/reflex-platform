@@ -87,7 +87,8 @@ in self: super: {
   # Packages not yet in 19.03
   semialign = doJailbreak (self.callHackage "semialign" "1" {});
   these = self.callHackage "these" "1" {};
-  these-lens = self.callHackage "these-lens" "1" {};
+  these-lens = doJailbreak (self.callHackage "these-lens" "1" {});
+  # remove jailbreak after https://github.com/isomorphism/these/pull/134
   which = self.callHackage "which" "0.1.0.0" {};
 
   ########################################################################
