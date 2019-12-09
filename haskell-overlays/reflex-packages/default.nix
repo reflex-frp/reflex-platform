@@ -32,7 +32,7 @@ in
   ## Reflex family
   ##
 
-  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage self._dep.reflex {}))));
+  reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage self._dep.reflex {})));
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
   reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;

@@ -44,7 +44,7 @@ let iosSupport = system == "x86_64-darwin";
 
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
-        overlays = super.overlays or {} // import ./haskell-overlays {
+        overlays = super.haskell.overlays or {} // import ./haskell-overlays {
           nixpkgs = self;
           inherit (self) lib;
           haskellLib = self.haskell.lib;
@@ -80,9 +80,10 @@ let iosSupport = system == "x86_64-darwin";
         hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
+        splicesEval
         mobileGhcOverlay
         allCabalHashesOverlay
-        splicesEval
+        (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
       config = {
         permittedInsecurePackages = [
@@ -420,11 +421,19 @@ in let this = rec {
         })).out;
         notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
         baseTools = generalDevToolsAttrs env;
-        overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
+        overriddenTools = baseTools // shellToolOverrides env baseTools;
         depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
           (map getHaskellConfig (lib.attrVals packageNames env))
           [{
-            buildTools = overriddenTools ++ tools env;
+            buildTools = [
+              (nixpkgs.buildEnv {
+                name = "build-tools-wrapper";
+                paths = attrValues overriddenTools ++ tools env;
+                pathsToLink = [ "/bin" ];
+                extraOutputsToInstall = [ "bin" ];
+              })
+              overriddenTools.Cabal
+            ];
           }]
         ]));
 
