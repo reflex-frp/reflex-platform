@@ -88,7 +88,7 @@ rec {
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
     inherit lib haskellLib fetchFromGitHub versionWildcard;
-    inherit (nixpkgs) fetchpatch hackGet;
+    inherit (nixpkgs) fetchpatch thunkSet;
   };
 
   # For GHC and GHCJS
