@@ -14,9 +14,8 @@ let
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
   ghcjsDom = import self._dep.ghcjs-dom self;
-  reflexTraceEventsFlag = lib.optional enableTraceReflexEvents "-fdebug-trace-events";
+
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
-  fastWeakFlag = lib.optional useFastWeak "-ffast-weak";
 
   inherit (nixpkgs) stdenv;
 in
@@ -28,9 +27,9 @@ in
   ##
 
   reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
-    reflexTraceEventsFlag
+    (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
     reflexOptimizerFlag
-    fastWeakFlag
+    (lib.optional useFastWeak "-ffast-weak")
   ])) {};
 
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
