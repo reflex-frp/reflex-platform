@@ -10,7 +10,7 @@ self: super:
 
 let
   universeRepo = nixpkgs.hackGet ./dep/universe;
-  reflexDom = import self._dep.reflex-dom self nixpkgs;
+  reflexDom = import self._dep.reflex-dom self;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
   ghcjsDom = import self._dep.ghcjs-dom self;
@@ -32,7 +32,7 @@ in
   ## Reflex family
   ##
 
-  reflex = dontCheck (addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage self._dep.reflex {}))));
+  reflex = addFastWeakFlag (addReflexTraceEventsFlag (addReflexOptimizerFlag (self.callPackage self._dep.reflex {})));
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
   reflex-dom = addReflexOptimizerFlag reflexDom.reflex-dom;
