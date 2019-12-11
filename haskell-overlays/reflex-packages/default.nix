@@ -9,7 +9,7 @@ with haskellLib;
 self: super:
 
 let
-  universeSrc = self._dep.universe;
+  universeRepo = self._dep.universe;
   reflexDomRepo = self._dep.reflex-dom;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
@@ -17,6 +17,8 @@ let
   reflexTraceEventsFlag = lib.optional enableTraceReflexEvents "-fdebug-trace-events";
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
   fastWeakFlag = lib.optional useFastWeak "-ffast-weak";
+
+  inherit (nixpkgs) stdenv;
 in
 {
   _dep = super._dep or {} // thunkSet ./dep;
@@ -25,33 +27,70 @@ in
   ## Reflex family
   ##
 
-  reflex = dontCheck (self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
+  reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
     reflexTraceEventsFlag
     reflexOptimizerFlag
     fastWeakFlag
-  ])) {});
+  ])) {};
+
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
-  reflex-dom = self.callCabal2nixWithOptions "reflex-dom" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-    ["--subpath reflex-dom"]
-    reflexOptimizerFlag
-  ])) {};
-  reflex-dom-core = haskellLib.overrideCabal (self.callCabal2nixWithOptions "reflex-dom-core" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-    ["--subpath reflex-dom-core"]
-    reflexOptimizerFlag
-    (lib.optional enableLibraryProfiling "-fprofile-reflex")
-  ])) {}) (drv: {
-    # TODO: Get hlint working for cross-compilation
-    doCheck = nixpkgs.stdenv.hostPlatform == nixpkgs.stdenv.buildPlatform && !(self.ghc.isGhcjs or false);
 
-    # The headless browser run as part of the tests will exit without this
-    preBuild = ''
-      export HOME="$PWD"
-    '';
+  reflex-dom-core = let
+    inherit (self) ghc;
+    noGcTest = stdenv.hostPlatform.system != "x86_64-linux"
+            || stdenv.hostPlatform != stdenv.buildPlatform
+            || (ghc.isGhcjs or false);
+  in haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "reflex-dom-core" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
+      ["--subpath reflex-dom-core"]
+      reflexOptimizerFlag
+      (lib.optional enableLibraryProfiling "-fprofile-reflex")
+    ])) {})
+    (drv: {
+      # TODO: Get hlint working for cross-compilation
+      doCheck = stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
 
-    # Show some output while running tests, so we might notice what's wrong
-    testTarget = "--show-details=streaming";
-  });
+      # The headless browser run as part of the tests will exit without this
+      preBuild = ''
+        export HOME="$PWD"
+      '';
+
+      # Show some output while running tests, so we might notice what's wrong
+      testTarget = "--show-details=streaming";
+
+      testHaskellDepends = with self; (drv.testHaskellDepends or []) ++ stdenv.lib.optionals (!noGcTest) [
+        temporary
+        jsaddle-warp
+        process
+        chrome-test-utils
+      ];
+
+      testSystemDepends = with nixpkgs; (drv.testSystemDepends or []) ++ [
+        selenium-server-standalone which
+      ] ++ stdenv.lib.optionals (!noGcTest) [
+        chromium
+        nixpkgs.iproute
+      ];
+    } // stdenv.lib.optionalAttrs (!noGcTest) {
+      # The headless browser run as part of gc tests would hang/crash without this
+      preCheck = ''
+        export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
+      '';
+    });
+
+  reflex-dom = haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "reflex-dom" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
+      ["--subpath reflex-dom"]
+      reflexOptimizerFlag
+    ])) {})
+    (drv: {
+      # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
+      libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
+        haskellPackages.android-activity
+      ];
+    });
+
   chrome-test-utils = self.callCabal2nixWithOptions "chrome-test-utils" reflexDomRepo "--subpath chrome-test-utils" {};
 
   ##

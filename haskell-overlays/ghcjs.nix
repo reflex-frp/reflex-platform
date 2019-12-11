@@ -30,6 +30,12 @@ self: super: {
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = lib.warn "ignoring dependency on doctest" null;
 
+  network = haskellLib.overrideCabal super.network (drv: {
+    revision = null;
+    editedCabalFile = null;
+    patches = (drv.patches or []) ++ [ ./ghcjs-network.patch ];
+  });
+
   # These packages require doctest
   comonad = dontCheck super.comonad;
   http-types = dontCheck super.http-types;
@@ -38,9 +44,11 @@ self: super: {
   prettyprinter = dontCheck super.prettyprinter;
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
+  email-validate = dontCheck super.email-validate;
 
   # These tests are not expected to support ghcjs
   QuickCheck = dontCheck super.QuickCheck;
+  temporary = dontCheck super.temporary;
 
   # These tests never complete
   tasty-quickcheck = dontCheck super.tasty-quickcheck;

@@ -4,7 +4,8 @@
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings
 , ghcSavedSplices
-, haskellOverlays
+, haskellOverlaysPre
+, haskellOverlaysPost
 }:
 
 let
@@ -35,6 +36,8 @@ rec {
   # overlay. At the cost of violating the usual rules on using `self` vs
   # `super`, this avoids a bunch of strictness issues keeping us terminating.
   combined = self: super: foldExtensions [
+    user-custom-pre
+
     reflexPackages
     untriaged
 
@@ -50,7 +53,7 @@ rec {
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
 
-    user-custom
+    user-custom-post
   ] self super;
 
   combined-any = self: super: foldExtensions [
@@ -81,9 +84,6 @@ rec {
 
   reflexPackages = import ./reflex-packages {
     inherit haskellLib lib nixpkgs thunkSet fetchFromGitHub useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling fetchFromBitbucket;
-  };
-  disableTemplateHaskell = import ./disable-template-haskell.nix {
-    inherit haskellLib fetchFromGitHub;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
@@ -144,5 +144,6 @@ rec {
     inherit thunkSet;
   };
 
-  user-custom = foldExtensions haskellOverlays;
+  user-custom-pre = foldExtensions haskellOverlaysPre;
+  user-custom-post = foldExtensions haskellOverlaysPost;
 }
