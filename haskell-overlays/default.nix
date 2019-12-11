@@ -83,7 +83,10 @@ rec {
   ##
 
   reflexPackages = import ./reflex-packages {
-    inherit haskellLib lib nixpkgs thunkSet fetchFromGitHub useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling fetchFromBitbucket;
+    inherit
+      haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket
+      useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling
+      ;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
