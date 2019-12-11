@@ -160,7 +160,7 @@ in
     ver = "0.1.0.0";
     sha256 = "0fm73cbja570lfxznv66daya5anp4b0m24jjm5fwn95f49dp9d4n";
   } {};
-  dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._deps.dependent-sum-universe-orphans {};
+  dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
 
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
   universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};
