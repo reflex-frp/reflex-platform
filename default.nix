@@ -10,8 +10,8 @@
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
-, haskellOverlaysPre ? haskellOverlays
-, haskellOverlaysPost ? []
+, haskellOverlaysPre ? []
+, haskellOverlaysPost ? haskellOverlays
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
