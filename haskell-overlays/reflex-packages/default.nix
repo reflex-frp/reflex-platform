@@ -162,8 +162,6 @@ in
   } {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._deps.dependent-sum-universe-orphans {};
 
-  these-lens = self.callHackage "these-lens" "1" {};
-
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
   universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};
   universe-dependent-sum = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-dependent-sum" {});
