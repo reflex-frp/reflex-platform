@@ -1,7 +1,7 @@
 { haskellLib
 , lib, nixpkgs
 , thunkSet, fetchFromGitHub, fetchFromBitbucket
-, useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
+, useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling, __useTemplateHaskell
 }:
 
 with haskellLib;
@@ -16,6 +16,7 @@ let
   ghcjsDom = import self._dep.ghcjs-dom self;
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
+  useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
 
   inherit (nixpkgs) stdenv;
 in
@@ -29,6 +30,7 @@ in
   reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
     (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
     reflexOptimizerFlag
+    useTemplateHaskellFlag
     (lib.optional useFastWeak "-ffast-weak")
   ])) {};
 
@@ -44,6 +46,7 @@ in
     (self.callCabal2nixWithOptions "reflex-dom-core" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
       ["--subpath reflex-dom-core"]
       reflexOptimizerFlag
+      useTemplateHaskellFlag
       (lib.optional enableLibraryProfiling "-fprofile-reflex")
     ])) {})
     (drv: {
@@ -82,6 +85,7 @@ in
     (self.callCabal2nixWithOptions "reflex-dom" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
       ["--subpath reflex-dom"]
       reflexOptimizerFlag
+      useTemplateHaskellFlag
     ])) {})
     (drv: {
       # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands

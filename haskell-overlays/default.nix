@@ -2,7 +2,7 @@
 , haskellLib
 , nixpkgs
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
-, useTextJSString, enableExposeAllUnfoldings
+, useTextJSString, enableExposeAllUnfoldings, __useTemplateHaskell
 , ghcSavedSplices
 , haskellOverlaysPre
 , haskellOverlaysPost
@@ -85,7 +85,7 @@ rec {
   reflexPackages = import ./reflex-packages {
     inherit
       haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket
-      useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling
+      useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling __useTemplateHaskell
       ;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
