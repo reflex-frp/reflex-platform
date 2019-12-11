@@ -9,7 +9,9 @@
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
-, haskellOverlays ? []
+, haskellOverlays ? [] # TODO deprecate
+, haskellOverlaysPre ? []
+, haskellOverlaysPost ? haskellOverlays
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -51,7 +53,8 @@ let iosSupport = system == "x86_64-darwin";
           inherit
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
             useTextJSString enableExposeAllUnfoldings
-            haskellOverlays;
+            haskellOverlaysPre
+            haskellOverlaysPost;
           inherit ghcSavedSplices;
         };
       };
