@@ -493,4 +493,19 @@ in let this = rec {
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
+
+  # Deprecated reexports. These were made for `./scripts/*`, but are reexported
+  # here for backwards compatability.
+  inherit
+    (import ./nix-utils/hackage { reflex-platform = this; })
+    attrsToList
+    mapSet
+    mkSdist
+    sdists
+    mkHackageDocs
+    hackageDocs
+    mkReleaseCandidate
+    releaseCandidates
+    ;
+
 }; in this

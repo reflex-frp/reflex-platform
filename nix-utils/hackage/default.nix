@@ -1,4 +1,4 @@
-{ reflex-platform ? import ../. {} }:
+{ reflex-platform ? import ../.. {} }:
 
 let
   inherit (reflex-platform)
