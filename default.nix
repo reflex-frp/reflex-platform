@@ -525,8 +525,8 @@ legacy = {
     mkReleaseCandidate
     releaseCandidates
     ;
-  generalDevTools = _: generalDevTools' {};
-  generalDevToolsAttrs = _: generalDevToolsAttrs' {};
+  generalDevTools = _: this.generalDevTools' {};
+  generalDevToolsAttrs = _: this.generalDevToolsAttrs' {};
 };
 
 in this // lib.optionalAttrs (!hideDeprecated) legacy
