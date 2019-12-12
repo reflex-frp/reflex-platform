@@ -450,6 +450,12 @@ legacy = {
     mkReleaseCandidate
     releaseCandidates
     ;
+  workOnMulti' = { env, packageNames }:
+    import ./nix-utils/work-on-multi {} {
+      envFunc = _: env;
+      inherit packageNames;
+    };
+  workOnMulti = env: packageNames: legacy.workOnMulti' { inherit env packageNames; };
 };
 
 in this // lib.optionalAttrs (!hideDeprecated) legacy

@@ -50,7 +50,7 @@ in
       notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
       env = envFunc reflex-platform;
       baseTools = generalDevToolsAttrs env;
-      overriddenTools = attrValues (baseTools // shellToolOverrides env baseTools);
+      overriddenTools = baseTools // shellToolOverrides env baseTools;
       depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
         (map getHaskellConfig (lib.attrVals packageNames env))
         [{
