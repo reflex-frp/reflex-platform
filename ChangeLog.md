@@ -18,6 +18,8 @@ This project's release branch is `master`. This log is written from the perspect
 * Removing long-since-broken `nixpkgs.haskell.compiler.ghcSplices` attribute,
   leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
   intended replacement.
+* Add optional `runtimeSharedLibs` parameter to `buildApp`.
+  See that function's documentation for how to use it.
 
 ## v0.1.0.0 - 2019-04-03
 
