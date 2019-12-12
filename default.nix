@@ -496,6 +496,8 @@ in let this = rec {
 
   # Deprecated reexports. These were made for `./scripts/*`, but are reexported
   # here for backwards compatability.
+
+  # Added 2019-12, will be removed 2020-06.
   inherit
     (import ./nix-utils/hackage { reflex-platform = this; })
     attrsToList
