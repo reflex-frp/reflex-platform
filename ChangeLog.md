@@ -53,18 +53,10 @@ considered released, and the date should reflect that release.
 
    * `generalDevTools`
    * `generalDevToolsAttrs`
+   * `nativeHaskellPackages`
 
-  They are replaced with:
-
-   * `generalDevTools'`
-   * `generalDevToolsAttrs'`
-
-  The old ones takes a single argument of a package set.  Their replacements
-  have a `{ nativeHaskellPackages ? ghc }` parameter so either `{}` can be
-  passed, in which case it will use the default `ghc`, or `{
-  nativeHaskellPackages = ..; }` to pass a package set as before.  These
-  attributes are exposed but not widely used (to our knowledge). They are
-  mainly just used from `scripts/work-on*`, whose interface is unchanged.
+  The are exposed for now for backwards compat, but will be removed at a later
+  point. They are mainly used in the implementation of the `work-on*` scripts.
 
 ## v0.1.0.0 - 2019-04-03
 
