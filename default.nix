@@ -352,7 +352,7 @@ in let this = rec {
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
-  generalDevToolsAttrs = { nativeHaskellPackages ? ghc }: {
+  generalDevToolsAttrs' = { nativeHaskellPackages ? ghc }: {
     inherit (nativeHaskellPackages)
       Cabal
       cabal-install
@@ -375,7 +375,7 @@ in let this = rec {
     }).haskell-ide-engine;
   };
 
-  generalDevTools = { nativeHaskellPackages ? ghc }: builtins.attrValues (generalDevToolsAttrs { inherit nativeHaskellPackages; });
+  generalDevTools' = { nativeHaskellPackages ? ghc }: builtins.attrValues (generalDevToolsAttrs' { inherit nativeHaskellPackages; });
 
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
@@ -383,7 +383,7 @@ in let this = rec {
     else haskellPackages;
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ generalDevTools { nativeHaskellPackages = nativeHaskellPackages haskellPackages; };
+    buildDepends = (drv.buildDepends or []) ++ generalDevTools' { nativeHaskellPackages = nativeHaskellPackages haskellPackages; };
   })).env;
 
   workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
@@ -437,7 +437,7 @@ in let this = rec {
           };
         })).out;
         notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
-        baseTools = generalDevToolsAttrs {};
+        baseTools = generalDevToolsAttrs' {};
         overriddenTools = baseTools // shellToolOverrides env baseTools;
         depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
           (map getHaskellConfig (lib.attrVals packageNames env))
@@ -485,7 +485,7 @@ in let this = rec {
       inherit platform;
     });
 
-  tryReflexPackages = generalDevTools {}
+  tryReflexPackages = generalDevTools' {}
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
@@ -525,6 +525,8 @@ legacy = {
     mkReleaseCandidate
     releaseCandidates
     ;
+  generalDevTools = _: generalDevTools' {};
+  generalDevToolsAttrs = _: generalDevToolsAttrs' {};
 };
 
 in this // lib.optionalAttrs (!hideDeprecated) legacy
