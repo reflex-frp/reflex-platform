@@ -13,6 +13,7 @@
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
+, hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -493,10 +494,11 @@ in let this = rec {
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
+};
 
-  # Deprecated reexports. These were made for `./scripts/*`, but are reexported
-  # here for backwards compatability.
-
+# Deprecated reexports. These were made for `./scripts/*`, but are reexported
+# here for backwards compatability.
+legacy = {
   # Added 2019-12, will be removed 2020-06.
   inherit
     (builtins.trace
@@ -511,5 +513,6 @@ in let this = rec {
     mkReleaseCandidate
     releaseCandidates
     ;
+};
 
-}; in this
+in this // lib.optionalAttrs (!hideDeprecated) legacy
