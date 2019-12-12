@@ -34,7 +34,7 @@ in
     (lib.optional useFastWeak "-ffast-weak")
   ])) {};
 
-  reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
+  reflex-todomvc = self.callCabal2nix "reflex-todomvc" self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
 
   reflex-dom-core = let
