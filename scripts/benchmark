@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../nix-utils/benchmark
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-"$(nix-build "$DIR" -A bin --no-out-link)"
+"$(nix-build "$DIR"/../nix-utils/benchmark -A bin --no-out-link)"
