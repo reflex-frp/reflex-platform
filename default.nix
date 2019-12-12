@@ -259,32 +259,6 @@ let iosSupport = system == "x86_64-darwin";
     buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
 
-  # Tools that are useful for development under both ghc and ghcjs
-  generalDevToolsAttrs = { nativeHaskellPackages ? ghc }: {
-    inherit (nativeHaskellPackages)
-      Cabal
-      cabal-install
-      ghcid
-      hasktags
-      hdevtools
-      hlint
-      stylish-haskell # Recent stylish-haskell only builds with AMP in place
-      ;
-    inherit (nixpkgs)
-      cabal2nix
-      curl
-      nix-prefetch-scripts
-      nodejs
-      pkgconfig
-      closurecompiler
-      ;
-    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
-      overrides = nixpkgs.haskell.overlays.hie;
-    }).haskell-ide-engine;
-  };
-
-  generalDevTools = { nativeHaskellPackages ? ghc }: builtins.attrValues (generalDevToolsAttrs { inherit nativeHaskellPackages; });
-
 in let this = rec {
   inherit (nixpkgs)
     filterGit
@@ -377,85 +351,33 @@ in let this = rec {
     nixpkgs.androidsdk_9_0
   ];
 
+  # Tools that are useful for development under both ghc and ghcjs
+  generalDevTools' = { nativeHaskellPackages ? ghc }: {
+    inherit (nativeHaskellPackages)
+      Cabal
+      cabal-install
+      ghcid
+      hasktags
+      hdevtools
+      hlint
+      stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      ;
+    inherit (nixpkgs)
+      cabal2nix
+      curl
+      nix-prefetch-scripts
+      nodejs
+      pkgconfig
+      closurecompiler
+      ;
+    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
+      overrides = nixpkgs.haskell.overlays.hie;
+    }).haskell-ide-engine;
+  };
+
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ generalDevTools {};
+    buildToolDepends = (drv.buildToolDepends or []) ++ builtins.attrValues generalDevTools' {};
   })).env;
-
-  workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
-    let inherit (builtins) listToAttrs filter attrValues all concatLists;
-        combinableAttrs = p: [
-          "benchmarkDepends"
-          "benchmarkFrameworkDepends"
-          "benchmarkHaskellDepends"
-          "benchmarkPkgconfigDepends"
-          "benchmarkSystemDepends"
-          "benchmarkToolDepends"
-          "buildDepends"
-          "buildTools"
-          "executableFrameworkDepends"
-          "executableHaskellDepends"
-          "executablePkgconfigDepends"
-          "executableSystemDepends"
-          "executableToolDepends"
-          "extraLibraries"
-          "libraryFrameworkDepends"
-          "libraryHaskellDepends"
-          "libraryPkgconfigDepends"
-          "librarySystemDepends"
-          "libraryToolDepends"
-          "pkgconfigDepends"
-          "setupHaskellDepends"
-        ] ++ lib.optionals (p.doCheck or true) [
-          "testDepends"
-          "testFrameworkDepends"
-          "testHaskellDepends"
-          "testPkgconfigDepends"
-          "testSystemDepends"
-          "testToolDepends"
-        ];
-
-        concatCombinableAttrs = haskellConfigs: lib.filterAttrs
-          (n: v: v != [])
-          (lib.zipAttrs (map
-            (haskellConfig: lib.listToAttrs (map
-              (name: {
-                inherit name;
-                value = haskellConfig.${name} or [];
-              })
-              (combinableAttrs haskellConfig)))
-            haskellConfigs
-            ));
-
-        getHaskellConfig = p: (overrideCabal p (args: {
-          passthru = (args.passthru or {}) // {
-            out = args;
-          };
-        })).out;
-        notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
-        baseTools = generalDevToolsAttrs {};
-        overriddenTools = baseTools // shellToolOverrides env baseTools;
-        depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
-          (map getHaskellConfig (lib.attrVals packageNames env))
-          [{
-            buildTools = [
-              (nixpkgs.buildEnv {
-                name = "build-tools-wrapper";
-                paths = attrValues overriddenTools ++ tools env;
-                pathsToLink = [ "/bin" ];
-                extraOutputsToInstall = [ "bin" ];
-              })
-              overriddenTools.Cabal
-            ];
-          }]
-        ]));
-
-    in (env.mkDerivation (depAttrs // {
-      pname = "work-on-multi--combined-pkg";
-      version = "0";
-      license = null;
-    })).env;
-
-  workOnMulti = env: packageNames: workOnMulti { inherit env packageNames; };
 
   # A simple derivation that just creates a file with the names of all
   # of its inputs. If built, it will have a runtime dependency on all
@@ -480,7 +402,7 @@ in let this = rec {
       inherit platform;
     });
 
-  tryReflexPackages = generalDevTools {}
+  tryReflexPackages = builtins.attrValues (generalDevTools' {})
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
@@ -508,9 +430,7 @@ in let this = rec {
 legacy = {
   # Added 2019-12, will be removed 2020-06.
   inherit
-    (builtins.trace
-      "These attributes are deprecated. See reflex-platform's root default.nix."
-      (import ./nix-utils/hackage { reflex-platform = this; }))
+    (import ./nix-utils/hackage { reflex-platform = this; })
     attrsToList
     mapSet
     mkSdist
@@ -520,12 +440,20 @@ legacy = {
     mkReleaseCandidate
     releaseCandidates
     ;
-  generalDevTools = _: this.generalDevTools {};
-  generalDevToolsAttrs = _: this.generalDevToolsAttrs {};
+  generalDevTools = _: builtins.attrValues (this.generalDevTools' {});
+  generalDevToolsAttrs = _: this.generalDevTools' {};
   nativeHaskellPackages = haskellPackages:
     if haskellPackages.isGhcjs or false
     then haskellPackages.ghc
     else haskellPackages;
+  workOnMulti' = { env, packageNames }:
+    (import ./nix-utils/work-on-multi {}).workOnMulti {
+      envFunc = _: env;
+      inherit packageNames;
+    };
+  workOnMulti = env: packageNames: legacy.workOnMulti' { inherit env packageNames; };
 };
 
-in this // lib.optionalAttrs (!hideDeprecated) legacy
+in this // lib.optionalAttrs
+  (!hideDeprecated)
+  (lib.mapAttrs (attrName: builtins.trace "The attribute \"${attrName}\" is deprecated. See reflex-platform's root default.nix.") legacy)
