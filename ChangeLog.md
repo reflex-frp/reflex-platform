@@ -15,6 +15,10 @@ This project's release branch is `master`. This log is written from the perspect
 * Fixes an inconsistency between nix-shell and nix-build where certain
   Haskell build tools were not being overriden
   ([#548](https://github.com/reflex-frp/reflex-platform/pull/548)
+* Removing long-since-broken `nixpkgs.haskell.compiler.ghcSplices` attribute,
+  leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
+  intended replacement.
+* `zlib` for mobile doesn't provide any `*.so`/`.dylib`, that way you are guaranteed to link the `.a` and not one of the others by mistake.
 * Before, `generalDevTools`, and `generalDevToolsAttrs` took a single argument
   of a package set. Now they have a `{ nativeHaskellPackages ? ghc }` parameter
   so either `{}` can be passed, in which case it will use the default `ghc`,
@@ -22,6 +26,20 @@ This project's release branch is `master`. This log is written from the perspect
   These attributes are exposed but not widely used (to our knowledge). They are
   mainly just used from `scripts/work-on*`, whose interface is unchanged.
 * Fix work-on-multi to respect the do-check of the haskell-config derivations
+* The following attributes have been deprecated in `default.nix`, and are now
+  defined in `nix-utils/hackage.nix`:
+
+   * `attrsToList`
+   * `mapSet`
+   * `mkSdist`
+   * `sdists`
+   * `mkHackageDocs`
+   * `hackageDocs`
+   * `mkReleaseCandidate`
+   * `releaseCandidates`
+
+  These are only useful to the maintainers of packages in reflex platform, and
+  just clutter the top level for everyone else.
 
 ## v0.1.0.0 - 2019-04-03
 
