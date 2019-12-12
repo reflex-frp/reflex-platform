@@ -29,6 +29,9 @@ considered released, and the date should reflect that release.
   leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
   intended replacement.
 
+* Add optional `runtimeSharedLibs` parameter to `buildApp`.
+  See that function's documentation for how to use it.
+
 * `zlib` for mobile doesn't provide any `*.so`/`.dylib`, that way you are
   guaranteed to link the `.a` and not one of the others by mistake.
 

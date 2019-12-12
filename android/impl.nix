@@ -45,6 +45,7 @@ in {
       let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
+            sharedLibs = runtimeSharedLibs myNixpkgs;
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
@@ -95,7 +96,16 @@ in {
           ln -s "$applicationMk" "$out/jni/Application.mk"
 
         '' + concatStrings (builtins.map (arch:
-          let inherit (appSOs.${arch}) hsApp;
+          let
+            inherit (appSOs.${arch}) hsApp sharedLibs;
+            sharedLibsCmd = concatStrings (map (libPath: ''
+              local lib="${libPath}"
+              if [ ! -f "$lib" ] ; then
+                >&2 echo 'Error: library $lib not found'
+                exit 1
+              fi
+              cp --no-preserve=mode "$lib" "$ARCH_LIB"
+              '') sharedLibs);
           in ''
             {
               ARCH_LIB=$out/lib/${arch}
@@ -107,6 +117,8 @@ in {
                 exit 1
               fi
               cp --no-preserve=mode "$exe" "$ARCH_LIB/libHaskellActivity.so"
+
+              '' + sharedLibsCmd + ''
             }
         '') abiVersions) + ''
           rsync -r --chmod=+w "${assets}"/ "$out/assets/"
