@@ -18,6 +18,7 @@ This project's release branch is `master`. This log is written from the perspect
 * Removing long-since-broken `nixpkgs.haskell.compiler.ghcSplices` attribute,
   leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
   intended replacement.
+* `zlib` for mobile doesn't provide any `*.so`/`.dylib`, that way you are guaranteed to link the `.a` and not one of the others by mistake.
 
 ## v0.1.0.0 - 2019-04-03
 

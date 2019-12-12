@@ -71,7 +71,7 @@ let iosSupport = system == "x86_64-darwin";
       };
       zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
-        { static = true; });
+        { static = true; shared = false; });
     };
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
