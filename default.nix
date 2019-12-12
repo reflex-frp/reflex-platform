@@ -13,6 +13,7 @@
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
+, hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -71,7 +72,7 @@ let iosSupport = system == "x86_64-darwin";
       };
       zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
-        { static = true; });
+        { static = true; shared = false; });
     };
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
@@ -258,6 +259,32 @@ let iosSupport = system == "x86_64-darwin";
     buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
 
+  # Tools that are useful for development under both ghc and ghcjs
+  generalDevToolsAttrs = { nativeHaskellPackages ? ghc }: {
+    inherit (nativeHaskellPackages)
+      Cabal
+      cabal-install
+      ghcid
+      hasktags
+      hdevtools
+      hlint
+      stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      ;
+    inherit (nixpkgs)
+      cabal2nix
+      curl
+      nix-prefetch-scripts
+      nodejs
+      pkgconfig
+      closurecompiler
+      ;
+    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
+      overrides = nixpkgs.haskell.overlays.hie;
+    }).haskell-ide-engine;
+  };
+
+  generalDevTools = { nativeHaskellPackages ? ghc }: builtins.attrValues (generalDevToolsAttrs { inherit nativeHaskellPackages; });
+
 in let this = rec {
   inherit (nixpkgs)
     filterGit
@@ -344,103 +371,19 @@ in let this = rec {
     "ghc"
   ];
 
-  attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
-  mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
-    inherit name;
-    value = f value;
-  }) (attrsToList s));
-  mkSdist = pkg: pkg.override (oldArgs: {
-    mkDerivation = drv: oldArgs.mkDerivation (drv // {
-      postConfigure = ''
-        ./Setup sdist
-        mkdir "$out"
-        mv dist/*.tar.gz "$out/${drv.pname}-${drv.version}.tar.gz"
-        exit 0
-      '';
-      doHaddock = false;
-    });
-  });
-  sdists = mapSet mkSdist ghc;
-  mkHackageDocs = pkg: pkg.override (oldArgs: {
-    mkDerivation = drv: oldArgs.mkDerivation (drv // {
-      postConfigure = ''
-        ./Setup haddock --hoogle --hyperlink-source --html --for-hackage --haddock-option=--built-in-themes
-        cd dist/doc/html
-        mkdir "$out"
-        tar cz --format=ustar -f "$out/${drv.pname}-${drv.version}-docs.tar.gz" "${drv.pname}-${drv.version}-docs"
-        exit 0
-      '';
-      doHaddock = false;
-    });
-  });
-  hackageDocs = mapSet mkHackageDocs ghc;
-  mkReleaseCandidate = pkg: nixpkgs.stdenv.mkDerivation (rec {
-    name = pkg.name + "-rc";
-    sdist = mkSdist pkg + "/${pkg.pname}-${pkg.version}.tar.gz";
-    docs = mkHackageDocs pkg + "/${pkg.pname}-${pkg.version}-docs.tar.gz";
-
-    builder = builtins.toFile "builder.sh" ''
-      source $stdenv/setup
-
-      mkdir "$out"
-      echo -n "${pkg.pname}-${pkg.version}" >"$out/pkgname"
-      ln -s "$sdist" "$docs" "$out"
-    '';
-
-    # 'checked' isn't used, but it is here so that the build will fail
-    # if tests fail
-    checked = overrideCabal pkg (drv: {
-      doCheck = true;
-      src = sdist;
-    });
-  });
-  releaseCandidates = mapSet mkReleaseCandidate ghc;
-
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
     nixpkgs.androidsdk_9_0
   ];
 
-  # Tools that are useful for development under both ghc and ghcjs
-  generalDevToolsAttrs = haskellPackages:
-    let nativeHaskellPackages = ghc;
-    in {
-    inherit (nativeHaskellPackages)
-      Cabal
-      cabal-install
-      ghcid
-      hasktags
-      hdevtools
-      hlint
-      stylish-haskell; # Recent stylish-haskell only builds with AMP in place
-    inherit (nixpkgs)
-      cabal2nix
-      curl
-      nix-prefetch-scripts
-      nodejs
-      pkgconfig
-      closurecompiler;
-  } // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false)) {
-    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (haskellPackages.override {
-      overrides = nixpkgs.haskell.overlays.hie;
-    }).haskell-ide-engine;
-  });
-
-  generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
-
-  nativeHaskellPackages = haskellPackages:
-    if haskellPackages.isGhcjs or false
-    then haskellPackages.ghc
-    else haskellPackages;
-
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
+    buildDepends = (drv.buildDepends or []) ++ generalDevTools {};
   })).env;
 
   workOnMulti' = { env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
     let inherit (builtins) listToAttrs filter attrValues all concatLists;
-        combinableAttrs = [
+        combinableAttrs = p: [
           "benchmarkDepends"
           "benchmarkFrameworkDepends"
           "benchmarkHaskellDepends"
@@ -462,6 +405,7 @@ in let this = rec {
           "libraryToolDepends"
           "pkgconfigDepends"
           "setupHaskellDepends"
+        ] ++ lib.optionals (p.doCheck or true) [
           "testDepends"
           "testFrameworkDepends"
           "testHaskellDepends"
@@ -469,14 +413,26 @@ in let this = rec {
           "testSystemDepends"
           "testToolDepends"
         ];
-        concatCombinableAttrs = haskellConfigs: lib.filterAttrs (n: v: v != []) (lib.listToAttrs (map (name: { inherit name; value = concatLists (map (haskellConfig: haskellConfig.${name} or []) haskellConfigs); }) combinableAttrs));
+
+        concatCombinableAttrs = haskellConfigs: lib.filterAttrs
+          (n: v: v != [])
+          (lib.zipAttrs (map
+            (haskellConfig: lib.listToAttrs (map
+              (name: {
+                inherit name;
+                value = haskellConfig.${name} or [];
+              })
+              (combinableAttrs haskellConfig)))
+            haskellConfigs
+            ));
+
         getHaskellConfig = p: (overrideCabal p (args: {
           passthru = (args.passthru or {}) // {
             out = args;
           };
         })).out;
         notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
-        baseTools = generalDevToolsAttrs env;
+        baseTools = generalDevToolsAttrs {};
         overriddenTools = baseTools // shellToolOverrides env baseTools;
         depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
           (map getHaskellConfig (lib.attrVals packageNames env))
@@ -499,7 +455,7 @@ in let this = rec {
       license = null;
     })).env;
 
-  workOnMulti = env: packageNames: workOnMulti' { inherit env packageNames; };
+  workOnMulti = env: packageNames: workOnMulti { inherit env packageNames; };
 
   # A simple derivation that just creates a file with the names of all
   # of its inputs. If built, it will have a runtime dependency on all
@@ -524,7 +480,7 @@ in let this = rec {
       inherit platform;
     });
 
-  tryReflexPackages = generalDevTools ghc
+  tryReflexPackages = generalDevTools {}
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
@@ -545,4 +501,31 @@ in let this = rec {
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
-}; in this
+};
+
+# Deprecated reexports. These were made for `./scripts/*`, but are reexported
+# here for backwards compatability.
+legacy = {
+  # Added 2019-12, will be removed 2020-06.
+  inherit
+    (builtins.trace
+      "These attributes are deprecated. See reflex-platform's root default.nix."
+      (import ./nix-utils/hackage { reflex-platform = this; }))
+    attrsToList
+    mapSet
+    mkSdist
+    sdists
+    mkHackageDocs
+    hackageDocs
+    mkReleaseCandidate
+    releaseCandidates
+    ;
+  generalDevTools = _: this.generalDevTools {};
+  generalDevToolsAttrs = _: this.generalDevToolsAttrs {};
+  nativeHaskellPackages = haskellPackages:
+    if haskellPackages.isGhcjs or false
+    then haskellPackages.ghc
+    else haskellPackages;
+};
+
+in this // lib.optionalAttrs (!hideDeprecated) legacy
