@@ -28,6 +28,7 @@ considered released, and the date should reflect that release.
 * Removing long-since-broken `nixpkgs.haskell.compiler.ghcSplices` attribute,
   leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
   intended replacement.
+
 * Add optional `runtimeSharedLibs` parameter to `buildApp`.
   See that function's documentation for how to use it.
 
