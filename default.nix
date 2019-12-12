@@ -13,6 +13,7 @@
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
+, hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -344,58 +345,6 @@ in let this = rec {
     "ghc"
   ];
 
-  attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
-  mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
-    inherit name;
-    value = f value;
-  }) (attrsToList s));
-  mkSdist = pkg: pkg.override (oldArgs: {
-    mkDerivation = drv: oldArgs.mkDerivation (drv // {
-      postConfigure = ''
-        ./Setup sdist
-        mkdir "$out"
-        mv dist/*.tar.gz "$out/${drv.pname}-${drv.version}.tar.gz"
-        exit 0
-      '';
-      doHaddock = false;
-    });
-  });
-  sdists = mapSet mkSdist ghc;
-  mkHackageDocs = pkg: pkg.override (oldArgs: {
-    mkDerivation = drv: oldArgs.mkDerivation (drv // {
-      postConfigure = ''
-        ./Setup haddock --hoogle --hyperlink-source --html --for-hackage --haddock-option=--built-in-themes
-        cd dist/doc/html
-        mkdir "$out"
-        tar cz --format=ustar -f "$out/${drv.pname}-${drv.version}-docs.tar.gz" "${drv.pname}-${drv.version}-docs"
-        exit 0
-      '';
-      doHaddock = false;
-    });
-  });
-  hackageDocs = mapSet mkHackageDocs ghc;
-  mkReleaseCandidate = pkg: nixpkgs.stdenv.mkDerivation (rec {
-    name = pkg.name + "-rc";
-    sdist = mkSdist pkg + "/${pkg.pname}-${pkg.version}.tar.gz";
-    docs = mkHackageDocs pkg + "/${pkg.pname}-${pkg.version}-docs.tar.gz";
-
-    builder = builtins.toFile "builder.sh" ''
-      source $stdenv/setup
-
-      mkdir "$out"
-      echo -n "${pkg.pname}-${pkg.version}" >"$out/pkgname"
-      ln -s "$sdist" "$docs" "$out"
-    '';
-
-    # 'checked' isn't used, but it is here so that the build will fail
-    # if tests fail
-    checked = overrideCabal pkg (drv: {
-      doCheck = true;
-      src = sdist;
-    });
-  });
-  releaseCandidates = mapSet mkReleaseCandidate ghc;
-
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
@@ -545,4 +494,25 @@ in let this = rec {
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
-}; in this
+};
+
+# Deprecated reexports. These were made for `./scripts/*`, but are reexported
+# here for backwards compatability.
+legacy = {
+  # Added 2019-12, will be removed 2020-06.
+  inherit
+    (builtins.trace
+      "These attributes are deprecated. See reflex-platform's root default.nix."
+      (import ./nix-utils/hackage { reflex-platform = this; }))
+    attrsToList
+    mapSet
+    mkSdist
+    sdists
+    mkHackageDocs
+    hackageDocs
+    mkReleaseCandidate
+    releaseCandidates
+    ;
+};
+
+in this // lib.optionalAttrs (!hideDeprecated) legacy
