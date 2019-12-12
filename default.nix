@@ -7,6 +7,7 @@
 , useFastWeak ? true
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
+, __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
@@ -52,7 +53,7 @@ let iosSupport = system == "x86_64-darwin";
           haskellLib = self.haskell.lib;
           inherit
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-            useTextJSString enableExposeAllUnfoldings
+            useTextJSString enableExposeAllUnfoldings __useTemplateHaskell
             haskellOverlaysPre
             haskellOverlaysPost;
           inherit ghcSavedSplices;
