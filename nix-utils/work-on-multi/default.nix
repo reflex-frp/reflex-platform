@@ -10,7 +10,7 @@ let
   inherit (nixpkgs) lib;
 in
 
-{ env, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
+{ envFunc, packageNames, tools ? _: [], shellToolOverrides ? _: _: {} }:
 
 let
   inherit (builtins) listToAttrs filter attrValues all concatLists;
@@ -64,6 +64,7 @@ let
     })).out;
     notInTargetPackageSet = p: all (pname: (p.pname or "") != pname) packageNames;
     baseTools = generalDevTools' {};
+    env = envFunc reflex-platform;
     overriddenTools = baseTools // shellToolOverrides env baseTools;
     depAttrs = lib.mapAttrs (_: v: filter notInTargetPackageSet v) (concatCombinableAttrs (concatLists [
       (map getHaskellConfig (lib.attrVals packageNames env))
@@ -84,4 +85,4 @@ in (env.mkDerivation (depAttrs // {
   pname = "work-on-multi--combined-pkg";
   version = "0";
   license = null;
-})).env;
+})).env
