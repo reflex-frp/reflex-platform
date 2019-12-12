@@ -7,9 +7,12 @@
 , useFastWeak ? true
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
+, __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
-, haskellOverlays ? []
+, haskellOverlays ? [] # TODO deprecate
+, haskellOverlaysPre ? []
+, haskellOverlaysPost ? haskellOverlays
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -50,8 +53,9 @@ let iosSupport = system == "x86_64-darwin";
           haskellLib = self.haskell.lib;
           inherit
             useFastWeak useReflexOptimizer enableLibraryProfiling enableTraceReflexEvents
-            useTextJSString enableExposeAllUnfoldings
-            haskellOverlays;
+            useTextJSString enableExposeAllUnfoldings __useTemplateHaskell
+            haskellOverlaysPre
+            haskellOverlaysPost;
           inherit ghcSavedSplices;
         };
       };
@@ -67,7 +71,7 @@ let iosSupport = system == "x86_64-darwin";
       };
       zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
-        { static = true; });
+        { static = true; shared = false; });
     };
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
