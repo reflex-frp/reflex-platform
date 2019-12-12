@@ -456,4 +456,4 @@ legacy = {
 
 in this // lib.optionalAttrs
   (!hideDeprecated)
-  (lib.mapAttrs (_: builtins.trace "These attributes are deprecated. See reflex-platform's root default.nix.") legacy)
+  (lib.mapAttrs (attrName: builtins.trace "The attribute \"${attrName}\" is deprecated. See reflex-platform's root default.nix.") legacy)
