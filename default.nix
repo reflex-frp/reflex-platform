@@ -352,9 +352,7 @@ in let this = rec {
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
-  generalDevToolsAttrs = haskellPackages:
-    let nativeHaskellPackages = ghc;
-    in {
+  generalDevTools' = { nativeHaskellPackages ? ghc }: {
     inherit (nativeHaskellPackages)
       Cabal
       cabal-install
@@ -362,29 +360,23 @@ in let this = rec {
       hasktags
       hdevtools
       hlint
-      stylish-haskell; # Recent stylish-haskell only builds with AMP in place
+      stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      ;
     inherit (nixpkgs)
       cabal2nix
       curl
       nix-prefetch-scripts
       nodejs
       pkgconfig
-      closurecompiler;
-  } // (lib.optionalAttrs (!(haskellPackages.ghc.isGhcjs or false)) {
-    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (haskellPackages.override {
+      closurecompiler
+      ;
+    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
       overrides = nixpkgs.haskell.overlays.hie;
     }).haskell-ide-engine;
-  });
-
-  generalDevTools = haskellPackages: builtins.attrValues (generalDevToolsAttrs haskellPackages);
-
-  nativeHaskellPackages = haskellPackages:
-    if haskellPackages.isGhcjs or false
-    then haskellPackages.ghc
-    else haskellPackages;
+  };
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildDepends = (drv.buildDepends or []) ++ generalDevTools (nativeHaskellPackages haskellPackages);
+    buildToolDepends = (drv.buildToolDepends or []) ++ builtins.attrValues generalDevTools' {};
   })).env;
 
   # A simple derivation that just creates a file with the names of all
@@ -410,7 +402,7 @@ in let this = rec {
       inherit platform;
     });
 
-  tryReflexPackages = generalDevTools ghc
+  tryReflexPackages = builtins.attrValues (generalDevTools' {})
     ++ builtins.map reflexEnv platforms;
 
   cachePackages =
@@ -448,8 +440,14 @@ legacy = {
     mkReleaseCandidate
     releaseCandidates
     ;
+  generalDevTools = _: builtins.attrValues (this.generalDevTools' {});
+  generalDevToolsAttrs = _: this.generalDevTools' {};
+  nativeHaskellPackages = haskellPackages:
+    if haskellPackages.isGhcjs or false
+    then haskellPackages.ghc
+    else haskellPackages;
   workOnMulti' = { env, packageNames }:
-    import ./nix-utils/work-on-multi {} {
+    (import ./nix-utils/work-on-multi {}).workOnMulti {
       envFunc = _: env;
       inherit packageNames;
     };
