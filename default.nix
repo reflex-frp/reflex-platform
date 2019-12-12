@@ -438,9 +438,7 @@ in let this = rec {
 legacy = {
   # Added 2019-12, will be removed 2020-06.
   inherit
-    (builtins.trace
-      "These attributes are deprecated. See reflex-platform's root default.nix."
-      (import ./nix-utils/hackage { reflex-platform = this; }))
+    (import ./nix-utils/hackage { reflex-platform = this; })
     attrsToList
     mapSet
     mkSdist
@@ -458,4 +456,6 @@ legacy = {
   workOnMulti = env: packageNames: legacy.workOnMulti' { inherit env packageNames; };
 };
 
-in this // lib.optionalAttrs (!hideDeprecated) legacy
+in this // lib.optionalAttrs
+  (!hideDeprecated)
+  (lib.mapAttrs (_: builtins.trace "These attributes are deprecated. See reflex-platform's root default.nix.") legacy)
