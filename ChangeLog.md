@@ -18,6 +18,21 @@ This project's release branch is `master`. This log is written from the perspect
 * Removing long-since-broken `nixpkgs.haskell.compiler.ghcSplices` attribute,
   leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
   intended replacement.
+* `zlib` for mobile doesn't provide any `*.so`/`.dylib`, that way you are guaranteed to link the `.a` and not one of the others by mistake.
+* The following attributes have been deprecated in `default.nix`, and are now
+  defined in `nix-utils/hackage.nix`:
+
+   * `attrsToList`
+   * `mapSet`
+   * `mkSdist`
+   * `sdists`
+   * `mkHackageDocs`
+   * `hackageDocs`
+   * `mkReleaseCandidate`
+   * `releaseCandidates`
+
+  These are only useful to the maintainers of packages in reflex platform, and
+  just clutter the top level for everyone else.
 
 ## v0.1.0.0 - 2019-04-03
 
