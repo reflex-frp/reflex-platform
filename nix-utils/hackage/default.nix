@@ -1,13 +1,9 @@
-{ reflex-platform ? import ../.. { hideDeprecated = true; } }:
+{ reflex-platform ? import ../.. { hideDeprecated = true; }
 
-let
-  inherit (reflex-platform)
-    nixpkgs
-    ghc
-    lib
-    overrideCabal
-    ;
-in
+, lib ? reflex-platform.lib
+, pkgs ? reflex-platform.nixpkgs
+, haskellPackages ? reflex-platform.haskellPackages
+}:
 
 rec {
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
@@ -26,7 +22,7 @@ rec {
       doHaddock = false;
     });
   });
-  sdists = mapSet mkSdist ghc;
+  sdists = mapSet mkSdist haskellPackages;
   mkHackageDocs = pkg: pkg.override (oldArgs: {
     mkDerivation = drv: oldArgs.mkDerivation (drv // {
       postConfigure = ''
@@ -39,8 +35,8 @@ rec {
       doHaddock = false;
     });
   });
-  hackageDocs = mapSet mkHackageDocs ghc;
-  mkReleaseCandidate = pkg: nixpkgs.stdenv.mkDerivation (rec {
+  hackageDocs = mapSet mkHackageDocs haskellPackages;
+  mkReleaseCandidate = pkg: pkgs.stdenv.mkDerivation (rec {
     name = pkg.name + "-rc";
     sdist = mkSdist pkg + "/${pkg.pname}-${pkg.version}.tar.gz";
     docs = mkHackageDocs pkg + "/${pkg.pname}-${pkg.version}-docs.tar.gz";
@@ -55,10 +51,10 @@ rec {
 
     # 'checked' isn't used, but it is here so that the build will fail
     # if tests fail
-    checked = overrideCabal pkg (drv: {
+    checked = pkgs.haskell.lib.overrideCabal pkg (drv: {
       doCheck = true;
       src = sdist;
     });
   });
-  releaseCandidates = mapSet mkReleaseCandidate ghc;
+  releaseCandidates = mapSet mkReleaseCandidate haskellPackages;
 }
