@@ -499,7 +499,9 @@ in let this = rec {
 
   # Added 2019-12, will be removed 2020-06.
   inherit
-    (import ./nix-utils/hackage { reflex-platform = this; })
+    (builtins.trace
+      "These attributes are deprecated. See reflex-platform's root default.nix."
+      (import ./nix-utils/hackage { reflex-platform = this; }))
     attrsToList
     mapSet
     mkSdist
