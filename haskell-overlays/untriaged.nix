@@ -21,23 +21,11 @@ let # Adds additional arguments to 'buildInputs' and the 'HASKELL_GI_GIR_SEARCH_
 in self: super: {
 
   # Recently uploaded to hackage:
-  haven = self.callHackageDirect {
-    pkg = "haven";
-    ver = "0.2.0.2";
-    sha256 = "1hz0ngzd2gbmi45lv52465zrvsfvm6gpc42g7ms0hpa0v52if0w9";
-  } {};
+  haven = self.callHackage "haven" "0.2.0.2" {};
 
   # Update hlint and add new dependency
-  hlint = self.callHackageDirect {
-    pkg = "hlint";
-    ver = "2.2.2";
-    sha256 = "0m0mx1cvq2m4w6kf0armfgdayqxwapnf5k8ffjxild8amc8ysn4a";
-  } {};
-  ghc-lib-parser = self.callHackageDirect {
-    pkg = "ghc-lib-parser";
-    ver = "8.8.0.20190723";
-    sha256 = "0l0ffxmszjrcj8qiqwwmsdygy2sgw6vrlm1xfqrbdx60bwgc07m5";
-  } {};
+  hlint = self.callHackage "hlint" "2.2.2" {};
+  ghc-lib-parser = self.callHackage "ghc-lib-parser" "8.8.0.20190723" {};
   haskell-src-exts = super.haskell-src-exts_1_21_0;
   haskell-src-exts-util = self.callHackage "haskell-src-exts-util" "0.2.5" {};
   stylish-haskell = self.callHackage "stylish-haskell" "0.9.2.2" {};
