@@ -1,4 +1,4 @@
-{ reflex-platform ? import ../. {} }:
+{ reflex-platform ? import ../.. { hideDeprecated = true; } }:
 
 let
   inherit (reflex-platform)
