@@ -32,6 +32,7 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
+            patches = [];
           });
         };
         packages = super.haskell.packages // {
