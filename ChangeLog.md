@@ -29,6 +29,9 @@ considered released, and the date should reflect that release.
   leaving behind `nixpkgs.haskell.compiler.ghcSplices-8_6`, which is its
   intended replacement.
 
+* Add optional `runtimeSharedLibs` parameter to `buildApp`.
+  See that function's documentation for how to use it.
+
 * `zlib` for mobile doesn't provide any `*.so`/`.dylib`, that way you are
   guaranteed to link the `.a` and not one of the others by mistake.
 
@@ -55,8 +58,21 @@ considered released, and the date should reflect that release.
    * `generalDevToolsAttrs`
    * `nativeHaskellPackages`
 
+  And make `generalDevTools'` as a replacement for just `generalDevToolsAttrs`
+  with a more structured argument.
+
   The are exposed for now for backwards compat, but will be removed at a later
   point. They are mainly used in the implementation of the `work-on*` scripts.
+
+* The following attributes have been deprecated in `default.nix`, and are now
+  defined in `nix-utils/work-on-multi.nix`:
+
+   * `workOnMulti`
+   * `workOnMulti'`
+
+  If you just used `script/work-on-multi`, nothing has changed.
+  But if you do use the nix attributes directly, see how the deprecated exports
+  are written to migrate your code to not use them.
 
 ## v0.1.0.0 - 2019-04-03
 

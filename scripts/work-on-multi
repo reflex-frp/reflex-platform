@@ -2,6 +2,7 @@
 set -euo pipefail
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+DIR2="$DIR/nix-utils/work-on-multi"
 
 . "$DIR/scripts/common-setup.sh"
 
@@ -9,13 +10,13 @@ PLATFORM="$1"
 shift
 
 if echo "$PLATFORM" | grep -q '^(.*)$' ; then
-    EFFECTIVE_PLATFORM="$PLATFORM"
+    EFFECTIVE_PLATFORM="_: $PLATFORM"
 elif echo "$PLATFORM" | grep -q / ; then
     PLATFORM_PATH="$(cleanup_nix_path "$PLATFORM")"
-    EFFECTIVE_PLATFORM="(import $PLATFORM { reflex-platform = this; try-reflex = builtins.trace \"WARNING: the try-reflex parameter is deprecated; please update your script to refer to reflex-platform instead\" this; })"
+    EFFECTIVE_PLATFORM="reflex-platform: (import $PLATFORM { inherit reflex-platform; try-reflex = builtins.trace \"WARNING: the try-reflex parameter is deprecated; please update your script to refer to reflex-platform instead\" reflex-platform; })"
 else
-    EFFECTIVE_PLATFORM="this.$PLATFORM"
+    EFFECTIVE_PLATFORM="reflex-platform: reflex-platform.$PLATFORM"
 fi
 
 terminate_logging
-nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOnMulti $EFFECTIVE_PLATFORM [ $(printf "\"%s\" " "$@") ]" --show-trace
+nix-shell $NIXOPTS -E "import $DIR2/. {} { envFunc = $EFFECTIVE_PLATFORM; packageNames = [ $(printf "\"%q\" " "$@") ]; }" --show-trace
