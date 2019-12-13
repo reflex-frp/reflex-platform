@@ -78,7 +78,7 @@ in {
           name = applicationId + "-java";
           paths = [
             (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
-            (ghcAndroidAarch64.reflex-dom.src + "/java")
+            (ghcAndroidAarch64.reflex-dom.src + "/reflex-dom/java")
           ];
         };
         src = ./src;
