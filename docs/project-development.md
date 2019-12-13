@@ -111,7 +111,8 @@ project. In the root directory of your project, create this
 
 ```nix
 # default.nix
-(import ./reflex-platform {}).project ({ pkgs, ... }: {
+{ system ? builtins.currentSystem }:
+(import ./reflex-platform { inherit system; }).project ({ pkgs, ... }: {
   packages = {
     common = ./common;
     backend = ./backend;
@@ -127,27 +128,6 @@ project. In the root directory of your project, create this
 
 See [project/default.nix](../project/default.nix) for more details on
 available options.
-
-The `nix-build` command will use this file to build the project.
-
-```bash
-$ nix-build
-```
-
-This will place a symlink named `result` in the current directory
-which points to a directory with all your build products.
-
-```bash
-$ tree result
-result
-├── ghc
-│   ├── backend -> /nix/store/bgraikacjv68lfcghkprj3mspwx9f2bn-backend-0.1.0.0
-│   ├── common -> /nix/store/lcgz36j77y6w7jyd39b14zp00hfaxn3s-common-0.1.0.0
-│   └── frontend -> /nix/store/fnq7vs2fnkj0hr6l0cv9pna9f0br2lln-frontend-0.1.0.0
-└── ghcjs
-    ├── common -> /nix/store/fgbmn6mjgh7gfdbgnb7a21fsb9175gmv-common-0.1.0.0
-    └── frontend -> /nix/store/khfpsla56pvqv174yzzc2y65g78bfflc-frontend-0.1.0.0
-```
 
 You can build individual components of your project using `-A`.
 
@@ -308,7 +288,9 @@ than a JS VM for what Reflex is doing.
 The project Nix expression also supports defining mobile apps.
 
 ```nix
-(import ./reflex-platform {}).project ({ pkgs, ... }: {
+(import ./reflex-platform {
+  config.android_sdk.accept_license = true;
+}).project ({ pkgs, ... }: {
   packages = {
     common = ./common;
     backend = ./backend;
@@ -334,6 +316,11 @@ The project Nix expression also supports defining mobile apps.
 })
 ```
 
+Note that you must accept the
+[Android Software Development Kit License Agreement](https://developer.android.com/studio/terms)
+and indicate so by setting `config.android_sdk.accept_license` when instantiating
+Reflex Platform in order to build Android apps.
+
 Build them with `nix-build`:
 
 ```bash
@@ -343,32 +330,16 @@ $ # On macOS
 $ nix-build -o ios-result -A ios.frontend
 ```
 
-They will also be included in an untargeted `nix-build` command:
+Currently, Android apps can only be built on Linux, and iOS apps can only be
+built on macOS. If you would like to launch builds from an unsupported platform,
+you can use Nix [distributed
+builds](https://nixos.org/nixos/manual/options.html#opt-nix.buildMachines).
 
+For example, to build the Android app from a Mac configured with a Linux remote
+builder:
 
 ```bash
-$ # On Linux
-$ nix-build
-trace: 
-
-Skipping ios apps; system is x86_64-linux, but x86_64-darwin is needed.
-Use `nix-build -A all` to build with remote machines.
-See: https://nixos.org/nixos/manual/options.html#opt-nix.buildMachines
-
-
-/nix/store/2031z8f8ijkrbilbdy2p0f398cdv8v7b-reflex-project
-
-$ tree result
-result
-├── android
-│   └── frontend -> /nix/store/80341nnpcsq0imsi4s6v7mb9ij6ihaxv-android-app
-├── ghc
-│   ├── backend -> /nix/store/bgraikacjv68lfcghkprj3mspwx9f2bn-backend-0.1.0.0
-│   ├── common -> /nix/store/lcgz36j77y6w7jyd39b14zp00hfaxn3s-common-0.1.0.0
-│   └── frontend -> /nix/store/fnq7vs2fnkj0hr6l0cv9pna9f0br2lln-frontend-0.1.0.0
-└── ghcjs
-    ├── common -> /nix/store/fgbmn6mjgh7gfdbgnb7a21fsb9175gmv-common-0.1.0.0
-    └── frontend -> /nix/store/khfpsla56pvqv174yzzc2y65g78bfflc-frontend-0.1.0.0
+$ nix-build -o android-result -A android.frontend --arg config '{system="x86_64-linux";}'
 ```
 
 Note that only `android.frontend` was built in this case. Currently,
@@ -378,3 +349,22 @@ use `-A all` and make sure to have Nix [distributed
 builds](https://nixos.org/nixos/manual/options.html#opt-nix.buildMachines)
 set up. Nix will delegate builds to remote machines automatically to
 build the apps on their required systems.
+
+Building via remote Nix Builder
+---
+
+For some use-cases it can be required to build derivations to be deployed on a
+different system than the one used for building. For example, a derivation needs
+to be deployed to `x86_64-linux` but the system used for building is
+`x86_64-darwin`.
+
+Nix supports delegating builds to other machines using [remote
+builders](https://nixos.org/nix/manual/#chap-distributed-builds). For the above
+example, the [nix-docker](https://github.com/LnL7/nix-docker) project might be
+useful, as it provides a Docker-based Linux build environment usable on Darwin
+machines. After having set up remote builders, the Reflex application can be
+built for x86_64-linux by passing the appropriate `system` argument:
+
+```bash
+$ nix-build --argstr system x86_64-linux
+```

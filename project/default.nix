@@ -4,6 +4,7 @@ let
   inherit (this) nixpkgs;
   inherit (nixpkgs.lib) mapAttrs mapAttrsToList escapeShellArg
     optionalAttrs optionalString concatStringsSep concatMapStringsSep;
+  workOnMulti = import ../nix-utils/work-on-multi { reflex-platform = this; };
 in
 
 # This function simplifies the definition of Haskell projects that
@@ -39,7 +40,6 @@ in
 # > example commands
 #
 #     $ nix-build
-#     $ nix-build -A all
 #     $ nix-build -A ghc.backend
 #     $ nix-build -A ghcjs.frontend
 #     $ nix-build -A android.frontend
@@ -167,7 +167,7 @@ let
   mkPkgSet = name: _: this.${name}.override { overrides = overrides'; };
   prj = mapAttrs mkPkgSet shells // {
     shells = mapAttrs (name: pnames:
-      this.workOnMulti' {
+      workOnMulti {
         env = prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
           ghcWithPackages = self.ghcWithHoogle;
         }; };
@@ -176,46 +176,26 @@ let
       }
     ) shells;
 
-    android =
-      mapAttrs (name: config:
-        let
-          ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
-          ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
-        in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
-          ({ package = p: p.${name}; } // config)
-      ) (optionalAttrs this.androidSupport android);
+    android = if this.androidSupport
+      then mapAttrs (name: config:
+             let
+               ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
+               ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
+             in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
+               ({ package = p: p.${name}; } // config)
+           ) android
+      else throw "Android builds are not supported on this platform.";
 
-    ios =
-      mapAttrs (name: config:
-        let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
-        in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
-          ({ package = p: p.${name}; } // config)
-      ) (optionalAttrs this.iosSupport ios);
+    ios = if this.iosSupport
+      then mapAttrs (name: config:
+             let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
+             in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
+               ({ package = p: p.${name}; } // config)
+           ) ios
+      else throw "iOS builds are not supported on this platform.";
 
     reflex = this;
 
-    inherit all passthru;
+    inherit passthru;
   };
-
-  ghcLinks = mapAttrsToList (name: pnames: optionalString (pnames != []) ''
-    mkdir -p $out/${escapeShellArg name}
-    ${concatMapStringsSep "\n" (n: ''
-      ln -s ${prj.${name}.${n}} $out/${escapeShellArg name}/${escapeShellArg n}
-    '') pnames}
-  '') shells;
-  mobileLinks = mobileName: mobile: ''
-    mkdir -p $out/${escapeShellArg mobileName}
-    ${concatStringsSep "\n" (mapAttrsToList (name: app: ''
-      ln -s ${app} $out/${escapeShellArg mobileName}/${escapeShellArg name}
-    '') mobile)}
-  '';
-
-  all =
-    let tracedMobileLinks = mobileName: mobile:
-          optionalString (mobile != {}) (mobileLinks mobileName mobile);
-    in nixpkgs.runCommand name { passthru = prj; preferLocalBuild = true; } ''
-      ${concatStringsSep "\n" ghcLinks}
-      ${tracedMobileLinks "android" prj.android}
-      ${tracedMobileLinks "ios" prj.ios}
-    '';
-in all
+in prj

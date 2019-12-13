@@ -4,6 +4,7 @@ env@{
 , ghcAndroidAarch64
 , ghcAndroidAarch32
 , overrideCabal
+, acceptAndroidSdkLicenses
 }:
 with nixpkgs.lib.strings;
 let impl = import ./impl.nix env;
@@ -93,6 +94,17 @@ in rec {
 
     , additionalDependencies ? ""
 
+    , runtimeSharedLibs ? (_: [])
+      # Allows to copy native .so libraries into APK. Example:
+      # runtimeSharedLibs = nixpkgs: [
+      #   "${nixpkgs.libsodium}/lib/libsodium.so"
+      # ];
+      #
+      # Note that android linker doesn't support versioned libraries, so
+      # for instance libz.so.1 won't be copied by gradle into resulted APK.
+      # You need to patch soname in make files of libraries to link against
+      # unversioned libraries.
+
     , universalApk ? true
       # Set this to false to build one APK per target platform.  This will
       # automatically transform the version code to 1000 * versionCode + offset
@@ -101,6 +113,7 @@ in rec {
     assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
     nixpkgs.lib.makeOverridable impl.buildApp {
       inherit package
+              acceptAndroidSdkLicenses
               executableName
               applicationId
               displayName
@@ -115,6 +128,7 @@ in rec {
               intentFilters
               googleServicesJson
               additionalDependencies
+              runtimeSharedLibs
               universalApk;
     };
 }
