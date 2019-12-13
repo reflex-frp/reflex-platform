@@ -75,6 +75,11 @@ in self: super: {
   # remove jailbreak after https://github.com/isomorphism/these/pull/134
   which = self.callHackage "which" "0.1.0.0" {};
 
+  # Something needed newer version.
+  aeson = dontCheck (self.callHackage "aeson" "1.4.5.0" {});
+  # needed by aeson
+  time-compat = doJailbreak (self.callHackage "time-compat" "1.9.2.2" {});
+
   ########################################################################
   # Packages not in hackage
   ########################################################################
