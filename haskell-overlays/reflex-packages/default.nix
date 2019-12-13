@@ -1,7 +1,7 @@
 { haskellLib
 , lib, nixpkgs
 , thunkSet, fetchFromGitHub, fetchFromBitbucket
-, useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling
+, useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling, __useTemplateHaskell
 }:
 
 with haskellLib;
@@ -14,9 +14,9 @@ let
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
   ghcjsDom = import self._dep.ghcjs-dom self;
-  reflexTraceEventsFlag = lib.optional enableTraceReflexEvents "-fdebug-trace-events";
+
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
-  fastWeakFlag = lib.optional useFastWeak "-ffast-weak";
+  useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
 
   inherit (nixpkgs) stdenv;
 in
@@ -28,9 +28,10 @@ in
   ##
 
   reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
-    reflexTraceEventsFlag
+    (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
     reflexOptimizerFlag
-    fastWeakFlag
+    useTemplateHaskellFlag
+    (lib.optional useFastWeak "-ffast-weak")
   ])) {};
 
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
@@ -45,6 +46,7 @@ in
     (self.callCabal2nixWithOptions "reflex-dom-core" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
       ["--subpath reflex-dom-core"]
       reflexOptimizerFlag
+      useTemplateHaskellFlag
       (lib.optional enableLibraryProfiling "-fprofile-reflex")
     ])) {})
     (drv: {
@@ -83,6 +85,7 @@ in
     (self.callCabal2nixWithOptions "reflex-dom" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
       ["--subpath reflex-dom"]
       reflexOptimizerFlag
+      useTemplateHaskellFlag
     ])) {})
     (drv: {
       # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
@@ -160,7 +163,7 @@ in
     ver = "0.1.0.0";
     sha256 = "0fm73cbja570lfxznv66daya5anp4b0m24jjm5fwn95f49dp9d4n";
   } {};
-  dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._deps.dependent-sum-universe-orphans {};
+  dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
 
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
   universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};

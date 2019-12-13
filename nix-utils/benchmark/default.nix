@@ -1,4 +1,5 @@
-{ reflex-platform ? import ./../.. {} }:
+{ reflex-platform ? import ../.. { hideDeprecated = true; } }:
+
 let pkgs = reflex-platform.nixpkgs;
     nodejs = pkgs.nodejs-8_x;
     shellHook = linkNodeModulesHook + ''
