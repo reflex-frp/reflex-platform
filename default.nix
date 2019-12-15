@@ -377,7 +377,7 @@ in let this = rec {
   };
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildToolDepends = (drv.buildToolDepends or []) ++ builtins.attrValues generalDevTools' {};
+    buildDepends = (drv.buildDepends or []) ++ builtins.attrValues (generalDevTools' {});
   })).env;
 
   # A simple derivation that just creates a file with the names of all
