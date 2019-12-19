@@ -48,7 +48,7 @@ let
 
     concatCombinableAttrs = haskellConfigs: lib.filterAttrs
       (n: v: v != [])
-      (lib.zipAttrs (map
+      (lib.zipAttrsWith (_: concatLists) (map
         (haskellConfig: lib.listToAttrs (map
           (name: {
             inherit name;
