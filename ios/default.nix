@@ -163,7 +163,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     tmpdir=$(mktemp -d)
     # Find the signer given the OU
-    signer=$(security find-certificate -c "iPhone Developer" -a \
+    signer=$(security find-certificate -c 'iPhone Developer' -c 'Apple Development' -a \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
@@ -172,7 +172,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
         done \
       | grep "OU=$TEAM_ID/" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
-      | head -n 1)
+      | head -n 1 || true)
 
     if [ -z "$signer" ]; then
       echo "Error: No iPhone Developer certificate found for team id $TEAM_ID" >&2
