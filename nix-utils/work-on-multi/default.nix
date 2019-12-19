@@ -15,12 +15,6 @@ in
 let
   inherit (builtins) listToAttrs filter attrValues all concatLists;
     combinableAttrs = p: [
-      "benchmarkDepends"
-      "benchmarkFrameworkDepends"
-      "benchmarkHaskellDepends"
-      "benchmarkPkgconfigDepends"
-      "benchmarkSystemDepends"
-      "benchmarkToolDepends"
       "buildDepends"
       "buildTools"
       "executableFrameworkDepends"
@@ -43,11 +37,18 @@ let
       "testPkgconfigDepends"
       "testSystemDepends"
       "testToolDepends"
+    ] ++ lib.optionals (p.doBenchmark or false) [
+      "benchmarkDepends"
+      "benchmarkFrameworkDepends"
+      "benchmarkHaskellDepends"
+      "benchmarkPkgconfigDepends"
+      "benchmarkSystemDepends"
+      "benchmarkToolDepends"
     ];
 
     concatCombinableAttrs = haskellConfigs: lib.filterAttrs
       (n: v: v != [])
-      (lib.zipAttrs (map
+      (lib.zipAttrsWith (_: concatLists) (map
         (haskellConfig: lib.listToAttrs (map
           (name: {
             inherit name;
