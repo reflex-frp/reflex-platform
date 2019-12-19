@@ -79,6 +79,9 @@ in self: super: {
   # remove jailbreak after https://github.com/isomorphism/these/pull/134
   which = self.callHackage "which" "0.1.0.0" {};
 
+  # Broken in 19.09
+  http-streams = self.callHackage "http-streams" "0.8.6.1" {};
+
   ########################################################################
   # Packages not in hackage
   ########################################################################
