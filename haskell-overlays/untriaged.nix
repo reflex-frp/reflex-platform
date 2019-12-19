@@ -80,18 +80,9 @@ in self: super: {
   which = self.callHackage "which" "0.1.0.0" {};
 
   # Broken in 19.09
-  http-streams = self.callHackage "http-streams" "0.8.6.1" {};
+  http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
 
-  ########################################################################
-  # Packages not in hackage
-  ########################################################################
-  concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
-    owner = "conal";
-    repo = "concat";
-    rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
-    sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
-  }) {}));
-
+  # Override mkDerivation to inherit global settings
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
   });
