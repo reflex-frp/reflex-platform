@@ -106,6 +106,7 @@ cabal new-run WorkOnTest
 exit
 scripts/hack-off haskell-overlays/reflex-packages/dep/reflex-dom
 ```
+Note that `hack-off` might fail unless GitHub knows about your ssh key. 
 
 ### Removing the sandbox dir:
 ```
