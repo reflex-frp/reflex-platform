@@ -52,7 +52,7 @@ exit
 ```
 nix-build -A ghcjs.reflex-todomvc
 ```
-If successful this will give you a file path. Navigate to a browswer (like chrome) and enter the following (with the path) into the bar:
+If successful this will give you a file path. Navigate to a browser (like chrome) and enter the following (with the path) into the bar:
 ```
 file:///<insert nix path from previous instruction here>/bin/reflex-todomvc.jsexe/index.html
 ```
