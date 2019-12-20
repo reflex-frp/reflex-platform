@@ -73,6 +73,13 @@ Make sure that your android device has been plugged in, that you have deleted an
 <nix path from command above>/bin/deploy
 ```
 ### Testing TODOMVC app on IOS
+Using a macOS run the following:
+Make sure the device that you are installing the app on is plugged in.
+```
+nix-build release.nix -A x86_64-darwin.iosReflexTodomvc
+result/bin/deploy <team-id>
+```
+For more information on finding out what your team-id is, please see the README.md
 
 ### Testing the 'work-on-multi' script
 ```
