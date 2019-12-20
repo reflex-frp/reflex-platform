@@ -22,9 +22,13 @@ EOF
 ghc hello.hs
 ./hello
 ```
-A successful build looks like this:
-[pic here]
+If you are running on this command on a mac you will need to add the `dynamic` and `threading` flags each time you invoke ghc:
+See below for an example
+```
+ghc -dynamic -threading hello.hs
+```
 
+Test out ghcjs:
 ```
 ghcjs hello.hs
 chromium hello.jsexe/index.html
@@ -52,13 +56,14 @@ exit
 ```
 nix-build -A ghcjs.reflex-todomvc
 ```
-If successful this will give you a file path. Navigate to a browswer (like chrome) and enter the following (with the path) into the bar:
+If successful this will give you a file path. Navigate to a browser (like chrome) and enter the following (with the path) into the bar:
 ```
 file:///<insert nix path from previous instruction here>/bin/reflex-todomvc.jsexe/index.html
 ```
 You should test this app. 
 
 ### Android App:
+If you are running qa from a macOS machine please skip the android tests, but be sure to QA it from a linux device.
 ```
 nix-build release.nix -A x86_64-linux.androidReflexTodomvc
 ```
@@ -68,11 +73,6 @@ Make sure that your android device has been plugged in, that you have deleted an
 <nix path from command above>/bin/deploy
 ```
 ### Testing TODOMVC app on IOS
-IOS:
-  - Register your OS email with an apple id account. Then, using this id, create an apple developer account
-  - Ask the OS manager (Ali, Hector) to add you to the Obsidian developer group. You can only do this after you have 
-    created an apple developer account (in the above step).
-  - 
 
 ### Testing the 'work-on-multi' script
 ```
@@ -89,12 +89,18 @@ packages:
 
 Run the work-on script:
 ```
-scripts/work-on ghc './examples/work-on-test/'
+scripts/work-on ghc './examples/WorkOnTest/'
 cd examples/WorkOnTest
 cabal new-build
 cabal new-run
 cd ../../
 exit
+```
+If you are running these commands from a macOS, you will need to add the following to the
+cabal new-build and cabal new-run commands: 
+```
+cabal new-build --ghc-options='-threaded -dynamic'
+cabal new-run --ghc-options='-threaded -dynamic'
 ```
 Please confirm that "hello world" pops up when running `cabal new-run`
 
