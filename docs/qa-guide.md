@@ -25,7 +25,7 @@ ghc hello.hs
 If you are running on this command on a mac you will need to add the `dynamic` and `threading` flags each time you invoke ghc:
 See below for an example
 ```
-ghc -dynamic -threading hello.hs
+ghc -dynamic -threaded hello.hs
 ```
 
 Test out ghcjs:
