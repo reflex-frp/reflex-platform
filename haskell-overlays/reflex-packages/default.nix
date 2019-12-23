@@ -43,8 +43,7 @@ in
             || stdenv.hostPlatform != stdenv.buildPlatform
             || (ghc.isGhcjs or false);
   in haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom-core" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-      ["--subpath reflex-dom-core"]
+    (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
       (lib.optional enableLibraryProfiling "-fprofile-reflex")
@@ -82,8 +81,7 @@ in
     });
 
   reflex-dom = haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-      ["--subpath reflex-dom"]
+    (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
     ])) {})
@@ -94,7 +92,7 @@ in
       ];
     });
 
-  chrome-test-utils = self.callCabal2nixWithOptions "chrome-test-utils" reflexDomRepo "--subpath chrome-test-utils" {};
+  chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
   ##
   ## GHCJS and JSaddle
@@ -149,11 +147,11 @@ in
   dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
 
-  universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
-  universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};
-  universe-dependent-sum = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-dependent-sum" {});
-  universe-instances-extended = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-instances-extended" {};
-  universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
-  universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
+  universe = self.callCabal2nix "universe" (universeRepo + "/universe") {};
+  universe-base = self.callCabal2nix "universe" (universeRepo + "/universe-base") {};
+  universe-dependent-sum = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nix "universe" (universeRepo + "/universe-dependent-sum") {});
+  universe-instances-extended = self.callCabal2nix "universe" (universeRepo + "/universe-instances-extended") {};
+  universe-reverse-instances = self.callCabal2nix "universe" (universeRepo + "/universe-reverse-instances") {};
+  universe-instances-base = self.callCabal2nix "universe" (universeRepo + "/deprecated/universe-instances-base") {};
 
 }
