@@ -1,7 +1,7 @@
 {
-  "owner": "nixos",
-  "repo": "nixpkgs-channels",
-  "branch": "nixos-19.09",
-  "rev": "2ed8568d837ac7aaa5c802fa87f4aa9b8c7a4ea6",
-  "sha256": "0jsj6p1jxc51wpfq34g2jvplfmwdc34zaw4gwq2qcqi8x794d3h3"
+  "owner": "obsidiansystems",
+  "repo": "nixpkgs",
+  "branch": "ghcjs-cross-without-cc-19.09",
+  "rev": "2411aa5537632b8337021650da738b437d994145",
+  "sha256": "0ikhqg0ixi24f3ijz7nc2rakq2yyvmm8p02cq8glb1nb1z15lpws"
 }
