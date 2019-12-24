@@ -1,6 +1,7 @@
 {
   "owner": "ghcjs",
   "repo": "ghcjs-dom",
-  "rev": "b8e483adef0cea66d081c1a014e87c6f99eb29fc",
-  "sha256": "06qlbbhjd0mlv5cymp5q0rb69a333l0fcif5zwa83h94dh25c1g7"
+  "branch": "remove-nix",
+  "rev": "5bd611183ed8ff16019f121ccc9e0251147ddbca",
+  "sha256": "076g6x03dik82min4v24yxql7sb00wbka2qf2k10rb9zxj4kyy1p"
 }
