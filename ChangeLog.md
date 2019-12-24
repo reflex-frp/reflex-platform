@@ -4,6 +4,12 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## Unreleased
+
+* Make Nixpkgs treat GHCJS builds as cross.
+  This will fix things like `setup-depends` and `build-tool-depends` being properly built with GHC rather than GHCJS.
+  That, in turn, will allow `markdown-unlit` READMEs and other things that we had trouble with.
+
 ## v0.4.0.0 - 2019-12-26
 
 * Bump nixpkgs to 19.09.
