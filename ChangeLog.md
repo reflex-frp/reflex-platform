@@ -4,7 +4,25 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
-## Unreleased
+## v0.3.0.0 - 2019-12-26
+
+* Bump ghcjs-dom packages:
+
+   - `ghcjs-dom` to `0.9.4.0`
+   - `ghcjs-dom-jsaddle` to `0.9.4.0`
+   - `ghcjs-dom-jsffi` to `0.9.4.0`
+   - `jsaddle-dom` to `0.9.4.0`
+
+* Bump aeson, and other packages to work with it:
+
+   - `aeson` to `1.4.5.0`
+   - `time-compat` to `1.9.2.2`
+   - `hpack` to `0.32.0`
+   - `webdriver` to `0.9.0.1`
+
+* Bump ghc to include more `8.6` backports
+
+## v0.2.0.0 - 2019-12-24
 
 * Upgrade reflex packages:
 
