@@ -14,6 +14,7 @@
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
 , hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
+, hieSupport ? true
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -370,6 +371,7 @@ in let this = rec {
       pkgconfig
       closurecompiler
       ;
+  } // lib.optionalAttrs hieSupport {
     haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
       overrides = nixpkgs.haskell.overlays.hie;
     }).haskell-ide-engine;
