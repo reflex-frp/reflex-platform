@@ -6,6 +6,12 @@ considered released, and the date should reflect that release.
 
 ## Unreleased
 
+* Upgrade reflex packages:
+
+   - `reflex` to `0.6.3`
+   - `reflex-dom` to `0.5.3`
+   - `reflex-dom-core` to `0.5.3`
+
 * Document how to accept android sdk license agreement and pass acceptance
   through to android infrastructure.
 
