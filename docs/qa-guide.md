@@ -22,7 +22,7 @@ EOF
 ghc hello.hs
 ./hello
 ```
-If you are running on this command on a mac you will need to add the `dynamic` and `threading` flags each time you invoke ghc:
+If you are running this command on a mac you will need to add the `dynamic` and `threaded` flags each time you invoke ghc:
 See below for an example
 ```
 ghc -dynamic -threaded hello.hs
