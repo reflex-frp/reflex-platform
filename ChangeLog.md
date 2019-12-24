@@ -4,7 +4,7 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
-## Unreleased
+## v0.3.0.0 - 2019-12-26
 
 * Bump ghcjs-dom packages:
 
