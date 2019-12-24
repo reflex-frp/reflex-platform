@@ -79,7 +79,7 @@ Make sure the device that you are installing the app on is plugged in.
 nix-build release.nix -A x86_64-darwin.iosReflexTodomvc
 result/bin/deploy <team-id>
 ```
-For more information on finding out what your team-id is, please see the README.md
+For more information on finding out what your team-id is, please see the [Obelisk's `README.md`](https://github.com/obsidiansystems/obelisk/blob/develop/README.md#ios).
 
 ### Testing the 'work-on-multi' script
 ```
