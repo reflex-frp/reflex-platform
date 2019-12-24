@@ -11,6 +11,7 @@ considered released, and the date should reflect that release.
    - `ghcjs-dom` to `0.9.4.0`
    - `ghcjs-dom-jsaddle` to `0.9.4.0`
    - `ghcjs-dom-jsffi` to `0.9.4.0`
+   - `jsaddle-dom` to `0.9.4.0`
 
 * Bump aeson, and other packages to work with it:
 
