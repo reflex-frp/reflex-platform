@@ -32,6 +32,12 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
+            # Our fork of 8.6 with splices includes these patches.
+            # Specifically, is up to date with the `ghc-8.6` branch upstream,
+            # which contains various backports for any potential newer 8.6.x
+            # release. Nixpkgs manually applied some of those backports as
+            # patches onto 8.6.5 ahead of such a release, but now we get them
+            # from the src proper.
             patches = [];
           });
         };
@@ -380,7 +386,7 @@ in let this = rec {
   };
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildToolDepends = (drv.buildToolDepends or []) ++ builtins.attrValues generalDevTools' {};
+    buildTools = (drv.buildTools or []) ++ builtins.attrValues (generalDevTools' {});
   })).env;
 
   # A simple derivation that just creates a file with the names of all
