@@ -2,6 +2,6 @@
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
   "branch": "ghcjs-cross-without-cc-19.09",
-  "rev": "2411aa5537632b8337021650da738b437d994145",
-  "sha256": "0ikhqg0ixi24f3ijz7nc2rakq2yyvmm8p02cq8glb1nb1z15lpws"
+  "rev": "46feec08b70035768afd0f7985e2ef837377275e",
+  "sha256": "1m8zks70ahd6npvls4jfyg04lc7i1lkk1qzzmfrk28r95x0pzklq"
 }
