@@ -201,7 +201,7 @@ let iosSupport = system == "x86_64-darwin";
       };
     };
   }))).override {
-    overrides = nixpkgs.haskell.overlays.combined;
+    overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
   ghc = ghc8_6;
