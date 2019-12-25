@@ -148,11 +148,12 @@ in
   dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
 
-  universe = self.callCabal2nix "universe" (universeRepo + "/universe") {};
-  universe-base = self.callCabal2nix "universe" (universeRepo + "/universe-base") {};
-  universe-dependent-sum = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nix "universe" (universeRepo + "/universe-dependent-sum") {});
-  universe-instances-extended = self.callCabal2nix "universe" (universeRepo + "/universe-instances-extended") {};
-  universe-reverse-instances = self.callCabal2nix "universe" (universeRepo + "/universe-reverse-instances") {};
-  universe-instances-base = self.callCabal2nix "universe" (universeRepo + "/deprecated/universe-instances-base") {};
+  # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
+  universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
+  universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};
+  universe-dependent-sum = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-dependent-sum" {});
+  universe-instances-extended = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-instances-extended" {};
+  universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
+  universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
 }
