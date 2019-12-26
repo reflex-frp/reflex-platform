@@ -56,4 +56,6 @@ self: super: {
   # Convenience: tests take long to finish
   megaparsec = dontCheck super.megaparsec;
 
+  # Cross fix is working for iOS but not JS for some reason
+  cabal-macosx = null;
 }
