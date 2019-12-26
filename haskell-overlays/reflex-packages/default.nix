@@ -157,5 +157,6 @@ in
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
   # Needed to fix cross compilation from macOS to elsewhere
+  # https://github.com/danfran/cabal-macosx/pull/14
   cabal-macosx = self.callCabal2nix "cabal-macosx" self._dep.cabal-macosx {};
 }
