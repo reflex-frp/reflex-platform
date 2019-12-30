@@ -13,7 +13,6 @@ let
   reflexDomRepo = self._dep.reflex-dom;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
-  ghcjsDom = import self._dep.ghcjs-dom self;
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
@@ -115,8 +114,10 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + /jsaddle-warp) {});
 
-  jsaddle-dom = self.callPackage self._dep.jsaddle-dom {};
-  inherit (ghcjsDom) ghcjs-dom-jsffi;
+  jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
+  ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
+  ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
+  ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
 
   ##
   ## Gargoyle

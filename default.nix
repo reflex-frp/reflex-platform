@@ -33,6 +33,13 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
+            # Our fork of 8.6 with splices includes these patches.
+            # Specifically, is up to date with the `ghc-8.6` branch upstream,
+            # which contains various backports for any potential newer 8.6.x
+            # release. Nixpkgs manually applied some of those backports as
+            # patches onto 8.6.5 ahead of such a release, but now we get them
+            # from the src proper.
+            patches = [];
           });
         };
         packages = super.haskell.packages // {
