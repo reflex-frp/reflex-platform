@@ -13,7 +13,6 @@ let
   reflexDomRepo = self._dep.reflex-dom;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
-  ghcjsDom = import self._dep.ghcjs-dom self;
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
@@ -43,8 +42,7 @@ in
             || stdenv.hostPlatform != stdenv.buildPlatform
             || (ghc.isGhcjs or false);
   in haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom-core" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-      ["--subpath reflex-dom-core"]
+    (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
       (lib.optional enableLibraryProfiling "-fprofile-reflex")
@@ -82,8 +80,7 @@ in
     });
 
   reflex-dom = haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-      ["--subpath reflex-dom"]
+    (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
     ])) {})
@@ -94,7 +91,7 @@ in
       ];
     });
 
-  chrome-test-utils = self.callCabal2nixWithOptions "chrome-test-utils" reflexDomRepo "--subpath chrome-test-utils" {};
+  chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
   ##
   ## GHCJS and JSaddle
@@ -117,8 +114,10 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + /jsaddle-warp) {});
 
-  jsaddle-dom = self.callPackage self._dep.jsaddle-dom {};
-  inherit (ghcjsDom) ghcjs-dom-jsffi;
+  jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
+  ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
+  ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
+  ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
 
   ##
   ## Gargoyle
@@ -149,6 +148,7 @@ in
   dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
 
+  # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
   universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};
   universe-dependent-sum = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-dependent-sum" {});

@@ -79,6 +79,10 @@ in self: super: {
   aeson = dontCheck (self.callHackage "aeson" "1.4.5.0" {});
   # needed by aeson
   time-compat = doJailbreak (self.callHackage "time-compat" "1.9.2.2" {});
+  # Test suite assumes old aeson error messages without bump.
+  hpack = self.callHackage "hpack" "0.32.0" {};
+  # Overlapping imports with new Aeson and stock version
+  webdriver = doJailbreak (self.callHackage "webdriver" "0.9.0.1" {});
 
   ########################################################################
   # Packages not in hackage
