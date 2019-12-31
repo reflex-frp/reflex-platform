@@ -26,12 +26,10 @@ in self: super: {
   # Update hlint and add new dependency
   hlint = self.callHackage "hlint" "2.2.2" {};
   ghc-lib-parser = self.callHackage "ghc-lib-parser" "8.8.0.20190723" {};
-  haskell-src-exts = super.haskell-src-exts_1_21_0;
   haskell-src-exts-util = self.callHackage "haskell-src-exts-util" "0.2.5" {};
   stylish-haskell = self.callHackage "stylish-haskell" "0.9.2.2" {};
 
   # Fixing things that are marked broken in 19.03:
-  brittany = self.callHackage "brittany" "0.12.0.0" {};
   butcher = doJailbreak (self.callHackage "butcher" "1.3.2.3" {});
   multistate = self.callHackage "multistate" "0.8.0.2" {};
   haddock-api = dontHaddock (doJailbreak (self.callHackage "haddock-api" "2.22.0" {}));
@@ -44,6 +42,12 @@ in self: super: {
   snap = self.callHackage "snap" "1.1.2.0" {};
   heist = dontCheck (self.callHackage "heist" "1.1.0.1" {});
   map-syntax = doJailbreak (self.callHackage "map-syntax" "0.3" {});
+
+  # Fixing things that are marked broken in 19.09:
+  brittany = dontCheck (self.callHackage "brittany" "0.12.0.0" {});
+  witherable = self.callHackage "witherable" "0.3.1" {};
+  time-compat = dontCheck super.time-compat;
+  bimap = self.callHackage "bimap" "0.3.3" {};
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.22.2" {}) [nixpkgs.glib] [];
@@ -75,25 +79,10 @@ in self: super: {
   # remove jailbreak after https://github.com/isomorphism/these/pull/134
   which = self.callHackage "which" "0.1.0.0" {};
 
-  # Something needed newer version.
-  aeson = dontCheck (self.callHackage "aeson" "1.4.5.0" {});
-  # needed by aeson
-  time-compat = doJailbreak (self.callHackage "time-compat" "1.9.2.2" {});
-  # Test suite assumes old aeson error messages without bump.
-  hpack = self.callHackage "hpack" "0.32.0" {};
-  # Overlapping imports with new Aeson and stock version
-  webdriver = doJailbreak (self.callHackage "webdriver" "0.9.0.1" {});
+  # Broken in 19.09
+  http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
 
-  ########################################################################
-  # Packages not in hackage
-  ########################################################################
-  concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
-    owner = "conal";
-    repo = "concat";
-    rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
-    sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
-  }) {}));
-
+  # Override mkDerivation to inherit global settings
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
   });

@@ -4,6 +4,11 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## v0.4.0.0 - 2019-12-31
+
+* Bump nixpkgs to 19.09.
+  This will bump the versions of numerous packages, including much of Hackage.
+
 ## v0.3.0.0 - 2019-12-30
 
 * Bump ghcjs-dom packages:

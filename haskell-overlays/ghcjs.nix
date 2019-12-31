@@ -56,6 +56,4 @@ self: super: {
   # Convenience: tests take long to finish
   megaparsec = dontCheck super.megaparsec;
 
-  # tests fail for some reason
-  time-compat = dontCheck super.time-compat;
 }
