@@ -13,6 +13,8 @@ considered released, and the date should reflect that release.
 * Bump cabal-macosx to correctly use the host platform rather than build
   platform to decide whether its appropriate to make a desktop app bundle.
 
+* Bump `jsaddle*` to `0.9.7.0`.
+
 ## v0.4.0.0 - 2019-12-31
 
 * Bump nixpkgs to 19.09.
