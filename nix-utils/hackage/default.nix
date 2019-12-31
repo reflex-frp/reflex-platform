@@ -13,6 +13,7 @@ rec {
   }) (lib.attrsToList s));
   mkSdist = pkg: pkg.override (oldArgs: {
     mkDerivation = drv: oldArgs.mkDerivation (drv // {
+      pname = drv.pname + "-sdist";
       postConfigure = ''
         ./Setup sdist
         mkdir "$out"

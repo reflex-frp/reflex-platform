@@ -168,7 +168,7 @@ let
   prj = mapAttrs mkPkgSet shells // {
     shells = mapAttrs (name: pnames:
       workOnMulti {
-        env = prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
+        envFunc = _: prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
           ghcWithPackages = self.ghcWithHoogle;
         }; };
         packageNames = pnames;
