@@ -13,12 +13,12 @@ considered released, and the date should reflect that release.
 * Bump cabal-macosx to correctly use the host platform rather than build
   platform to decide whether its appropriate to make a desktop app bundle.
 
-## v0.4.0.0 - 2019-12-26
+## v0.4.0.0 - 2019-12-31
 
 * Bump nixpkgs to 19.09.
   This will bump the versions of numerous packages, including much of Hackage.
 
-## v0.3.0.0 - 2019-12-26
+## v0.3.0.0 - 2019-12-30
 
 * Bump ghcjs-dom packages:
 
@@ -36,7 +36,7 @@ considered released, and the date should reflect that release.
 
 * Bump ghc to include more `8.6` backports
 
-## v0.2.0.0 - 2019-12-24
+## v0.2.0.0 - 2019-12-30
 
 * Upgrade reflex packages:
 
