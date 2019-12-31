@@ -146,6 +146,9 @@ let iosSupport = system == "x86_64-darwin";
         # Back compat
         arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
       };
+      ghcjs = nixpkgsFunc (nixpkgsArgs // {
+        crossSystem = lib.systems.examples.ghcjs;
+      });
     };
 
     haskellLib = nixpkgs.haskell.lib;
@@ -188,9 +191,9 @@ let iosSupport = system == "x86_64-darwin";
     ]);
   };
   ghcjs = ghcjs8_6;
-  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs86.override (old: {
+  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = nixpkgs.haskell.packages.ghc865;
+      bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
       ghcjsSrc = fetchgit {
         url = "https://github.com/obsidiansystems/ghcjs.git";
         rev = "06f81b44c3cc6c7f75e1a5a20d918bad37294b52";
@@ -199,7 +202,7 @@ let iosSupport = system == "x86_64-darwin";
       };
     };
   }))).override {
-    overrides = nixpkgs.haskell.overlays.combined;
+    overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
   ghc = ghc8_6;
