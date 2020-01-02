@@ -4,7 +4,7 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
-## Unreleased
+## v0.4.1.0 - 2020-01-02
 
 * Make Nixpkgs treat GHCJS builds as cross.
   This will fix things like `setup-depends` and `build-tool-depends` being properly built with GHC rather than GHCJS.
