@@ -4,7 +4,39 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
-## v0.2.0.0 - 2019-12-24
+## Unreleased
+
+* Make Nixpkgs treat GHCJS builds as cross.
+  This will fix things like `setup-depends` and `build-tool-depends` being properly built with GHC rather than GHCJS.
+  That, in turn, will allow `markdown-unlit` READMEs and other things that we had trouble with.
+
+* Bump cabal-macosx to correctly use the host platform rather than build
+  platform to decide whether its appropriate to make a desktop app bundle.
+
+## v0.4.0.0 - 2019-12-31
+
+* Bump nixpkgs to 19.09.
+  This will bump the versions of numerous packages, including much of Hackage.
+
+## v0.3.0.0 - 2019-12-30
+
+* Bump ghcjs-dom packages:
+
+   - `ghcjs-dom` to `0.9.4.0`
+   - `ghcjs-dom-jsaddle` to `0.9.4.0`
+   - `ghcjs-dom-jsffi` to `0.9.4.0`
+   - `jsaddle-dom` to `0.9.4.0`
+
+* Bump aeson, and other packages to work with it:
+
+   - `aeson` to `1.4.5.0`
+   - `time-compat` to `1.9.2.2`
+   - `hpack` to `0.32.0`
+   - `webdriver` to `0.9.0.1`
+
+* Bump ghc to include more `8.6` backports
+
+## v0.2.0.0 - 2019-12-30
 
 * Upgrade reflex packages:
 
