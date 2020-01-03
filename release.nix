@@ -52,6 +52,8 @@ let
       // benchmark.dep
       ;
 
+    skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
+
     optDebugVariants = [
       "unprofiled"
       "profiled"
@@ -70,7 +72,6 @@ let
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
         skeleton-test-ghc = skeleton-test.ghc;
-        skeleton-test-ghcjs = skeleton-test.ghcjs;
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
         inherit (reflex-platform) androidReflexTodomvc-8_6;
@@ -91,6 +92,7 @@ let
     ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
     # Doesn't currently build. Removing from CI until fixed.
     ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
+    skeleton-test-ghcjs = skeleton-test.ghcjs;
     nojsstring = {
       ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
     };
