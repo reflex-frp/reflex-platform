@@ -4,6 +4,7 @@ let
   inherit (this) nixpkgs;
   inherit (nixpkgs.lib) mapAttrs mapAttrsToList escapeShellArg
     optionalAttrs optionalString concatStringsSep concatMapStringsSep;
+  workOnMulti = import ../nix-utils/work-on-multi { reflex-platform = this; };
 in
 
 # This function simplifies the definition of Haskell projects that
@@ -166,8 +167,8 @@ let
   mkPkgSet = name: _: this.${name}.override { overrides = overrides'; };
   prj = mapAttrs mkPkgSet shells // {
     shells = mapAttrs (name: pnames:
-      this.workOnMulti' {
-        env = prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
+      workOnMulti {
+        envFunc = _: prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
           ghcWithPackages = self.ghcWithHoogle;
         }; };
         packageNames = pnames;

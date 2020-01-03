@@ -1,7 +1,7 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "ios-with-xcode-11-for-19-09",
-  "rev": "b39108d0b3b993f6c69a0dedda48e487639fec55",
-  "sha256": "0h1kc5im0cc02xsnr53yynhlh3akv7hfxb91a3m02hfsydxy3rvg"
+  "branch": "xcode-11-for-reflex-platform",
+  "rev": "bd0ede8d41f89bbb3eefc42609bb41e533e8692a",
+  "sha256": "14l2l9rvxxpcrhh7zyli7wfpjjccz1qd53rihn3fn2jjrwhhkq3a"
 }

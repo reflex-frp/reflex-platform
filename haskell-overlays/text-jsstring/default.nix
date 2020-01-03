@@ -1,10 +1,10 @@
-{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard, hackGet }:
+{ lib, haskellLib, fetchFromGitHub, fetchpatch, versionWildcard, thunkSet }:
 
 with lib;
 with haskellLib;
 
 self: super: {
-  _dep = super._dep or {} // {
+  _dep = super._dep or {} // thunkSet ./dep // {
     ghcjsBaseTextJSStringSrc = self._dep.ghcjsBaseSrc.overrideAttrs (drv: {
       outputHash = "0l7xadhcmc8wg9l6p91gi1a5bjbil8gqmd7jkx2758b73y8faxzi";
       postFetch = (drv.postFetch or "") + ''
@@ -21,7 +21,7 @@ self: super: {
       self.ghcjs-prim
     ];
   });
-  attoparsec = dontCheck (self.callCabal2nix "attoparsec" (hackGet ./dep/attoparsec) {});
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {
@@ -60,6 +60,5 @@ self: super: {
       self.ghcjs-base
     ];
   });
-  aeson = dontCheck (self.callCabal2nix "aeson" (hackGet ./dep/aeson) {});
-
+  aeson = dontCheck (self.callCabal2nix "aeson" self._dep.aeson {});
 }

@@ -1,6 +1,7 @@
 {
   "owner": "obsidiansystems",
   "repo": "aeson",
+  "branch": "v1450-text-jsstring",
   "rev": "d6288c431a477f9a6e93aa80454a9e1712127548",
   "sha256": "102hj9b42z1h9p634g9226nvs756djwadrkz9yrb15na671f2xf4"
 }
