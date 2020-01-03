@@ -436,7 +436,7 @@ in let this = rec {
           "ghcAndroidAarch32"
         ] ++ lib.optionals iosSupport [
           "ghcIosAarch64"
-          "ghcIosSimulator"
+          "ghcIosSimulator64"
         ];
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
