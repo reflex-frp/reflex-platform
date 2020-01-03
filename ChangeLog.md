@@ -8,6 +8,10 @@ considered released, and the date should reflect that release.
 
 * Bump `jsaddle*` to `0.9.7.0`.
 
+* Test profiling in `release.nix`. Jobs names were shuffled in the process,
+  which is acceptible as this file is not intended to be comsumed by anything
+  but CI and QA. Add a note explaining that instability.
+
 ## v0.4.1.0 - 2020-01-02
 
 * Make Nixpkgs treat GHCJS builds as cross.
