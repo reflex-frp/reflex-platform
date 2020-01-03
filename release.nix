@@ -71,7 +71,8 @@ let
         else if lib.isList v then lib.concatMap collect v
         else [];
       packages = {
-        tryReflexShell = reflex-platform.tryReflexShell;
+        # TODO fix GHCJS profiling builds
+        # tryReflexShell = reflex-platform.tryReflexShell;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
         skeleton-test-ghc = skeleton-test.ghc;
@@ -84,17 +85,20 @@ let
         inherit (reflex-platform) iosReflexTodomvc-8_6;
         skeleton-test-project-ios = skeleton-test.project.ios;
       } // drvListToAttrs otherDeps
-        // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
+        # TODO fix GHCJS profiling builds
+        # // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
       ;
     in packages // {
       cache = reflex-platform.pinBuildInputs "reflex-platform-${system}-${variant}"
-        (collect packages ++ reflex-platform.cachePackages ++ otherDeps);
+        (collect packages ++ otherDeps);
     });
   in perOptDebugVariant // {
     inherit dep;
+    tryReflexShell = reflex-platform.tryReflexShell;
     ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
-    # Doesn't currently build. Removing from CI until fixed.
+    # TODO Doesn't currently build. Removing from CI until fixed.
     ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
+    # TODO  move back to `perOptDebugVariant`
     skeleton-test-ghcjs = skeleton-test.ghcjs;
     nojsstring = {
       ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
@@ -102,7 +106,9 @@ let
     inherit benchmark demoVM;
     cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
       (builtins.attrValues dep ++ map (a: a.cache) (builtins.attrValues perOptDebugVariant));
-  });
+  } # TODO  move back to `perOptDebugVariant`
+    // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
+  );
 
   metaCache = local-self.pinBuildInputs "reflex-platform-everywhere"
     (map (a: a.cache) (builtins.attrValues perPlatform));
