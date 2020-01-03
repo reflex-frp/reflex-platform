@@ -26,7 +26,6 @@ self: super: {
       cp $out/bin/reflex-todomvc $out/reflex-todomvc.app/
     '';
   });
-  cabal-macosx = null;
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;
     enableSharedLibraries = false;
