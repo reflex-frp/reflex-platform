@@ -1,3 +1,6 @@
+# This file aggregates some things for CI to build. It constants is unstable
+# and shouldn't be used by other code using reflex-platform.
+
 { self-args ? { config.android_sdk.accept_license = true; }
 , local-self ? import ./. self-args
 }:
