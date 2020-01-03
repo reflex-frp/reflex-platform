@@ -2,6 +2,6 @@
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
   "branch": "xcode-11-for-reflex-platform",
-  "rev": "bd0ede8d41f89bbb3eefc42609bb41e533e8692a",
-  "sha256": "14l2l9rvxxpcrhh7zyli7wfpjjccz1qd53rihn3fn2jjrwhhkq3a"
+  "rev": "498dfd323c1c60b6ed36d31b8c75ec62937afd5b",
+  "sha256": "1lq3ill5n3n13flazrapx243rnrikjivblzd5hzbssmhymsjl2si"
 }
