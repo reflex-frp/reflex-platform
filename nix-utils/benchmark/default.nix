@@ -13,19 +13,16 @@ let pkgs = reflex-platform.nixpkgs;
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
         src = dep.js-framework-benchmark + /webdriver-ts;
-        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       webdriver-ts-results = mkYarnPackage {
         name = "webdriver-ts-results";
         src = dep.js-framework-benchmark + /webdriver-ts-results;
-        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       vanillajs-keyed = mkYarnPackage {
         name = "vanillajs-keyed";
         src = dep.js-framework-benchmark + /frameworks/keyed/vanillajs;
-        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       js-framework-benchmark = mkYarnPackage {
