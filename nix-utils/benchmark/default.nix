@@ -1,13 +1,14 @@
 { reflex-platform ? import ../.. { hideDeprecated = true; } }:
 
 let pkgs = reflex-platform.nixpkgs;
-    nodejs = pkgs.nodejs-8_x;
+    inherit (pkgs) nodejs;
     shellHook = linkNodeModulesHook + ''
       export PATH=node_modules/.bin:$PATH
     '';
     inherit (pkgs) fetchzip fetchFromGitHub;
     dep = reflex-platform.thunkSet ./dep;
-    inherit (pkgs.yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
+    yarn2nix = import (dep.yarn2nix) { inherit pkgs; };
+    inherit (yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
     nodePkgs = {
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
