@@ -13,21 +13,35 @@ let pkgs = reflex-platform.nixpkgs;
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
         src = dep.js-framework-benchmark + /webdriver-ts;
+        # yarnLock = dep.js-framework-benchmark + /yarn.lock;
+        yarnLock = dep.js-framework-benchmark + /webdriver-ts/yarn.lock;
+        packageJSON = dep.js-framework-benchmark + /webdriver-ts/package.json;
+        postBuild = ''
+          ${pkgs.yarn}/bin/yarn run compile
+        '';
         inherit shellHook;
       };
       webdriver-ts-results = mkYarnPackage {
         name = "webdriver-ts-results";
         src = dep.js-framework-benchmark + /webdriver-ts-results;
+        # yarnLock = dep.js-framework-benchmark + /yarn.lock;
+        yarnLock = dep.js-framework-benchmark + /webdriver-ts-results/yarn.lock;
+        packageJSON = dep.js-framework-benchmark + /webdriver-ts-results/package.json;
         inherit shellHook;
       };
       vanillajs-keyed = mkYarnPackage {
         name = "vanillajs-keyed";
         src = dep.js-framework-benchmark + /frameworks/keyed/vanillajs;
+        # yarnLock = dep.js-framework-benchmark + /yarn.lock;
+        yarnLock = dep.js-framework-benchmark + /frameworks/keyed/vanillajs/yarn.lock;
+        packageJSON = dep.js-framework-benchmark + /frameworks/keyed/vanillajs/package.json;
         inherit shellHook;
       };
       js-framework-benchmark = mkYarnPackage {
         name = "js-framework-benchmark";
         src = dep.js-framework-benchmark;
+        yarnLock = dep.js-framework-benchmark + /yarn.lock;
+        packageJSON = dep.js-framework-benchmark + /package.json;
         inherit shellHook;
       };
     };
@@ -74,7 +88,7 @@ SERVER_PORT="$((tail -f -n0 server.out & ) | grep -m 1 '127.0.0.1' | sed -e 's/.
 
 cd webdriver-ts
 ln -s "${nodePkgs.webdriver-ts.node_modules}" .
-ln -s "${nodePkgs.webdriver-ts}/node_modules/webdriver-ts/dist" .
+ln -s "${nodePkgs.webdriver-ts}/libexec/webdriver-ts/deps/webdriver-ts/dist/" .
 
 yarn run selenium --framework reflex-dom-v0.4-keyed --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
 
