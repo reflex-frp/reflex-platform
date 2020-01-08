@@ -12,7 +12,7 @@ considered released, and the date should reflect that release.
   which is acceptible as this file is not intended to be comsumed by anything
   but CI and QA. Add a note explaining that instability.
   
-* Bump `reflex-todo`
+* Bump `reflex-todomvc`
 
 ## v0.4.1.0 - 2020-01-02
 
