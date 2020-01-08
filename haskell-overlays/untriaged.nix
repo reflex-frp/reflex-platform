@@ -21,29 +21,15 @@ let # Adds additional arguments to 'buildInputs' and the 'HASKELL_GI_GIR_SEARCH_
 in self: super: {
 
   # Recently uploaded to hackage:
-  haven = self.callHackageDirect {
-    pkg = "haven";
-    ver = "0.2.0.2";
-    sha256 = "1hz0ngzd2gbmi45lv52465zrvsfvm6gpc42g7ms0hpa0v52if0w9";
-  } {};
+  haven = self.callHackage "haven" "0.2.0.2" {};
 
   # Update hlint and add new dependency
-  hlint = self.callHackageDirect {
-    pkg = "hlint";
-    ver = "2.2.2";
-    sha256 = "0m0mx1cvq2m4w6kf0armfgdayqxwapnf5k8ffjxild8amc8ysn4a";
-  } {};
-  ghc-lib-parser = self.callHackageDirect {
-    pkg = "ghc-lib-parser";
-    ver = "8.8.0.20190723";
-    sha256 = "0l0ffxmszjrcj8qiqwwmsdygy2sgw6vrlm1xfqrbdx60bwgc07m5";
-  } {};
-  haskell-src-exts = super.haskell-src-exts_1_21_0;
+  hlint = self.callHackage "hlint" "2.2.2" {};
+  ghc-lib-parser = self.callHackage "ghc-lib-parser" "8.8.0.20190723" {};
   haskell-src-exts-util = self.callHackage "haskell-src-exts-util" "0.2.5" {};
   stylish-haskell = self.callHackage "stylish-haskell" "0.9.2.2" {};
 
   # Fixing things that are marked broken in 19.03:
-  brittany = self.callHackage "brittany" "0.12.0.0" {};
   butcher = doJailbreak (self.callHackage "butcher" "1.3.2.3" {});
   multistate = self.callHackage "multistate" "0.8.0.2" {};
   haddock-api = dontHaddock (doJailbreak (self.callHackage "haddock-api" "2.22.0" {}));
@@ -56,6 +42,12 @@ in self: super: {
   snap = self.callHackage "snap" "1.1.2.0" {};
   heist = dontCheck (self.callHackage "heist" "1.1.0.1" {});
   map-syntax = doJailbreak (self.callHackage "map-syntax" "0.3" {});
+
+  # Fixing things that are marked broken in 19.09:
+  brittany = dontCheck (self.callHackage "brittany" "0.12.0.0" {});
+  witherable = self.callHackage "witherable" "0.3.1" {};
+  time-compat = dontCheck super.time-compat;
+  bimap = self.callHackage "bimap" "0.3.3" {};
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.22.2" {}) [nixpkgs.glib] [];
@@ -87,16 +79,10 @@ in self: super: {
   # remove jailbreak after https://github.com/isomorphism/these/pull/134
   which = self.callHackage "which" "0.1.0.0" {};
 
-  ########################################################################
-  # Packages not in hackage
-  ########################################################################
-  concat = dontHaddock (dontCheck (self.callCabal2nix "concat" (fetchFromGitHub {
-    owner = "conal";
-    repo = "concat";
-    rev = "24a4b8ccc883605ea2b0b4295460be2f8a245154";
-    sha256 = "0mcwqzjk3f8qymmkbpa80l6mh6aa4vcyxky3gpwbnx19g721mj35";
-  }) {}));
+  # Broken in 19.09
+  http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
 
+  # Override mkDerivation to inherit global settings
   mkDerivation = expr: super.mkDerivation (expr // {
     inherit enableLibraryProfiling;
   });

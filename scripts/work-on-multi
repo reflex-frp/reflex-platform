@@ -18,5 +18,8 @@ else
     EFFECTIVE_PLATFORM="reflex-platform: reflex-platform.$PLATFORM"
 fi
 
+packages_quoted=$( (( "$#" == 0 )) || printf '"%q" ' "$@")
+
 terminate_logging
-nix-shell $NIXOPTS -E "import $DIR2/. {} { envFunc = $EFFECTIVE_PLATFORM; packageNames = [ $(printf "\"%q\" " "$@") ]; }" --show-trace
+
+nix-shell $NIXOPTS -E "import $DIR2/. {} { envFunc = $EFFECTIVE_PLATFORM; packageNames = [ $packages_quoted ]; }" --show-trace
