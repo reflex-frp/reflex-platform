@@ -133,6 +133,8 @@ in
 
   monoidal-containers = self.callHackage "monoidal-containers" "0.6" {};
 
+  patch = self.callCabal2nix "patch" self._dep.patch {};
+
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
   hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
