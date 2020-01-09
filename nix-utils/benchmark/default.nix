@@ -1,5 +1,4 @@
 { reflex-platform ? import ../.. { hideDeprecated = true; } }:
-
 let pkgs = reflex-platform.nixpkgs;
     inherit (pkgs) nodejs;
     shellHook = linkNodeModulesHook + ''
@@ -13,35 +12,24 @@ let pkgs = reflex-platform.nixpkgs;
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
         src = dep.js-framework-benchmark + /webdriver-ts;
-        # yarnLock = dep.js-framework-benchmark + /yarn.lock;
-        yarnLock = dep.js-framework-benchmark + /webdriver-ts/yarn.lock;
-        packageJSON = dep.js-framework-benchmark + /webdriver-ts/package.json;
-        postBuild = ''
-          ${pkgs.yarn}/bin/yarn run compile
-        '';
+        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       webdriver-ts-results = mkYarnPackage {
         name = "webdriver-ts-results";
         src = dep.js-framework-benchmark + /webdriver-ts-results;
-        # yarnLock = dep.js-framework-benchmark + /yarn.lock;
-        yarnLock = dep.js-framework-benchmark + /webdriver-ts-results/yarn.lock;
-        packageJSON = dep.js-framework-benchmark + /webdriver-ts-results/package.json;
+        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       vanillajs-keyed = mkYarnPackage {
         name = "vanillajs-keyed";
         src = dep.js-framework-benchmark + /frameworks/keyed/vanillajs;
-        # yarnLock = dep.js-framework-benchmark + /yarn.lock;
-        yarnLock = dep.js-framework-benchmark + /frameworks/keyed/vanillajs/yarn.lock;
-        packageJSON = dep.js-framework-benchmark + /frameworks/keyed/vanillajs/package.json;
+        preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
       js-framework-benchmark = mkYarnPackage {
         name = "js-framework-benchmark";
         src = dep.js-framework-benchmark;
-        yarnLock = dep.js-framework-benchmark + /yarn.lock;
-        packageJSON = dep.js-framework-benchmark + /package.json;
         inherit shellHook;
       };
     };
@@ -55,10 +43,12 @@ exec 1>&2
 PATH="${pkgs.yarn}/bin:${nodejs}/bin:${pkgs.chromedriver}/bin:$PATH"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
+  # else ''--chromeBinary "/nix/store/m8m8kif5yp2j9x735jqfdhwg8mg4d6sm-chromium-75.0.3770.90/bin/chromium"''  
   else ''--chromeBinary "${pkgs.chromium}/bin/chromium"''
 }"
 CHROMEDRIVER="${if reflex-platform.system == "x86_64-darwin"
   then ""
+  # else ''--chromeDriver "/nix/store/ahf8ywywv8az8wjfxzxlk6klhb5xgasx-chromedriver-2.46/bin/chromedriver"''  
   else ''--chromeDriver "${pkgs.chromedriver}/bin/chromedriver"''
 }"
 
@@ -88,7 +78,7 @@ SERVER_PORT="$((tail -f -n0 server.out & ) | grep -m 1 '127.0.0.1' | sed -e 's/.
 
 cd webdriver-ts
 ln -s "${nodePkgs.webdriver-ts.node_modules}" .
-ln -s "${nodePkgs.webdriver-ts}/libexec/webdriver-ts/deps/webdriver-ts/dist/" .
+ln -s "${nodePkgs.webdriver-ts}/node_modules/webdriver-ts/dist" .
 
 yarn run selenium --framework reflex-dom-v0.4-keyed --count 1 --headless $CHROME_BINARY $CHROMEDRIVER --port $SERVER_PORT
 
