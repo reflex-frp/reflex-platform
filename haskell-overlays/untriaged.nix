@@ -48,11 +48,11 @@ in self: super: {
   witherable = self.callHackage "witherable" "0.3.1" {};
   time-compat = dontCheck super.time-compat;
   bimap = self.callHackage "bimap" "0.3.3" {};
-  reflex-vty = self.callHackageDirect
-    { pkg = "reflex-vty";
-      ver = "0.1.2.1";
-      sha256 = "1qnnf76ddz8z27lgly7s6clw3lcljahgydhz7a2pqzmmarqq4zm8";
-    } {};
+  reflex-vty = self.callHackageDirect {
+    pkg = "reflex-vty";
+    ver = "0.1.2.1";
+    sha256 = "1qnnf76ddz8z27lgly7s6clw3lcljahgydhz7a2pqzmmarqq4zm8";
+  } {};
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.22.2" {}) [nixpkgs.glib] [];
@@ -83,6 +83,13 @@ in self: super: {
   these-lens = doJailbreak (self.callHackage "these-lens" "1" {});
   # remove jailbreak after https://github.com/isomorphism/these/pull/134
   which = self.callHackage "which" "0.1.0.0" {};
+
+  # Packages not yet in 19.09
+  reflex-process = self.callHackageDirect {
+    pkg = "reflex-process";
+    ver = "0.1.0.0";
+    sha256 = "0c1kn5f2rpzmkgzlahg06lg0c1prvndng3arrqvgj8d4az9xacs3";
+  } {};
 
   # Broken in 19.09
   http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
