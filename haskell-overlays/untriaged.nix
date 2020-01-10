@@ -1,6 +1,5 @@
 { haskellLib
 , fetchFromGitHub
-, enableLibraryProfiling
 , nixpkgs
 }:
 with haskellLib;
@@ -81,9 +80,4 @@ in self: super: {
 
   # Broken in 19.09
   http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
-
-  # Override mkDerivation to inherit global settings
-  mkDerivation = expr: super.mkDerivation (expr // {
-    inherit enableLibraryProfiling;
-  });
 }

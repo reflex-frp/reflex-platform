@@ -11,6 +11,11 @@ self: super: {
     };
   };
 
+  _cantProfile = super._cantProfile or {} // {
+    optparse-applicative = null;
+    th-orphans = null;
+  };
+
   ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
     inherit (self) ghc llvmPackages;
     packages = selectFrom self;
