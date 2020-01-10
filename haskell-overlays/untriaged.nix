@@ -90,6 +90,11 @@ in self: super: {
     ver = "0.1.0.0";
     sha256 = "0c1kn5f2rpzmkgzlahg06lg0c1prvndng3arrqvgj8d4az9xacs3";
   } {};
+  reflex-fsnotify = self.callHackageDirect {
+    pkg = "reflex-fsnotify";
+    ver = "0.1.0.0";
+    sha256 = "0qjvkpw7wvkiv2jzgah7ij5yqb9nwdzm02qn21pr6iqhwzhjcbf3";
+  } {};
 
   # Broken in 19.09
   http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
