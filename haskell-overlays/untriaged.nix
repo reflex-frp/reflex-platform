@@ -50,8 +50,8 @@ in self: super: {
   bimap = self.callHackage "bimap" "0.3.3" {};
   reflex-vty = self.callHackageDirect {
     pkg = "reflex-vty";
-    ver = "0.1.2.1";
-    sha256 = "1qnnf76ddz8z27lgly7s6clw3lcljahgydhz7a2pqzmmarqq4zm8";
+    ver = "0.1.3.0";
+    sha256 = "1rzvhsp04kvkadva9r0lsvrwslc5w1kjgvwbvb2qjb07a5rpqyj6";
   } {};
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
