@@ -39,6 +39,7 @@ rec {
     user-custom-pre
 
     reflexPackages
+    profiling
     untriaged
 
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
@@ -104,6 +105,11 @@ rec {
   ghc-8_6 = _: _: {};
   ghc-head = _: _: {};
 
+  profiling = import ./profiling.nix {
+    inherit haskellLib;
+    inherit enableLibraryProfiling;
+  };
+
   saveSplices = import ./splices-load-save/save-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
   };
@@ -136,7 +142,6 @@ rec {
   untriaged = import ./untriaged.nix {
     inherit haskellLib;
     inherit fetchFromGitHub;
-    inherit enableLibraryProfiling;
     inherit nixpkgs;
   };
 
