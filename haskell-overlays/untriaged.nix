@@ -48,6 +48,11 @@ in self: super: {
   witherable = self.callHackage "witherable" "0.3.1" {};
   time-compat = dontCheck super.time-compat;
   bimap = self.callHackage "bimap" "0.3.3" {};
+  reflex-vty = self.callHackageDirect
+    { pkg = "reflex-vty";
+      ver = "0.1.2.1";
+      sha256 = "1qnnf76ddz8z27lgly7s6clw3lcljahgydhz7a2pqzmmarqq4zm8";
+    } {};
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.22.2" {}) [nixpkgs.glib] [];
