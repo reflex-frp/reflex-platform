@@ -121,7 +121,11 @@ rec {
 
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
-    inherit lib haskellLib nixpkgs fetchgit fetchFromGitHub useReflexOptimizer;
+    inherit
+      lib haskellLib nixpkgs fetchgit fetchFromGitHub
+      useReflexOptimizer
+      enableLibraryProfiling
+      ;
   };
   ghcjs-fast-weak = import ./ghcjs-fast-weak {
    inherit lib;
