@@ -87,8 +87,8 @@ in self: super: {
   # Packages not yet in 19.09
   reflex-process = self.callHackageDirect {
     pkg = "reflex-process";
-    ver = "0.1.0.0";
-    sha256 = "0c1kn5f2rpzmkgzlahg06lg0c1prvndng3arrqvgj8d4az9xacs3";
+    ver = "0.1.0.1";
+    sha256 = "0a7knma5s0d1pvhz5bqgiq0f12p2kja2nwpviygip94s5xi4shml";
   } {};
   reflex-fsnotify = self.callHackageDirect {
     pkg = "reflex-fsnotify";
