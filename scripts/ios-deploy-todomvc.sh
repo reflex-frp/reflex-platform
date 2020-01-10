@@ -17,7 +17,7 @@ fi
 
 tmpdir=$(mktemp -d)
 # Find the signer given the OU
-signer=$(security find-certificate -c "iPhone Developer" -a \
+signer=$({ security find-certificate -c 'iPhone Developer' -a; security find-certificate -c 'Apple Development' -a; } \
   | grep '^    "alis"<blob>="' \
   | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
   | while read c; do security find-certificate -c "$c" -p \
