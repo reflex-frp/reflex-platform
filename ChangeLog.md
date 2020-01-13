@@ -6,6 +6,8 @@ considered released, and the date should reflect that release.
 
 ## Unreleased
 
+* Add haskell overlays for `reflex-process`, `reflex-fsnotify`, and `reflex-vty`
+
 * Bump `jsaddle*` to `0.9.7.0`.
 
 * Test profiling in `release.nix`. Jobs names were shuffled in the process,
