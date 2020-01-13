@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 #    PackageApplication
-#    
+#
 #    Copyright (c) 2009-2012 Apple Inc.  All rights reserved.
 #
 #    Package an iPhone Application into an .ipa wrapper
@@ -55,7 +55,7 @@ if ( $opt{verbose} ) {
     print "\n";
 }
 
-# check any plugins that might be specified 
+# check any plugins that might be specified
 foreach $plugin (@plugins) {
     print "Plugin: '$plugin'\n" if $opt{verbose};
     fatal("Specified plugin doesn't exist or isn't a bundle directory : '$plugin'") unless -d $plugin;
@@ -63,7 +63,7 @@ foreach $plugin (@plugins) {
 
 # setup the output name if it isn't specified
 
-# setup the output if it isn't specified 
+# setup the output if it isn't specified
 if ( !defined($opt{output})  ) {
     $opt{output} = dirname($origApp).'/'.basename($origApp, ".app")."\.ipa";
 }
@@ -93,12 +93,12 @@ foreach $plugin (@plugins) {
     my $pluginName = basename($plugin);
     chomp $pluginName;
     my $destPlugin = "$destAppDir/$pluginName";
-    
+
     my $result = runCmd("/usr/bin/codesign", "--verify", "-vvvv", , $plugin );
     if ( $result !~ /valid on disk/ ) {
         fatal("Codesign check fails : $result\n");
     }
-    
+
     runCmd("/bin/cp", "-Rp", $plugin, $destAppDir);
     fatal("Unable to copy application '$plugin' into '$destAppDir'") unless -e $destPlugin;
 }
@@ -163,7 +163,7 @@ if ( defined $opt{sign} ) {
     }
 
     push(@codesign_args, $destApp);
-    
+
     print "### Codesigning '$opt{embed}' with '$opt{sign}'\n" if $opt{verbose};
     my $codesign_output = runCmd(@codesign_args);
     $? == 0 or fatal("@codesign_args failed with error " . ($? >> 8) . ". Output: $codesign_output");
@@ -196,9 +196,9 @@ exit 0;
 
 sub fatal {
     my ($msg) = @_;
-    
+
     print STDERR "error: $msg\n";
-    
+
     exit 1;
 }
 
@@ -206,14 +206,14 @@ use POSIX qw(:sys_wait_h);
 
 sub runCmd {
     my (@cmds) = @_;
-    
+
     my $output = ();
     if ( $opt{verbose} ) {
         my $_cmd = join(" ", @cmds);
         print "+ $_cmd\n" ;
     }
     my $program = shift @cmds;
-    
+
     my ($readme, $writeme);
     pipe $readme, $writeme;
     my $pid = fork;
@@ -231,17 +231,17 @@ sub runCmd {
         $output .= $_;
     }
     close $readme;
-    
+
     my $waitpid_ret;
     do { $waitpid_ret = waitpid($pid, 0); } while ( $waitpid_ret == 0 );
     $waitpid_ret == $pid or die "waitpid returned $waitpid_ret: $!";
     my $return_code = $? >> 8;
-    
+
     $opt{verbose} and print "Program $program returned $return_code : [$output]\n";
 
 # Let clients handle error checking.
 #    $return_code == 0 or fatal("Program $program failed with return code $return_code.");
-    
+
     return $output;
 }
 
@@ -273,7 +273,7 @@ PackageApplication - prepare an application for submission to AppStore or instal
 
 =head1 SYNOPSIS
 
-PackageApplication [-s signature] application [-o output_directory] [-verbose] [-plugin plugin] || -man || -help 
+PackageApplication [-s signature] application [-o output_directory] [-verbose] [-plugin plugin] || -man || -help
 
 Options:
 
