@@ -39,6 +39,7 @@ rec {
     user-custom-pre
 
     reflexPackages
+    profiling
     untriaged
 
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
@@ -104,6 +105,11 @@ rec {
   ghc-8_6 = _: _: {};
   ghc-head = _: _: {};
 
+  profiling = import ./profiling.nix {
+    inherit haskellLib;
+    inherit enableLibraryProfiling;
+  };
+
   saveSplices = import ./splices-load-save/save-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
   };
@@ -115,7 +121,11 @@ rec {
 
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
-    inherit lib haskellLib nixpkgs fetchgit fetchFromGitHub useReflexOptimizer;
+    inherit
+      lib haskellLib nixpkgs fetchgit fetchFromGitHub
+      useReflexOptimizer
+      enableLibraryProfiling
+      ;
   };
   ghcjs-fast-weak = import ./ghcjs-fast-weak {
    inherit lib;
@@ -136,7 +146,6 @@ rec {
   untriaged = import ./untriaged.nix {
     inherit haskellLib;
     inherit fetchFromGitHub;
-    inherit enableLibraryProfiling;
     inherit nixpkgs;
   };
 

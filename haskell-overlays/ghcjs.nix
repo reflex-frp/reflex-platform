@@ -1,4 +1,7 @@
-{ lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub, useReflexOptimizer }:
+{ lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub
+, useReflexOptimizer
+, enableLibraryProfiling
+}:
 
 with haskellLib;
 
@@ -10,6 +13,14 @@ self: super: {
       sha256 = "0nk7a01lprf40zsiph3ikwcqcdb1lghlj17c8zzhiwfmfgcc678g";
     };
   };
+
+  # Profiling failures seee https://github.com/ghcjs/ghcjs/issues/759
+  optparse-applicative = haskellLib.overrideCabal super.optparse-applicative (drv: {
+    broken = drv.broken or false || enableLibraryProfiling;
+  });
+  th-orphans = haskellLib.overrideCabal super.th-orphans (drv: {
+    broken = drv.broken or false || enableLibraryProfiling;
+  });
 
   ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
     inherit (self) ghc llvmPackages;
