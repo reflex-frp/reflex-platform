@@ -65,7 +65,7 @@ ghc examples/host.hs
 ./examples/host
 ```
 Follow the instructions and confirm that the output event is a sequence of all of the letters you have entered
-To exit, ctrl-c. 
+To exit, ctrl-c.
 Exit the `./try-reflex` shell with the `exit` command
 ```
 exit
@@ -87,7 +87,7 @@ If successful this will give you a file path. Navigate to a browser (like chrome
 ```
 file:///<insert nix path from previous instruction here>/bin/reflex-todomvc.jsexe/index.html
 ```
-You should test this app. 
+You should test this app.
 
 ### Android App:
 
@@ -135,7 +135,7 @@ cd ../../
 exit
 ```
 If you are running these commands from a macOS, you will need to add the following to the
-cabal new-build and cabal new-run commands: 
+cabal new-build and cabal new-run commands:
 ```
 cabal new-build --ghc-options='-threaded -dynamic'
 cabal new-run --ghc-options='-threaded -dynamic'
@@ -150,7 +150,7 @@ cabal new-run WorkOnTest
 exit
 scripts/hack-off haskell-overlays/reflex-packages/dep/reflex-dom
 ```
-Note that `hack-off` might fail unless GitHub knows about your ssh key. 
+Note that `hack-off` might fail unless GitHub knows about your ssh key.
 
 ### Removing the sandbox dir:
 

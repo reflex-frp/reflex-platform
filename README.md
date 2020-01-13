@@ -430,7 +430,7 @@ numberInput = do
   return . fmap (readMaybe . unpack) $ _inputElement_value n
 ```
 
-Here, we've used a `(Map Text Text)`. This `Map` represents the html attributes of our inputs. 
+Here, we've used a `(Map Text Text)`. This `Map` represents the html attributes of our inputs.
 
 Static attributes are useful and quite common, but attributes will often need to change.
 Instead of just making the `InputElement` blue, let's change it's color based on whether the input successfully parses to a `Double`:
