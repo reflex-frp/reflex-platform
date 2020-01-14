@@ -21,12 +21,6 @@ let pkgs = reflex-platform.nixpkgs;
         preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
-      vanillajs-keyed = mkYarnPackage {
-        name = "vanillajs-keyed";
-        src = dep.js-framework-benchmark + /frameworks/keyed/vanillajs;
-        preInstall = "yarn --offline run build-prod";
-        inherit shellHook;
-      };
       js-framework-benchmark = mkYarnPackage {
         name = "js-framework-benchmark";
         src = dep.js-framework-benchmark;
@@ -60,7 +54,6 @@ chmod -R +w .
 
 ln -s ${nodePkgs.js-framework-benchmark.node_modules} .
 rm -r yarn.lock frameworks/keyed/vanillajs webdriver-ts-results
-ln -s ${nodePkgs.vanillajs-keyed}/node_modules/js-framework-benchmark-vanillajs ./frameworks/keyed/vanillajs
 ln -s ${nodePkgs.webdriver-ts-results}/node_modules/webdriver-ts-results .
 
 REFLEX_DOM_DIST=frameworks/keyed/reflex-dom/bundled-dist
