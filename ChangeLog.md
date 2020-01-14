@@ -16,6 +16,9 @@ considered released, and the date should reflect that release.
 
 * Bump `reflex-todomvc`
 
+* Support both `Apple Development` and `iPhone Developer` profiles on iOS deploy.
+  If you have many certificates it will take the first one it finds, for that reason it is recommended to put certificates in a user login keychain instead of the system one in multi-user machines.
+
 ## v0.4.1.0 - 2020-01-02
 
 * Make Nixpkgs treat GHCJS builds as cross.
@@ -139,5 +142,3 @@ considered released, and the date should reflect that release.
   doesn't need this, and it will be removed entirely.
 
 * Remove support for GHCs older than 8.4.
-
-* Support both `Apple Development` and `iPhone Developer` profiles on iOS deploy. If you have many certificates it will take the first one it finds, for that reason it is recommended to put certificates in a user login keychain instead of the system one in multi-user machines.
