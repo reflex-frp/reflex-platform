@@ -139,3 +139,5 @@ considered released, and the date should reflect that release.
   doesn't need this, and it will be removed entirely.
 
 * Remove support for GHCs older than 8.4.
+
+* Support both `Apple Development` and `iPhone Developer` profiles on iOS deploy.
