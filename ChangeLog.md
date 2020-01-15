@@ -4,7 +4,7 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
-## Unreleased
+## v0.4.2.0 - 2020-01-15
 
 * Add haskell overlays for `reflex-process`, `reflex-fsnotify`, and `reflex-vty`
 
