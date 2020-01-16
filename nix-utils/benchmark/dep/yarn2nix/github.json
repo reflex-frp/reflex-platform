@@ -1,0 +1,7 @@
+{
+  "owner": "obsidiansystems",
+  "repo": "yarn2nix",
+  "branch": "rp-fix-benchmark",
+  "rev": "95a69fcd273db3f8fd9752f6167983a18ab3c7ff",
+  "sha256": "171jns8q0r9nb4397dsj9psj7q46kxgnqg4m915jyizi8y1mn4fq"
+}
