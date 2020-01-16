@@ -57,6 +57,12 @@ let
 
     skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
 
+    collect = v:
+      if lib.isDerivation v then [v]
+      else if lib.isAttrs v then lib.concatMap collect (builtins.attrValues v)
+      else if lib.isList v then lib.concatMap collect v
+      else [];
+
     optDebugVariants = [
       "unprofiled"
       "profiled"
@@ -65,11 +71,6 @@ let
       reflex-platform = getRP { enableLibraryProfiling = variant == "profiled"; };
       skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
       otherDeps = getOtherDeps reflex-platform;
-      collect = v:
-        if lib.isDerivation v then [v]
-        else if lib.isAttrs v then lib.concatMap collect (builtins.attrValues v)
-        else if lib.isList v then lib.concatMap collect v
-        else [];
       packages = {
         # TODO fix GHCJS profiling builds
         # tryReflexShell = reflex-platform.tryReflexShell;
@@ -95,23 +96,27 @@ let
       cache = reflex-platform.pinBuildInputs "reflex-platform-${system}-${variant}"
         (collect packages ++ otherDeps);
     });
-  in perOptDebugVariant // {
-    inherit dep;
-    tryReflexShell = reflex-platform.tryReflexShell;
-    ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
-    # TODO Doesn't currently build. Removing from CI until fixed.
-    ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
-    # TODO  move back to `perOptDebugVariant`
-    skeleton-test-ghcjs = skeleton-test.ghcjs;
-    nojsstring = {
-      ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
-    };
-    inherit benchmark demoVM;
+
+    packages = {
+      inherit dep;
+      tryReflexShell = reflex-platform.tryReflexShell;
+      ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
+      # TODO Doesn't currently build. Removing from CI until fixed.
+      ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
+      # TODO  move back to `perOptDebugVariant`
+      skeleton-test-ghcjs = skeleton-test.ghcjs;
+      nojsstring = {
+        ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
+      };
+    } // lib.optionalAttrs (system == "x86_64-linux") {
+      inherit benchmark demoVM;
+    } # TODO  move back to `perOptDebugVariant`
+      // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
+    ;
+  in packages // perOptDebugVariant // {
     cache = reflex-platform.pinBuildInputs "reflex-platform-${system}"
-      (builtins.attrValues dep ++ map (a: a.cache) (builtins.attrValues perOptDebugVariant));
-  } # TODO  move back to `perOptDebugVariant`
-    // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
-  );
+      (collect packages ++ map (a: a.cache) (builtins.attrValues perOptDebugVariant));
+  });
 
   metaCache = local-self.pinBuildInputs "reflex-platform-everywhere"
     (map (a: a.cache) (builtins.attrValues perPlatform));
