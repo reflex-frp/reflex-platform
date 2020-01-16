@@ -109,7 +109,10 @@ let
         ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
       };
     } // lib.optionalAttrs (system == "x86_64-linux") {
-      inherit benchmark demoVM;
+      inherit
+        benchmark
+        # demoVM # Skip for new due to rotted has in `breeze-icons`
+        ;
     } # TODO  move back to `perOptDebugVariant`
       // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
     ;
