@@ -4,6 +4,11 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## Unreleased
+
+* Make script iOS deploy more flexible.
+  Splaces on either side of the `=` printed out by Apple's `security find-certificate` command for the team ID are now accepted.
+
 ## v0.4.2.0 - 2020-01-15
 
 * Add haskell overlays for `reflex-process`, `reflex-fsnotify`, and `reflex-vty`
