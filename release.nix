@@ -76,6 +76,9 @@ let
         # tryReflexShell = reflex-platform.tryReflexShell;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
+        ghc.reflex-vty = reflex-platform.ghc.reflex-vty;
+        ghc.reflex-process = reflex-platform.ghc.reflex-process;
+        ghc.reflex-fsnotify = reflex-platform.ghc.reflex-fsnotify;
         skeleton-test-ghc = skeleton-test.ghc;
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;

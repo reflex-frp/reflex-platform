@@ -94,6 +94,14 @@ in
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
   ##
+  ## Terminal / Conventional OS
+  ##
+
+  reflex-vty = self.callHackage "reflex-vty" "0.1.3.0" {};
+  reflex-process = self.callHackage "reflex-process" "0.1.0.1" {};
+  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.1.0.0" {};
+
+  ##
   ## GHCJS and JSaddle
   ##
 
@@ -132,6 +140,8 @@ in
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
   monoidal-containers = self.callHackage "monoidal-containers" "0.6" {};
+
+  patch = self.callCabal2nix "patch" self._dep.patch {};
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
