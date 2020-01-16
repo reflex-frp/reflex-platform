@@ -7,7 +7,7 @@ considered released, and the date should reflect that release.
 ## Unreleased
 
 * Add haskell overlay for `reflex-ghci` and include it in the general dev tools
-  set that is included in development shells (e.g., when running `work-on`)
+  set that is available in development shells (e.g., when running `work-on`)
 
 ## v0.4.2.0 - 2020-01-15
 
