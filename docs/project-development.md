@@ -288,7 +288,7 @@ The project Nix expression also supports defining mobile apps.
     backend = ./backend;
     frontend = ./frontend;
   };
-  
+
   shells = {
     ghc = ["common" "backend" "frontend"];
     ghcjs = ["common" "frontend"];

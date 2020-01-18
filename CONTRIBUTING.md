@@ -64,7 +64,7 @@ To test your changes:
     ```bash
     ./scripts/test-staged
     ```
-    
+
 ### Documentation
 
 #### In the code

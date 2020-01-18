@@ -6,13 +6,25 @@ considered released, and the date should reflect that release.
 
 ## Unreleased
 
+* Add haskell overlay for `reflex-ghci` and include it in the general dev tools
+  set that is available in development shells (e.g., when running `work-on`)
+* Make script iOS deploy more flexible.
+  Splaces on either side of the `=` printed out by Apple's `security find-certificate` command for the team ID are now accepted.
+
+## v0.4.2.0 - 2020-01-15
+
+* Add haskell overlays for `reflex-process`, `reflex-fsnotify`, and `reflex-vty`
+
 * Bump `jsaddle*` to `0.9.7.0`.
 
 * Test profiling in `release.nix`. Jobs names were shuffled in the process,
   which is acceptible as this file is not intended to be comsumed by anything
   but CI and QA. Add a note explaining that instability.
-  
+
 * Bump `reflex-todomvc`
+
+* Support both `Apple Development` and `iPhone Developer` profiles on iOS deploy.
+  If you have many certificates it will take the first one it finds, for that reason it is recommended to put certificates in a user login keychain instead of the system one in multi-user machines.
 
 ## v0.4.1.0 - 2020-01-02
 

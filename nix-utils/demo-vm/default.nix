@@ -13,7 +13,7 @@ in
       "${nixpkgs.path}/nixos/modules/virtualisation/virtualbox-image.nix"
       "${nixpkgs.path}/nixos/modules/profiles/demo.nix"
     ];
-    environment.systemPackages = tryReflexPackages;
+    environment.systemPackages = nixpkgs.lib.filter (a: a != null) tryReflexPackages;
     nixpkgs = { localSystem.system = "x86_64-linux"; };
   };
 }).config.system.build.virtualBoxOVA

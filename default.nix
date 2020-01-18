@@ -372,6 +372,7 @@ in let this = rec {
       hdevtools
       hlint
       stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      reflex-ghci
       ;
     inherit (nixpkgs)
       cabal2nix
