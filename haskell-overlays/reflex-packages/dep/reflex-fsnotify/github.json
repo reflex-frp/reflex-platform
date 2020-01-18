@@ -1,7 +1,7 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-fsnotify",
-  "branch": "aa-symlink-loop",
-  "rev": "530677504200de12bff95bf5d88ed50314fbce92",
-  "sha256": "09vryklpipiji7w085kxaxpsl2j9fxnax2aabhmyqxbfdgvy24av"
+  "branch": "release/0.2.0.0",
+  "rev": "39a8a02c20d55d59a94b2907ce65d3198f11d917",
+  "sha256": "17c2nza7jfb99b1b5lb8zpd93580dmhlkj7caf0073x1hwjfh5ad"
 }
