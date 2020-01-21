@@ -14,6 +14,8 @@ considered released, and the date should reflect that release.
 
 * Bump `reflex-process` to `0.2.0.0`.
 
+* Bump `patch` to `0.0.2.0`.
+
 ## v0.4.2.0 - 2020-01-15
 
 * Add haskell overlays for `reflex-process`, `reflex-fsnotify`, and `reflex-vty`
