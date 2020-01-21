@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "patch",
-  "branch": "master",
+  "branch": "patch-map-inner-patch",
   "private": false,
-  "rev": "5335f5d211476e8e17c98e183aedc1f2938a9ff8",
-  "sha256": "0pb3883slq46niksbgmqzhfl5dd9h359xjpq4h1mz24wipnrjhp0"
+  "rev": "510e5e22c1a7f1a2407351a6087c75562f1bf1b8",
+  "sha256": "14livd1dpc2jambfn0mcpf9ihs5jf6035w11pb9615z83ldy1a7n"
 }
