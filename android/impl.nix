@@ -76,7 +76,7 @@ in {
         });
         javaSrc = nixpkgs.buildEnv {
           name = applicationId + "-java";
-          paths = [
+          paths = javaSources ++ [
             (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
             (ghcAndroidAarch64.reflex-dom.src + "/java")
           ];
