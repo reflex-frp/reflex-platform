@@ -4,12 +4,14 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## v0.5.1.0 - 2020-01-22
+
+* Bump `reflex` to `0.6.4`.
+
 ## v0.5.0.0 - 2020-01-21
 
 * Add haskell overlay for `reflex-ghci` and include it in the general dev tools
   set that is available in development shells (e.g., when running `work-on`)
-
-* Bump `reflex` to `0.6.4`.
 
 * Make script iOS deploy more flexible.
   Splaces on either side of the `=` printed out by Apple's `security find-certificate` command for the team ID are now accepted.
