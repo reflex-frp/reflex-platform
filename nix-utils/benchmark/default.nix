@@ -1,12 +1,13 @@
-{ reflex-platform ? import ./../.. {} }:
+{ reflex-platform ? import ../.. { hideDeprecated = true; } }:
 let pkgs = reflex-platform.nixpkgs;
-    nodejs = pkgs.nodejs-8_x;
+    inherit (pkgs) nodejs;
     shellHook = linkNodeModulesHook + ''
       export PATH=node_modules/.bin:$PATH
     '';
     inherit (pkgs) fetchzip fetchFromGitHub;
     dep = reflex-platform.thunkSet ./dep;
-    inherit (pkgs.yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
+    yarn2nix = import (dep.yarn2nix) { inherit pkgs; };
+    inherit (yarn2nix) mkYarnPackage linkNodeModulesHook defaultYarnFlags;
     nodePkgs = {
       webdriver-ts = mkYarnPackage {
         name = "webdriver-ts";
@@ -17,12 +18,6 @@ let pkgs = reflex-platform.nixpkgs;
       webdriver-ts-results = mkYarnPackage {
         name = "webdriver-ts-results";
         src = dep.js-framework-benchmark + /webdriver-ts-results;
-        preInstall = "yarn --offline run build-prod";
-        inherit shellHook;
-      };
-      vanillajs-keyed = mkYarnPackage {
-        name = "vanillajs-keyed";
-        src = dep.js-framework-benchmark + /frameworks/keyed/vanillajs;
         preInstall = "yarn --offline run build-prod";
         inherit shellHook;
       };
@@ -39,7 +34,7 @@ set -euo pipefail
 exec 3>&1
 exec 1>&2
 
-PATH="${pkgs.yarn}/bin:${nodejs}/bin:${pkgs.chromedriver}/bin:$PATH"
+PATH="${pkgs.yarn}/bin:${nodejs}/bin:${pkgs.chromedriver}/bin:${pkgs.chromium}/bin:${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
   else ''--chromeBinary "${pkgs.chromium}/bin/chromium"''
@@ -59,7 +54,6 @@ chmod -R +w .
 
 ln -s ${nodePkgs.js-framework-benchmark.node_modules} .
 rm -r yarn.lock frameworks/keyed/vanillajs webdriver-ts-results
-ln -s ${nodePkgs.vanillajs-keyed}/node_modules/js-framework-benchmark-vanillajs ./frameworks/keyed/vanillajs
 ln -s ${nodePkgs.webdriver-ts-results}/node_modules/webdriver-ts-results .
 
 REFLEX_DOM_DIST=frameworks/keyed/reflex-dom/bundled-dist

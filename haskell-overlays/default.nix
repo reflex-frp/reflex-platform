@@ -2,9 +2,10 @@
 , haskellLib
 , nixpkgs
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
-, useTextJSString, enableExposeAllUnfoldings
+, useTextJSString, enableExposeAllUnfoldings, __useTemplateHaskell
 , ghcSavedSplices
-, haskellOverlays
+, haskellOverlaysPre
+, haskellOverlaysPost
 }:
 
 let
@@ -35,7 +36,10 @@ rec {
   # overlay. At the cost of violating the usual rules on using `self` vs
   # `super`, this avoids a bunch of strictness issues keeping us terminating.
   combined = self: super: foldExtensions [
+    user-custom-pre
+
     reflexPackages
+    profiling
     untriaged
 
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
@@ -45,12 +49,12 @@ rec {
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
     (optionalExtension (super.ghc.isGhcjs or false && useTextJSString) textJSString)
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && hostPlatform != buildPlatform) loadSplices)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices)
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
 
-    user-custom
+    user-custom-post
   ] self super;
 
   combined-any = self: super: foldExtensions [
@@ -80,12 +84,15 @@ rec {
   ##
 
   reflexPackages = import ./reflex-packages {
-    inherit haskellLib lib nixpkgs thunkSet fetchFromGitHub useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling fetchFromBitbucket;
+    inherit
+      haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket
+      useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling __useTemplateHaskell
+      ;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
   textJSString = import ./text-jsstring {
     inherit lib haskellLib fetchFromGitHub versionWildcard;
-    inherit (nixpkgs) fetchpatch hackGet;
+    inherit (nixpkgs) fetchpatch thunkSet;
   };
 
   # For GHC and GHCJS
@@ -98,6 +105,11 @@ rec {
   ghc-8_6 = _: _: {};
   ghc-head = _: _: {};
 
+  profiling = import ./profiling.nix {
+    inherit haskellLib;
+    inherit enableLibraryProfiling;
+  };
+
   saveSplices = import ./splices-load-save/save-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
   };
@@ -109,7 +121,11 @@ rec {
 
   # Just for GHCJS
   ghcjs = import ./ghcjs.nix {
-    inherit lib haskellLib nixpkgs fetchgit fetchFromGitHub useReflexOptimizer;
+    inherit
+      lib haskellLib nixpkgs fetchgit fetchFromGitHub
+      useReflexOptimizer
+      enableLibraryProfiling
+      ;
   };
   ghcjs-fast-weak = import ./ghcjs-fast-weak {
    inherit lib;
@@ -130,7 +146,6 @@ rec {
   untriaged = import ./untriaged.nix {
     inherit haskellLib;
     inherit fetchFromGitHub;
-    inherit enableLibraryProfiling;
     inherit nixpkgs;
   };
 
@@ -141,5 +156,6 @@ rec {
     inherit thunkSet;
   };
 
-  user-custom = foldExtensions haskellOverlays;
+  user-custom-pre = foldExtensions haskellOverlaysPre;
+  user-custom-post = foldExtensions haskellOverlaysPost;
 }

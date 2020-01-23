@@ -1,4 +1,7 @@
-{ lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub, useReflexOptimizer }:
+{ lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub
+, useReflexOptimizer
+, enableLibraryProfiling
+}:
 
 with haskellLib;
 
@@ -11,8 +14,16 @@ self: super: {
     };
   };
 
-  ghcWithPackages = selectFrom: self.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-    inherit (self) llvmPackages;
+  # Profiling failures seee https://github.com/ghcjs/ghcjs/issues/759
+  optparse-applicative = haskellLib.overrideCabal super.optparse-applicative (drv: {
+    broken = drv.broken or false || enableLibraryProfiling;
+  });
+  th-orphans = haskellLib.overrideCabal super.th-orphans (drv: {
+    broken = drv.broken or false || enableLibraryProfiling;
+  });
+
+  ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
+    inherit (self) ghc llvmPackages;
     packages = selectFrom self;
   } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
     ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
@@ -56,4 +67,6 @@ self: super: {
   # Convenience: tests take long to finish
   megaparsec = dontCheck super.megaparsec;
 
+  # Cross fix is working for iOS but not JS for some reason
+  cabal-macosx = null;
 }
