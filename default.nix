@@ -197,7 +197,7 @@ let iosSupport = system == "x86_64-darwin";
       ghcjsSrc = fetchgit {
         url = "https://github.com/obsidiansystems/ghcjs.git";
         rev = "e87e27eeb2b8a77886c4a3badf01c6d81ce204c7";
-        sha256 = "02mwkf7aagxqi142gcmq048244apslrr72p568akcab9s0fn2gv0";
+        sha256 = "0vhifqwz933da08623378nk1nfz1k7mnxnsb9ny2j1vmzpimq0gv";
         fetchSubmodules = true;
       };
     };
