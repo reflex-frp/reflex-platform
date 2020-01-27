@@ -4,6 +4,10 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## v0.5.1.0 - 2020-01-22
+
+* Bump `reflex` to `0.6.4`.
+
 ## v0.5.0.0 - 2020-01-21
 
 * Add haskell overlay for `reflex-ghci` and include it in the general dev tools
