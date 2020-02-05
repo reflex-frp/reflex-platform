@@ -11,6 +11,8 @@ considered released, and the date should reflect that release.
   certificates in slightly different formats.  Now it always uses LibreSSL as
   provided by Nixpkgs.
 
+* Bump `reflex-process` to 0.2.1.0 and `reflex-ghci` to 0.1.4.0
+
 ## v0.5.1.0 - 2020-01-22
 
 * Bump `reflex` to `0.6.4`.
