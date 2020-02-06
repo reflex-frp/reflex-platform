@@ -1,7 +1,8 @@
 {
-  "owner": "ghcjs",
+  "owner": "3noch",
   "repo": "ghcjs-dom",
-  "branch": "remove-nix",
-  "rev": "5bd611183ed8ff16019f121ccc9e0251147ddbca",
-  "sha256": "076g6x03dik82min4v24yxql7sb00wbka2qf2k10rb9zxj4kyy1p"
+  "branch": "eac@no-fromJust",
+  "private": false,
+  "rev": "994c2bafcc8a4b85808b2e412d2b46ef583d7ef1",
+  "sha256": "15sp1i4c906z96n0wbjckn68hs9yvrh2mr21il31m5dr5s86h138"
 }
