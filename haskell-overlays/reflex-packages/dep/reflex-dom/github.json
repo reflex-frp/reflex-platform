@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "develop",
+  "branch": "eac@fix-hydration-skip-to-replace-comment",
   "private": false,
-  "rev": "6424eb91080f5fda2d2f555e9e42510cc408381c",
-  "sha256": "0dadcc5f0jgns4dgpcrc10k363d7spxd90b0ww4bkzmbc3hv2a56"
+  "rev": "df9c0fa796c93a6a481749b2f6f265c644b12852",
+  "sha256": "0pf6yk249chy83p1bx6sj8zvljg0pjmyh52nxvlhaxv521ybsgsm"
 }
