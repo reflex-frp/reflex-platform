@@ -61,10 +61,9 @@ android {
             release {
                 minifyEnabled false
                 zipAlignEnabled true
-        ${if releaseKey == null then "" else ''
+                ${if releaseKey == null then "" else ''
                 signingConfig signingConfigs.release
-          ''
-         }
+                ''}
             }
         debug {
             minifyEnabled false
