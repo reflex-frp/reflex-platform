@@ -51,7 +51,7 @@ if [ -n "$sign" ]; then
   fi
 
   # Create writable temp file
-  signed_apk=$(mktemp)
+  signed_apk=$(mktemp --suffix=.apk)
   cp "$APK" "$signed_apk"
   chmod +w "$signed_apk"
   APK="$signed_apk"
