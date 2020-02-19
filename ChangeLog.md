@@ -4,6 +4,12 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## Unreleased
+
+* Throw an error in hackGet when files other than the git/github.json
+  and default.nix are there. This is a common problem when
+  git/github.json exist in an unpacked thunked.
+
 ## v0.5.1.0 - 2020-01-22
 
 * Bump `reflex` to `0.6.4`.
