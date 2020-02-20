@@ -8,7 +8,7 @@ considered released, and the date should reflect that release.
 
 * Throw an error in hackGet when files other than the git/github.json
   and default.nix are there. This is a common problem when
-  git/github.json exist in an unpacked thunked.
+  git/github.json exist in an unpacked thunk.
 
 ## v0.5.1.0 - 2020-01-22
 
