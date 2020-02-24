@@ -11,9 +11,12 @@ self:
       filterArgs = x: removeAttrs x [ "branch" ];
       hasValidThunk = name: if builtins.pathExists (p + ("/" + name))
         then (let contents = builtins.readDir p;
-              in if contents == { ${name} = "regular"; } || contents == { ${name} = "regular"; "default.nix" = "regular"; }
+              in if contents == { ${name} = "regular"; } ||
+                    contents == { ${name} = "regular"; ".attr-cache" = "directory"; } ||
+                    contents == { ${name} = "regular"; "default.nix" = "regular"; } ||
+                    contents == { ${name} = "regular"; "default.nix" = "regular"; ".attr-cache" = "directory"; }
                  then true
-                 else throw "Thunk at ${toString p} has files in addition to ${name} and default.nix. Remove either ${name} or those other files to continue.")
+                 else throw "Thunk at ${toString p} has files in addition to ${name} and optionally default.nix and .attr-cache. Remove either ${name} or those other files to continue.")
         else false;
     in if hasValidThunk "git.json" then (
       let gitArgs = filterArgs (builtins.fromJSON (builtins.readFile (p + "/git.json")));
