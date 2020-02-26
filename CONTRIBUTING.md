@@ -79,3 +79,17 @@ Add an entry to the changelog when your PR:
 
 #### In the [Readme](README.md)
 The readme is the first place a lot of people look for information about the repository. Update any parts of the readme that are affected by your PR.
+
+## Release Process
+The following is the normal process by which `reflex-platform` releases are created.
+
+- New features are merged to the `develop` branch as described above.
+- A new release candidate branch is created at some point from develop, named `release/N`: with the version number for *N*
+  - Update `ChangeLog.md` with a new version number.
+  - regression test the release candidate branch
+- After QA passed;
+  - update changelog with version/date
+  - merge `develop` to `master`
+  - tag with version
+  - merge `master` back to `develop`
+
