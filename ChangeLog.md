@@ -4,6 +4,19 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## Not yet released
+
+* Fix issues with iOS deploy script caused by the `openssl` command sometimes
+  resolving to OpenSSL and other times to LibreSSL, which output parsed X.509
+  certificates in slightly different formats.  Now it always uses LibreSSL as
+  provided by Nixpkgs.
+
+* Bump `reflex-process` to 0.2.1.0 and `reflex-ghci` to 0.1.4.0
+
+* Throw an error in hackGet when files other than the git/github.json
+  and default.nix are there. This is a common problem when
+  git/github.json exist in an unpacked thunk.
+
 ## v0.5.1.0 - 2020-01-22
 
 * Bump `reflex` to `0.6.4`.
