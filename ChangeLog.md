@@ -4,6 +4,35 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## Not yet released
+
+* Fix issues with iOS deploy script caused by the `openssl` command sometimes
+  resolving to OpenSSL and other times to LibreSSL, which output parsed X.509
+  certificates in slightly different formats.  Now it always uses LibreSSL as
+  provided by Nixpkgs.
+
+* Bump `reflex-process` to 0.2.1.0 and `reflex-ghci` to 0.1.4.0
+
+* Throw an error in hackGet when files other than the git/github.json
+  and default.nix are there. This is a common problem when
+  git/github.json exist in an unpacked thunk.
+
+## v0.5.1.0 - 2020-01-22
+
+* Bump `reflex` to `0.6.4`.
+
+## v0.5.0.0 - 2020-01-21
+
+* Add haskell overlay for `reflex-ghci` and include it in the general dev tools
+  set that is available in development shells (e.g., when running `work-on`)
+
+* Make script iOS deploy more flexible.
+  Splaces on either side of the `=` printed out by Apple's `security find-certificate` command for the team ID are now accepted.
+
+* Bump `reflex-process` to `0.2.0.0`, a breaking change though small.
+
+* Bump `patch` to `0.0.2.0`.
+
 ## v0.4.2.0 - 2020-01-15
 
 * Add haskell overlays for `reflex-process`, `reflex-fsnotify`, and `reflex-vty`

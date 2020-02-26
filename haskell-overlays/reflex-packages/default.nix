@@ -98,8 +98,14 @@ in
   ##
 
   reflex-vty = self.callHackage "reflex-vty" "0.1.3.0" {};
-  reflex-process = self.callHackage "reflex-process" "0.1.0.1" {};
-  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.1.0.0" {};
+  reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
+  reflex-fsnotify = self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {};
+
+  ##
+  ## Tooling
+  ##
+
+  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
 
   ##
   ## GHCJS and JSaddle
