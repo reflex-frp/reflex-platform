@@ -84,12 +84,11 @@ The readme is the first place a lot of people look for information about the rep
 The following is the normal process by which `reflex-platform` releases are created.
 
 - New features are merged to the `develop` branch as described above.
-- A new release candidate branch is created at some point from develop, named `release/N`: with the version number for *N*
+- A new release candidate branch is created at some point from develop, named `release/N`: with the version number for *N*.
   - Update `ChangeLog.md` with a new version number.
-  - regression test the release candidate branch
-- After QA passed;
-  - update changelog with version/date
-  - merge `develop` to `master`
-  - tag with version
-  - merge `master` back to `develop`
-
+  - Regression test the release candidate branch.
+- After QA passes:
+  - Update changelog with version/date.
+  - Merge `develop` to `master`.
+  - Tag `master` with version.
+  - Merge `master` back to `develop`.
