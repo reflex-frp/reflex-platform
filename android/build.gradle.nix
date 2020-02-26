@@ -58,14 +58,13 @@ android {
     }
 
     buildTypes {
-        ${if releaseKey == null then "" else ''
             release {
                 minifyEnabled false
                 zipAlignEnabled true
+                ${if releaseKey == null then "" else ''
                 signingConfig signingConfigs.release
+                ''}
             }
-          ''
-        }
         debug {
             minifyEnabled false
             debuggable true
