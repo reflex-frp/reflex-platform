@@ -6,11 +6,22 @@
 , enableTraceReflexEvents ? false
 , useFastWeak ? true
 , useReflexOptimizer ? false
-, useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
+, useTextJSString ? false # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
 , iosSdkVersion ? "10.2"
 , nixpkgsOverlays ? []
-, haskellOverlays ? [] # TODO deprecate
+, haskellOverlays ? [
+    (self: super:
+      let pkgs = self.callPackage ({pkgs}: pkgs) {};
+      in {
+        aeson = pkgs.haskell.lib.dontCheck (self.callCabal2nix "aeson" (pkgs.fetchFromGitHub {
+          owner = "obsidiansystems";
+          repo = "aeson";
+          rev = "d6288c431a477f9a6e93aa80454a9e1712127548"; # branch v1450-text-jsstring containing (ToJSVal Value) instance and other fixes
+          sha256 = "102hj9b42z1h9p634g9226nvs756djwadrkz9yrb15na671f2xf4";
+        }) {});
+    })
+  ] # TODO deprecate
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
 , hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
