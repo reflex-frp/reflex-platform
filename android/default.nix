@@ -72,6 +72,8 @@ in rec {
       #   keyPassword = "password";
       # }
 
+    , isRelease ? releaseKey != null
+
     , resources ? defaultResources
 
     , assets ? defaultAssets
@@ -122,6 +124,7 @@ in rec {
               displayName
               version
               releaseKey
+              isRelease
               resources
               assets
               iconPath

@@ -4,6 +4,23 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## Not yet released
+
+* Fix issues with iOS deploy script caused by the `openssl` command sometimes
+  resolving to OpenSSL and other times to LibreSSL, which output parsed X.509
+  certificates in slightly different formats.  Now it always uses LibreSSL as
+  provided by Nixpkgs.
+
+* Bump `reflex-process` to 0.2.1.0 and `reflex-ghci` to 0.1.4.0
+
+* Throw an error in hackGet when files other than the git/github.json
+  and default.nix are there. This is a common problem when
+  git/github.json exist in an unpacked thunk.
+
+* Add missing dependencies for Android release builds, fixing the problem with full Android release being broken.
+
+* Allow passing signing parameters to the deploy script, instead of Nix build scripts, to match iOS deployments. This can help to avoid leaking secrets into the Nix store, important when the Nix store is publicly readable.
+
 ## v0.5.1.0 - 2020-01-22
 
 * Bump `reflex` to `0.6.4`.

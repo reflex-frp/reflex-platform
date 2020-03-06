@@ -83,6 +83,13 @@ let
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
         inherit (reflex-platform) androidReflexTodomvc-8_6;
+        androidReflexTodomvc-release = reflex-platform.android.buildApp {
+          package = p: p.reflex-todomvc;
+          executableName = "reflex-todomvc";
+          applicationId = "org.reflexfrp.todomvc";
+          displayName = "Reflex TodoMVC";
+          isRelease = true;
+        };
         skeleton-test-project-android = skeleton-test.project.android;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
