@@ -55,7 +55,7 @@ let
       // benchmark.dep
       ;
 
-    skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
+    skeleton-test = import ./tests/skeleton.nix { inherit reflex-platform; };
 
     collect = v:
       if lib.isDerivation v then [v]
@@ -69,7 +69,7 @@ let
     ];
     perOptDebugVariant = lib.genAttrs optDebugVariants (variant: let
       reflex-platform = getRP { enableLibraryProfiling = variant == "profiled"; };
-      skeleton-test = import ./skeleton-test.nix { inherit reflex-platform; };
+      skeleton-test = import ./tests/skeleton.nix { inherit reflex-platform; };
       otherDeps = getOtherDeps reflex-platform;
       packages = {
         # TODO fix GHCJS profiling builds
