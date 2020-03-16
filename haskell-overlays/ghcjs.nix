@@ -61,6 +61,12 @@ self: super: {
   QuickCheck = dontCheck super.QuickCheck;
   temporary = dontCheck super.temporary;
 
+  # Custom docs don't build with ghcjs
+  # https://github.com/reflex-frp/reflex-platform/issues/631
+  servant = haskellLib.overrideCabal super.servant (drv: {
+    postInstall = "";
+  });
+
   # These tests never complete
   tasty-quickcheck = dontCheck super.tasty-quickcheck;
 

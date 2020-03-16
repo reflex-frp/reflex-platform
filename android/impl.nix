@@ -11,10 +11,11 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       buildCommand = ''
         mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
-        cat >"$out/bin/deploy" <<EOF
-        #!/usr/bin/env bash
-        $(command -v adb) install -r "$(echo $out/*.apk)"
-        EOF
+        substitute ${./deploy.sh} $out/bin/deploy \
+          --subst-var-by coreutils ${nixpkgs.coreutils} \
+          --subst-var-by adb ${androidenv.androidPkgs_9_0.platform-tools} \
+          --subst-var-by java ${nixpkgs.openjdk12} \
+          --subst-var-by out $out
         chmod +x "$out/bin/deploy"
       '';
       buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
@@ -30,9 +31,9 @@ in {
     inherit acceptAndroidSdkLicenses;
     buildDirectory = "./.";
     # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
-    gradleTask = if releaseKey == null
-      then "assembleDebug"
-      else "assembleRelease";
+    gradleTask = if isRelease
+      then "assembleRelease"
+      else "assembleDebug";
     keyAlias = releaseKey.keyAlias or null;
     keyAliasPassword = releaseKey.keyPassword or null;
     keyStore = releaseKey.storeFile or null;

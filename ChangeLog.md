@@ -13,7 +13,17 @@ considered released, and the date should reflect that release.
 
 * Bump `reflex-process` to 0.2.1.0 and `reflex-ghci` to 0.1.4.0
 
-* Bump `patch` to 0.0.3.1
+* Throw an error in hackGet when files other than the git/github.json
+  and default.nix are there. This is a common problem when
+  git/github.json exist in an unpacked thunk.
+
+* Add missing dependencies for Android release builds, fixing the problem with full Android release being broken.
+
+* Allow passing signing parameters to the deploy script, instead of Nix build scripts, to match iOS deployments. This can help to avoid leaking secrets into the Nix store, important when the Nix store is publicly readable.
+
+* Fix builds of `servant` in GHCJS.
+
+* Bump `patch` to `0.0.3.1`.
 
 ## v0.5.1.0 - 2020-01-22
 
