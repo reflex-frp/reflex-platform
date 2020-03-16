@@ -21,6 +21,8 @@ considered released, and the date should reflect that release.
 
 * Allow passing signing parameters to the deploy script, instead of Nix build scripts, to match iOS deployments. This can help to avoid leaking secrets into the Nix store, important when the Nix store is publicly readable.
 
+* Fix builds of `servant` in GHCJS.
+
 ## v0.5.1.0 - 2020-01-22
 
 * Bump `reflex` to `0.6.4`.
