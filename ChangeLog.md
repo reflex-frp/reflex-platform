@@ -4,6 +4,10 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released, and the date should reflect that release.
 
+## Unreleased
+
+* Bump `patch` to `0.0.3.1`.
+
 ## v0.5.2.0
 
 * Fix issues with iOS deploy script caused by the `openssl` command sometimes resolving to OpenSSL and other times to LibreSSL, which output parsed X.509 certificates in slightly different formats. Now it always uses LibreSSL as provided by Nixpkgs.
