@@ -23,6 +23,8 @@ considered released, and the date should reflect that release.
 
 * Fix builds of `servant` in GHCJS.
 
+* Bump `patch` to `0.0.3.1`.
+
 ## v0.5.1.0 - 2020-01-22
 
 * Bump `reflex` to `0.6.4`.
