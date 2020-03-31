@@ -41,7 +41,7 @@ in
     noGcTest = stdenv.hostPlatform.system != "x86_64-linux"
             || stdenv.hostPlatform != stdenv.buildPlatform
             || (ghc.isGhcjs or false);
-  in haskellLib.overrideCabal
+  in haskellLib.doJailbreak (haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
@@ -77,9 +77,9 @@ in
       preCheck = ''
         export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
       '';
-    });
+    }));
 
-  reflex-dom = haskellLib.overrideCabal
+  reflex-dom = haskellLib.doJailbreak (haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
@@ -89,7 +89,7 @@ in
       libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
         self.android-activity
       ];
-    });
+    }));
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
@@ -97,15 +97,15 @@ in
   ## Terminal / Conventional OS
   ##
 
-  reflex-vty = self.callHackage "reflex-vty" "0.1.3.0" {};
-  reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
-  reflex-fsnotify = self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {};
+  reflex-vty = haskellLib.doJailbreak (self.callHackage "reflex-vty" "0.1.3.0" {});
+  reflex-process = haskellLib.doJailbreak (self.callCabal2nix "reflex-process" self._dep.reflex-process {});
+  reflex-fsnotify = haskellLib.doJailbreak (self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {});
 
   ##
   ## Tooling
   ##
 
-  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
+  reflex-ghci = haskellLib.doJailbreak (self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {});
 
   ##
   ## GHCJS and JSaddle
