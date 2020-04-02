@@ -67,7 +67,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
      ghc --make your-source-file.hs
      ./your-source-file
      ```
-     Compilation will produce a `your-source-file` native executable via [WebkitGtk](https://github.com/WebKit/webkit). Simply run it to launch your app.
+     Compilation will produce a `your-source-file` native executable via [WebkitGtk](https://github.com/WebKit/webkit). Simply run it to launch your app. Developer tools are available via `Inspect Element` in the right-click context menu.
 
    * GHCJS
      ```bash
