@@ -14,11 +14,11 @@ self:
            (let all = required // optional; in all // contents == all)
         && builtins.intersectAttrs required contents == required;
 
-      # Newer obelisk thunks include the feature of hackGet with a src.nix file in the thunk.
-      isObeliskThunkWithSrc =
+      # Newer obelisk thunks include the feature of hackGet with a thunk.nix file in the thunk.
+      isObeliskThunkWithThunkNix =
         let
           common = {
-            required = { "default.nix" = "regular"; "src.nix" = "regular"; };
+            required = { "default.nix" = "regular"; "thunk.nix" = "regular"; };
             optional = { ".attr-cache" = "directory"; };
           };
           packed = jsonFileName: {
@@ -26,7 +26,7 @@ self:
             optional = common.optional;
           };
           unpacked = {
-            required = { "unpacked" = "directory"; } // common.required;
+            required = { "local" = "directory"; } // common.required;
             optional = common.optional;
           };
         in contentsMatch unpacked
@@ -42,10 +42,10 @@ self:
           || throw "Thunk at ${toString p} has files in addition to ${name} and optionally default.nix and .attr-cache. Remove either ${name} or those other files to continue (check for leftover .git too)."
         else false;
     in
-      if isObeliskThunkWithSrc then
+      if isObeliskThunkWithThunkNix then
         builtins.trace
-          "DEPRECATED: hackGet is deprecated for thunks containing src.nix; Use `import ${p}/src.nix` instead of `hackGet ${p}`"
-          (import (p + /src.nix))
+          "DEPRECATED: hackGet is deprecated for thunks containing thunk.nix; Use `import ${p}/thunk.nix` instead of `hackGet ${p}`"
+          (import (p + /thunk.nix))
       else if hasValidThunk "git.json" then (
         let gitArgs = filterArgs (builtins.fromJSON (builtins.readFile (p + "/git.json")));
         in if builtins.elem "@" (lib.stringToCharacters gitArgs.url)
