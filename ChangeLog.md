@@ -6,7 +6,8 @@ considered released, and the date should reflect that release.
 
 ## Unreleased
 
-* Bump `patch` to `0.0.3.1`.
+* ([#578](https://github.com/reflex-frp/reflex-platform/pull/578)) Bump `patch` to `0.0.3.1`.
+* ([#649](https://github.com/reflex-frp/reflex-platform/pull/649)) Update `hackGet` to support standalone thunks.
 
 ## v0.5.2.0
 
