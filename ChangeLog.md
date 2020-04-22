@@ -2,7 +2,12 @@
 
 This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
-considered released, and the date should reflect that release.
+considered released.
+
+## v0.5.3.0
+
+* ([#578](https://github.com/reflex-frp/reflex-platform/pull/578)) Bump `patch` to `0.0.3.1`.
+* ([#649](https://github.com/reflex-frp/reflex-platform/pull/649), [#655](https://github.com/reflex-frp/reflex-platform/pull/655)) Update `hackGet` to support thunks with `thunk.nix` when packed.
 
 ## v0.5.2.0
 
