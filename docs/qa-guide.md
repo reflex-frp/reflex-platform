@@ -85,8 +85,7 @@ browser.
 ```
 nix-build -A ghcjs.reflex-todomvc
 ```
-If successful this will give you a file path. Run the following command
-depending on your system:
+If successful this will give you a file path. Run the following command depending on your system:
 
 | Linux                                                 | Mac                                               |
 |-------------------------------------------------------|---------------------------------------------------|
@@ -104,9 +103,7 @@ Make sure that your android device has been plugged in, that you have deleted an
 ```
 ./deploy-android/bin/deploy
 ```
-This command may take a couple of tries before you see `Success`. Sometimes you
-must unplug and replug your phone, or try a different cable. The app should be
-installed on your phone if this command was successful.
+This command may take a couple of tries before you see `Success`. Sometimes you must unplug and replug your phone, or try a different cable. The app should be installed on your phone if this command was successful.
 Once the app is installed, test it and verify it works the same as the web version.
 
 ### Testing TODOMVC app on IOS
