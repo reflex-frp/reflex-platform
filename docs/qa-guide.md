@@ -140,13 +140,8 @@ scripts/work-on ghc './examples/WorkOnTest/'
 This may take a while, but ultimately you should end up in a new shell. Run:
 ```
 cd examples/WorkOnTest
+cabal new-run
 ```
-Now, depending on if you are testing on mac or linux, you must run a different
-command.
-
-| Linux           | Mac                                                |
-|-----------------|----------------------------------------------------|
-| `cabal new-run` | `cabal new-run --ghc-options='-threaded -dynamic'` |
 
 After the app builds, you should see a window pop up which says "Hello, world!".
 Type `exit` to leave the shell.
