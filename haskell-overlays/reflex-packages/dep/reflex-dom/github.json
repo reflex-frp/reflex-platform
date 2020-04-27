@@ -1,7 +1,6 @@
 {
-  "owner": "reflex-frp",
+  "owner": "dfordivam",
   "repo": "reflex-dom",
-  "branch": "master",
-  "rev": "94c26076a71f229b5bd27128cf6fc0dbcba011ac",
-  "sha256": "00sx5x51jv1j24qlhrbp5sqnqcyz1iy2sgjap0y97c4dkzxi3wd3"
+  "rev": "6699aa18f11ff8f18288d0944915ba188e28e2b0",
+  "sha256": "0dlvfs3zk9cv6mzh7024kpgw2kwsin73gmznaf4fdbg6ys9h9bj3"
 }

@@ -53,6 +53,7 @@ rec {
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
+    (optionalExtension (nixpkgs.stdenv.hostPlatform.isWasm or false) wasm)
 
     user-custom-post
   ] self super;
@@ -153,6 +154,11 @@ rec {
     inherit haskellLib;
     inherit fetchFromGitHub;
     inherit nixpkgs;
+    inherit thunkSet;
+  };
+
+  wasm = import ./wasm {
+    inherit haskellLib;
     inherit thunkSet;
   };
 

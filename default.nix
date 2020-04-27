@@ -113,6 +113,17 @@ let iosSupport = system == "x86_64-darwin";
 
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
+    wasmCross = fetchgit {
+      url = "https://github.com/WebGHC/wasm-cross.git";
+      rev = "ab650bf145a6ea269caee34b7cb0ec8745fde26a";
+      sha256 = "1c5icqiwyhmsm6f3fzhp685wriznb1gybz56rmi1vd8bxk0g5a9m";
+    };
+    webGhcSrc = fetchgit {
+      url = "https://github.com/WebGHC/ghc.git";
+      rev = "746a6e61c69f57ba6441a922bd7b6fe807b2dd2f";
+      sha256 = "0ghza2ix9lp5di7mgqzahlbxm9i0w4l10nxi99ls2n6xm2g231j3";
+      fetchSubmodules = true;
+    };
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
@@ -149,6 +160,9 @@ let iosSupport = system == "x86_64-darwin";
       ghcjs = nixpkgsFunc (nixpkgsArgs // {
         crossSystem = lib.systems.examples.ghcjs;
       });
+      wasm = nixpkgsFunc (nixpkgsArgs //
+        (import wasmCross { inherit nixpkgsFunc; }).nixpkgsCrossArgs webGhcSrc "8.6.5"
+      );
     };
 
     haskellLib = nixpkgs.haskell.lib;
@@ -204,6 +218,14 @@ let iosSupport = system == "x86_64-darwin";
   }))).override {
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
+
+  wasm = ghcWasm32-8_6;
+  ghcWasm32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
+    # Due to the splices changes the parallel build fails while building the libraries
+    ghc = old.ghc.overrideAttrs (drv: { enableParallelBuilding = false; });
+  }))).override {
+    overrides = nixpkgsCross.wasm.haskell.overlays.combined;
+  });
 
   ghc = ghc8_6;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
@@ -299,6 +321,7 @@ in let this = rec {
           iosAarch32
           iosAarch64
           iosWithHaskellPackages
+          wasm
           ;
 
   # Back compat
