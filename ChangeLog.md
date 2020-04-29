@@ -4,6 +4,10 @@ This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
 considered released.
 
+## Unreleased
+
+* Bump reflex-fsnotify to 0.2.1.0
+
 ## v0.5.3.0
 
 * ([#578](https://github.com/reflex-frp/reflex-platform/pull/578)) Bump `patch` to `0.0.3.1`.
