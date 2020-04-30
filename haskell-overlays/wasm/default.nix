@@ -1,11 +1,4 @@
-{ haskellLib
-, thunkSet
-}:
-with haskellLib;
-let
-  localDeps = thunkSet ./dep;
-in self: super: {
-  # _dep = super._dep or {} // localDeps;
+self: super: {
   jsaddle-warp = null;
   jsaddle-webkitgtk = null;
   jsaddle-webkit2gtk = null;
