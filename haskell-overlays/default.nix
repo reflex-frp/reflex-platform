@@ -10,6 +10,7 @@
 
 let
   inherit (nixpkgs.buildPackages) thunkSet runCommand fetchgit fetchFromGitHub fetchFromBitbucket;
+  inherit (nixpkgs) hackGet;
 in
 
 rec {
@@ -86,7 +87,7 @@ rec {
 
   reflexPackages = import ./reflex-packages {
     inherit
-      haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket
+      haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket hackGet
       useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling __useTemplateHaskell
       ;
   };

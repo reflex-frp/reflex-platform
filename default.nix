@@ -113,17 +113,8 @@ let iosSupport = system == "x86_64-darwin";
 
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
-    wasmCross = fetchgit {
-      url = "https://github.com/WebGHC/wasm-cross.git";
-      rev = "ab650bf145a6ea269caee34b7cb0ec8745fde26a";
-      sha256 = "1c5icqiwyhmsm6f3fzhp685wriznb1gybz56rmi1vd8bxk0g5a9m";
-    };
-    webGhcSrc = fetchgit {
-      url = "https://github.com/WebGHC/ghc.git";
-      rev = "746a6e61c69f57ba6441a922bd7b6fe807b2dd2f";
-      sha256 = "0ghza2ix9lp5di7mgqzahlbxm9i0w4l10nxi99ls2n6xm2g231j3";
-      fetchSubmodules = true;
-    };
+    wasmCross = nixpkgs.hackGet ./wasm-cross;
+    webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc865SplicesSrc;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
@@ -322,6 +313,7 @@ in let this = rec {
           iosAarch64
           iosWithHaskellPackages
           wasm
+          wasmCross
           ;
 
   # Back compat

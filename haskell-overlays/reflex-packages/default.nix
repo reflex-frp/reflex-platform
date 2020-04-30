@@ -1,6 +1,6 @@
 { haskellLib
 , lib, nixpkgs
-, thunkSet, fetchFromGitHub, fetchFromBitbucket
+, thunkSet, fetchFromGitHub, fetchFromBitbucket, hackGet
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling, __useTemplateHaskell
 }:
 
@@ -13,6 +13,7 @@ let
   reflexDomRepo = self._dep.reflex-dom;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
+  wasmCross = hackGet ../../wasm-cross;
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
@@ -132,7 +133,7 @@ in
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + /jsaddle-warp) {});
 
   jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
-  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" self._dep.jsaddle-wasm {};
+  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + /jsaddle-wasm)) {};
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
