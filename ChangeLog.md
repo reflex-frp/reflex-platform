@@ -6,7 +6,10 @@ considered released.
 
 ## Unreleased
 
-* Bump reflex-fsnotify to 0.2.1.0
+* ([#659](https://github.com/reflex-frp/reflex-platform/pull/659)) Bump reflex-fsnotify to 0.2.1.0
+* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for WebGHC support.
+* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Bump reflex-dom to version **UNRELEASED**.
+
 
 ## v0.5.3.0
 
