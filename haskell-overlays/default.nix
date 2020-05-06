@@ -10,6 +10,7 @@
 
 let
   inherit (nixpkgs.buildPackages) thunkSet runCommand fetchgit fetchFromGitHub fetchFromBitbucket;
+  inherit (nixpkgs) hackGet;
 in
 
 rec {
@@ -53,6 +54,7 @@ rec {
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
+    (optionalExtension (nixpkgs.stdenv.hostPlatform.isWasm or false) wasm)
 
     user-custom-post
   ] self super;
@@ -85,7 +87,7 @@ rec {
 
   reflexPackages = import ./reflex-packages {
     inherit
-      haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket
+      haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket hackGet
       useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling __useTemplateHaskell
       ;
   };
@@ -155,6 +157,8 @@ rec {
     inherit nixpkgs;
     inherit thunkSet;
   };
+
+  wasm = import ./wasm;
 
   user-custom-pre = foldExtensions haskellOverlaysPre;
   user-custom-post = foldExtensions haskellOverlaysPost;

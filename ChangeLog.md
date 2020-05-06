@@ -2,11 +2,19 @@
 
 This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
-considered released, and the date should reflect that release.
+considered released.
 
 ## Unreleased
 
-* Bump `patch` to `0.0.3.1`.
+* ([#659](https://github.com/reflex-frp/reflex-platform/pull/659)) Bump reflex-fsnotify to 0.2.1.0
+* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for WebGHC support.
+* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Bump reflex-dom to version **UNRELEASED**.
+
+
+## v0.5.3.0
+
+* ([#578](https://github.com/reflex-frp/reflex-platform/pull/578)) Bump `patch` to `0.0.3.1`.
+* ([#649](https://github.com/reflex-frp/reflex-platform/pull/649), [#655](https://github.com/reflex-frp/reflex-platform/pull/655)) Update `hackGet` to support thunks with `thunk.nix` when packed.
 
 ## v0.5.2.0
 
