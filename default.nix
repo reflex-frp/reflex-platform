@@ -407,6 +407,20 @@ in let this = rec {
     buildTools = (drv.buildTools or []) ++ builtins.attrValues (generalDevTools' {});
   })).env;
 
+  # A minimal wrapper around the build-wasm-app from wasm-cross
+  # Useful in building simple cabal projects like reflex-todomvc
+  build-wasm-app-wrapper =
+    ename: # Name of the executable, usually same as cabal project name
+    pkgPath : # Path of cabal package
+    args: # Others options to pass to build-wasm-app
+  let
+    pkg = wasm.callPackage pkgPath {};
+    webabi = nixpkgs.callPackage (wasmCross + /webabi) {};
+    build-wasm-app = nixpkgs.callPackage (wasmCross + /build-wasm-app.nix) ({ inherit webabi; } // args);
+  in build-wasm-app {
+    inherit pkg ename;
+  };
+
   # A simple derivation that just creates a file with the names of all
   # of its inputs. If built, it will have a runtime dependency on all
   # of the given build inputs.
