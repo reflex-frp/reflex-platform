@@ -1,7 +1,7 @@
 {
   "owner": "WebGHC",
   "repo": "nixpkgs",
-  "branch": "wasm-r-p-1909-integ",
-  "rev": "423fa4adb6276298cde0c12205efeb7bf1cbe805",
-  "sha256": "0ssvc5j0p7nip0qsrdbfgc6wihzwyxa23hbr80dmjbfizywz7nzg"
+  "branch": "wasm-r-p-1909-integ-2",
+  "rev": "a5cc7b77c090ede3ac380962ea876b83d847592c",
+  "sha256": "0mfrfrgkc8bfc3hcnbzqmab021i3w27mczak99ab4ca154ml297i"
 }
