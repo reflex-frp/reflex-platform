@@ -126,8 +126,7 @@ scripts/work-on ghc examples/WorkOnTest
 
 This may take a while, but ultimately you should end up in a new shell. Run:
 ```bash
-cd examples/WorkOnTest
-cabal new-run
+cabal new-run WorkOnTest --allow-newer
 ```
 
 After the app builds, you should see a window pop up which says "Hello, world!".
@@ -136,8 +135,8 @@ Type `exit` to leave the shell.
 Run the work-on-multi script:
 ```bash
 scripts/work-on-multi ghc reflex-dom reflex-dom-core
-cabal new-build all
-cabal new-run WorkOnTest
+cabal new-build all --allow-newer
+cabal new-run WorkOnTest --allow-newer
 ```
 Again, you should see a window pop up which says "Hello, world!".
 ```bash
