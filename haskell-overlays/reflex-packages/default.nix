@@ -42,7 +42,7 @@ in
     noGcTest = stdenv.hostPlatform.system != "x86_64-linux"
             || stdenv.hostPlatform != stdenv.buildPlatform
             || (ghc.isGhcjs or false);
-  in haskellLib.doJailbreak (haskellLib.overrideCabal
+  in haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
@@ -78,9 +78,9 @@ in
       preCheck = ''
         export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
       '';
-    }));
+    });
 
-  reflex-dom = haskellLib.doJailbreak (haskellLib.overrideCabal
+  reflex-dom = haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
@@ -93,7 +93,7 @@ in
       ] ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
         self.jsaddle-wasm
       ];
-    }));
+    });
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
@@ -101,7 +101,11 @@ in
   ## Terminal / Conventional OS
   ##
 
-  reflex-vty = haskellLib.doJailbreak (self.callHackage "reflex-vty" "0.1.3.0" {});
+  reflex-vty = self.callHackageDirect {
+    pkg = "reflex-vty";
+    ver = "0.1.4.0";
+    sha256 = "0djs7y4mmkb2q5hvp1fr1gn81k08hzab8v3c6qvh7nyn1fdh8zvh";
+  } {};
   reflex-process = haskellLib.doJailbreak (self.callCabal2nix "reflex-process" self._dep.reflex-process {});
   reflex-fsnotify = haskellLib.doJailbreak (self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {});
 
