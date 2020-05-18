@@ -1,7 +1,7 @@
 {
-  "owner": "reflex-frp",
+  "owner": "dfordivam",
   "repo": "reflex-dom",
-  "branch": "master",
-  "rev": "94c26076a71f229b5bd27128cf6fc0dbcba011ac",
-  "sha256": "00sx5x51jv1j24qlhrbp5sqnqcyz1iy2sgjap0y97c4dkzxi3wd3"
+  "branch": "dn-fixes-for-experimental-core2",
+  "rev": "bc41a85f28579cad61772826f584dad14a4a2099",
+  "sha256": "00sx5x51jv1j24qlhrbp5sqnqcyz1iy2sgjaa0y97c4dkzxi3wd3"
 }

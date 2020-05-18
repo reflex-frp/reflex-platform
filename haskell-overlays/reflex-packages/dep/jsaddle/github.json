@@ -1,6 +1,8 @@
 {
-  "owner": "ghcjs",
+  "owner": "dfordivam",
   "repo": "jsaddle",
-  "rev": "f06a9c5be22fa2ad65700f26c26f4a4bf8c56549",
-  "sha256": "0114g9984fnzknyvfkk32mrl1zj933hyqkl5bq3qkjbnm0khq70g"
+  "branch": "experimental-core2-merge-master-2",
+  "private": false,
+  "rev": "4f9200959b54a595e197d3a39832f70440c8bee6",
+  "sha256": "1cff22rx4ywd90d27bgklcnli47fk8m9bizqrcad3grfjz3bamvn"
 }

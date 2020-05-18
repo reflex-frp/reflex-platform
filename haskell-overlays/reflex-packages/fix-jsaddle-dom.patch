@@ -1,0 +1,13 @@
+diff --git a/src/JSDOM.hs b/src/JSDOM.hs
+index debdb4d..cf1deec 100644
+--- a/src/JSDOM.hs
++++ b/src/JSDOM.hs
+@@ -29,7 +29,7 @@ import Control.Monad.IO.Class (MonadIO(..))
+ import Control.Concurrent.MVar (putMVar, takeMVar)
+ import Language.Javascript.JSaddle.Types (JSContextRef(..))
+ import Language.Javascript.JSaddle.Object (freeFunction, jsg)
+-import Language.Javascript.JSaddle.Monad (askJSM)
++import Language.Javascript.JSaddle.Monad
+ import JSDOM.Types
+        (Callback(..), RequestAnimationFrameCallback(..), FromJSVal(..),
+         MonadDOM, liftDOM, Document(..), Window(..), JSM, JSContextRef(..))
