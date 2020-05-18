@@ -2,7 +2,73 @@
 
 This project's release branch is `master`. This log is written from the
 perspective of the release branch: when changes hit `master`, they are
-considered released, and the date should reflect that release.
+considered released.
+
+## v0.5.3.0
+
+* ([#578](https://github.com/reflex-frp/reflex-platform/pull/578)) Bump `patch` to `0.0.3.1`.
+* ([#649](https://github.com/reflex-frp/reflex-platform/pull/649), [#655](https://github.com/reflex-frp/reflex-platform/pull/655)) Update `hackGet` to support thunks with `thunk.nix` when packed.
+
+## v0.5.2.0
+
+* Fix issues with iOS deploy script caused by the `openssl` command sometimes resolving to OpenSSL and other times to LibreSSL, which output parsed X.509 certificates in slightly different formats. Now it always uses LibreSSL as provided by Nixpkgs.
+
+* Throw an error in `hackGet` when files other than the `git/github.json` and `default.nix` are there. This is a common problem when `git/github.json` exist in an unpacked thunk.
+
+* Add missing dependencies for Android release builds, fixing the problem with full Android release being broken.
+
+* Allow passing signing parameters to the Android deploy script, instead of Nix build scripts, to match iOS deployments. This can help to avoid leaking secrets into the Nix store, important when the Nix store is publicly readable.
+
+* Fix builds of `servant` in GHCJS.
+
+* Bump `reflex` to `0.6.4.1`.
+
+* Bump `reflex-process` to 0.2.1.0 and `reflex-ghci` to 0.1.4.0.
+
+## v0.5.1.0 - 2020-01-22
+
+* Bump `reflex` to `0.6.4`.
+
+## v0.5.0.0 - 2020-01-21
+
+* Add haskell overlay for `reflex-ghci` and include it in the general dev tools
+  set that is available in development shells (e.g., when running `work-on`)
+
+* Make script iOS deploy more flexible.
+  Splaces on either side of the `=` printed out by Apple's `security find-certificate` command for the team ID are now accepted.
+
+* Bump `reflex-process` to `0.2.0.0`, a breaking change though small.
+
+* Bump `patch` to `0.0.2.0`.
+
+## v0.4.2.0 - 2020-01-15
+
+* Add haskell overlays for `reflex-process`, `reflex-fsnotify`, and `reflex-vty`
+
+* Bump `jsaddle*` to `0.9.7.0`.
+
+* Test profiling in `release.nix`. Jobs names were shuffled in the process,
+  which is acceptible as this file is not intended to be comsumed by anything
+  but CI and QA. Add a note explaining that instability.
+
+* Bump `reflex-todomvc`
+
+* Support both `Apple Development` and `iPhone Developer` profiles on iOS deploy.
+  If you have many certificates it will take the first one it finds, for that reason it is recommended to put certificates in a user login keychain instead of the system one in multi-user machines.
+
+## v0.4.1.0 - 2020-01-02
+
+* Make Nixpkgs treat GHCJS builds as cross.
+  This will fix things like `setup-depends` and `build-tool-depends` being properly built with GHC rather than GHCJS.
+  That, in turn, will allow `markdown-unlit` READMEs and other things that we had trouble with.
+
+* Bump cabal-macosx to correctly use the host platform rather than build
+  platform to decide whether its appropriate to make a desktop app bundle.
+
+## v0.4.0.0 - 2019-12-31
+
+* Bump nixpkgs to 19.09.
+  This will bump the versions of numerous packages, including much of Hackage.
 
 ## v0.3.0.0 - 2019-12-30
 

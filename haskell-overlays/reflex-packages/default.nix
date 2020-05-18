@@ -94,6 +94,20 @@ in
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
   ##
+  ## Terminal / Conventional OS
+  ##
+
+  reflex-vty = self.callHackage "reflex-vty" "0.1.3.0" {};
+  reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
+  reflex-fsnotify = self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {};
+
+  ##
+  ## Tooling
+  ##
+
+  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
+
+  ##
   ## GHCJS and JSaddle
   ##
 
@@ -133,6 +147,8 @@ in
 
   monoidal-containers = self.callHackage "monoidal-containers" "0.6" {};
 
+  patch = self.callCabal2nix "patch" self._dep.patch {};
+
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
   hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
@@ -156,4 +172,7 @@ in
   universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
+  # Needed to fix cross compilation from macOS to elsewhere
+  # https://github.com/danfran/cabal-macosx/pull/14
+  cabal-macosx = self.callCabal2nix "cabal-macosx" self._dep.cabal-macosx {};
 }

@@ -163,14 +163,14 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     tmpdir=$(mktemp -d)
     # Find the signer given the OU
-    signer=$(security find-certificate -c 'iPhone Developer' -c 'Apple Development' -a \
+    signer=$({ security find-certificate -c 'iPhone Developer' -a; security find-certificate -c 'Apple Development' -a; } \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
           security find-certificate -c "$c" -p \
-            | openssl x509 -subject -noout; \
+            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
         done \
-      | grep "OU=$TEAM_ID/" \
+      | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1 || true)
 
@@ -224,9 +224,9 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
           security find-certificate -c "$c" -p \
-            | openssl x509 -subject -noout; \
+            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
         done \
-      | grep "OU=$TEAM_ID/" \
+      | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1)
 
