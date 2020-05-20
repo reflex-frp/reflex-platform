@@ -9,6 +9,7 @@ considered released.
 * ([#659](https://github.com/reflex-frp/reflex-platform/pull/659)) Bump reflex-fsnotify to 0.2.1.0
 * ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for WebGHC support.
 * ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Bump reflex-dom to version **UNRELEASED**.
+* ([#664](https://github.com/reflex-frp/reflex-platform/pull/664)) Update GHCJS to include a critical bugfix to the `-dedupe` flag. (See [obsidiansystems/ghcjs#3](https://github.com/obsidiansystems/ghcjs/pull/3) for more information.)
 
 
 ## v0.5.3.0
