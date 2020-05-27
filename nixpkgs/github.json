@@ -1,7 +1,7 @@
 {
-  "owner": "nixos",
+  "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "release-19.09",
-  "rev": "49550f29cd9d6ed27f4a76ba3c3fe30edf882eb7",
-  "sha256": "003fpkrcc5mw33q670q4z865zpr430cllbxhyzj8k9p4hbc8yqda"
+  "branch": "aa-backport-lego",
+  "rev": "4471c4ad677f941aad9cf525824687076a51aabb",
+  "sha256": "0s1q6dwvflxpi5ziw08zrbxi9cyxcmlvsn9hibjzw0wqx3853g57"
 }
