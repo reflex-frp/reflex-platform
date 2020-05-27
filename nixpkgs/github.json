@@ -2,6 +2,7 @@
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
   "branch": "aa-backport-lego",
-  "rev": "4471c4ad677f941aad9cf525824687076a51aabb",
-  "sha256": "0s1q6dwvflxpi5ziw08zrbxi9cyxcmlvsn9hibjzw0wqx3853g57"
+  "private": false,
+  "rev": "7d2bb8922524011f5c2ecd6c9e253574310e5f95",
+  "sha256": "0yilhmkfigq8mygpg9xh1cj650n83gvn39bhwpwjcc1qkq2229r9"
 }
