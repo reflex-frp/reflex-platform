@@ -92,6 +92,7 @@ in
     });
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
+  reflex-dom-test-selenium = self.callCabal2nix "reflex-dom-test-selenium" (reflexDomRepo + "/reflex-dom-test-selenium") {};
 
   ##
   ## Terminal / Conventional OS
