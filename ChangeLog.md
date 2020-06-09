@@ -1,16 +1,19 @@
 # Revision history for reflex-platform
 
-This project's release branch is `master`. This log is written from the
-perspective of the release branch: when changes hit `master`, they are
-considered released.
+This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
 ## Unreleased
 
-* ([#659](https://github.com/reflex-frp/reflex-platform/pull/659)) Bump reflex-fsnotify to 0.2.1.0
 * ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for WebGHC support.
-* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Bump reflex-dom to version **UNRELEASED**.
 * ([#664](https://github.com/reflex-frp/reflex-platform/pull/664)) Update GHCJS to include a critical bugfix to the `-dedupe` flag. (See [obsidiansystems/ghcjs#3](https://github.com/obsidiansystems/ghcjs/pull/3) for more information.)
-
+* Bump
+  * `all-cabal-hashes` to more recent snapshot of Hackage.
+  * `reflex` to 0.7.1.0.
+  * `reflex-dom`/`reflex-dom-core` to 0.6.0.0.
+  * `reflex-fsnotify` to 0.2.1.1.
+  * `reflex-ghci` to 0.1.4.1.
+  * `reflex-process` to 0.3.0.0.
+  * `reflex-vty` to 0.1.4.0.
 
 ## v0.5.3.0
 
