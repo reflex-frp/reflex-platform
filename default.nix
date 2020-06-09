@@ -14,6 +14,7 @@
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
 , hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
+, hieSupport ? true
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
@@ -32,6 +33,13 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
+            # Our fork of 8.6 with splices includes these patches.
+            # Specifically, is up to date with the `ghc-8.6` branch upstream,
+            # which contains various backports for any potential newer 8.6.x
+            # release. Nixpkgs manually applied some of those backports as
+            # patches onto 8.6.5 ahead of such a release, but now we get them
+            # from the src proper.
+            patches = [];
           });
         };
         packages = super.haskell.packages // {
@@ -105,6 +113,8 @@ let iosSupport = system == "x86_64-darwin";
 
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
+    wasmCross = nixpkgs.hackGet ./wasm-cross;
+    webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc865SplicesSrc;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
@@ -138,6 +148,12 @@ let iosSupport = system == "x86_64-darwin";
         # Back compat
         arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
       };
+      ghcjs = nixpkgsFunc (nixpkgsArgs // {
+        crossSystem = lib.systems.examples.ghcjs;
+      });
+      wasm = nixpkgsFunc (nixpkgsArgs //
+        (import wasmCross { inherit nixpkgsFunc; }).nixpkgsCrossArgs webGhcSrc "8.6.5"
+      );
     };
 
     haskellLib = nixpkgs.haskell.lib;
@@ -180,19 +196,27 @@ let iosSupport = system == "x86_64-darwin";
     ]);
   };
   ghcjs = ghcjs8_6;
-  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs86.override (old: {
+  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = nixpkgs.haskell.packages.ghc865;
+      bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
       ghcjsSrc = fetchgit {
         url = "https://github.com/obsidiansystems/ghcjs.git";
-        rev = "06f81b44c3cc6c7f75e1a5a20d918bad37294b52";
-        sha256 = "02mwkf7aagxqi142gcmq048244apslrr72p568akcab9s0fn2gvy";
+        rev = "a00ecf0b2eaddbc4101c76e6ac95fc97b0f75840"; # ghc-8.6 branch
+        sha256 = "06cwpijwhj4jpprn07y3pkxmv40pwmqqw5jbdv4s7c67j5pmirnc";
         fetchSubmodules = true;
       };
     };
   }))).override {
-    overrides = nixpkgs.haskell.overlays.combined;
+    overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
+
+  wasm = ghcWasm32-8_6;
+  ghcWasm32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
+    # Due to the splices changes the parallel build fails while building the libraries
+    ghc = old.ghc.overrideAttrs (drv: { enableParallelBuilding = false; });
+  }))).override {
+    overrides = nixpkgsCross.wasm.haskell.overlays.combined;
+  });
 
   ghc = ghc8_6;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
@@ -288,6 +312,8 @@ in let this = rec {
           iosAarch32
           iosAarch64
           iosWithHaskellPackages
+          wasm
+          wasmCross
           ;
 
   # Back compat
@@ -361,6 +387,7 @@ in let this = rec {
       hdevtools
       hlint
       stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      reflex-ghci
       ;
     inherit (nixpkgs)
       cabal2nix
@@ -370,14 +397,29 @@ in let this = rec {
       pkgconfig
       closurecompiler
       ;
+  } // lib.optionalAttrs hieSupport {
     haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
       overrides = nixpkgs.haskell.overlays.hie;
     }).haskell-ide-engine;
   };
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
-    buildToolDepends = (drv.buildToolDepends or []) ++ builtins.attrValues generalDevTools' {};
+    buildTools = (drv.buildTools or []) ++ builtins.attrValues (generalDevTools' {});
   })).env;
+
+  # A minimal wrapper around the build-wasm-app from wasm-cross
+  # Useful in building simple cabal projects like reflex-todomvc
+  build-wasm-app-wrapper =
+    ename: # Name of the executable, usually same as cabal project name
+    pkgPath : # Path of cabal package
+    args: # Others options to pass to build-wasm-app
+  let
+    pkg = wasm.callPackage pkgPath {};
+    webabi = nixpkgs.callPackage (wasmCross + /webabi) {};
+    build-wasm-app = nixpkgs.callPackage (wasmCross + /build-wasm-app.nix) ({ inherit webabi; } // args);
+  in build-wasm-app {
+    inherit pkg ename;
+  };
 
   # A simple derivation that just creates a file with the names of all
   # of its inputs. If built, it will have a runtime dependency on all

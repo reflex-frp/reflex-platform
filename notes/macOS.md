@@ -14,3 +14,20 @@ and `-threaded` - otherwise running the binary yields
 ```
 user error (RTS doesn't support multiple OS threads (use ghc -threaded when linking))
 ```
+
+### Installing Nix on MacOS Catalina (10.15)
+On a pre-macOS 10.15 with nix installed:
+```
+git clone https://github.com/obsidiansystems/nix.git
+cd nix
+git checkout darwin-10.15-install
+nix build -f release.nix binaryTarball.x86_64-darwin
+cp result/*.tar.xz ~/nix.tar.xz
+```
+Copy ~/nix.tar.xz to your Catalina macOS and open a terminal there
+```
+tar xf nix.tar.xz
+./nix-*/create-volume.sh
+./nix-*/install --daemon
+```
+

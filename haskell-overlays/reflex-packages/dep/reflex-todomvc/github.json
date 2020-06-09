@@ -1,6 +1,7 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-todomvc",
-  "rev": "b460a2049b2df2b087a98ee81a6c03fd791983de",
-  "sha256": "16kgayi2q0kl60322ilgmdka6hawkjkks0x9gd1ji2nr2vnramp0"
+  "branch": "master",
+  "rev": "3facdd7fc1cc585611012c6fef1cafb77a2dfa7a",
+  "sha256": "1h01lxfmsfvq9bxfhgbixkjm7j1myy2wvdxlksgw8s0cp389v4r1"
 }

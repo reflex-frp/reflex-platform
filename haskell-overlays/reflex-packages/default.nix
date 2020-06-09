@@ -1,6 +1,6 @@
 { haskellLib
 , lib, nixpkgs
-, thunkSet, fetchFromGitHub, fetchFromBitbucket
+, thunkSet, fetchFromGitHub, fetchFromBitbucket, hackGet
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling, __useTemplateHaskell
 }:
 
@@ -13,7 +13,7 @@ let
   reflexDomRepo = self._dep.reflex-dom;
   jsaddleSrc = self._dep.jsaddle;
   gargoylePkgs = self.callPackage self._dep.gargoyle self;
-  ghcjsDom = import self._dep.ghcjs-dom self;
+  wasmCross = hackGet ../../wasm-cross;
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
@@ -43,8 +43,7 @@ in
             || stdenv.hostPlatform != stdenv.buildPlatform
             || (ghc.isGhcjs or false);
   in haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom-core" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-      ["--subpath reflex-dom-core"]
+    (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
       (lib.optional enableLibraryProfiling "-fprofile-reflex")
@@ -82,19 +81,35 @@ in
     });
 
   reflex-dom = haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom" reflexDomRepo (lib.concatStringsSep " " (lib.concatLists [
-      ["--subpath reflex-dom"]
+    (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
     ])) {})
     (drv: {
       # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
-      libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
+      libraryHaskellDepends = (drv.libraryHaskellDepends or [])
+        ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
         self.android-activity
+      ] ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
+        self.jsaddle-wasm
       ];
     });
 
-  chrome-test-utils = self.callCabal2nixWithOptions "chrome-test-utils" reflexDomRepo "--subpath chrome-test-utils" {};
+  chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
+
+  ##
+  ## Terminal / Conventional OS
+  ##
+
+  reflex-vty = self.callHackage "reflex-vty" "0.1.3.0" {};
+  reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
+  reflex-fsnotify = self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {};
+
+  ##
+  ## Tooling
+  ##
+
+  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
 
   ##
   ## GHCJS and JSaddle
@@ -117,8 +132,11 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + /jsaddle-warp) {});
 
-  jsaddle-dom = self.callPackage self._dep.jsaddle-dom {};
-  inherit (ghcjsDom) ghcjs-dom-jsffi;
+  jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
+  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + /jsaddle-wasm)) {};
+  ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
+  ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
+  ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
 
   ##
   ## Gargoyle
@@ -132,11 +150,9 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = self.callHackageDirect {
-    pkg = "monoidal-containers";
-    ver = "0.6";
-    sha256 = "0vc889wlxs1r99k3615yk30d935jhn45rc8sc6bayi83lyb9a8cj";
-  } {};
+  monoidal-containers = self.callHackage "monoidal-containers" "0.6" {};
+
+  patch = self.callCabal2nix "patch" self._dep.patch {};
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
@@ -148,23 +164,12 @@ in
   } + "/hspec-webdriver") {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
-  dependent-map = self.callHackageDirect {
-    pkg = "dependent-map";
-    ver = "0.3";
-    sha256 = "1r4n7ivbkrrm6h8s124gj23bjv2kcx5sb4bfp1hriqsng3fgkifi";
-  } {};
-  dependent-sum = self.callHackageDirect {
-    pkg = "dependent-sum";
-    ver = "0.6.2.0";
-    sha256 = "12k9wfl0i7g5mp9klh2720wz8rqxz4jl63zjzir9nxycb90qkxd5";
-  } {};
-  dependent-sum-template = self.callHackageDirect {
-    pkg = "dependent-sum-template";
-    ver = "0.1.0.0";
-    sha256 = "0fm73cbja570lfxznv66daya5anp4b0m24jjm5fwn95f49dp9d4n";
-  } {};
+  dependent-map = self.callHackage "dependent-map" "0.3" {};
+  dependent-sum = self.callHackage "dependent-sum" "0.6.2.0" {};
+  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
 
+  # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
   universe-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-base" {};
   universe-dependent-sum = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-dependent-sum" {});
@@ -172,4 +177,7 @@ in
   universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
+  # Needed to fix cross compilation from macOS to elsewhere
+  # https://github.com/danfran/cabal-macosx/pull/14
+  cabal-macosx = self.callCabal2nix "cabal-macosx" self._dep.cabal-macosx {};
 }

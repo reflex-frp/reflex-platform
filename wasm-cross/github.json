@@ -1,0 +1,8 @@
+{
+  "owner": "WebGHC",
+  "repo": "wasm-cross",
+  "branch": "reflex-platform-integ",
+  "private": false,
+  "rev": "40f423d1fa562ebdc1643d78622f975d70f8c9f2",
+  "sha256": "0vpmkwfsdv1qj35hwylj4d7mi8aj725j83sziqipazb9d7iy64bh"
+}
