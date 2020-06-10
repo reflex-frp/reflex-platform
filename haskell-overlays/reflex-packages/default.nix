@@ -109,7 +109,7 @@ in
   ## Tooling
   ##
 
-  reflex-ghci = self.callHackage "reflex-ghci" "0.1.4.1" {};
+  reflex-ghci = dontCheck (self.callHackage "reflex-ghci" "0.1.4.1" {});
 
   ##
   ## GHCJS and JSaddle
