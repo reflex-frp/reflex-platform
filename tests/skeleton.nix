@@ -1,7 +1,7 @@
 { reflex-platform }:
 
 let
-  skeletonSrc = reflex-platform.nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ./examples/project/reflex-project-skeleton/github.json))
+  skeletonSrc = reflex-platform.nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ../examples/project/reflex-project-skeleton/github.json))
   // {
     fetchSubmodules = false; # Not interested in its reflex-platform checkout
   };
