@@ -109,7 +109,7 @@ in
   ## Tooling
   ##
 
-  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
+  reflex-ghci = self.callHackage "reflex-ghci" "0.1.4.1" {};
 
   ##
   ## GHCJS and JSaddle
