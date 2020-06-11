@@ -1,7 +1,8 @@
 {
-  "owner": "WebGHC",
+  "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "wasm-r-p-1909-integ-2",
+  "branch": "reflex-platform-wasm-support",
+  "private": false,
   "rev": "a5cc7b77c090ede3ac380962ea876b83d847592c",
   "sha256": "0mfrfrgkc8bfc3hcnbzqmab021i3w27mczak99ab4ca154ml297i"
 }
