@@ -1,7 +1,7 @@
 {
-  "owner": "nixos",
+  "owner": "WebGHC",
   "repo": "nixpkgs",
-  "branch": "release-19.09",
-  "rev": "49550f29cd9d6ed27f4a76ba3c3fe30edf882eb7",
-  "sha256": "003fpkrcc5mw33q670q4z865zpr430cllbxhyzj8k9p4hbc8yqda"
+  "branch": "wasm-r-p-1909-integ",
+  "rev": "423fa4adb6276298cde0c12205efeb7bf1cbe805",
+  "sha256": "0ssvc5j0p7nip0qsrdbfgc6wihzwyxa23hbr80dmjbfizywz7nzg"
 }
