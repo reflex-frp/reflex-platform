@@ -44,6 +44,9 @@ echo "Checking out $URL at revision $REV"
 if [ -f "$REPO/default.nix" ] ; then
     rm "$REPO/default.nix"
 fi
+if [ -f "$REPO/thunk.nix" ] ; then
+    rm "$REPO/thunk.nix"
+fi
 rm "$JSON_FILE"
 rmdir "$REPO"
 

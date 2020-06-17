@@ -1,7 +1,8 @@
 {
-  "owner": "nixos",
+  "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "release-19.09",
-  "rev": "49550f29cd9d6ed27f4a76ba3c3fe30edf882eb7",
-  "sha256": "003fpkrcc5mw33q670q4z865zpr430cllbxhyzj8k9p4hbc8yqda"
+  "branch": "reflex-platform-wasm-support",
+  "private": false,
+  "rev": "a5cc7b77c090ede3ac380962ea876b83d847592c",
+  "sha256": "0mfrfrgkc8bfc3hcnbzqmab021i3w27mczak99ab4ca154ml297i"
 }

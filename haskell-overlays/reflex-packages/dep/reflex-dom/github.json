@@ -1,8 +1,8 @@
 {
-  "owner": "dfordivam",
+  "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "dn-fixes-for-experimental-core2",
+  "branch": "eac@jsaddle-experimental-core2-changes",
   "private": false,
-  "rev": "43e06708d695fe5942658ad48ab8fa1693b4c546",
-  "sha256": "06r8c3qdadxkzizlxmgaa6kw61sl1b2a9c0jiqvmv477fj5c8ck3"
+  "rev": "294ce24929b102b928203bdbc56326752a761f4a",
+  "sha256": "0483gbg8z0cx66w7bqk0mx5pzb47gifzy0ls4ia10ppaip6d0mhb"
 }
