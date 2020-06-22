@@ -48,5 +48,5 @@ self:
       };
 
   # Make an attribute set of source derivations for a directory containing thunks:
-  thunkSet = dir: lib.mapAttrs (name: _: self.hackGet (dir + "/${name}")) (builtins.readDir dir);
+  thunkSet = dir: lib.mapAttrs (name: _: self.hackGet (dir + "/${name}")) (lib.filterAttrs (_: type: type != "regular") (builtins.readDir dir));
 }
