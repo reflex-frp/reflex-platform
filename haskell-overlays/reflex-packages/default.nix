@@ -150,7 +150,7 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
 
-  monoidal-containers = self.callHackage "monoidal-containers" "0.6" {};
+  monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
 
   patch = self.callCabal2nix "patch" self._dep.patch {};
 
