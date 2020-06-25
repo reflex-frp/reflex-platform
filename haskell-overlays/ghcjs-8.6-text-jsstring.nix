@@ -15,11 +15,8 @@ self: super: {
     };
     vectorSrc = fetchgit {
       url = "https://github.com/haskell/vector.git";
-      rev = "1d208ee9e3a252941ebd112e14e8cd5a982ac2bb"; #v0.12.0.1
-      sha256 = "18qm1c2zqr8h150917djfc0xk62hv99b1clxfs9a79aavrsqi5hs";
-      postFetch = ''
-        substituteInPlace $out/vector.cabal --replace 'base >= 4.5 && < 4.10' 'base >= 4.5 && < 5'
-      '';
+      rev = "19189a884434ecd2c96212395f5705347b55775b"; #v0.12.0.3
+      sha256 = "13idbrajpqr594b277d4zd7iw2qvgvpb9w7aa2zw8icpsmnf6nc2";
     };
     primitiveSrc = fetchgit {
       url = "https://github.com/haskell/primitive.git";
