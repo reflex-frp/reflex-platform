@@ -1,6 +1,6 @@
 ### ```reflex, reflex-dom, reflex-dom-contrib and stack```
 
-Although reflex-platform is provided as a reliable way of working with reflex and related packages, many people prefer to integrate individual components into their existing build system instead.  This file details some succesful setups using stack.  People are encouraged to detail other succesful setups in this file via PR.
+Although reflex-platform is provided as a reliable way of working with reflex and related packages, many people prefer to integrate individual components into their existing build system instead.  This file details some successful setups using stack.  People are encouraged to detail other successful setups in this file via PR.
 
 
 
