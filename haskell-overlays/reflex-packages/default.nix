@@ -164,9 +164,10 @@ in
   } + "/hspec-webdriver") {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
-  dependent-map = self.callHackage "dependent-map" "0.3" {};
-  dependent-sum = self.callHackage "dependent-sum" "0.6.2.0" {};
-  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
+  some = self.callHackage "some" "1.0.1" {};
+  dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
+  dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
+  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.3" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
 
   # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
