@@ -80,7 +80,7 @@ in
       '';
     });
 
-  reflex-dom = haskellLib.overrideCabal
+  reflex-dom = (drv: if (with stdenv.hostPlatform; isWasm && is32bit) then (enableCabalFlag drv "wasm32") else drv) (haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
@@ -93,7 +93,7 @@ in
       ] ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
         self.jsaddle-wasm
       ];
-    });
+    }));
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
   reflex-dom-test-selenium = self.callCabal2nix "reflex-dom-test-selenium" (reflexDomRepo + "/reflex-dom-test-selenium") {};
