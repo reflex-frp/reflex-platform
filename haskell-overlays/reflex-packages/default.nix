@@ -96,7 +96,12 @@ in
     }));
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
-  reflex-dom-test-selenium = self.callCabal2nix "reflex-dom-test-selenium" (reflexDomRepo + "/reflex-dom-test-selenium") {};
+
+  reflex-dom-test-selenium = let
+     reflexDomTestSelenium = "reflex-dom-test-selenium";
+     reflexDomTestSeleniumRepo = reflexDomRepo + "/" + reflexDomTestSelenium ;
+   in (self.callCabal2nix reflexDomTestSelenium reflexDomTestSeleniumRepo {}) //
+      { addOverrides = import (reflexDomTestSeleniumRepo + "/add-overrides.nix") { inherit nixpkgs; }; };
 
   ##
   ## Terminal / Conventional OS
