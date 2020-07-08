@@ -4,6 +4,7 @@
 
 self:
 let
+  # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
   thunkImport = p:
     let
       contents = builtins.readDir p;
@@ -47,14 +48,12 @@ let
   this = {
     filterGit = builtins.filterSource (path: type: !(builtins.any (x: x == baseNameOf path) [".git" "tags" "TAGS" "dist"]));
 
-    # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
-    thunkImport = thunkImport;
+    inherit thunkImport;
 
     # Make an attribute set of source derivations for a directory containing thunks:
     thunkSet = dir: lib.mapAttrs (name: _: self.thunkImport (dir + "/${name}")) (lib.filterAttrs (_: type: type == "directory" || type == "symlink") (builtins.readDir dir));
   };
   legacy = {
-    # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
     hackGet = lib.warn "hackGet has been deprecated, use thunkImport instead" thunkImport;
   };
 in this // (if hideDeprecated then {} else legacy)
