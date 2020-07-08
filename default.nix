@@ -25,7 +25,7 @@ let iosSupport = system == "x86_64-darwin";
         compiler = super.haskell.compiler // {
           ghcSplices-8_6 = super.haskell.compiler.ghc865.overrideAttrs (drv: {
             enableParallelBuilding = false;
-            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc;
+            src = nixpkgs.thunkImport ./haskell-overlays/splices-load-save/dep/ghc;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
@@ -51,8 +51,8 @@ let iosSupport = system == "x86_64-darwin";
       };
     };
 
-    hackGetOverlay = self: super:
-      import ./nixpkgs-overlays/hack-get { inherit lib; } self;
+    thunkImportOverlay = self: super:
+      import ./nixpkgs-overlays/thunk-import { inherit lib hideDeprecated; } self;
 
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
@@ -90,7 +90,7 @@ let iosSupport = system == "x86_64-darwin";
     nixpkgsArgs = {
       inherit system;
       overlays = [
-        hackGetOverlay
+        thunkImportOverlay
         bindHaskellOverlays
         forceStaticLibs
         splicesEval
@@ -113,7 +113,7 @@ let iosSupport = system == "x86_64-darwin";
 
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
-    wasmCross = nixpkgs.hackGet ./wasm-cross;
+    wasmCross = nixpkgs.thunkImport ./wasm-cross;
     webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc865SplicesSrc;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
@@ -286,7 +286,7 @@ let iosSupport = system == "x86_64-darwin";
 in let this = rec {
   inherit (nixpkgs)
     filterGit
-    hackGet
+    thunkImport
     thunkSet
     ;
   inherit nixpkgs
@@ -496,6 +496,10 @@ legacy = {
   workOnMulti = env: packageNames: legacy.workOnMulti' { inherit env packageNames; };
 };
 
-in this // lib.optionalAttrs
-  (!hideDeprecated)
-  (lib.mapAttrs (attrName: builtins.trace "The attribute \"${attrName}\" is deprecated. See reflex-platform's root default.nix.") legacy)
+in this
+  // lib.optionalAttrs
+       (!hideDeprecated)
+       (lib.mapAttrs (attrName: builtins.trace "The attribute \"${attrName}\" is deprecated. See reflex-platform's root default.nix.") legacy)
+ // lib.optionalAttrs
+       (!hideDeprecated)
+       { inherit (nixpkgs) hackGet; }

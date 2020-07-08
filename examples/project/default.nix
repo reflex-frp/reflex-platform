@@ -2,6 +2,6 @@
 , config ? {}
 }:
 let reflex-platform = import ../../. { inherit system config; };
-    projSrc = reflex-platform.hackGet ./reflex-project-skeleton;
+    projSrc = reflex-platform.thunkImport ./reflex-project-skeleton;
     proj = import projSrc { inherit reflex-platform; };
 in proj
