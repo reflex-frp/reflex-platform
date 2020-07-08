@@ -57,6 +57,4 @@ let
     # Retrieve source that is controlled by the hack-* scripts; it may be either a stub or a checked-out git repo
     hackGet = lib.warn "hackGet has been deprecated, use thunkImport instead" thunkImport;
   };
-in this // lib.optionalAttrs
-  (!hideDeprecated)
-  legacy
+in this // (if hideDeprecated then {} else legacy)
