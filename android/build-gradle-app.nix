@@ -18,31 +18,50 @@ let
   inherit (stdenv.lib) optionalString optional;
 
   m2install = { repo, version, artifactId, groupId
-              , jarSha256, pomSha256, aarSha256, suffix ? "" }:
+              , jarSha256, pomSha256, aarSha256, suffix ? ""
+              , customJarUrl ? null, customJarSuffix ? null }:
     let m2Name = "${artifactId}-${version}";
         m2Path = "${builtins.replaceStrings ["."] ["/"] groupId}/${artifactId}/${version}";
+        jarFile = fetchurl {
+          url = if customJarUrl != null then customJarUrl else "${repo}${m2Path}/${m2Name}${suffix}.jar";
+          sha256 = jarSha256;
+        };
     in runCommand m2Name {} (''
-         mkdir -p $out/m2/${m2Path}
+         installPath="$out"/m2/'${m2Path}'
+         mkdir -p "$installPath"
        '' + optionalString (jarSha256 != null) ''
-         install -D ${fetchurl {
-                        url = "${repo}${m2Path}/${m2Name}${suffix}.jar";
-                        sha256 = jarSha256;
-                      }} $out/m2/${m2Path}/${m2Name}${suffix}.jar
+         install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}.jar'
+         ${optionalString (customJarSuffix != null) ''
+           install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}${customJarSuffix}.jar'
+         ''}
        '' + optionalString (pomSha256 != null) ''
          install -D ${fetchurl {
                         url = "${repo}${m2Path}/${m2Name}${suffix}.pom";
                         sha256 = pomSha256;
-                      }} $out/m2/${m2Path}/${m2Name}${suffix}.pom
+                      }} "$installPath/${m2Name}${suffix}.pom"
        '' + optionalString (aarSha256 != null) ''
          install -D ${fetchurl {
                         url = "${repo}${m2Path}/${m2Name}${suffix}.aar";
                         sha256 = aarSha256;
-                      }} $out/m2/${m2Path}/${m2Name}${suffix}.aar
+                      }} "$installPath/${m2Name}${suffix}.aar"
        '');
   androidsdkComposition = androidenv.composeAndroidPackages {
     inherit platformVersions useGoogleAPIs;
     includeExtras = [ "extras;android;m2repository" ]
       ++ optional useGooglePlayServices "extras;google;google_play_services";
+  };
+
+  # This can't be downloaded from Google's repo the normal way apparently :/
+  aaptDep = m2install rec {
+    repo = "https://maven.google.com/";
+    version = "3.2.0-4818971";
+    artifactId = "aapt2";
+    groupId = "com.android.tools.build";
+    jarSha256 = "1ccba0wfly69kyqx7vd4r3l791plq3jz0g6mmnw9l07bx52y11hd";
+    pomSha256 = "0kfs1jzwx1kmmhj37275b9irhmlzkjhrqpf3kx1mbz192l8k1d6c";
+    aarSha256 = null;
+    customJarUrl = "https://dl.google.com/dl/android/maven2/com/android/tools/build/${artifactId}/${version}/${artifactId}-${version}-linux.jar";
+    customJarSuffix = "-linux";
   };
 in
 stdenv.mkDerivation ({
@@ -55,7 +74,7 @@ stdenv.mkDerivation ({
   buildInputs = [ jdk gradle ] ++ buildInputs ++ stdenv.lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
 
   DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
-                            paths = map m2install mavenDeps;
+                            paths = map m2install mavenDeps ++ [aaptDep];
                           };
 
   buildPhase = ''
