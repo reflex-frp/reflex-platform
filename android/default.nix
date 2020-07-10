@@ -94,6 +94,8 @@ in rec {
 
     , googleServicesJson ? null
 
+    , mavenDeps ? import ./defaults/deps.nix
+
     , additionalDependencies ? ""
 
     , runtimeSharedLibs ? (_: [])
@@ -136,6 +138,7 @@ in rec {
               additionalDependencies
               runtimeSharedLibs
               javaSources
-              universalApk;
+              universalApk
+              mavenDeps;
     };
 }

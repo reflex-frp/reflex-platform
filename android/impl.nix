@@ -28,7 +28,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (buildGradleApp {
-    inherit acceptAndroidSdkLicenses;
+    inherit acceptAndroidSdkLicenses mavenDeps;
     buildDirectory = "./.";
     # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
     gradleTask = if isRelease
@@ -38,7 +38,6 @@ in {
     keyAliasPassword = releaseKey.keyPassword or null;
     keyStore = releaseKey.storeFile or null;
     keyStorePassword = releaseKey.storePassword or null;
-    mavenDeps = import ./defaults/deps.nix;
     name = applicationId;
     platformVersions = [ "28" ];
     release = false;
