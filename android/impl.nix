@@ -62,7 +62,7 @@ in {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
           inherit applicationId version additionalDependencies releaseKey universalApk;
           googleServicesClasspath = optionalString (googleServicesJson != null)
-            "classpath 'com.google.gms:google-services:3.0.0'";
+            "classpath 'com.google.gms:google-services:4.3.3'";
           googleServicesPlugin = optionalString (googleServicesJson != null)
             "apply plugin: 'com.google.gms.google-services'";
         });

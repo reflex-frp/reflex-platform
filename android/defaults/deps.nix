@@ -1,4 +1,228 @@
 [
+  { artifactId = "annotation";
+    groupId = "androidx.annotation";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = "0baae9755f7caf52aa80cd04324b91ba93af55d4d1d17dcc9a7b53d99ef7c016";
+    pomSha256 = "a179c12db43d9c0300c9db63f4811db496504be5401b951d422b78490ad1e5b4";
+    aarSha256 = null; }
+
+  { artifactId = "annotation";
+    groupId = "androidx.annotation";
+    version = "1.1.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = "d38d63edb30f1467818d50aaf05f8a692dea8b31392a049bfa991b159ad5b692";
+    pomSha256 = "2e9372ba7780ef44952adbf86b66e1f08682c1e5277c926185f6564a13799efe";
+    aarSha256 = null; }
+
+  { artifactId = "core-common";
+    groupId = "androidx.arch.core";
+    version = "2.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = "4b80b337779b526e64b0ee0ca9e0df43b808344d145f8e9b1c42a134dac57ad8";
+    pomSha256 = "4b6f1d459ddd146b4e85ed6d46e86eb8c2639c5de47904e6db4d698721334220";
+    aarSha256 = null; }
+
+  { artifactId = "core-runtime";
+    groupId = "androidx.arch.core";
+    version = "2.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "e2007d41ddc69ee2a77fed7b5c1dc5a41e01122926ba59696aab7b18d2264411";
+    aarSha256 = "87e65fc767c712b437649c7cee2431ebb4bed6daef82e501d4125b3ed3f65f8e"; }
+
+  { artifactId = "asynclayoutinflater";
+    groupId = "androidx.asynclayoutinflater";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "48167eeedc8da79c4d29deaf0d0cd9b5d8fedcae01f1a6efb3f28f08e8982f71";
+    aarSha256 = "f7eab60c57addd94bb06275832fe7600611beaaae1a1ec597c231956faf96c8b"; }
+
+  { artifactId = "collection";
+    groupId = "androidx.collection";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = "9c8d117b5c2bc120a1cdfeb857e05b495b16c36013570372a708f7827e3ac9f9";
+    pomSha256 = "a7913a5275ad68e555d2612ebe8c14c367b153e14ca48a1872a64899020e54ef";
+    aarSha256 = null; }
+
+  { artifactId = "coordinatorlayout";
+    groupId = "androidx.coordinatorlayout";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "3e44e4de2fee6debc33d23626ee906e54e1bb3c1749b19e02bb667b614ab9392";
+    aarSha256 = "e508c695489493374d942bf7b4ee02abf7571d25aac4c622e57d6cd5cd29eb73"; }
+
+  { artifactId = "core";
+    groupId = "androidx.core";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "384d529ad668ada4808de29b29a6348f0007c2841ad79cae9a5a089bd68810f5";
+    aarSha256 = "d7672358fc0d46de678968bcddfd3bdfe1618574299a753477b16116cfec74f5"; }
+
+  { artifactId = "cursoradapter";
+    groupId = "androidx.cursoradapter";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "62d95c89850af21030b19f14d5f7ecd6d8bcc9a3014c59002ec99624caac8100";
+    aarSha256 = "a81c8fe78815fa47df5b749deb52727ad11f9397da58b16017f4eb2c11e28564"; }
+
+  { artifactId = "customview";
+    groupId = "androidx.customview";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "ce9e47b87184f5bd5e139e9becd5b26476d42d78c31bf2fdedc37acb41b9ad49";
+    aarSha256 = "20e5b8f6526a34595a604f56718da81167c0b40a7a94a57daa355663f2594df2"; }
+
+  { artifactId = "documentfile";
+    groupId = "androidx.documentfile";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "013288a9317a552706ce625fb24493e8223288529223ec578cf855a5ae9c16e5";
+    aarSha256 = "865a061ef2fad16522f8433536b8d47208c46ff7c7745197dfa1eeb481869487"; }
+
+  { artifactId = "drawerlayout";
+    groupId = "androidx.drawerlayout";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "da6733425a83f5ce850878fa7201082345fed7c668dd58550fdd19c0396c6fa4";
+    aarSha256 = "9402442cdc5a43cf62fb14f8cf98c63342d4d9d9b805c8033c6cf7e802749ac1"; }
+
+  { artifactId = "fragment";
+    groupId = "androidx.fragment";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "e329d673361e94d2e8f4d4d14e1f0586368bd43fb19efd5766ce7498bcccd162";
+    aarSha256 = "65dd32d71fe65a32e77989a6cfb1ad09307038927f82a740c7611162d0b518f8"; }
+
+  { artifactId = "interpolator";
+    groupId = "androidx.interpolator";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "0ddc07cc39699f48ecd9ec894b5830c0f09e22e82959294edf37217224c88b7b";
+    aarSha256 = "33193135a64fe21fa2c35eec6688f1a76e512606c0fc83dc1b689e37add7732a"; }
+
+  { artifactId = "legacy-support-core-ui";
+    groupId = "androidx.legacy";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "2baaf7f17551765524bd1e4d2f954a2a0178a112039cf549ba8b7d4b41e66931";
+    aarSha256 = "0d1260c6e7e6a337f875df71b516931e703f716e90889817cd3a20fa5ac3d947"; }
+
+  { artifactId = "legacy-support-core-utils";
+    groupId = "androidx.legacy";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "8fd093008b3ee7c06e52c78da2af980a7b47b69b967fa91dad7af466f7a00a38";
+    aarSha256 = "a7edcf01d5b52b3034073027bc4775b78a4764bb6202bb91d61c829add8dd1c7"; }
+
+  { artifactId = "lifecycle-common";
+    groupId = "androidx.lifecycle";
+    version = "2.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = "7bad7a188804adea6fa1f35d5ef99b705f20bd93ecadde484760ff86b535fefc";
+    pomSha256 = "04d525073469214d0c99e81aaa875dd548ba32b82945abd8326bc50229df700d";
+    aarSha256 = null; }
+
+  { artifactId = "lifecycle-livedata";
+    groupId = "androidx.lifecycle";
+    version = "2.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "a84842ffc0f14e518db75c05cc112680a8a4a164fa78395be32d88304a439423";
+    aarSha256 = "c82609ced8c498f0a701a30fb6771bb7480860daee84d82e0a81ee86edf7ba39"; }
+
+  { artifactId = "lifecycle-livedata-core";
+    groupId = "androidx.lifecycle";
+    version = "2.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "650fda1a232f5669742140571570ccad2f47a71225ab0f02179bc8d144b982c8";
+    aarSha256 = "fde334ec7e22744c0f5bfe7caf1a84c9d717327044400577bdf9bd921ec4f7bc"; }
+
+  { artifactId = "lifecycle-runtime";
+    groupId = "androidx.lifecycle";
+    version = "2.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "a92a46fa7aec8ac326a5d578734a2d5b63206976996b9e06cae171b35b0ab6de";
+    aarSha256 = "e4afc9e636183f6f3e0edf1cf46121a492ffd2c673075bb07f55c7a99dd43cfb"; }
+
+  { artifactId = "lifecycle-viewmodel";
+    groupId = "androidx.lifecycle";
+    version = "2.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "60b758fd1c664089f82d1c018ed4ff7955c14a2b1620af7aa106591f733e0827";
+    aarSha256 = "d6460aea1b6bad80ab14cf88297e9e43bfde8d87c3e5c28f2c508233ffbcc062"; }
+
+  { artifactId = "loader";
+    groupId = "androidx.loader";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "c978d550808b47434aa49a63164110a50b55b0bcc6160a93a2e37d5110df8c5e";
+    aarSha256 = "11f735cb3b55c458d470bed9e25254375b518b4b1bad6926783a7026db0f5025"; }
+
+  { artifactId = "localbroadcastmanager";
+    groupId = "androidx.localbroadcastmanager";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "a000041f5a1f79283c5175e1bb60cf3683780f401c6a9d34fbe9751253fa6ff9";
+    aarSha256 = "e71c328ceef5c4a7d76f2d86df1b65d65fe2acf868b1a4efd84a3f34336186d8"; }
+
+  { artifactId = "print";
+    groupId = "androidx.print";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "62482c0594841bee24bb996abb6cb7b320a6a3b77dca9f0a0ba4fe3be5530aa7";
+    aarSha256 = "1d5c7f3135a1bba661fc373fd72e11eb0a4adbb3396787826dd8e4190d5d9edd"; }
+
+  { artifactId = "slidingpanelayout";
+    groupId = "androidx.slidingpanelayout";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "40e90f96838c2a8156ab51b181400767049f387cec8c695e412d3d9205b0745b";
+    aarSha256 = "76bffb7cefbf780794d8817002dad1562f3e27c0a9f746d62401c8edb30aeede"; }
+
+  { artifactId = "swiperefreshlayout";
+    groupId = "androidx.swiperefreshlayout";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "8fe4b5db332af33cde899ba571ee866ad977be38114d3ab600edaca454ea8299";
+    aarSha256 = "9761b3a809c9b093fd06a3c4bbc645756dec0e95b5c9da419bc9f2a3f3026e8d"; }
+
+  { artifactId = "versionedparcelable";
+    groupId = "androidx.versionedparcelable";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "47ee7c5543239a651f8fb81310cadeeaab8e38a2d844d7bb92dd086e4ffbb320";
+    aarSha256 = "f6438a93ed8016ccddca0e140a70be0b0110e0424edaa1472f84f98fed2e1ce3"; }
+
+  { artifactId = "viewpager";
+    groupId = "androidx.viewpager";
+    version = "1.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "1f72f836339d03c6eb013f65075e76ca87075a577578eb4f95f74a3a5d253128";
+    aarSha256 = "147af4e14a1984010d8f155e5e19d781f03c1d70dfed02a8e0d18428b8fc8682"; }
+
   { artifactId = "baseLibrary";
     groupId = "com.android.databinding";
     version = "3.1.0";
@@ -215,12 +439,108 @@
     pomSha256 = "cd6db17a11a31ede794ccbd1df0e4d9750f640234731f21cff885a9997277e81";
     aarSha256 = null; }
 
+  { artifactId = "transport-api";
+    groupId = "com.google.android.datatransport";
+    version = "2.1.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "90df79a49f78c427aaa72e2bdba81732e6a19ac14e0655ac13fdf20a5e4f4316";
+    aarSha256 = "c876d4f93b6d03cf7fba46e2d7f458d31ed4c68d8d50c5d453c7f63dfa0ff82e"; }
+
+  { artifactId = "transport-api";
+    groupId = "com.google.android.datatransport";
+    version = "2.2.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "ba50c554f459220920168d591ddb221eeeb78ea2f44ff0a659f05514fbfc034f";
+    aarSha256 = "576514f8b75d8ae32897f1b9b031f88b00465bf6e0996e227d09af688195f71e"; }
+
+  { artifactId = "transport-backend-cct";
+    groupId = "com.google.android.datatransport";
+    version = "2.1.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "0596082466dd0a1188d87a9b7e0bf7505d39aff5b7846a24054e0dfcb2a5820b";
+    aarSha256 = "3357e12aafeb176cbd8f438da601c612d6694430f7e44227abfe0ff1d9aebd37"; }
+
+  { artifactId = "transport-backend-cct";
+    groupId = "com.google.android.datatransport";
+    version = "2.2.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "b932519ddf57b6cc3d6775bd016b4b236bfc30bc832b1c888f7e90d4cc9059b0";
+    aarSha256 = "33abba2b7749479ae397176ae482b1807010b2bb331d61264bbdcc799eb398cd"; }
+
+  { artifactId = "transport-runtime";
+    groupId = "com.google.android.datatransport";
+    version = "2.1.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "339855f65009224f99d07cd4c895099327a4e705c7e16df7ed6753441f73c670";
+    aarSha256 = "3d2d609a27ff4b19537025e2bb77587ad6ff286bed7b3c60a7809fc1604969af"; }
+
+  { artifactId = "transport-runtime";
+    groupId = "com.google.android.datatransport";
+    version = "2.2.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "a911c8a33f02942c10a5e730613a533c209d6ae8ddb0e7cd8e65fceb1162de56";
+    aarSha256 = "e72912014b67151b689a7e820d3f1edf12fe2af5fbc308ab196ac392436ab771"; }
+
+  { artifactId = "play-services-base";
+    groupId = "com.google.android.gms";
+    version = "17.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "c30489d38be5d41e19272f6aa47d6c43de85034500bcb1864b79381c9634d924";
+    aarSha256 = "dd0980edf729e0d346e2b58e70801dc237c1aed0c7ab274fa3f1c8c8efc64cc7"; }
+
+  { artifactId = "play-services-basement";
+    groupId = "com.google.android.gms";
+    version = "17.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "ffe9295d9eb2ec2d784bb4c3634f6a10175224d2111332fa2735320b52a24b66";
+    aarSha256 = "d324a1785bbc48bfe3639fc847cfd3cf43d49e967b5caf2794240a854557a39c"; }
+
+  { artifactId = "play-services-stats";
+    groupId = "com.google.android.gms";
+    version = "17.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "16f62288613923857f616976985fdfdc212bacc898b2b947715ebffd8fdea19b";
+    aarSha256 = "e8ae5b40512b71e2258bfacd8cd3da398733aa4cde3b32d056093f832b83a6fe"; }
+
+  { artifactId = "play-services-tasks";
+    groupId = "com.google.android.gms";
+    version = "17.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "fdd93302c2eb94bbe6007caa28d072246d2875cda5cb774bb6299416b94d74a6";
+    aarSha256 = "2e6d1738b73647f3fe7a038b9780b97717b3746eae258009197e36e7bf3112a5"; }
+
+  { artifactId = "strict-version-matcher-plugin";
+    groupId = "com.google.android.gms";
+    version = "1.2.1";
+    repo = "https://maven.google.com/";
+    jarSha256 = "0c1027a51198190386eae3f90adee9a30687e76da7589f06c79269fea4c7a4c0";
+    pomSha256 = "33417a7f40225f2b5ffc67df4c2c2e7e9050028af2cbecf9de2b8e1c33401fd3";
+    aarSha256 = null; }
+
   { artifactId = "auto-parent";
     groupId = "com.google.auto";
     version = "3";
     repo = "https://jcenter.bintray.com/";
     jarSha256 = null;
     pomSha256 = "c98f1b0978cfd24712c27388e040c50ce0692252b3aa9448603d9efa05ebe8a8";
+    aarSha256 = null; }
+
+  { artifactId = "auto-parent";
+    groupId = "com.google.auto";
+    version = "7";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = null;
+    pomSha256 = "a46426fccb5d32705ad9cbbc996f786bd048cc8cbdd21db046500169f15a4356";
     aarSha256 = null; }
 
   { artifactId = "auto-value";
@@ -231,12 +551,36 @@
     pomSha256 = "901fb1440a0ef8e0c0553a7bb44c0b89647bf53c8822642eea0b57173c7c688d";
     aarSha256 = null; }
 
+  { artifactId = "auto-value-annotations";
+    groupId = "com.google.auto.value";
+    version = "1.6.5";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "3677f725f5b1b6cd6a4cc8aa8cf8f5fd2b76d170205cbdc3e9bfd9b58f934b3b";
+    pomSha256 = "6fc498858e0cd1387595af38957820cb341d1e687ccf753e1cbd982f46ef4fc3";
+    aarSha256 = null; }
+
+  { artifactId = "auto-value-parent";
+    groupId = "com.google.auto.value";
+    version = "1.6.5";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = null;
+    pomSha256 = "b9d2d3aa6919d5f07e18c7cea942be9aef3b650a8f1e68f33c854a25c09c2049";
+    aarSha256 = null; }
+
   { artifactId = "jsr305";
     groupId = "com.google.code.findbugs";
     version = "1.3.9";
     repo = "https://jcenter.bintray.com/";
     jarSha256 = "905721a0eea90a81534abb7ee6ef4ea2e5e645fa1def0a5cd88402df1b46c9ed";
     pomSha256 = "feab9191311c3d7aeef2b66d6064afc80d3d1d52d980fb07ae43c78c987ba93a";
+    aarSha256 = null; }
+
+  { artifactId = "jsr305";
+    groupId = "com.google.code.findbugs";
+    version = "3.0.2";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7";
+    pomSha256 = "19889dbdf1b254b2601a5ee645b8147a974644882297684c798afe5d63d78dfe";
     aarSha256 = null; }
 
   { artifactId = "gson";
@@ -247,6 +591,14 @@
     pomSha256 = "723936ec07b87b210a44ef8058f32f56e3d56442218dfbf8f4e538a927160ede";
     aarSha256 = null; }
 
+  { artifactId = "gson";
+    groupId = "com.google.code.gson";
+    version = "2.8.5";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81";
+    pomSha256 = "b8308557a7fccc92d9fe7c8cd0599258b361285d2ecde7689eda98843255a092";
+    aarSha256 = null; }
+
   { artifactId = "gson-parent";
     groupId = "com.google.code.gson";
     version = "2.7";
@@ -255,12 +607,20 @@
     pomSha256 = "871e8c737322301f0cc8acfe39a2960c4579d9d8666aeea5298bb6fcc9e4272b";
     aarSha256 = null; }
 
-  { artifactId = "error_prone_annotations";
-    groupId = "com.google.errorprone";
-    version = "2.0.18";
+  { artifactId = "gson-parent";
+    groupId = "com.google.code.gson";
+    version = "2.8.5";
     repo = "https://jcenter.bintray.com/";
-    jarSha256 = "cb4cfad870bf563a07199f3ebea5763f0dec440fcda0b318640b1feaa788656b";
-    pomSha256 = "9144127192d6f612c2366825dceaeb23b0d53130b83e0bf1ffe107d1470a8487";
+    jarSha256 = null;
+    pomSha256 = "8f1fec72b91a71ea39ec39f5f778c4d1124b6b097c6d55b3a50b554a52237b27";
+    aarSha256 = null; }
+
+  { artifactId = "dagger";
+    groupId = "com.google.dagger";
+    version = "2.24";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "550a6e46a6dfcdf1d764887b6090cea94f783327e50e5c73754f18facfc70b64";
+    pomSha256 = "477bdf6579ecc9cc8f99a565203f6244914f289d87e7efbdf96243fa58f9df4c";
     aarSha256 = null; }
 
   { artifactId = "error_prone_annotations";
@@ -271,12 +631,12 @@
     pomSha256 = "180a588bb8b4ed7cc554578b0dbfdb1aecfb3380922173df6541da18ee230911";
     aarSha256 = null; }
 
-  { artifactId = "error_prone_parent";
+  { artifactId = "error_prone_annotations";
     groupId = "com.google.errorprone";
-    version = "2.0.18";
+    version = "2.2.0";
     repo = "https://jcenter.bintray.com/";
-    jarSha256 = null;
-    pomSha256 = "cf149955279b07d4f11e817985c1164a69e930d73db7441b43a6ef53bbd286c4";
+    jarSha256 = "6ebd22ca1b9d8ec06d41de8d64e0596981d9607b42035f9ed374f9de271a481a";
+    pomSha256 = "5e0258ea1ba4e51a133742680bc22448f7ab214be4073e8619f645ef1be42dd5";
     aarSha256 = null; }
 
   { artifactId = "error_prone_parent";
@@ -285,6 +645,110 @@
     repo = "https://jcenter.bintray.com/";
     jarSha256 = null;
     pomSha256 = "c6b6d61ddb8f6b3bf29e8dafe35ff5d5a1ea90304b457e05657c1e7b8063a143";
+    aarSha256 = null; }
+
+  { artifactId = "error_prone_parent";
+    groupId = "com.google.errorprone";
+    version = "2.2.0";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = null;
+    pomSha256 = "c460902ddf5ece68832c6b271ce52a0928b05cf3a6ac81a8f548c73cbd541138";
+    aarSha256 = null; }
+
+  { artifactId = "firebase-common";
+    groupId = "com.google.firebase";
+    version = "19.3.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "d11dd4923436f29d301d0d8fc0e03a3497bce181e572c54a74cb84b925b3a085";
+    aarSha256 = "7bd7971470ff943e3c3abb1d7809ef5cb4b81f1996be0867714372b3efa7405a"; }
+
+  { artifactId = "firebase-components";
+    groupId = "com.google.firebase";
+    version = "16.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "5c5d0a5f811e4eb7512ea7aba70241ebeb27b9e195fbdea9b2c4b914272c326e";
+    aarSha256 = "8ef43b412de4ec3e36a87c66d8a0a14a3de0a2e8566946da6a0e799b7fdd8ec9"; }
+
+  { artifactId = "firebase-datatransport";
+    groupId = "com.google.firebase";
+    version = "17.0.3";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "04bd79c377c7b03fe3d4a5f26b90b0cfb0654c2d3b5c8dcfa6e90fcb1cb8d5d4";
+    aarSha256 = "10c9f65c4f897ea33d028e46226daaabdfee43ac712559e5570d21b6b58a067e"; }
+
+  { artifactId = "firebase-encoders-json";
+    groupId = "com.google.firebase";
+    version = "16.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "dcaf1909552a73b2f7081768d687331e09200b7afeddd5be7712291cf1359425";
+    aarSha256 = "d1769fcec2a424ee7f92b9996c4b5c1dff0dfa27ceed28981b857b144fb5ec49"; }
+
+  { artifactId = "firebase-iid";
+    groupId = "com.google.firebase";
+    version = "20.2.3";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "e0e27db2be35f8b5e2d73eb37d0b2431ecb5337e55bb74c04aa816ff279dc2a3";
+    aarSha256 = "4ee59ef2d256a1c64bb55665d9fd3ca822e371e36d3a9b901582a9fb426d657c"; }
+
+  { artifactId = "firebase-iid-interop";
+    groupId = "com.google.firebase";
+    version = "17.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "d01b366337829913fb0efc8c17388ad9673e3531fddf48d2f76d63e21bc5e788";
+    aarSha256 = "b6f4ad581eb489370be3bf38a4bdabfc6ea3d4e716234c625a0f42516c53523c"; }
+
+  { artifactId = "firebase-installations";
+    groupId = "com.google.firebase";
+    version = "16.3.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "8de71da34dc282a211b256e5872083937857d8781fcdbcac086d38ed0982d41b";
+    aarSha256 = "0d0f88b3c3789d5fe1aa9a69bd5ab6c0e92036fcf34520775a0091e37268dd3f"; }
+
+  { artifactId = "firebase-installations-interop";
+    groupId = "com.google.firebase";
+    version = "16.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "623c9a2cc9d554afae478e0c82f644df9dc55efb2fb2491fd22761094f73287e";
+    aarSha256 = "d498fe20e7d2c65fc8f7124f1c1791d2828bebdf6bf06ab4cdee13e7fe9ccaa2"; }
+
+  { artifactId = "firebase-measurement-connector";
+    groupId = "com.google.firebase";
+    version = "18.0.0";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "24bd1b4a8f81aea76ae30054df6343b5c0abc27024a5f6fb9c6ee7d4ffb86533";
+    aarSha256 = "17e8b9b60ac0a79fcbed754d03d4b966cc5bb8837e79c2308bf2970f1d05700c"; }
+
+  { artifactId = "firebase-messaging";
+    groupId = "com.google.firebase";
+    version = "20.2.3";
+    repo = "https://maven.google.com/";
+    jarSha256 = null;
+    pomSha256 = "78c2c4b37726c4ef475eb20f9864bf09f95b6ae2e95f6ef1d9bd869bc5e2eac5";
+    aarSha256 = "6c188ff01e9ac4e714bb26c95a920c35d98ec0c324724d13de0ea3539423cdd0"; }
+
+  { artifactId = "google-services";
+    groupId = "com.google.gms";
+    version = "4.3.3";
+    repo = "https://maven.google.com/";
+    jarSha256 = "d9668002ef7032deddf7dbf853b47e10e6722bbce1b318fe7d6a297e28a8dcae";
+    pomSha256 = "d46bba8531af0a008504148486dd2584432278499db092a4f3916dfbd32b3b7b";
+    aarSha256 = null; }
+
+  { artifactId = "failureaccess";
+    groupId = "com.google.guava";
+    version = "1.0.1";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26";
+    pomSha256 = "e96042ce78fecba0da2be964522947c87b40a291b5fd3cd672a434924103c4b9";
     aarSha256 = null; }
 
   { artifactId = "guava";
@@ -311,6 +775,14 @@
     pomSha256 = "bfadb3b40f65dd6de1666d6b29f8bb54031396c76eeef4146cf9f28255f8bf33";
     aarSha256 = null; }
 
+  { artifactId = "guava";
+    groupId = "com.google.guava";
+    version = "27.0.1-jre";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "e1c814fd04492a27c38e0317eabeaa1b3e950ec8010239e400fe90ad6c9107b4";
+    pomSha256 = "6a8dd041f23a6bb14a86e440fccb993537b62271357a0dac0a3cb0ff39158f36";
+    aarSha256 = null; }
+
   { artifactId = "guava-parent";
     groupId = "com.google.guava";
     version = "18.0";
@@ -333,6 +805,30 @@
     repo = "https://jcenter.bintray.com/";
     jarSha256 = null;
     pomSha256 = "1eaf9182e1977c1c50a70edbfbf70536398c68990bfaafc9f0e9899041201539";
+    aarSha256 = null; }
+
+  { artifactId = "guava-parent";
+    groupId = "com.google.guava";
+    version = "26.0-android";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = null;
+    pomSha256 = "f8698ab46ca996ce889c1afc8ca4f25eb8ac6b034dc898d4583742360016cc04";
+    aarSha256 = null; }
+
+  { artifactId = "guava-parent";
+    groupId = "com.google.guava";
+    version = "27.0.1-jre";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = null;
+    pomSha256 = "317e88291262e0cf2805e956c18850f1d4565c85c2e1112f5d9d08ab1732e696";
+    aarSha256 = null; }
+
+  { artifactId = "listenablefuture";
+    groupId = "com.google.guava";
+    version = "9999.0-empty-to-avoid-conflict-with-guava";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99";
+    pomSha256 = "18d4b1db26153d4e55079ce1f76bb1fe05cdb862ef9954a88cbcc4ff38b8679b";
     aarSha256 = null; }
 
   { artifactId = "j2objc-annotations";
@@ -525,6 +1021,14 @@
     repo = "https://jcenter.bintray.com/";
     jarSha256 = "74fa208043740642f7e6eb09faba15965218ad2f50ce3020efb100136e4b591c";
     pomSha256 = "953b116521a73575eee990e3f2c36a892fb088bb2d9a3027c82193cb7a013ef7";
+    aarSha256 = null; }
+
+  { artifactId = "javax.inject";
+    groupId = "javax.inject";
+    version = "1";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff";
+    pomSha256 = "943e12b100627804638fa285805a0ab788a680266531e650921ebfe4621a8bfa";
     aarSha256 = null; }
 
   { artifactId = "jaxb-api";
@@ -783,36 +1287,36 @@
     pomSha256 = "8fdc3336e7b01873193ba9c48b87de7d788dc0954d1eb45c322492627a4b5c6e";
     aarSha256 = null; }
 
-  { artifactId = "codehaus-parent";
-    groupId = "org.codehaus";
-    version = "4";
+  { artifactId = "checker-qual";
+    groupId = "org.checkerframework";
+    version = "2.5.2";
     repo = "https://jcenter.bintray.com/";
-    jarSha256 = null;
-    pomSha256 = "6b87237de8c2e1740cf80627c7f3ce3e15de1930bb250c55a1eca94fa3e014df";
+    jarSha256 = "64b02691c8b9d4e7700f8ee2e742dce7ea2c6e81e662b7522c9ee3bf568c040a";
+    pomSha256 = "dc4cd438a36462d013c2338c8e206d102a322a00f33729e8955ee219859c9ede";
     aarSha256 = null; }
 
   { artifactId = "animal-sniffer-annotations";
     groupId = "org.codehaus.mojo";
-    version = "1.14";
+    version = "1.17";
     repo = "https://jcenter.bintray.com/";
-    jarSha256 = "2068320bd6bad744c3673ab048f67e30bef8f518996fa380033556600669905d";
-    pomSha256 = "1879f19a05991e3ed95910b96689333396b0c467a215dc4d1f90018404b72a26";
+    jarSha256 = "92654f493ecfec52082e76354f0ebf87648dc3d5cec2e3c3cdb947c016747a53";
+    pomSha256 = "e956ab5d2eb48fabae12300d0cd2d3294d4a2a41abc2068c23cb4d60ad76cbe5";
     aarSha256 = null; }
 
   { artifactId = "animal-sniffer-parent";
     groupId = "org.codehaus.mojo";
-    version = "1.14";
+    version = "1.17";
     repo = "https://jcenter.bintray.com/";
     jarSha256 = null;
-    pomSha256 = "f51550a06b1410bd4962cb0e71df0b921a60a7ef47bfa9c4825a14be72316eea";
+    pomSha256 = "18a03df16e2a184c582db7b125633c15fb7714027a84c1b532d72933dc08b81f";
     aarSha256 = null; }
 
   { artifactId = "mojo-parent";
     groupId = "org.codehaus.mojo";
-    version = "34";
+    version = "40";
     repo = "https://jcenter.bintray.com/";
     jarSha256 = null;
-    pomSha256 = "3e395d6fbc43c09a3774cac8694ce527398305ea3fd5492d80e25af27d382a9c";
+    pomSha256 = "fc648dcdc404f8bf66e0583914ecf980176618201227bea114fae85043cb755e";
     aarSha256 = null; }
 
   { artifactId = "jaxb-bom";
@@ -869,6 +1373,38 @@
     repo = "https://jcenter.bintray.com/";
     jarSha256 = "05cfd9f5ac0b41910703a8925f7211a495909b27a2ffdd1c5106f1689aeafcd4";
     pomSha256 = "ca9778da4afbcd421b09384b257c9de47f610aec5c9165e0209228d25a337a20";
+    aarSha256 = null; }
+
+  { artifactId = "kotlin-stdlib";
+    groupId = "org.jetbrains.kotlin";
+    version = "1.3.11";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "5ce7a979fe6a9b43d7e6c450061119717fce54bc50b49a130cfbd2c065e83fec";
+    pomSha256 = "ef1da200c453383dadf9e4935f23a4e0f7bf6b8a5bd436b867dfe895bc43ad2e";
+    aarSha256 = null; }
+
+  { artifactId = "kotlin-stdlib-common";
+    groupId = "org.jetbrains.kotlin";
+    version = "1.3.11";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "75bdd11bedf5736a5b95bbdb643a8f920a9e801caa20f5335a499fa95dc8f9fc";
+    pomSha256 = "501095e7aa12a7e3d18559d1cd7ecc3996205eff1ace83d660706aa5e9d44adf";
+    aarSha256 = null; }
+
+  { artifactId = "kotlin-stdlib-jdk7";
+    groupId = "org.jetbrains.kotlin";
+    version = "1.3.11";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "0cbbe035fbb0ae29d0f92ce25f621765eca320810bf2a32774cc3857fc6dce1d";
+    pomSha256 = "857005e8a4799e8f0029e21aab43f4a04e15ab931703eb4c3953275c13cdee4a";
+    aarSha256 = null; }
+
+  { artifactId = "kotlin-stdlib-jdk8";
+    groupId = "org.jetbrains.kotlin";
+    version = "1.3.11";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "ed00c4c25c44073785b6b9a54d398a25da59f24d53cbf794b31800ea8be48d87";
+    pomSha256 = "ad2c80108a6481e236e96eda7eb9570c078429e3daae519137bd5fbce5a9292c";
     aarSha256 = null; }
 
   { artifactId = "kotlin-stdlib-jre7";
@@ -965,86 +1501,6 @@
     repo = "https://jcenter.bintray.com/";
     jarSha256 = null;
     pomSha256 = "fb40265f982548212ff82e362e59732b2187ec6f0d80182885c14ef1f982827a";
-    aarSha256 = null; }
-
-  { artifactId = "lint-gradle";
-    groupId = "com.android.tools.lint";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "1djk56ifhr09f1zp1z9wib8hz2ls42z9iz4qi1v6r3nizvy6m7gc";
-    pomSha256 = "1zirnsh5aczryhn1qzyc14pmprkgp5bn5w2wi2ds25bcxaadgx82";
-    aarSha256 = null; }
-
-  { artifactId = "intellij-core";
-    groupId = "com.android.tools.external.com-intellij";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "0qsqs3izdyncy7iw0r71nvmcr5f48cpb8k1j0v2k95pxq7y6ypsf";
-    pomSha256 = "1hm700339hn8lr2giy2d75z3v8ai7fp55ylqp8g7n0nlmgplxkkm";
-    aarSha256 = null; }
-
-  { artifactId = "kotlin-compiler";
-    groupId = "com.android.tools.external.com-intellij";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "05xgv51sviqnm6mqhd91psdfgc388gqi1fqkc9x1yrb1ix5ybqly";
-    pomSha256 = "12w195c2g4qwn5g3sviw3k0n47riymv7afqk096fr4fzzprg4pc1";
-    aarSha256 = null; }
-
-  { artifactId = "uast";
-    groupId = "com.android.tools.external.org-jetbrains";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "0s9r58kji8448bm6y82wv5hmwq85dx57mbs7ca2pq0xp0yp8n8hs";
-    pomSha256 = "0h8c3sq55jiyv2avm6h0xck8lng5x53by0d16frdcbdgz41lxa22";
-    aarSha256 = null; }
-
-  { artifactId = "lint";
-    groupId = "com.android.tools.lint";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "1wf22x4b2agwqkn41fahfhh65vbf07wx40nqnzhr813cmdcc75k0";
-    pomSha256 = "0kiglimp65bf1i8ilq4m2hby60cy5dj2kydrbnxnndd9gcklhq0y";
-    aarSha256 = null; }
-
-  { artifactId = "lint-checks";
-    groupId = "com.android.tools.lint";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "1a9afcyyhckm94bp2sf8pxkpv4ww4xhi0ji437f911hbf6ymc5ib";
-    pomSha256 = "1miw7fy2njzy7vsk5c92mndn5bs08fmci7216y71jz8zw8kyib0j";
-    aarSha256 = null; }
-
-  { artifactId = "lint-kotlin";
-    groupId = "com.android.tools.lint";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "0g6shynra9gakq04lhzpsypdl43gxmgiyflicagl2z1ikncbs9rq";
-    pomSha256 = "0ssxy0ymdfy4nvw19hnr930jf5my4h3h7zl1kwn95q301cvasdl3";
-    aarSha256 = null; }
-
-  { artifactId = "lint-api";
-    groupId = "com.android.tools.lint";
-    version = "26.1.0";
-    repo = "https://maven.google.com/";
-    jarSha256 = "1sq2jvjrmwa3mw7q8ynfnjwbskbzxvbfwxk1pf2m2wx58c8npazh";
-    pomSha256 = "088vnf5ibfs960i90wx2z5v76w6kjndv4i4swzg99gj4gqnx05cx";
-    aarSha256 = null; }
-
-  { artifactId = "groovy-all";
-    groupId = "org.codehaus.groovy";
-    version = "2.4.12";
-    repo = "https://jcenter.bintray.com/";
-    jarSha256 = "1r4bndr8vappv386pk30fc0gvynyr9v1i0k2ximxa0w9si5symka";
-    pomSha256 = "0g6xvsi4zmd26bgbl59ql5638qrfzk9zfr3fnh7ixcqpvb415kd8";
-    aarSha256 = null; }
-
-  { artifactId = "trove4j";
-    groupId = "org.jetbrains.trove4j";
-    version = "20160824";
-    repo = "https://jcenter.bintray.com/";
-    jarSha256 = "1ryvjrjzixf0gwwnv35rn2lgawj5lj3hqs44ll3q6ipbilf8f5qr";
-    pomSha256 = "03q95m5jv8lybigkfjb2n2czayfcj59f2iqrpvj0s845hnfmlhaw";
     aarSha256 = null; }
 
 ]
