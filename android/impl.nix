@@ -94,7 +94,7 @@ in {
           ln -s "$stringsXml" "$out/res/values/strings.xml"
           mkdir -p "$out/jni"
           ln -s "$applicationMk" "$out/jni/Application.mk"
-
+          ${optionalString (googleServicesJson != null) ''cp '${googleServicesJson}' "$out/google-services.json"''}
         '' + concatStrings (builtins.map (arch:
           let
             inherit (appSOs.${arch}) hsApp sharedLibs;
