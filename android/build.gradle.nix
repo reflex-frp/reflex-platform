@@ -12,7 +12,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.0'
+        classpath 'com.android.tools.build:gradle:3.4.2'
         ${googleServicesClasspath}
     }
 }
@@ -118,6 +118,8 @@ android.applicationVariants.all { variant ->
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.google.firebase:firebase-iid:20.2.3'
+    implementation 'com.google.firebase:firebase-messaging:20.2.3'
     ${additionalDependencies}
 }
 
