@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-wasm-support",
+  "branch": "aa-bump-gradle-6.5",
   "private": false,
-  "rev": "a5cc7b77c090ede3ac380962ea876b83d847592c",
-  "sha256": "0mfrfrgkc8bfc3hcnbzqmab021i3w27mczak99ab4ca154ml297i"
+  "rev": "528af661b45bc792508d51954594a3189e3542b9",
+  "sha256": "0619clwnxnm9wxv9vkh35b6yp92yxmbkhgbvvni663v52pa2z2w3"
 }
