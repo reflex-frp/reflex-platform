@@ -12,9 +12,17 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath 'com.android.tools.build:gradle:3.2.0'
         ${googleServicesClasspath}
     }
+}
+
+task proguard(type: proguard.gradle.ProGuardTask) {
+  configuration 'proguard.txt'
+
+    // injars 'build/libs/proguard-gradle-example.jar'
+    // outjars 'build/libs/proguard-gradle-example.out.jar'
+
 }
 
 allprojects {
@@ -25,8 +33,8 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion '29.0.2'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     sourceSets {
       main {
@@ -40,7 +48,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 28
         versionCode ${version.code}
         versionName "${version.name}"
     }
