@@ -2,6 +2,7 @@
 , which, gradle, fetchurl, buildEnv, runCommand }:
 
 args@{ name, src, platformVersions ? [ "8" ]
+     , buildToolsVersions ? [ "29.0.2" ]
      , useGoogleAPIs ? false, useGooglePlayServices ? false
      , release ? false, keyStore ? null, keyAlias ? null
      , keyStorePassword ? null, keyAliasPassword ? null
@@ -46,7 +47,7 @@ let
                       }} "$installPath/${m2Name}${suffix}.aar"
        '');
   androidsdkComposition = androidenv.composeAndroidPackages {
-    inherit platformVersions useGoogleAPIs;
+    inherit platformVersions useGoogleAPIs buildToolsVersions;
     includeExtras = [ "extras;android;m2repository" ]
       ++ optional useGooglePlayServices "extras;google;google_play_services";
   };
@@ -54,11 +55,11 @@ let
   # This can't be downloaded from Google's repo the normal way apparently :/
   aaptDep = m2install rec {
     repo = "https://maven.google.com/";
-    version = "3.2.0-4818971";
+    version = "4.0.0-6051327";
     artifactId = "aapt2";
     groupId = "com.android.tools.build";
-    jarSha256 = "1ccba0wfly69kyqx7vd4r3l791plq3jz0g6mmnw9l07bx52y11hd";
-    pomSha256 = "0kfs1jzwx1kmmhj37275b9irhmlzkjhrqpf3kx1mbz192l8k1d6c";
+    jarSha256 = "1g0kbs4rapy20h8ac5b5pn2935vpknwqzaiswrfk28ywabhzdbps";
+    pomSha256 = "1sib0yhp72aar6bfkkxcq3whv83wa0yaqhx716h6xmkihzndghlf";
     aarSha256 = null;
     customJarUrl = "https://dl.google.com/dl/android/maven2/com/android/tools/build/${artifactId}/${version}/${artifactId}-${version}-linux.jar";
     customJarSuffix = "-linux";
@@ -107,7 +108,7 @@ stdenv.mkDerivation ({
     chmod -R 755 .m2
     mkdir -p .m2/repository/com/android/support
     cp -RL local_sdk/android-sdk/extras/android/m2repository/com/android/support/* .m2/repository/com/android/support/
-    gradle ${gradleTask} --stacktrace --offline --no-daemon -g ./tmp -Dmaven.repo.local=$(pwd)/.m2/repository
+    gradle ${gradleTask} --offline --no-daemon -g ./tmp -Dmaven.repo.local=$(pwd)/.m2/repository
   '';
 
   installPhase = ''
