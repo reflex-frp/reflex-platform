@@ -67,14 +67,14 @@ android {
     }
 
     buildTypes {
-            release {
-                minifyEnabled false
-                useProguard false
-                zipAlignEnabled true
-                ${if releaseKey == null then "" else ''
-                signingConfig signingConfigs.release
-                ''}
-            }
+        release {
+            minifyEnabled false
+            useProguard false
+            zipAlignEnabled true
+            ${if releaseKey == null then "" else ''
+            signingConfig signingConfigs.release
+            ''}
+        }
         debug {
             minifyEnabled false
             useProguard false
