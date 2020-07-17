@@ -51,6 +51,7 @@ android {
         targetSdkVersion 28
         versionCode ${version.code}
         versionName "${version.name}"
+        multiDexEnabled false
     }
 
     ${if releaseKey == null then "" else ''
