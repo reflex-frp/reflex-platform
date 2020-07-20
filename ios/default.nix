@@ -275,7 +275,74 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     # focus????
     focus/reflex-platform/scripts/run-in-ios-sim "$tmpdir/${executableName}.app"
   '';
-}) ''
+  portableDeployScript = nixpkgs.writeText "make-portable-deploy" ''
+    #!/usr/bin/env bash
+    set -eo pipefail
+
+    if (( "$#" < 1 )); then
+      echo "Usage: $0 [TEAM_ID]" >&2
+      exit 1
+    fi
+
+    TEAM_ID=$1
+    shift
+
+    set -euo pipefail
+
+    function cleanup {
+      if [ -n "$tmpdir" -a -d "$tmpdir" ]; then
+        echo "Cleaning up tmpdir" >&2
+        chmod -R +w $tmpdir
+        rm -fR $tmpdir
+      fi
+    }
+
+    trap cleanup EXIT
+
+    tmpdir=$(mktemp -d)
+    # Find the signer given the OU
+    signer=$({ security find-certificate -c 'iPhone Developer' -a; security find-certificate -c 'Apple Development' -a; } \
+      | grep '^    "alis"<blob>="' \
+      | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
+      | while read c; do \
+          security find-certificate -c "$c" -p \
+            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
+        done \
+      | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
+      | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
+      | head -n 1 || true)
+
+    if [ -z "$signer" ]; then
+      echo "Error: No iPhone Developer certificate found for team id $TEAM_ID" >&2
+      exit 1
+    fi
+
+    dir="$tmpdir/${executableName}-${bundleVersion}"
+    mkdir $dir
+
+    cp -LR "$(dirname $0)/../${executableName}.app" $dir
+    chmod +w "$dir/${executableName}.app"
+    chmod +w "$dir/${executableName}.app/${executableName}"
+    mkdir -p "$dir/${executableName}.app/config"
+    sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $dir/xcent
+    /usr/bin/codesign --force --sign "$signer" --entitlements $dir/xcent --timestamp=none "$dir/${executableName}.app"
+
+    # unsure if we can sign with same key as for iOS app, may need special permissions
+    cp ${nixpkgs.darwin.ios-deploy}/bin/ios-deploy $dir/ios-deploy
+    /usr/bin/codesign --force --sign "$signer" --timestamp=none "$dir/ios-deploy"
+
+    cat >$dir/deploy <<'EOF'
+#!/usr/bin/env bash
+DIR="$( cd "$( dirname "''${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+"$DIR/ios-deploy" -W -b "$DIR/${executableName}.app" "$@"
+EOF
+    chmod +x $dir/deploy
+
+    dest=$PWD/${executableName}-${bundleVersion}.tar.gz
+    (cd $tmpdir && tar cfz $dest ${executableName}-${bundleVersion}/)
+
+    echo Created $dest.
+  '';}) ''
   set -x
   mkdir -p "$out/${executableName}.app"
   ln -s "$infoPlist" "$out/${executableName}.app/Info.plist"
@@ -287,6 +354,8 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   chmod +x "$out/bin/package"
   cp --no-preserve=mode "$runInSim" "$out/bin/run-in-sim"
   chmod +x "$out/bin/run-in-sim"
+  cp --no-preserve=mode "$portableDeployScript" "$out/bin/make-portable-deploy"
+  chmod +x "$out/bin/make-portable-deploy"
   ln -s "$exePath/bin/${executableName}" "$out/${executableName}.app/"
   cp -RL '${staticSrc}'/* "$out/${executableName}.app/"
   for icon in '${staticSrc}'/assets/Icon*.png; do
