@@ -66,7 +66,7 @@ in {
             "apply plugin: 'com.google.gms.google-services'";
         });
         androidManifestXml = builtins.toFile "AndroidManifest.xml" (import ./AndroidManifest.xml.nix {
-          inherit applicationId version iconPath intentFilters services permissions activityAttributes;
+          inherit applicationId version iconPath intentFilters services permissions activityAttributes usesCleartextTraffic;
         });
         stringsXml = builtins.toFile "strings.xml" (import ./strings.xml.nix {
           inherit displayName;

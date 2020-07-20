@@ -7,6 +7,7 @@
 , permissions
 , allowBackup ? false
 , fullBackupContent ? allowBackup
+, usesCleartextTraffic ? false
 }:
 let
   boolStr = x: if x then "true" else "false";
@@ -20,7 +21,8 @@ in ''
                  android:icon="${iconPath}"
                  android:allowBackup="${boolStr allowBackup}"
                  android:fullBackupContent="${boolStr fullBackupContent}"
-                 android:hardwareAccelerated="true">
+                 android:hardwareAccelerated="true"
+                 android:usesCleartextTraffic="${boolStr usesCleartextTraffic}">
         <activity android:name="systems.obsidian.HaskellActivity"
                   android:label="@string/app_name"
                   android:configChanges="orientation|screenSize"
