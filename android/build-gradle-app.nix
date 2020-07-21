@@ -51,19 +51,6 @@ let
     includeExtras = [ "extras;android;m2repository" ]
       ++ optional useGooglePlayServices "extras;google;google_play_services";
   };
-
-  # This can't be downloaded from Google's repo the normal way apparently :/
-  aaptDep = m2install rec {
-    repo = "https://maven.google.com/";
-    version = "4.0.0-6051327";
-    artifactId = "aapt2";
-    groupId = "com.android.tools.build";
-    jarSha256 = "1g0kbs4rapy20h8ac5b5pn2935vpknwqzaiswrfk28ywabhzdbps";
-    pomSha256 = "1sib0yhp72aar6bfkkxcq3whv83wa0yaqhx716h6xmkihzndghlf";
-    aarSha256 = null;
-    customJarUrl = "https://dl.google.com/dl/android/maven2/com/android/tools/build/${artifactId}/${version}/${artifactId}-${version}-linux.jar";
-    customJarSuffix = "-linux";
-  };
 in
 stdenv.mkDerivation ({
   inherit src;
@@ -75,7 +62,7 @@ stdenv.mkDerivation ({
   buildInputs = [ jdk gradle ] ++ buildInputs ++ stdenv.lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
 
   DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
-                            paths = map m2install mavenDeps ++ [aaptDep];
+                            paths = map m2install mavenDeps;
                           };
 
   buildPhase = ''
