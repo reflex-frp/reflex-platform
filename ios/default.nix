@@ -1,4 +1,4 @@
-{ nixpkgs, ghc }:
+{ nixpkgs, ghc, iosSdkVersion }:
 
 { #TODO
   bundleName
@@ -84,15 +84,15 @@ let
         ];
       };
     };
-    DTSDKName = "iphoneos10.2";
+    DTSDKName = "iphoneos${iosSdkVersion}";
     DTXcode = "0821";
     DTSDKBuild = "14C89";
     BuildMachineOSBuild = "16D32";
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
-    MinimumOSVersion = "10.2";
+    MinimumOSVersion = iosSdkVersion;
     DTXcodeBuild = "8C1002";
-    DTPlatformVersion = "10.2";
+    DTPlatformVersion = iosSdkVersion;
     DTPlatformBuild = "14C89";
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
