@@ -13,6 +13,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.lint:lint:26.4.2'
         ${googleServicesClasspath}
     }
 }

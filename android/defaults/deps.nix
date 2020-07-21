@@ -399,6 +399,14 @@
     pomSha256 = "cc23bd10f9843e57f6f2bb1f5731ac32e1d73696927f93c3ea2972d76de3b017";
     aarSha256 = null; }
 
+  { artifactId = "intellij-core";
+    groupId = "com.android.tools.external.com-intellij";
+    version = "26.4.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = "890258258338ddfdec138852d099fec389cdcdf1d0a9cb2d0775e4275cb3a05d";
+    pomSha256 = "e772f888bf1cb338f5f6d7801516cb48e31b57f8d81ae07304b0ad1a2cb1c8dc";
+    aarSha256 = null; }
+
   { artifactId = "manifest-merger";
     groupId = "com.android.tools.build";
     version = "26.4.2";
@@ -445,6 +453,38 @@
     repo = "https://maven.google.com/";
     jarSha256 = "52fbb3614feee0d5d474c35f8c533ff3fa090cbf0df46c06e4cf353cae1c3652";
     pomSha256 = "d59ef58abb73f06650ce1d80641fe70a3908a071fc5f98267074e6e42f904360";
+    aarSha256 = null; }
+
+  { artifactId = "lint";
+    groupId = "com.android.tools.lint";
+    version = "26.4.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = "5eeb74d75aad007428ce5077f2c5c721cc7a2bb702b0525fa9605efad3afd7e8";
+    pomSha256 = "ac7e208ce2e2bfece25498538c6a16b501a4813818149fc1f0670778b7bd6b24";
+    aarSha256 = null; }
+
+  { artifactId = "lint-api";
+    groupId = "com.android.tools.lint";
+    version = "26.4.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = "d12d58c8a2ccb68daa7cbd70a0904b8f05dfdfc6c3a1871923b1b903bf5bf4da";
+    pomSha256 = "d3cdb948a13f651daf42dba2b488e4cd76092cfc5c00993c653060fb298b7ec8";
+    aarSha256 = null; }
+
+  { artifactId = "lint-checks";
+    groupId = "com.android.tools.lint";
+    version = "26.4.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = "8a0246f594d685bda999a66b2409cb4e0da59e59a66021c9293fdb40cc49d879";
+    pomSha256 = "e9327b00b990f6b28f8cc974e98ea4436bbf03e2bc66ea4769970eb26dd840b5";
+    aarSha256 = null; }
+
+  { artifactId = "lint-gradle";
+    groupId = "com.android.tools.lint";
+    version = "26.4.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = "7e8e000f063f42f10ca209f51a48b332db1c4d3ac30979cc49c1877ef9e4b7f1";
+    pomSha256 = null;
     aarSha256 = null; }
 
   { artifactId = "lint-gradle-api";
@@ -549,6 +589,14 @@
     repo = "https://maven.google.com/";
     jarSha256 = "0c1027a51198190386eae3f90adee9a30687e76da7589f06c79269fea4c7a4c0";
     pomSha256 = "33417a7f40225f2b5ffc67df4c2c2e7e9050028af2cbecf9de2b8e1c33401fd3";
+    aarSha256 = null; }
+
+  { artifactId = "uast";
+    groupId = "com.android.tools.external.org-jetbrains";
+    version = "26.4.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = "187b199e1744bd3e922fb52d8f3366311468bd263aab24c65ee989d7ce8c55c3";
+    pomSha256 = "0f308532ff2c78cfbb61f563cf65e8cf408afb8a615598c512649a9c397177d4";
     aarSha256 = null; }
 
   { artifactId = "auto-parent";
@@ -1415,6 +1463,14 @@
     pomSha256 = "965aeb2bedff369819bdde1bf7a0b3b89b8247dd69c88b86375d76163bb8c397";
     aarSha256 = null; }
 
+  { artifactId = "kotlin-compiler";
+    groupId = "com.android.tools.external.com-intellij";
+    version = "26.4.2";
+    repo = "https://maven.google.com/";
+    jarSha256 = "f97df41a49d2f9ec428d847b0691b55541d4b5d4db19d630cf8dc3f38cd34d4a";
+    pomSha256 = "7adec4d67ee1ea6cda230bdd549f275c4a5cf08230c9407f632953adc0e26434";
+    aarSha256 = null; }
+
   { artifactId = "kotlin-reflect";
     groupId = "org.jetbrains.kotlin";
     version = "1.3.31";
@@ -1477,6 +1533,14 @@
     repo = "https://jcenter.bintray.com/";
     jarSha256 = "ad6acd219b468a532ac3b3c5aacbfd5db02d0ffcf967e2113e4677e2429490f6";
     pomSha256 = "5cb7c7867f97ce48ef211c79f975b77de5724ac13e0ae27c1da2613929897427";
+    aarSha256 = null; }
+
+  { artifactId = "trove4j";
+    groupId = "org.jetbrains.trove4j";
+    version = "20160824";
+    repo = "https://jcenter.bintray.com/";
+    jarSha256 = "1917871c8deb468307a584680c87a44572f5a8b0b98c6d397fc0f5f86596dbe7";
+    pomSha256 = "5c415a9d8585200de4be1947e15291cc79f599b06249375f5c9ea22d4b2d090f";
     aarSha256 = null; }
 
   { artifactId = "stax-ex";
