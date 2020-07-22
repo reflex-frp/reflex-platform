@@ -3,6 +3,6 @@
   "repo": "nixpkgs",
   "branch": "reflex-platform-ios-13",
   "private": false,
-  "rev": "e5cdcbad1c449145ab57a7ebfa7dd75a783e6d81",
-  "sha256": "17givyrgv8ynv4ykg20d1cc5f6g5sf2r56sz2s1aan06fyvgdc31"
+  "rev": "33c8e685ced234c6a337fbedf85f87fd6fbbf576",
+  "sha256": "1smy53szfalg0b7n22kjhvg8gm462by2vhl2y1qxfvdcihsad6zj"
 }

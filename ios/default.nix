@@ -188,7 +188,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
-    deploy="''${IOS_DEPLOY:-${nixpkgs.nodePackages.ios-deploy}/bin/ios-deploy}"
+    deploy="''${IOS_DEPLOY:-${nixpkgs.darwin.ios-deploy}/bin/ios-deploy}"
     $deploy -W -b "$tmpdir/${executableName}.app" "$@"
   '';
   packageScript = nixpkgs.writeText "package" ''
