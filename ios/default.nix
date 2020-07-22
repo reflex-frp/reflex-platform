@@ -108,19 +108,6 @@ in
 nixpkgs.runCommand "${executableName}-app" (rec {
   exePath = package ghc;
   infoPlist = builtins.toFile "Info.plist" (nixpkgs.lib.generators.toPlist {} infoPlistData);
-  resourceRulesPlist = builtins.toFile "ResourceRules.plist" (nixpkgs.lib.generators.toPlist {} {
-    rules = {
-      ".*" = true;
-      "Info.plist" = {
-        omit = true;
-        weight = 10;
-      };
-      "ResourceRules.plist" = {
-        omit = true;
-        weight = 100;
-      };
-    };
-  });
   indexHtml = builtins.toFile "index.html" ''
     <html>
       <head>
@@ -291,7 +278,6 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   set -x
   mkdir -p "$out/${executableName}.app"
   ln -s "$infoPlist" "$out/${executableName}.app/Info.plist"
-  ln -s "$resourceRulesPlist" "$out/${executableName}.app/ResourceRules.plist"
   ln -s "$indexHtml" "$out/${executableName}.app/index.html"
   mkdir -p "$out/bin"
   cp --no-preserve=mode "$deployScript" "$out/bin/deploy"
