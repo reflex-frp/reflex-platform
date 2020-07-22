@@ -287,7 +287,7 @@ let iosSupport = system == "x86_64-darwin";
   iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
   iosAarch32-8_6 = iosWithHaskellPackages ghcIosAarch32-8_6;
   iosWithHaskellPackages = ghc: {
-    buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc iosSdkVersion; });
+    buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
 
 in let this = rec {

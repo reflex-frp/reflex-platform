@@ -1,4 +1,4 @@
-{ nixpkgs, ghc, iosSdkVersion }:
+{ nixpkgs, ghc }:
 
 { #TODO
   bundleName
@@ -84,16 +84,17 @@ let
         ];
       };
     };
-    DTSDKName = "iphoneos${iosSdkVersion}";
-    DTXcode = "0821";
-    DTSDKBuild = "14C89";
-    BuildMachineOSBuild = "16D32";
+
+    DTSDKName = "iphoneos13.2";
+    DTXcode = "1130"; # XCode 11.3.1
+    DTXcodeBuild = "11C505";
+    DTSDKBuild = "17B102"; # iOS 13.2
+    BuildMachineOSBuild = "19G73"; # Catalina
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
-    MinimumOSVersion = iosSdkVersion;
-    DTXcodeBuild = "8C1002";
-    DTPlatformVersion = iosSdkVersion;
-    DTPlatformBuild = "14C89";
+    MinimumOSVersion = "10.2";
+    DTPlatformVersion = "13.2";
+    DTPlatformBuild = "17B102"; # iOS 13.2
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
   };
