@@ -8,7 +8,7 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
-, iosSdkVersion ? "10.2"
+, iosSdkVersion ? "13.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
@@ -18,6 +18,10 @@
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
+
+    xcodeVer = {
+      "13.2" = "11.3.1";
+    }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
@@ -133,16 +137,19 @@ let iosSupport = system == "x86_64-darwin";
         simulator64 = {
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         aarch64 = {
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         # Back compat

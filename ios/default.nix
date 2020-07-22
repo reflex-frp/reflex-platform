@@ -84,16 +84,17 @@ let
         ];
       };
     };
-    DTSDKName = "iphoneos10.2";
-    DTXcode = "0821";
-    DTSDKBuild = "14C89";
-    BuildMachineOSBuild = "16D32";
+
+    DTSDKName = "iphoneos13.2";
+    DTXcode = "1130"; # XCode 11.3.1
+    DTXcodeBuild = "11C505";
+    DTSDKBuild = "17B102"; # iOS 13.2
+    BuildMachineOSBuild = "19G73"; # Catalina
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
     MinimumOSVersion = "10.2";
-    DTXcodeBuild = "8C1002";
-    DTPlatformVersion = "10.2";
-    DTPlatformBuild = "14C89";
+    DTPlatformVersion = "13.2";
+    DTPlatformBuild = "17B102"; # iOS 13.2
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
   };
@@ -107,19 +108,6 @@ in
 nixpkgs.runCommand "${executableName}-app" (rec {
   exePath = package ghc;
   infoPlist = builtins.toFile "Info.plist" (nixpkgs.lib.generators.toPlist {} infoPlistData);
-  resourceRulesPlist = builtins.toFile "ResourceRules.plist" (nixpkgs.lib.generators.toPlist {} {
-    rules = {
-      ".*" = true;
-      "Info.plist" = {
-        omit = true;
-        weight = 10;
-      };
-      "ResourceRules.plist" = {
-        omit = true;
-        weight = 100;
-      };
-    };
-  });
   indexHtml = builtins.toFile "index.html" ''
     <html>
       <head>
@@ -187,7 +175,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
-    deploy="''${IOS_DEPLOY:-${nixpkgs.nodePackages.ios-deploy}/bin/ios-deploy}"
+    deploy="''${IOS_DEPLOY:-${nixpkgs.darwin.ios-deploy}/bin/ios-deploy}"
     $deploy -W -b "$tmpdir/${executableName}.app" "$@"
   '';
   packageScript = nixpkgs.writeText "package" ''
@@ -246,7 +234,14 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
     /usr/bin/xcrun -sdk iphoneos ${./PackageApplication} -v "$tmpdir/${executableName}.app" -o "$IPA_DESTINATION" --sign "$signer" --embed "$EMBEDDED_PROVISIONING_PROFILE"
-    /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support/altool --validate-app -f "$IPA_DESTINATION" -t ios "$@"
+
+    altool=/Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support/altool
+
+    if ! [ -x "$altool" ]; then
+      altool=/Applications/Xcode.app/Contents/Developer/usr/bin/altool
+    fi
+
+    "$altool" --validate-app -f "$IPA_DESTINATION" -t ios "$@"
   '';
   runInSim = builtins.toFile "run-in-sim" ''
     #!/usr/bin/env bash
@@ -283,7 +278,6 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   set -x
   mkdir -p "$out/${executableName}.app"
   ln -s "$infoPlist" "$out/${executableName}.app/Info.plist"
-  ln -s "$resourceRulesPlist" "$out/${executableName}.app/ResourceRules.plist"
   ln -s "$indexHtml" "$out/${executableName}.app/index.html"
   mkdir -p "$out/bin"
   cp --no-preserve=mode "$deployScript" "$out/bin/deploy"

@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-wasm-support",
+  "branch": "reflex-platform-ios-13",
   "private": false,
-   "rev": "a5cc7b77c090ede3ac380962ea876b83d847592c",
-   "sha256": "0mfrfrgkc8bfc3hcnbzqmab021i3w27mczak99ab4ca154ml297i"
+  "rev": "33c8e685ced234c6a337fbedf85f87fd6fbbf576",
+  "sha256": "1smy53szfalg0b7n22kjhvg8gm462by2vhl2y1qxfvdcihsad6zj"
 }
