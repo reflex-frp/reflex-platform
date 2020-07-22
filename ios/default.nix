@@ -193,7 +193,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if (( "$#" != 3 )); then
+    if [ "$#" -lt 3 ]; then
       echo "Usage: $0 [TEAM_ID] [IPA_DESTINATION] [EMBEDDED_PROVISIONING_PROFILE]" >&2
       exit 1
     fi
