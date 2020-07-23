@@ -359,7 +359,7 @@ EOF
   chmod +x "$out/bin/make-portable-deploy"
   ln -s "$exePath/bin/${executableName}" "$out/${executableName}.app/"
   cp -RL '${staticSrc}'/* "$out/${executableName}.app/"
-  for icon in '${staticSrc}'/assets/Icon*.png; do
+  for icon in '${staticSrc}'/assets/Icon*.png '${staticSrc}'/assets/AppIcon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
   done
   for splash in '${staticSrc}'/assets/Default*.png; do
