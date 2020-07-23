@@ -68,6 +68,7 @@ let
       "UIInterfaceOrientationLandscapeLeft"
       "UIInterfaceOrientationLandscapeRight"
     ];
+    CFBundleIconName = "Icon";
     ${"CFBundleIcons~ipad"} = {
       CFBundlePrimaryIcon = {
         CFBundleIconFiles = [
