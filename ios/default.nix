@@ -171,8 +171,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
-    chmod +w "$tmpdir/${executableName}.app"
-    chmod +w "$tmpdir/${executableName}.app/${executableName}"
+    chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
@@ -228,8 +227,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
-    chmod +w "$tmpdir/${executableName}.app"
-    chmod +rw "$tmpdir/${executableName}.app/${executableName}"
+    chmod -R +w "$tmpdir/${executableName}.app"
     strip "$tmpdir/${executableName}.app/${executableName}"
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
@@ -269,7 +267,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
-    chmod +w "$tmpdir/${executableName}.app"
+    chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
     cp "$1" "$tmpdir/${executableName}.app/config/route"
 
@@ -322,8 +320,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     mkdir $dir
 
     cp -LR "$(dirname $0)/../${executableName}.app" $dir
-    chmod +w "$dir/${executableName}.app"
-    chmod +w "$dir/${executableName}.app/${executableName}"
+    chmod -R +w "$dir/${executableName}.app"
     mkdir -p "$dir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $dir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $dir/xcent --timestamp=none "$dir/${executableName}.app"
