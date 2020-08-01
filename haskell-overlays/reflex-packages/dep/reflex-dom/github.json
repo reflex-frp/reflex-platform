@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "eac@customizable-per-platform-hacks",
+  "branch": "release/0.6.0.0",
   "private": false,
-  "rev": "92d2b7223888dc9466405b66e583ad9d4dc032f3",
-  "sha256": "1xnks97hgikywn0vmdic8j7kq2p5i33fp2w249a6c52s8wxd4rzk"
+  "rev": "9c696a0f382321c72237c206699efda2e30faef4",
+  "sha256": "1s9706p93f5dsx4rf4rgn2izlgq19lqczc5vfq79p4ayxhmlj41z"
 }
