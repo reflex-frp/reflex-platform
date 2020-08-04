@@ -205,6 +205,11 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     EMBEDDED_PROVISIONING_PROFILE=$1
     shift
 
+    if [ -f "$IPA_DESTINATION" ]; then
+      echo "$IPA_DESTINATION already exists. Please move it to another place." >&2
+      exit 1
+    fi
+
     set -euo pipefail
 
     function cleanup {
