@@ -106,9 +106,9 @@ let
     else abort ''
       `extraInfoPlistContent` has been removed. Instead use `overrideInfoPlist` to provide an override function that modifies the default info.plist data as a nix attrset. For example: `(x: x // {NSCameraUsageDescription = "We need your camera.";})`
     '';
+  exePath = package ghc;
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
-  exePath = package ghc;
   infoPlist = builtins.toFile "Info.plist" (nixpkgs.lib.generators.toPlist {} infoPlistData);
   indexHtml = builtins.toFile "index.html" ''
     <html>
@@ -354,7 +354,7 @@ EOF
   chmod +x "$out/bin/run-in-sim"
   cp --no-preserve=mode "$portableDeployScript" "$out/bin/make-portable-deploy"
   chmod +x "$out/bin/make-portable-deploy"
-  ln -s "$exePath/bin/${executableName}" "$out/${executableName}.app/"
+  cp "${exePath}/bin/${executableName}" "$out/${executableName}.app/"
   cp -RL '${staticSrc}'/* "$out/${executableName}.app/"
   for icon in '${staticSrc}'/assets/Icon*.png '${staticSrc}'/assets/AppIcon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
