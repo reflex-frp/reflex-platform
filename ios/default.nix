@@ -131,7 +131,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if (( "$#" < 1 )); then
+    if [ "$#" -ne 1 ]; then
       echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
@@ -246,7 +246,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
   runInSim = builtins.toFile "run-in-sim" ''
     #!/usr/bin/env bash
 
-    if (( "$#" != 0 )); then
+    if [ "$#" -ne 0 ]; then
       echo "Usage: $0" >&2
       exit 1
     fi
@@ -278,7 +278,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if (( "$#" < 1 )); then
+    if [ "$#" -ne 1 ]; then
       echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
