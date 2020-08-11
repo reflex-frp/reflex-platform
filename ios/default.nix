@@ -1,4 +1,4 @@
-{ nixpkgs, ghc }:
+{ nixpkgs, ghc, withSimulator ? false }:
 
 { #TODO
   bundleName
@@ -269,10 +269,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
     chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
-    cp "$1" "$tmpdir/${executableName}.app/config/route"
-
-    # focus????
-    focus/reflex-platform/scripts/run-in-ios-sim "$tmpdir/${executableName}.app"
+    ${../scripts/run-in-ios-sim} "$(dirname $0)/../${executableName}.app"
   '';
   portableDeployScript = nixpkgs.writeText "make-portable-deploy" ''
     #!/usr/bin/env bash
@@ -340,7 +337,7 @@ EOF
     (cd $tmpdir && tar cfz $dest ${executableName}-${bundleVersion}/)
 
     echo Created $dest.
-  '';}) ''
+  '';}) (''
   set -x
   mkdir -p "$out/${executableName}.app"
   ln -s "$infoPlist" "$out/${executableName}.app/Info.plist"
@@ -350,8 +347,10 @@ EOF
   chmod +x "$out/bin/deploy"
   cp --no-preserve=mode "$packageScript" "$out/bin/package"
   chmod +x "$out/bin/package"
+'' + nixpkgs.lib.optionalString withSimulator ''
   cp --no-preserve=mode "$runInSim" "$out/bin/run-in-sim"
   chmod +x "$out/bin/run-in-sim"
+'' + ''
   cp --no-preserve=mode "$portableDeployScript" "$out/bin/make-portable-deploy"
   chmod +x "$out/bin/make-portable-deploy"
   cp "${exePath}/bin/${executableName}" "$out/${executableName}.app/"
@@ -363,4 +362,4 @@ EOF
     cp -RL "$splash" "$out/${executableName}.app/"
   done
   set +x
-''
+'')

@@ -91,8 +91,7 @@ let
         };
         skeleton-test-project-android = skeleton-test.project.android;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
-        inherit (reflex-platform) iosReflexTodomvc;
-        inherit (reflex-platform) iosReflexTodomvc-8_6;
+        inherit (reflex-platform) iosReflexTodomvc iosReflexTodomvc-8_6 iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
       } // drvListToAttrs otherDeps
         # TODO fix GHCJS profiling builds

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-uuid="$(xcrun simctl create reflex-todomvc com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-10-2)"
+name="${1##*/}"
+name="${name%.app}"
+
+uuid="$(xcrun simctl create "$name" com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-12-4)"
 
 function cleanup {
   if [ -n "$uuid" ]; then
@@ -12,10 +15,12 @@ function cleanup {
 }
 trap cleanup EXIT
 
-name="${1##*/}"
-name="${name%.app}"
-
+echo Opening Simulator... >&2
 open -a Simulator --args -CurrentDeviceUDID "$uuid"
 sleep 5
+
+echo Installing "$name".app >&2
 xcrun simctl install "$uuid" "$1"
+
+echo Launching "$name" >&2
 xcrun simctl launch --console "$uuid" "$name"
