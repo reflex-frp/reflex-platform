@@ -30,10 +30,7 @@ in {
   buildApp = args: with args; addDeployScript (buildGradleApp {
     inherit acceptAndroidSdkLicenses mavenDeps;
     buildDirectory = "./.";
-    # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
-    gradleTask = if isRelease
-      then "assembleRelease"
-      else "assembleDebug";
+    inherit gradleTask;
     keyAlias = releaseKey.keyAlias or null;
     keyAliasPassword = releaseKey.keyPassword or null;
     keyStore = releaseKey.storeFile or null;

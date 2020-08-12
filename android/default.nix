@@ -118,6 +118,9 @@ in rec {
       # where "offset" is a per-platform constant.
 
     , usesCleartextTraffic ? false
+
+    # Can be "assembleRelease", "assembleDebug", or "bundleRelease"
+    , gradleTask ? (if isRelease then "assembleRelease" else "assembleDebug")
     }:
     assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
     nixpkgs.lib.makeOverridable impl.buildApp {
@@ -128,7 +131,6 @@ in rec {
               displayName
               version
               releaseKey
-              isRelease
               resources
               assets
               iconPath
@@ -142,6 +144,7 @@ in rec {
               javaSources
               universalApk
               mavenDeps
-              usesCleartextTraffic;
+              usesCleartextTraffic
+              gradleTask;
     };
 }
