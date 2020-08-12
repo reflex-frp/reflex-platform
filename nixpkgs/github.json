@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-ios-13",
+  "branch": "reflex-platform-android-29",
   "private": false,
-  "rev": "b373325a18ef1af66b321b037b45efe428cabc1b",
-  "sha256": "1wzymn055f0vb27zlwkfjwa3q578gza6vlj4fficwdr5amzfjgp3"
+  "rev": "a78fc70baa56ceb7ed9d9c55b28763e60ac44d68",
+  "sha256": "0rpvfqflc2abq6lqifa4sfnyp4frfs029j1g0k4zs15kspq50vqg"
 }
