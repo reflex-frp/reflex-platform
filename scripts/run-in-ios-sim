@@ -20,7 +20,7 @@ trap cleanup EXIT
 
 echo Opening Simulator... >&2
 open -a Simulator --args -CurrentDeviceUDID "$uuid"
-sleep 5
+sleep 20
 
 echo Installing "$name".app >&2
 xcrun simctl install "$uuid" "$1"
