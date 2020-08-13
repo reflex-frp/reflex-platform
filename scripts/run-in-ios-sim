@@ -6,6 +6,11 @@ set -euo pipefail
 name="${1##*/}"
 name="${name%.app}"
 
+bundleIdentifier="$name"
+if [ "$#" = 2 ]; then
+  bundleIdentifier="$2"
+fi
+
 runtime="$(xcrun simctl list runtimes -j | jq -r '.runtimes[].identifier' | head -n1)"
 uuid="$(xcrun simctl create "$name" com.apple.CoreSimulator.SimDeviceType.iPhone-8 "$runtime")"
 
@@ -26,4 +31,4 @@ echo Installing "$name".app >&2
 xcrun simctl install "$uuid" "$1"
 
 echo Launching "$name" >&2
-xcrun simctl launch --console "$uuid" "$name"
+xcrun simctl launch --console "$uuid" "$bundleIdentifier"

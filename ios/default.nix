@@ -269,7 +269,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
     chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
-    ${../scripts/run-in-ios-sim} "$tmpdir/${executableName}.app"
+    ${../scripts/run-in-ios-sim} "$tmpdir/${executableName}.app" "${bundleIdentifier}"
   '';
   portableDeployScript = nixpkgs.writeText "make-portable-deploy" ''
     #!/usr/bin/env bash
