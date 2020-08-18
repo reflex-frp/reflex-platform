@@ -35,7 +35,7 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion '28.0.3'
 
     sourceSets {
@@ -50,7 +50,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode ${version.code}
         versionName "${version.name}"
         multiDexEnabled false

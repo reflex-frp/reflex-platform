@@ -75,7 +75,7 @@ stdenv.mkDerivation ({
       ) >> gradle.properties
     ''}
     buildDir=`pwd`
-    cp -r $ANDROID_HOME $buildDir/local_sdk
+    cp -rL $ANDROID_HOME $buildDir/local_sdk
     chmod -R 755 local_sdk
     export ANDROID_HOME=$buildDir/local_sdk/android-sdk
     # Key files cannot be stored in the user's home directory. This
