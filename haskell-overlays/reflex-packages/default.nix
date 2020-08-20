@@ -42,7 +42,7 @@ in
     noGcTest = stdenv.hostPlatform.system != "x86_64-linux"
             || stdenv.hostPlatform != stdenv.buildPlatform
             || (ghc.isGhcjs or false);
-  in haskellLib.overrideCabal
+  in haskellLib.dontCheck (haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
@@ -78,7 +78,7 @@ in
       preCheck = ''
         export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
       '';
-    });
+    }));
 
   reflex-dom = haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
@@ -115,11 +115,11 @@ in
   ## GHCJS and JSaddle
   ##
 
-  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + /jsaddle) {};
-  jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + /jsaddle-clib) {};
-  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + /jsaddle-webkit2gtk) {};
-  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + /jsaddle-webkitgtk) {};
-  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + /jsaddle-wkwebview) {}) (drv: {
+  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + "/jsaddle") {};
+  jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + "/jsaddle-clib") {};
+  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + "/jsaddle-webkit2gtk") {};
+  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + "/jsaddle-webkitgtk") {};
+  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
     libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
       (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
          "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
@@ -130,10 +130,11 @@ in
   # another broken test
   # phantomjs has issues with finding the right port
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
-  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + /jsaddle-warp) {});
+  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
 
-  jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
-  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + /jsaddle-wasm)) {};
+  jsaddle-dom = dontCheck (appendPatch (self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {}) ./fix-jsaddle-dom.patch);
+  #jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
+  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + "/jsaddle-wasm")) {};
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};

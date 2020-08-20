@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "release/0.6.0.0",
+  "branch": "eac@jsaddle-experimental-core2-changes",
   "private": false,
-  "rev": "9c696a0f382321c72237c206699efda2e30faef4",
-  "sha256": "1s9706p93f5dsx4rf4rgn2izlgq19lqczc5vfq79p4ayxhmlj41z"
+  "rev": "294ce24929b102b928203bdbc56326752a761f4a",
+  "sha256": "0483gbg8z0cx66w7bqk0mx5pzb47gifzy0ls4ia10ppaip6d0mhb"
 }
