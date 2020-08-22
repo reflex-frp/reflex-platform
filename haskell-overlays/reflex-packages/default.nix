@@ -156,12 +156,12 @@ in
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
-  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
-    owner = "wuzzeb";
-    repo = "webdriver-utils";
-    rev = "a8b15525a1cceb0ddc47cfd4d7ab5a29fdbe3127";
-    sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
-  } + "/hspec-webdriver") {};
+  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromGitHub {
+    owner = "codedownio";
+    repo = "hspec-webdriver";
+    rev = "56aa6d1802cb89c276575818b261daceeb902d96";
+    sha256 = "0azbiyigdqkr6ha1alzmlmfxwp8r0q44vlz878cyiizashvggp0h";
+  }) {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
   dependent-map = self.callHackage "dependent-map" "0.3" {};
