@@ -154,7 +154,7 @@ in
 
   patch = self.callCabal2nix "patch" self._dep.patch {};
 
-  webdriver = self.callHackage "webdriver" "0.9" {};
+  webdriver = self.callHackage "webdriver" "0.9.0.1" {};
   hspec-webdriver = self.callHackage "hspec-webdriver" "1.2.0" {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
