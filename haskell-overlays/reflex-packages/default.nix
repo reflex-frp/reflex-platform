@@ -155,7 +155,15 @@ in
   patch = self.callCabal2nix "patch" self._dep.patch {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
-  hspec-webdriver = self.callHackage "hspec-webdriver" "1.2.0" {};
+
+  # Not on Hackage yet
+  # Version 1.2.1 not on Hackage yet
+  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromGitHub {
+    owner = "ibizaman";
+    repo = "hspec-webdriver";
+    rev = "bd7452cd348007a5ac5be614f1026a900d312822";
+    sha256 = "1nbiiigicnsg06jhgg4cm9qdn71is734yydaklq9fs33m074256r";
+  }) {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
   dependent-map = self.callHackage "dependent-map" "0.3" {};
