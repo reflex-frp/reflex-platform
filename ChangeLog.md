@@ -15,6 +15,7 @@ This project's release branch is `master`. This log is written from the perspect
   * `reflex-process` to 0.3.0.0.
   * `reflex-vty` to 0.1.4.0.
   * `android-activity`. It now detects the number of cores on Android devices to utilize them better.
+  * pandoc to 2.11.0.2 (bumping various dependencies as well)
 
 ## v0.5.3.0
 
