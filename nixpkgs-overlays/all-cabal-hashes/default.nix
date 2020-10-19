@@ -1,8 +1,8 @@
 self: _: {
 
   all-cabal-hashes = self.fetchurl {
-    url = https://github.com/commercialhaskell/all-cabal-hashes/archive/a47bf76d8dabd429cd50f44761a6bea8f552a93a.tar.gz;
-    sha256 = "126xq53kj9sxnf7si6vhr91xx7zr67371ihrpx3cm93ayyv8n25s";
+    url = https://github.com/commercialhaskell/all-cabal-hashes/archive/24708a89c02c2abbb056db79310d153c9b657f13.tar.gz;
+    sha256 = "14myw2wr1lx8gb7vsc3qfr10f3kl8x4dm9g2d70f8r3h704k48p1";
   };
 
 }
