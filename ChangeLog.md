@@ -2,7 +2,7 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-## Unreleased
+## v0.6.0.0
 
 * ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for experimental WebGHC support.
 * ([#664](https://github.com/reflex-frp/reflex-platform/pull/664)) Update GHCJS to include a critical bugfix to the `-dedupe` flag. (See [obsidiansystems/ghcjs#3](https://github.com/obsidiansystems/ghcjs/pull/3) for more information.)
