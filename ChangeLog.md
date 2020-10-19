@@ -15,6 +15,7 @@ This project's release branch is `master`. This log is written from the perspect
   * `reflex-process` to 0.3.0.0.
   * `reflex-vty` to 0.1.4.0.
   * `android-activity`. It now detects the number of cores on Android devices to utilize them better.
+* Remove support for haskell-ide-engine
 
 ## v0.5.3.0
 
