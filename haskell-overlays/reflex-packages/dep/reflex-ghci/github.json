@@ -1,7 +1,7 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-ghci",
-  "branch": "release/0.1.4.0",
-  "rev": "ea476f478da7838e9394261df7ff1f244f52b4a2",
-  "sha256": "1kmbp4zz61l2hbhp73dxgalnazmv32d98kmbqv27w9i8xgi2jqq8"
+  "branch": "develop",
+  "rev": "7c5ca13e919732e4327fa42f77e2e1d6403b2f9a",
+  "sha256": "1w0jzrg1977fw6dnp3lq7zw9hjfxs7aa27l56zhfkd3gl2mz2y24"
 }
