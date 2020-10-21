@@ -79,6 +79,7 @@ browser.
 ./scripts/docs-for reflex
 ./scripts/docs-for reflex-dom
 ```
+After the browser window has opened, you can close it.
 
 ### Running a build on the web
 

@@ -2,9 +2,9 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-## Unreleased
+## v0.6.0.0
 
-* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for WebGHC support.
+* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for experimental WebGHC support.
 * ([#664](https://github.com/reflex-frp/reflex-platform/pull/664)) Update GHCJS to include a critical bugfix to the `-dedupe` flag. (See [obsidiansystems/ghcjs#3](https://github.com/obsidiansystems/ghcjs/pull/3) for more information.)
 * Bump
   * `all-cabal-hashes` to more recent snapshot of Hackage.
@@ -15,6 +15,8 @@ This project's release branch is `master`. This log is written from the perspect
   * `reflex-process` to 0.3.0.0.
   * `reflex-vty` to 0.1.4.0.
   * `android-activity`. It now detects the number of cores on Android devices to utilize them better.
+  * pandoc to 2.11.0.2 (bumping various dependencies as well)
+* Remove support for haskell-ide-engine
 
 ## v0.5.3.0
 
