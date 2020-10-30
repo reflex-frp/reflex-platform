@@ -77,7 +77,6 @@ in self: super: {
   semialign-indexed = self.callHackage "semialign-indexed" "1.1" {}; # to work with semialign 1.1
   these-lens = doJailbreak (self.callHackage "these-lens" "1" {});
   # remove jailbreak after https://github.com/isomorphism/these/pull/134
-  which = self.callHackage "which" "0.1.0.0" {};
 
   # Broken in 19.09
   http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
