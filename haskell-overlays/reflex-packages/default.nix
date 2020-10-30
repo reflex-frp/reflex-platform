@@ -143,11 +143,15 @@ in
   ##
 
   gargoyle = self.callCabal2nixWithOptions "gargoyle" gargoyleSrc "--subpath gargoyle" {};
-  gargoyle-postgresql = self.callCabal2nixWithOptions "gargoyle-postgresql" gargoyleSrc "--subpath gargoyle-postgresql" {};
+  gargoyle-postgresql = haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "gargoyle-postgresql" gargoyleSrc "--subpath gargoyle-postgresql" {})
+    (drv: {
+      testSystemDepends = (drv.testSystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
+    });
   gargoyle-postgresql-nix = haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "gargoyle-postgresql-nix" gargoyleSrc "--subpath gargoyle-postgresql-nix" {})
     (drv: {
-      librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.postgresql ];
+      librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
     });
   gargoyle-postgresql-connect = self.callCabal2nixWithOptions "gargoyle-postgresql-connect" gargoyleSrc "--subpath gargoyle-postgresql-connect" {};
   which = self.callCabal2nix "which" self._dep.which {}; # Updated to 0.2
