@@ -1,2 +1,1 @@
-# DO NOT HAND-EDIT THIS FILE
-import (import ./thunk.nix)
+import ((import <nixpkgs> {}).fetchFromGitHub (builtins.fromJSON (builtins.readFile ./github.json)))
