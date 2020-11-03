@@ -12,7 +12,7 @@ let
   universeRepo = self._dep.universe;
   reflexDomRepo = self._dep.reflex-dom;
   jsaddleSrc = self._dep.jsaddle;
-  gargoylePkgs = self.callPackage self._dep.gargoyle self;
+  gargoyleSrc = self._dep.gargoyle;
   wasmCross = hackGet ../../wasm-cross;
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
@@ -139,10 +139,22 @@ in
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
 
   ##
-  ## Gargoyle
+  ## Gargoyle and dependencies
   ##
 
-  inherit (gargoylePkgs) gargoyle gargoyle-postgresql gargoyle-postgresql-nix;
+  gargoyle = self.callCabal2nixWithOptions "gargoyle" gargoyleSrc "--subpath gargoyle" {};
+  gargoyle-postgresql = haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "gargoyle-postgresql" gargoyleSrc "--subpath gargoyle-postgresql" {})
+    (drv: {
+      testSystemDepends = (drv.testSystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
+    });
+  gargoyle-postgresql-nix = haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "gargoyle-postgresql-nix" gargoyleSrc "--subpath gargoyle-postgresql-nix" {})
+    (drv: {
+      librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
+    });
+  gargoyle-postgresql-connect = self.callCabal2nixWithOptions "gargoyle-postgresql-connect" gargoyleSrc "--subpath gargoyle-postgresql-connect" {};
+  which = self.callCabal2nix "which" self._dep.which {}; # Updated to 0.2
 
   ##
   ## Misc other dependencies

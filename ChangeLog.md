@@ -2,6 +2,16 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* Bump
+  * which to 0.2.0.0
+  * gargoyle to 0.1.1.0
+  * gargoyle-postgresql to 0.2.0.1
+  * gargoyle-postgresql-nix to 0.3.0.0
+* New Pins
+  * gargoyle-postgresql-connect 0.1.0.0
+
 ## v0.6.0.0
 
 * ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for experimental WebGHC support.
