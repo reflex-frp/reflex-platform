@@ -164,6 +164,7 @@ in
   } + "/hspec-webdriver") {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
+  aeson-gadt-th = self.callCabal2nix "aeson-gadt-th" self._dep.aeson-gadt-th {};
   dependent-map = self.callHackage "dependent-map" "0.3" {};
   dependent-sum = self.callHackage "dependent-sum" "0.6.2.0" {};
   dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
