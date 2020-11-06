@@ -21,6 +21,9 @@ This project's release branch is `master`. This log is written from the perspect
   * dependent-sum-template to 0.1.0.3
   * dependent-sum-aeson-orphans to 0.3.0.0
   * reflex to 0.7.2.0
+  * reflex-vty to 0.1.4.1
+  * patch to 0.0.3.2
+  * reflex-dom to 0.6.1.0
 * New Pins
   * gargoyle-postgresql-connect 0.1.0.0
 

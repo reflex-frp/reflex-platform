@@ -101,7 +101,7 @@ in
   ## Terminal / Conventional OS
   ##
 
-  reflex-vty = self.callHackage "reflex-vty" "0.1.4.0" {};
+  reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
   reflex-process = self.callHackage "reflex-process" "0.3.0.0" {};
   reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.1" {};
 
