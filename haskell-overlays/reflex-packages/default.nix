@@ -175,12 +175,15 @@ in
     sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
   } + "/hspec-webdriver") {};
 
-  constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
-  aeson-gadt-th = self.callCabal2nix "aeson-gadt-th" self._dep.aeson-gadt-th {};
-  dependent-map = self.callHackage "dependent-map" "0.3" {};
-  dependent-sum = self.callHackage "dependent-sum" "0.6.2.0" {};
-  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
+  constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
+  some = self.callHackage "some" "1.0.1" {};
+  prim-uniq = self.callHackage "prim-uniq" "0.2" {};
+  aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
+  dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
+  dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
+  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.3" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
+  dependent-sum-aeson-orphans = self.callCabal2nix "dependent-sum-aeson-orphans" self._dep.dependent-sum-aeson-orphans {};
 
   # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};

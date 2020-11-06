@@ -12,6 +12,15 @@ This project's release branch is `master`. This log is written from the perspect
   * gargoyle-postgresql-nix to 0.3.0.0
   * aeson-gadt-th to 0.2.4
   * reflex-ghci to 0.1.5.0
+  * constraints-extras to 0.3.0.2
+  * some to 1.0.1
+  * prim-uniq to 0.2
+  * aeson-gadt-th to 0.2.4
+  * dependent-map to 0.4
+  * dependent-sum to 0.7.1.0
+  * dependent-sum-template to 0.1.0.3
+  * dependent-sum-aeson-orphans to 0.3.0.0
+  * reflex to 0.7.2.0
 * New Pins
   * gargoyle-postgresql-connect 0.1.0.0
 

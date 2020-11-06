@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "patch",
-  "branch": "master",
+  "branch": "release/0.0.3.2",
   "private": false,
-  "rev": "25f202b4c05fe7f319a606667bb6873e1d386f56",
-  "sha256": "1afaxvi8fmn16kmkid8dx0xxdpa7scz8anbh1csbbzd33z3dmijl"
+  "rev": "e7be372b658997329dc7a34835bc48d33306f8e6",
+  "sha256": "1fm0nx74cs1jzvjjy9bzcif6hxhbidxaq4gw0r8q4cii2jc959vz"
 }
