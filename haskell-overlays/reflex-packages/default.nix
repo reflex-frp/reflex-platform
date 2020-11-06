@@ -103,7 +103,11 @@ in
 
   reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
   reflex-process = self.callHackage "reflex-process" "0.3.0.0" {};
-  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.1" {};
+  reflex-fsnotify = self.callHackageDirect
+    { pkg = "reflex-fsnotify";
+      ver = "0.2.1.2";
+      sha256 = "1xnrgxsdkjxp2gls9yw4snkcw4zvgkw4viigiylqpfzhp50vlspp";
+    } {};
 
   ##
   ## Tooling
