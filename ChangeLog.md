@@ -25,6 +25,7 @@ This project's release branch is `master`. This log is written from the perspect
   * patch to 0.0.3.2
   * reflex-dom to 0.6.1.0
   * reflex-fsnotify to 0.2.1.2
+  * reflex-process to 0.3.1.0
 * New Pins
   * gargoyle-postgresql-connect 0.1.0.0
 
