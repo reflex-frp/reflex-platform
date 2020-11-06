@@ -5,7 +5,7 @@ This project's release branch is `master`. This log is written from the perspect
 ## Unreleased
 
 * Bump
-  * all-cabal-hashes ("Update from Hackage at 2020-11-05T15:13:14Z")
+  * all-cabal-hashes ("Update from Hackage at 2020-11-06T16:55:57Z")
   * which to 0.2.0.0
   * gargoyle to 0.1.1.0
   * gargoyle-postgresql to 0.2.0.1
