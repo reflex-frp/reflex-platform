@@ -101,15 +101,15 @@ in
   ## Terminal / Conventional OS
   ##
 
-  reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
-  reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
-  reflex-fsnotify = self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {};
+  reflex-vty = self.callHackage "reflex-vty" "0.1.4.1" {};
+  reflex-process = self.callHackage "reflex-process" "0.3.1.0" {};
+  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.2" {};
 
   ##
   ## Tooling
   ##
 
-  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
+  reflex-ghci = self.callHackage "reflex-ghci" "0.1.5.1" {};
 
   ##
   ## GHCJS and JSaddle
@@ -154,17 +154,15 @@ in
       librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
     });
   gargoyle-postgresql-connect = self.callCabal2nixWithOptions "gargoyle-postgresql-connect" gargoyleSrc "--subpath gargoyle-postgresql-connect" {};
-  which = self.callCabal2nix "which" self._dep.which {}; # Updated to 0.2
+  which = self.callHackage "which" "0.2" {};
 
   ##
   ## Misc other dependencies
   ##
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-
   monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
-
-  patch = self.callCabal2nix "patch" self._dep.patch {};
+  patch = self.callHackage "patch" "0.0.3.2" {};
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
@@ -183,7 +181,7 @@ in
   dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
   dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.3" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
-  dependent-sum-aeson-orphans = self.callCabal2nix "dependent-sum-aeson-orphans" self._dep.dependent-sum-aeson-orphans {};
+  dependent-sum-aeson-orphans = self.callHackage "dependent-sum-aeson-orphans" "0.3.0.0" {};
 
   # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
