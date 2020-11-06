@@ -11,7 +11,7 @@ This project's release branch is `master`. This log is written from the perspect
   * gargoyle-postgresql to 0.2.0.1
   * gargoyle-postgresql-nix to 0.3.0.0
   * aeson-gadt-th to 0.2.4
-  * reflex-ghci to 0.1.5.0
+  * reflex-ghci to 0.1.5.1
   * constraints-extras to 0.3.0.2
   * some to 1.0.1
   * prim-uniq to 0.2
