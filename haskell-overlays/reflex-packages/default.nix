@@ -12,7 +12,7 @@ let
   universeRepo = self._dep.universe;
   reflexDomRepo = self._dep.reflex-dom;
   jsaddleSrc = self._dep.jsaddle;
-  gargoylePkgs = self.callPackage self._dep.gargoyle self;
+  gargoyleSrc = self._dep.gargoyle;
   wasmCross = hackGet ../../wasm-cross;
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
@@ -101,15 +101,15 @@ in
   ## Terminal / Conventional OS
   ##
 
-  reflex-vty = self.callHackage "reflex-vty" "0.1.4.0" {};
-  reflex-process = self.callHackage "reflex-process" "0.3.0.0" {};
-  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.1" {};
+  reflex-vty = self.callHackage "reflex-vty" "0.1.4.1" {};
+  reflex-process = self.callHackage "reflex-process" "0.3.1.0" {};
+  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.2" {};
 
   ##
   ## Tooling
   ##
 
-  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
+  reflex-ghci = self.callHackage "reflex-ghci" "0.1.5.1" {};
 
   ##
   ## GHCJS and JSaddle
@@ -139,20 +139,30 @@ in
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
 
   ##
-  ## Gargoyle
+  ## Gargoyle and dependencies
   ##
 
-  inherit (gargoylePkgs) gargoyle gargoyle-postgresql gargoyle-postgresql-nix;
+  gargoyle = self.callCabal2nixWithOptions "gargoyle" gargoyleSrc "--subpath gargoyle" {};
+  gargoyle-postgresql = haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "gargoyle-postgresql" gargoyleSrc "--subpath gargoyle-postgresql" {})
+    (drv: {
+      testSystemDepends = (drv.testSystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
+    });
+  gargoyle-postgresql-nix = haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "gargoyle-postgresql-nix" gargoyleSrc "--subpath gargoyle-postgresql-nix" {})
+    (drv: {
+      librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
+    });
+  gargoyle-postgresql-connect = self.callCabal2nixWithOptions "gargoyle-postgresql-connect" gargoyleSrc "--subpath gargoyle-postgresql-connect" {};
+  which = self.callHackage "which" "0.2" {};
 
   ##
   ## Misc other dependencies
   ##
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-
   monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
-
-  patch = self.callCabal2nix "patch" self._dep.patch {};
+  patch = self.callHackage "patch" "0.0.3.2" {};
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
@@ -163,11 +173,15 @@ in
     sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
   } + "/hspec-webdriver") {};
 
-  constraints-extras = self.callHackage "constraints-extras" "0.3.0.1" {};
-  dependent-map = self.callHackage "dependent-map" "0.3" {};
-  dependent-sum = self.callHackage "dependent-sum" "0.6.2.0" {};
-  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.0" {};
+  constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
+  some = self.callHackage "some" "1.0.1" {};
+  prim-uniq = self.callHackage "prim-uniq" "0.2" {};
+  aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
+  dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
+  dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
+  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.3" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
+  dependent-sum-aeson-orphans = self.callHackage "dependent-sum-aeson-orphans" "0.3.0.0" {};
 
   # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
