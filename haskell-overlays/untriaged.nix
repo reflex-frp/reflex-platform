@@ -77,8 +77,27 @@ in self: super: {
   semialign-indexed = self.callHackage "semialign-indexed" "1.1" {}; # to work with semialign 1.1
   these-lens = doJailbreak (self.callHackage "these-lens" "1" {});
   # remove jailbreak after https://github.com/isomorphism/these/pull/134
-  which = self.callHackage "which" "0.1.0.0" {};
 
   # Broken in 19.09
   http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
+
+  # pandoc 2.11 and dependencies
+  commonmark = self.callHackage "commonmark" "0.1.0.2" {};
+  commonmark-extensions = self.callHackage "commonmark-extensions" "0.2.0.1" {};
+  commonmark-pandoc = self.callHackage "commonmark-pandoc" "0.2.0.1" {};
+  citeproc = doJailbreak (self.callHackage "citeproc" "0.1.0.2" {});
+  emojis = self.callHackage "emojis" "0.1" {};
+  jira-wiki-markup = self.callHackage "jira-wiki-markup" "1.3.2" {};
+  pandoc = self.callHackage "pandoc" "2.11.0.2" {};
+  pandoc-types = self.callHackage "pandoc-types" "1.22" {};
+  texmath = self.callHackage "texmath" "0.12.0.3" {};
+  rfc5051 = self.callHackage "rfc5051" "0.2" {};
+  HsYAML = self.callHackage "HsYAML" "0.2.1.0" {};
+  connection = self.callHackage "connection" "0.3.1" {};
+  doclayout = self.callHackage "doclayout" "0.3" {};
+  doctemplates = self.callHackage "doctemplates" "0.8.2" {};
+  haddock-library = doJailbreak (self.callHackage "haddock-library" "1.8.0" {});
+  hslua  = self.callHackage "hslua" "1.1.0" {};
+  skylighting = self.callHackage "skylighting" "0.10.0.2" {};
+  skylighting-core = self.callHackage "skylighting-core" "0.10.0.2" {};
 }
