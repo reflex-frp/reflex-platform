@@ -100,4 +100,12 @@ in self: super: {
   hslua  = self.callHackage "hslua" "1.1.0" {};
   skylighting = self.callHackage "skylighting" "0.10.0.2" {};
   skylighting-core = self.callHackage "skylighting-core" "0.10.0.2" {};
+
+  # beam packages
+  beam-core = self.callHackage "beam-core" "0.9.0.0" {};
+  beam-migrate = self.callHackage "beam-migrate" "0.5.0.0" {};
+  beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.0.0" {});
+  beam-automigrate = self.callHackage "beam-automigrate" "0.1.0.0" {};
+
+
 }
