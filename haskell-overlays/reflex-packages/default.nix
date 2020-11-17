@@ -164,14 +164,16 @@ in
   monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
   patch = self.callHackage "patch" "0.0.3.2" {};
 
+  webdriver = self.callHackage "webdriver" "0.9.0.1" {};
+
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
-  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromBitbucket {
-    owner = "wuzzeb";
-    repo = "webdriver-utils";
-    rev = "a8b15525a1cceb0ddc47cfd4d7ab5a29fdbe3127";
-    sha256 = "0csmxyxkxqgx0v2vwphz80515nqz1hpw5v7391fqpjm7bfgy47k4";
-  } + "/hspec-webdriver") {};
+  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromGitHub {
+    owner = "dfordivam";
+    repo = "hspec-webdriver-clone";
+    rev = "0d748b7bb7cd74dce0a55a1ec86b01dbb8a71cd8";
+    sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
+  }) {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
   some = self.callHackage "some" "1.0.1" {};
