@@ -2,6 +2,16 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* Bump
+  * all-cabal-hashes ("Update from Hackage at 2020-11-17T19:33:44Z")
+  * beam-core to 0.9.0.0
+  * beam-migrate to 0.5.0.0
+  * beam-postgres to 0.5.0.0
+* New pins
+  * [beam-automigrate](https://github.com/obsidiansystems/beam-automigrate) 0.1.0.0
+
 ## v0.6.1.0
 
 * Bump
