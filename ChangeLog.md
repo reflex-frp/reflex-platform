@@ -17,7 +17,6 @@ This project's release branch is `master`. This log is written from the perspect
   * Allow maven dependencies to be overridden
   * Copy google-services.json to the location expected by google integrations
   * Disable multi-dex on android builds (see [note](https://github.com/reflex-frp/reflex-platform/commit/0e3e94467ab117832989632d65cfcc9afd538809))
-  * Bump android-activity and reflex-dom to support file browse dialog on Android
   * Update to android sdk version 29
 * iOS
   * Copy default splash screen images and app icon into sample application
