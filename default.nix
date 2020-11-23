@@ -78,7 +78,7 @@ let iosSupport = system == "x86_64-darwin";
           });
       };
       zlib = super.zlib.override (lib.optionalAttrs
-        (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
+        (self.stdenv.hostPlatform != self.stdenv.buildPlatform && self.stdenv.hostPlatform.config != "aarch64-unknown-linux-gnu")
         { static = true; shared = false; });
     };
 
@@ -146,6 +146,11 @@ let iosSupport = system == "x86_64-darwin";
         };
         # Back compat
         arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
+      };
+      linux = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
+        aarch64 = {
+          crossSystem = "aarch64-linux";
+        };
       };
       ghcjs = nixpkgsFunc (nixpkgsArgs // {
         crossSystem = lib.systems.examples.ghcjs;
@@ -260,6 +265,10 @@ let iosSupport = system == "x86_64-darwin";
   ghcIosAarch32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   });
+  ghcLinuxAarch64 = ghcLinuxAarch64-8_6;
+  ghcLinuxAarch64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.linux.aarch64.haskell.packages.integer-simple.ghcSplices-8_6).override {
+    overrides = nixpkgsCross.linux.aarch64.haskell.overlays.combined;
+  });
 
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
@@ -303,6 +312,8 @@ in let this = rec {
           ghcAndroidAarch64-8_6
           ghcAndroidAarch32
           ghcAndroidAarch32-8_6
+          ghcLinuxAarch64
+          ghcLinuxAarch64-8_6
           ghcjs
           ghcjs8_6
           ghcSavedSplices

@@ -22,6 +22,7 @@ let
       reflex-platform.nixpkgsCross.ios.aarch64
       reflex-platform.nixpkgsCross.android.aarch64
       reflex-platform.nixpkgsCross.android.aarch32
+      reflex-platform.nixpkgsCross.linux.aarch64
     ]
   );
 
