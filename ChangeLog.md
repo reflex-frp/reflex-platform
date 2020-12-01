@@ -5,7 +5,7 @@ This project's release branch is `master`. This log is written from the perspect
 ## Unreleased
 
 * Bump
-  * all-cabal-hashes ("Update from Hackage at 2020-11-17T19:33:44Z")
+  * all-cabal-hashes ("Update from Hackage at 2020-12-01T14:56:13Z")
   * beam-core to 0.9.0.0
   * beam-migrate to 0.5.0.0
   * beam-postgres to 0.5.0.0
