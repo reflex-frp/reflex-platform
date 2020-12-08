@@ -44,7 +44,6 @@ in self: super: {
 
   # Fixing things that are marked broken in 19.09:
   brittany = dontCheck (self.callHackage "brittany" "0.12.0.0" {});
-  witherable = self.callHackage "witherable" "0.3.1" {};
   time-compat = dontCheck super.time-compat;
   bimap = self.callHackage "bimap" "0.3.3" {};
 
@@ -106,6 +105,10 @@ in self: super: {
   beam-migrate = self.callHackage "beam-migrate" "0.5.0.0" {};
   beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.0.0" {});
   beam-automigrate = self.callHackage "beam-automigrate" "0.1.0.0" {};
+
+  # witherable
+  witherable-class = self.callHackage "witherable-class" "0" {};
+  witherable = self.callHackage "witherable" "0.3.5" {};
 
 
 }
