@@ -2,6 +2,11 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* Bump
+  * all-cabal-hashes ("Update from Hackage at 2020-12-10T01:09:50Z")
+
 ## v0.6.2.0
 
 * Bump
