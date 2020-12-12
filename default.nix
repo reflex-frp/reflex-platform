@@ -8,7 +8,7 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
-, iosSdkVersion ? "10.2"
+, iosSdkVersion ? "13.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
@@ -17,6 +17,10 @@
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
+
+    xcodeVer = {
+      "13.2" = "11.3.1";
+    }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
@@ -132,16 +136,19 @@ let iosSupport = system == "x86_64-darwin";
         simulator64 = {
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         aarch64 = {
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         # Back compat
@@ -278,6 +285,9 @@ let iosSupport = system == "x86_64-darwin";
   iosAarch64-8_6 = iosWithHaskellPackages ghcIosAarch64-8_6;
   iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
   iosAarch32-8_6 = iosWithHaskellPackages ghcIosAarch32-8_6;
+  iosSimulator = {
+    buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs; ghc = ghcIosSimulator64; withSimulator = true; });
+  };
   iosWithHaskellPackages = ghc: {
     buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
@@ -310,6 +320,7 @@ in let this = rec {
           androidWithHaskellPackages
           iosAarch32
           iosAarch64
+          iosSimulator
           iosWithHaskellPackages
           wasm
           wasmCross
@@ -344,6 +355,12 @@ in let this = rec {
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc.via_8_6";
     bundleName = "Reflex TodoMVC via GHC 8.6";
+  };
+  iosSimulatorReflexTodomvc = iosSimulator.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleName = "Reflex TodoMVC";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
@@ -446,14 +463,17 @@ in let this = rec {
     let otherPlatforms = lib.optionals androidSupport [
           "ghcAndroidAarch64"
           "ghcAndroidAarch32"
-        ] ++ lib.optional iosSupport "ghcIosAarch64";
+        ] ++ lib.optionals iosSupport [
+          "ghcIosAarch64"
+          "ghcIosSimulator64"
+        ];
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
       ++ lib.optionals androidSupport [
         androidDevTools
         androidReflexTodomvc
       ] ++ lib.optionals iosSupport [
-        iosReflexTodomvc
+        iosReflexTodomvc iosSimulatorReflexTodomvc
       ];
 
   inherit cabal2nixResult system androidSupport iosSupport;

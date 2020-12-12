@@ -11,6 +11,22 @@ This project's release branch is `master`. This log is written from the perspect
   * beam-postgres to 0.5.0.0
 * New pins
   * [beam-automigrate](https://github.com/obsidiansystems/beam-automigrate) 0.1.0.0
+* Android
+  * Add allowBackup/fullBackupContent to manifest
+  * Bump gradle to v3.4.0 and upgrade related maven dependencies
+  * Allow maven dependencies to be overridden
+  * Copy google-services.json to the location expected by google integrations
+  * Disable multi-dex on android builds (see [note](https://github.com/reflex-frp/reflex-platform/commit/0e3e94467ab117832989632d65cfcc9afd538809))
+  * Update to android sdk version 29
+* iOS
+  * Copy default splash screen images and app icon into sample application
+  * Make ios-deploy tool overridable
+  * Update iosSdkVersion to 13.2
+  * Make xcode version customizable
+  * Remove ResourceRules.plist as it is no longer necessary
+  * Set CFBundleIconName as required by App Store
+  * Add portable-deploy script for iOS for creating a pre-signed tarball which can be tested without Nix.
+  * Add iOS Simulator target
 
 ## v0.6.1.0
 
