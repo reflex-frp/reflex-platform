@@ -107,5 +107,20 @@ in self: super: {
   beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.0.0" {});
   beam-automigrate = self.callHackage "beam-automigrate" "0.1.0.0" {};
 
+  # hnix 0.12 and dependencies
+  hnix = dontCheck
+    (overrideCabal (self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix) {}) (drv: {
+      librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.nix ];
+      testHaskellDepends = (drv.testHaskellDepends or []) ++ [ nixpkgs.nix super.criterion ];
+    }));
+  hnix-store-core =
+    self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-core") {};
+  hnix-store-remote =
+    self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-remote") {};
+  algebraic-graphs = self.callHackage "algebraic-graphs" "0.5" {};
+  nix-derivation = self.callHackage "nix-derivation" "1.1.1" {};
+  data-fix = self.callHackage "data-fix" "0.3.0" {};
+  neat-interpolation = self.callHackage "neat-interpolation" "0.5.1.2" {};
+  prettyprinter = self.callHackage "prettyprinter" "1.7.0" {};
 
 }
