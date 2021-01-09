@@ -2,6 +2,11 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* New pins
+  * hnix 0.12.0.1 and dependencies
+
 ## v0.7.0.0
 
 * Bump
