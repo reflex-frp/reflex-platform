@@ -115,11 +115,11 @@ in
   ## GHCJS and JSaddle
   ##
 
-  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + /jsaddle) {};
-  jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + /jsaddle-clib) {};
-  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + /jsaddle-webkit2gtk) {};
-  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + /jsaddle-webkitgtk) {};
-  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + /jsaddle-wkwebview) {}) (drv: {
+  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + "/jsaddle") {};
+  jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + "/jsaddle-clib") {};
+  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + "/jsaddle-webkit2gtk") {};
+  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + "/jsaddle-webkitgtk") {};
+  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
     libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
       (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
          "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
@@ -130,10 +130,10 @@ in
   # another broken test
   # phantomjs has issues with finding the right port
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
-  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + /jsaddle-warp) {});
+  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
 
   jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
-  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + /jsaddle-wasm)) {};
+  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + "/jsaddle-wasm")) {};
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
@@ -180,6 +180,7 @@ in
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
   dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
+  dependent-monoidal-map = self.callCabal2nix "dependent-monoidal-map" self._dep.dependent-monoidal-map {};
   dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
   dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.3" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
