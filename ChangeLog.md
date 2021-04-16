@@ -7,6 +7,8 @@ This project's release branch is `master`. This log is written from the perspect
 * Bump
   * reflex to 0.8.1.0
   * reflex-dom-core to 0.6.2.0
+  * jsaddle to 0.9.7.1
+  * jsaddle-dom to 0.9.4.1
 * New pins
   * hnix 0.12.0.1 and dependencies
   * dependent-monoidal-map 0.1.1.2
