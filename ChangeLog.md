@@ -9,6 +9,7 @@ This project's release branch is `master`. This log is written from the perspect
   * reflex-dom-core to 0.6.2.0
 * New pins
   * hnix 0.12.0.1 and dependencies
+  * dependent-monoidal-map 0.1.1.2
 
 ## v0.7.0.0
 
