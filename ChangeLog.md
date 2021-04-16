@@ -4,6 +4,9 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
+* Bump
+  * reflex to 0.8.1.0
+  * reflex-dom-core to 0.6.2.0
 * New pins
   * hnix 0.12.0.1 and dependencies
 

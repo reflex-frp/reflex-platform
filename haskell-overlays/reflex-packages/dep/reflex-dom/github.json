@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "release/0.6.1.0",
+  "branch": "release/0.6.2.0",
   "private": false,
-  "rev": "02c61ecff6ed6e1bda4a68b24d6c2e04c70a31e2",
-  "sha256": "1m54blk368n5ljj1iyicas2ksl1f0x7i5gkqpy1l6yjq3f8r9awy"
+  "rev": "6a7782a61e90e7369a8278441eb47f702bb7c63b",
+  "sha256": "13y2h9cqhll55qgk7x33wnz88822irkdxych1c0fbw20jghhp96h"
 }
