@@ -1,0 +1,8 @@
+{
+  "owner": "reflex-frp",
+  "repo": "reflex-fsnotify",
+  "branch": "ts@ghc-8-10",
+  "private": false,
+  "rev": "1f9395217e7a69186ac4b9bcd628fde12433eaef",
+  "sha256": "09gln37l0hhcv82sp1nqr0dkahcij5iqrx7k6p7b62108l68dr50"
+}

@@ -108,15 +108,22 @@ in
   ## Terminal / Conventional OS
   ##
 
-  reflex-vty = self.callHackage "reflex-vty" "0.1.4.1" {};
-  reflex-process = self.callHackage "reflex-process" "0.3.1.0" {};
-  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.2" {};
+  reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
+  # doJailbreak and buildTarget so we don't build the readme executable, it depends on an older reflex-vty.
+  reflex-process = overrideCabal (self.callCabal2nix "reflex-process" self._dep.reflex-process {}) {
+    preConfigure = ''
+      substituteInPlace reflex-process.cabal --replace "executable readme" "executable readme
+          buildable: False"
+    '';
+  };
+  reflex-fsnotify = self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {};
 
   ##
   ## Tooling
   ##
 
-  reflex-ghci = self.callHackage "reflex-ghci" "0.1.5.1" {};
+  # Depends on older reflex-vty, should fix this and reenable!
+  # reflex-ghci = self.callHackage "reflex-ghci" "0.1.5.1" {};
 
   ##
   ## GHCJS and JSaddle
