@@ -19,6 +19,12 @@ let
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
 
   inherit (nixpkgs) stdenv;
+  # Older chromium for reflex-dom-core test suite
+  oldnixpkgs = import (builtins.fetchTarball {
+    name = "oldnixpkgs";
+    url = "https://github.com/obsidiansystems/nixpkgs/archive/reflex-platform.tar.gz";
+    sha256 = "0qwrqilfn11sqlgsdrn99a623kxxxcbcy2acv9pmd620jvgmx0p9";
+  }) {};
 in
 {
   _dep = super._dep or {} // thunkSet ./dep;
@@ -68,9 +74,10 @@ in
       ];
 
       testSystemDepends = with nixpkgs; (drv.testSystemDepends or []) ++ [
-        selenium-server-standalone which
+        oldnixpkgs.selenium-server-standalone
+        oldnixpkgs.chromium
+        which
       ] ++ stdenv.lib.optionals (!noGcTest) [
-        chromium
         nixpkgs.iproute
       ];
     } // stdenv.lib.optionalAttrs (!noGcTest) {
