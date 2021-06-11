@@ -67,13 +67,12 @@ rec {
   combined-any-8 = self: super: foldExtensions [
     any-8
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) any-8_6)
-# TODO this is now incorrect for 20.09
-    (optionalExtension (lib.versionOlder "8.7"  (getGhcVersion super.ghc)) any-head)
+    (optionalExtension (lib.versionOlder "8.11"  (getGhcVersion super.ghc)) any-head)
   ] self super;
 
   combined-ghc = self: super: foldExtensions [
     (optionalExtension (versionWildcard [ 8 6 ] super.ghc.version) ghc-8_6)
-    (optionalExtension (lib.versionOlder "8.7"  super.ghc.version) ghc-head)
+    (optionalExtension (lib.versionOlder "8.11"  super.ghc.version) ghc-head)
   ] self super;
 
   combined-ghcjs = self: super: foldExtensions [
