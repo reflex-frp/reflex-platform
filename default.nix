@@ -224,8 +224,14 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.wasm.haskell.overlays.combined;
   });
 
-  ghc = ghc8_6;
+  ghc = ghc8_10;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
+    overrides = nixpkgs.haskell.overlays.combined;
+  };
+  ghc8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc8104).override {
+    overrides = nixpkgs.haskell.overlays.combined;
+  };
+  ghc8_8 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc884).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc865).override {
@@ -304,6 +310,8 @@ in let this = rec {
           ghc
           ghcHEAD
           ghc8_6
+          ghc8_8
+          ghc8_10
           ghcIosSimulator64
           ghcIosAarch64
           ghcIosAarch64-8_6
@@ -402,8 +410,8 @@ in let this = rec {
       hasktags
       # hdevtools # Marked broken in 20.09
       hlint
-      stylish-haskell # Recent stylish-haskell only builds with AMP in place
-      reflex-ghci
+      # stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      # reflex-ghci # Needs older reflex-vty
       ;
     inherit (nixpkgs)
       cabal2nix
