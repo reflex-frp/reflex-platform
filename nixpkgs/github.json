@@ -1,8 +1,8 @@
 {
-  "owner": "NixOS",
+  "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "nixos-20.09",
+  "branch": "reflex-platform-20.09",
   "private": false,
-  "rev": "cee3ca37c68dad981396365bf4b1d0c807ac4eb4",
-  "sha256": "1m6f60gnhgsbmavw0mq1r00v2lb4mhrxbx5dxqp3qhadfaxm8xn2"
+  "rev": "8fdfc96433e3b00397c06ad16cc5d859b0e1a6c3",
+  "sha256": "0p3nyl5y0vh52q71wfdmh8b9wsyvlrgpp5wqn263hwpc49f66757"
 }
