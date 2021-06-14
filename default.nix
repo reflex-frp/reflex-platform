@@ -408,7 +408,6 @@ in let this = rec {
       cabal-install
       ghcid
       hasktags
-      # hdevtools # Marked broken in 20.09
       hlint
       # stylish-haskell # Recent stylish-haskell only builds with AMP in place
       # reflex-ghci # Needs older reflex-vty
