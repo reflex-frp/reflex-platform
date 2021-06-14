@@ -72,6 +72,8 @@ in rec {
       #   keyPassword = "password";
       # }
 
+    , isRelease ? releaseKey != null
+
     , resources ? defaultResources
 
     , assets ? defaultAssets
@@ -92,6 +94,8 @@ in rec {
 
     , googleServicesJson ? null
 
+    , mavenDeps ? import ./defaults/deps.nix
+
     , additionalDependencies ? ""
 
     , runtimeSharedLibs ? (_: [])
@@ -105,10 +109,18 @@ in rec {
       # You need to patch soname in make files of libraries to link against
       # unversioned libraries.
 
+    , javaSources ? []
+      # A list of additional Java source directories to include in the APK build
+
     , universalApk ? true
       # Set this to false to build one APK per target platform.  This will
       # automatically transform the version code to 1000 * versionCode + offset
       # where "offset" is a per-platform constant.
+
+    , usesCleartextTraffic ? false
+
+    # Can be "assembleRelease", "assembleDebug", or "bundleRelease"
+    , gradleTask ? (if isRelease then "assembleRelease" else "assembleDebug")
     }:
     assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
     nixpkgs.lib.makeOverridable impl.buildApp {
@@ -129,6 +141,10 @@ in rec {
               googleServicesJson
               additionalDependencies
               runtimeSharedLibs
-              universalApk;
+              javaSources
+              universalApk
+              mavenDeps
+              usesCleartextTraffic
+              gradleTask;
     };
 }

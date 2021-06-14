@@ -8,16 +8,19 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
-, iosSdkVersion ? "10.2"
+, iosSdkVersion ? "13.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
 , hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
-, hieSupport ? true
 }:
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
+
+    xcodeVer = {
+      "13.2" = "11.3.1";
+    }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
     # Overlay for GHC with -load-splices & -save-splices option
     splicesEval = self: super: {
@@ -113,6 +116,8 @@ let iosSupport = system == "x86_64-darwin";
 
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
+    wasmCross = nixpkgs.hackGet ./wasm-cross;
+    webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc865SplicesSrc;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
@@ -131,21 +136,30 @@ let iosSupport = system == "x86_64-darwin";
         simulator64 = {
           crossSystem = lib.systems.examples.iphone64-simulator // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         aarch64 = {
           crossSystem = lib.systems.examples.iphone64 // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.iphone32 // {
             sdkVer = iosSdkVersion;
+            inherit xcodeVer;
           };
         };
         # Back compat
         arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
       };
+      ghcjs = nixpkgsFunc (nixpkgsArgs // {
+        crossSystem = lib.systems.examples.ghcjs;
+      });
+      wasm = nixpkgsFunc (nixpkgsArgs //
+        (import wasmCross { inherit nixpkgsFunc; }).nixpkgsCrossArgs webGhcSrc "8.6.5"
+      );
     };
 
     haskellLib = nixpkgs.haskell.lib;
@@ -188,19 +202,27 @@ let iosSupport = system == "x86_64-darwin";
     ]);
   };
   ghcjs = ghcjs8_6;
-  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgs.haskell.packages.ghcjs86.override (old: {
+  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = nixpkgs.haskell.packages.ghc865;
+      bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
       ghcjsSrc = fetchgit {
         url = "https://github.com/obsidiansystems/ghcjs.git";
-        rev = "06f81b44c3cc6c7f75e1a5a20d918bad37294b52";
-        sha256 = "02mwkf7aagxqi142gcmq048244apslrr72p568akcab9s0fn2gvy";
+        rev = "a00ecf0b2eaddbc4101c76e6ac95fc97b0f75840"; # ghc-8.6 branch
+        sha256 = "06cwpijwhj4jpprn07y3pkxmv40pwmqqw5jbdv4s7c67j5pmirnc";
         fetchSubmodules = true;
       };
     };
   }))).override {
-    overrides = nixpkgs.haskell.overlays.combined;
+    overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
+
+  wasm = ghcWasm32-8_6;
+  ghcWasm32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
+    # Due to the splices changes the parallel build fails while building the libraries
+    ghc = old.ghc.overrideAttrs (drv: { enableParallelBuilding = false; });
+  }))).override {
+    overrides = nixpkgsCross.wasm.haskell.overlays.combined;
+  });
 
   ghc = ghc8_6;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
@@ -263,6 +285,9 @@ let iosSupport = system == "x86_64-darwin";
   iosAarch64-8_6 = iosWithHaskellPackages ghcIosAarch64-8_6;
   iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
   iosAarch32-8_6 = iosWithHaskellPackages ghcIosAarch32-8_6;
+  iosSimulator = {
+    buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs; ghc = ghcIosSimulator64; withSimulator = true; });
+  };
   iosWithHaskellPackages = ghc: {
     buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
@@ -295,7 +320,10 @@ in let this = rec {
           androidWithHaskellPackages
           iosAarch32
           iosAarch64
+          iosSimulator
           iosWithHaskellPackages
+          wasm
+          wasmCross
           ;
 
   # Back compat
@@ -327,6 +355,12 @@ in let this = rec {
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc.via_8_6";
     bundleName = "Reflex TodoMVC via GHC 8.6";
+  };
+  iosSimulatorReflexTodomvc = iosSimulator.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleName = "Reflex TodoMVC";
   };
   setGhcLibdir = ghcLibdir: inputGhcjs:
     let libDir = "$out/lib/ghcjs-${inputGhcjs.version}";
@@ -369,6 +403,7 @@ in let this = rec {
       hdevtools
       hlint
       stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      reflex-ghci
       ;
     inherit (nixpkgs)
       cabal2nix
@@ -378,15 +413,25 @@ in let this = rec {
       pkgconfig
       closurecompiler
       ;
-  } // lib.optionalAttrs hieSupport {
-    haskell-ide-engine = nixpkgs.haskell.lib.justStaticExecutables (nativeHaskellPackages.override {
-      overrides = nixpkgs.haskell.overlays.hie;
-    }).haskell-ide-engine;
   };
 
   workOn = haskellPackages: package: (overrideCabal package (drv: {
     buildTools = (drv.buildTools or []) ++ builtins.attrValues (generalDevTools' {});
   })).env;
+
+  # A minimal wrapper around the build-wasm-app from wasm-cross
+  # Useful in building simple cabal projects like reflex-todomvc
+  build-wasm-app-wrapper =
+    ename: # Name of the executable, usually same as cabal project name
+    pkgPath : # Path of cabal package
+    args: # Others options to pass to build-wasm-app
+  let
+    pkg = wasm.callPackage pkgPath {};
+    webabi = nixpkgs.callPackage (wasmCross + /webabi) {};
+    build-wasm-app = nixpkgs.callPackage (wasmCross + /build-wasm-app.nix) ({ inherit webabi; } // args);
+  in build-wasm-app {
+    inherit pkg ename;
+  };
 
   # A simple derivation that just creates a file with the names of all
   # of its inputs. If built, it will have a runtime dependency on all
@@ -418,14 +463,17 @@ in let this = rec {
     let otherPlatforms = lib.optionals androidSupport [
           "ghcAndroidAarch64"
           "ghcAndroidAarch32"
-        ] ++ lib.optional iosSupport "ghcIosAarch64";
+        ] ++ lib.optionals iosSupport [
+          "ghcIosAarch64"
+          "ghcIosSimulator64"
+        ];
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
       ++ lib.optionals androidSupport [
         androidDevTools
         androidReflexTodomvc
       ] ++ lib.optionals iosSupport [
-        iosReflexTodomvc
+        iosReflexTodomvc iosSimulatorReflexTodomvc
       ];
 
   inherit cabal2nixResult system androidSupport iosSupport;

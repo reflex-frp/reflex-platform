@@ -1,8 +1,7 @@
 { reflex-platform ? import ../.. { hideDeprecated = true; }
 
-, lib ? reflex-platform.lib
 , pkgs ? reflex-platform.nixpkgs
-, haskellPackages ? reflex-platform.haskellPackages
+, haskellPackages ? reflex-platform.ghc
 }:
 
 rec {
@@ -10,7 +9,7 @@ rec {
   mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
     inherit name;
     value = f value;
-  }) (lib.attrsToList s));
+  }) (attrsToList s));
   mkSdist = pkg: pkg.override (oldArgs: {
     mkDerivation = drv: oldArgs.mkDerivation (drv // {
       pname = drv.pname + "-sdist";

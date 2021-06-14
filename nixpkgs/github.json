@@ -1,7 +1,8 @@
 {
-  "owner": "nixos",
-  "repo": "nixpkgs-channels",
-  "branch": "nixos-19.09",
-  "rev": "2ed8568d837ac7aaa5c802fa87f4aa9b8c7a4ea6",
-  "sha256": "0jsj6p1jxc51wpfq34g2jvplfmwdc34zaw4gwq2qcqi8x794d3h3"
+  "owner": "obsidiansystems",
+  "repo": "nixpkgs",
+  "branch": "reflex-platform-19.09",
+  "private": false,
+  "rev": "f3b1cd3a0ed5843f7317874677f63aee53c3e939",
+  "sha256": "0qr3qvi0p9yf3s40h0c4i9gnxb79wga8qc9d12csnip5dham7lky"
 }

@@ -1,4 +1,4 @@
-{ nixpkgs, ghc }:
+{ nixpkgs, ghc, withSimulator ? false }:
 
 { #TODO
   bundleName
@@ -70,6 +70,7 @@ let
     ];
     ${"CFBundleIcons~ipad"} = {
       CFBundlePrimaryIcon = {
+        CFBundleIconName = "Icon";
         CFBundleIconFiles = [
           "Icon-60"
           "Icon-76"
@@ -79,21 +80,23 @@ let
     };
     CFBundleIcons = {
       CFBundlePrimaryIcon = {
+        CFBundleIconName = "Icon";
         CFBundleIconFiles = [
           "Icon-60"
         ];
       };
     };
-    DTSDKName = "iphoneos10.2";
-    DTXcode = "0821";
-    DTSDKBuild = "14C89";
-    BuildMachineOSBuild = "16D32";
+
+    DTSDKName = "iphoneos13.2";
+    DTXcode = "1130"; # XCode 11.3.1
+    DTXcodeBuild = "11C505";
+    DTSDKBuild = "17B102"; # iOS 13.2
+    BuildMachineOSBuild = "19G73"; # Catalina
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
     MinimumOSVersion = "10.2";
-    DTXcodeBuild = "8C1002";
-    DTPlatformVersion = "10.2";
-    DTPlatformBuild = "14C89";
+    DTPlatformVersion = "13.2";
+    DTPlatformBuild = "17B102"; # iOS 13.2
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
   };
@@ -103,23 +106,10 @@ let
     else abort ''
       `extraInfoPlistContent` has been removed. Instead use `overrideInfoPlist` to provide an override function that modifies the default info.plist data as a nix attrset. For example: `(x: x // {NSCameraUsageDescription = "We need your camera.";})`
     '';
+  exePath = package ghc;
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
-  exePath = package ghc;
   infoPlist = builtins.toFile "Info.plist" (nixpkgs.lib.generators.toPlist {} infoPlistData);
-  resourceRulesPlist = builtins.toFile "ResourceRules.plist" (nixpkgs.lib.generators.toPlist {} {
-    rules = {
-      ".*" = true;
-      "Info.plist" = {
-        omit = true;
-        weight = 10;
-      };
-      "ResourceRules.plist" = {
-        omit = true;
-        weight = 100;
-      };
-    };
-  });
   indexHtml = builtins.toFile "index.html" ''
     <html>
       <head>
@@ -141,7 +131,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if (( "$#" < 1 )); then
+    if [ "$#" -ne 1 ]; then
       echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
@@ -163,14 +153,14 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     tmpdir=$(mktemp -d)
     # Find the signer given the OU
-    signer=$(security find-certificate -c 'iPhone Developer' -c 'Apple Development' -a \
+    signer=$({ security find-certificate -c 'iPhone Developer' -a; security find-certificate -c 'Apple Development' -a; } \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
           security find-certificate -c "$c" -p \
-            | openssl x509 -subject -noout; \
+            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
         done \
-      | grep "OU=$TEAM_ID/" \
+      | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1 || true)
 
@@ -181,19 +171,19 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
-    chmod +w "$tmpdir/${executableName}.app"
-    chmod +w "$tmpdir/${executableName}.app/${executableName}"
+    chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
-    ${nixpkgs.nodePackages.ios-deploy}/bin/ios-deploy -W -b "$tmpdir/${executableName}.app" "$@"
+    deploy="''${IOS_DEPLOY:-${nixpkgs.darwin.ios-deploy}/bin/ios-deploy}"
+    $deploy -W -b "$tmpdir/${executableName}.app" "$@"
   '';
   packageScript = nixpkgs.writeText "package" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if (( "$#" != 3 )); then
+    if [ "$#" -lt 3 ]; then
       echo "Usage: $0 [TEAM_ID] [IPA_DESTINATION] [EMBEDDED_PROVISIONING_PROFILE]" >&2
       exit 1
     fi
@@ -224,9 +214,9 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
           security find-certificate -c "$c" -p \
-            | openssl x509 -subject -noout; \
+            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
         done \
-      | grep "OU=$TEAM_ID/" \
+      | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
       | head -n 1)
 
@@ -237,20 +227,26 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
-    chmod +w "$tmpdir/${executableName}.app"
-    chmod +rw "$tmpdir/${executableName}.app/${executableName}"
+    chmod -R +w "$tmpdir/${executableName}.app"
     strip "$tmpdir/${executableName}.app/${executableName}"
     mkdir -p "$tmpdir/${executableName}.app/config"
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
     /usr/bin/xcrun -sdk iphoneos ${./PackageApplication} -v "$tmpdir/${executableName}.app" -o "$IPA_DESTINATION" --sign "$signer" --embed "$EMBEDDED_PROVISIONING_PROFILE"
-    /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support/altool --validate-app -f "$IPA_DESTINATION" -t ios "$@"
+
+    altool=/Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support/altool
+
+    if ! [ -x "$altool" ]; then
+      altool=/Applications/Xcode.app/Contents/Developer/usr/bin/altool
+    fi
+
+    "$altool" --validate-app -f "$IPA_DESTINATION" -t ios "$@"
   '';
   runInSim = builtins.toFile "run-in-sim" ''
     #!/usr/bin/env bash
 
-    if (( "$#" != 0 )); then
+    if [ "$#" -ne 0 ]; then
       echo "Usage: $0" >&2
       exit 1
     fi
@@ -271,30 +267,99 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     mkdir -p $tmpdir
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
-    chmod +w "$tmpdir/${executableName}.app"
+    chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
-    cp "$1" "$tmpdir/${executableName}.app/config/route"
-
-    # focus????
-    focus/reflex-platform/scripts/run-in-ios-sim "$tmpdir/${executableName}.app"
+    ${../scripts/run-in-ios-sim} "$tmpdir/${executableName}.app" "${bundleIdentifier}"
   '';
-}) ''
+  portableDeployScript = nixpkgs.writeText "make-portable-deploy" ''
+    #!/usr/bin/env bash
+    set -eo pipefail
+
+    if [ "$#" -ne 1 ]; then
+      echo "Usage: $0 [TEAM_ID]" >&2
+      exit 1
+    fi
+
+    TEAM_ID=$1
+    shift
+
+    set -euo pipefail
+
+    function cleanup {
+      if [ -n "$tmpdir" -a -d "$tmpdir" ]; then
+        echo "Cleaning up tmpdir" >&2
+        chmod -R +w $tmpdir
+        rm -fR $tmpdir
+      fi
+    }
+
+    trap cleanup EXIT
+
+    tmpdir=$(mktemp -d)
+    # Find the signer given the OU
+    signer=$({ security find-certificate -c 'iPhone Developer' -a; security find-certificate -c 'Apple Development' -a; } \
+      | grep '^    "alis"<blob>="' \
+      | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
+      | while read c; do \
+          security find-certificate -c "$c" -p \
+            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
+        done \
+      | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
+      | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
+      | head -n 1 || true)
+
+    if [ -z "$signer" ]; then
+      echo "Error: No iPhone Developer certificate found for team id $TEAM_ID" >&2
+      exit 1
+    fi
+
+    dir="$tmpdir/${executableName}-${bundleVersion}"
+    mkdir $dir
+
+    cp -LR "$(dirname $0)/../${executableName}.app" $dir
+    chmod -R +w "$dir/${executableName}.app"
+    mkdir -p "$dir/${executableName}.app/config"
+    sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $dir/xcent
+    /usr/bin/codesign --force --sign "$signer" --entitlements $dir/xcent --timestamp=none "$dir/${executableName}.app"
+
+    # unsure if we can sign with same key as for iOS app, may need special permissions
+    cp ${nixpkgs.darwin.ios-deploy}/bin/ios-deploy $dir/ios-deploy
+    /usr/bin/codesign --force --sign "$signer" --timestamp=none "$dir/ios-deploy"
+
+    cat >$dir/deploy <<'EOF'
+#!/usr/bin/env bash
+DIR="$( cd "$( dirname "''${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+"$DIR/ios-deploy" -W -b "$DIR/${executableName}.app" "$@"
+EOF
+    chmod +x $dir/deploy
+
+    dest=$PWD/${executableName}-${bundleVersion}.tar.gz
+    (cd $tmpdir && tar cfz $dest ${executableName}-${bundleVersion}/)
+
+    echo Created $dest.
+  '';}) (''
   set -x
   mkdir -p "$out/${executableName}.app"
   ln -s "$infoPlist" "$out/${executableName}.app/Info.plist"
-  ln -s "$resourceRulesPlist" "$out/${executableName}.app/ResourceRules.plist"
   ln -s "$indexHtml" "$out/${executableName}.app/index.html"
   mkdir -p "$out/bin"
   cp --no-preserve=mode "$deployScript" "$out/bin/deploy"
   chmod +x "$out/bin/deploy"
   cp --no-preserve=mode "$packageScript" "$out/bin/package"
   chmod +x "$out/bin/package"
+'' + nixpkgs.lib.optionalString withSimulator ''
   cp --no-preserve=mode "$runInSim" "$out/bin/run-in-sim"
   chmod +x "$out/bin/run-in-sim"
-  ln -s "$exePath/bin/${executableName}" "$out/${executableName}.app/"
-  cp -RL "${staticSrc}"/* "$out/${executableName}.app/"
-  for icon in "${staticSrc}"/assets/Icon*.png; do
+'' + ''
+  cp --no-preserve=mode "$portableDeployScript" "$out/bin/make-portable-deploy"
+  chmod +x "$out/bin/make-portable-deploy"
+  cp "${exePath}/bin/${executableName}" "$out/${executableName}.app/"
+  cp -RL '${staticSrc}'/* "$out/${executableName}.app/"
+  for icon in '${staticSrc}'/assets/Icon*.png '${staticSrc}'/assets/AppIcon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
   done
+  for splash in '${staticSrc}'/assets/Default*.png; do
+    cp -RL "$splash" "$out/${executableName}.app/"
+  done
   set +x
-''
+'')

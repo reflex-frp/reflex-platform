@@ -2,6 +2,7 @@
 , which, gradle, fetchurl, buildEnv, runCommand }:
 
 args@{ name, src, platformVersions ? [ "8" ]
+     , buildToolsVersions ? [ "28.0.3" ]
      , useGoogleAPIs ? false, useGooglePlayServices ? false
      , release ? false, keyStore ? null, keyAlias ? null
      , keyStorePassword ? null, keyAliasPassword ? null
@@ -18,29 +19,35 @@ let
   inherit (stdenv.lib) optionalString optional;
 
   m2install = { repo, version, artifactId, groupId
-              , jarSha256, pomSha256, aarSha256, suffix ? "" }:
+              , jarSha256, pomSha256, aarSha256, suffix ? ""
+              , customJarUrl ? null, customJarSuffix ? null }:
     let m2Name = "${artifactId}-${version}";
         m2Path = "${builtins.replaceStrings ["."] ["/"] groupId}/${artifactId}/${version}";
+        jarFile = fetchurl {
+          url = if customJarUrl != null then customJarUrl else "${repo}${m2Path}/${m2Name}${suffix}.jar";
+          sha256 = jarSha256;
+        };
     in runCommand m2Name {} (''
-         mkdir -p $out/m2/${m2Path}
+         installPath="$out"/m2/'${m2Path}'
+         mkdir -p "$installPath"
        '' + optionalString (jarSha256 != null) ''
-         install -D ${fetchurl {
-                        url = "${repo}${m2Path}/${m2Name}${suffix}.jar";
-                        sha256 = jarSha256;
-                      }} $out/m2/${m2Path}/${m2Name}${suffix}.jar
+         install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}.jar'
+         ${optionalString (customJarSuffix != null) ''
+           install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}${customJarSuffix}.jar'
+         ''}
        '' + optionalString (pomSha256 != null) ''
          install -D ${fetchurl {
                         url = "${repo}${m2Path}/${m2Name}${suffix}.pom";
                         sha256 = pomSha256;
-                      }} $out/m2/${m2Path}/${m2Name}${suffix}.pom
+                      }} "$installPath/${m2Name}${suffix}.pom"
        '' + optionalString (aarSha256 != null) ''
          install -D ${fetchurl {
                         url = "${repo}${m2Path}/${m2Name}${suffix}.aar";
                         sha256 = aarSha256;
-                      }} $out/m2/${m2Path}/${m2Name}${suffix}.aar
+                      }} "$installPath/${m2Name}${suffix}.aar"
        '');
   androidsdkComposition = androidenv.composeAndroidPackages {
-    inherit platformVersions useGoogleAPIs;
+    inherit platformVersions useGoogleAPIs buildToolsVersions;
     includeExtras = [ "extras;android;m2repository" ]
       ++ optional useGooglePlayServices "extras;google;google_play_services";
   };
@@ -68,7 +75,7 @@ stdenv.mkDerivation ({
       ) >> gradle.properties
     ''}
     buildDir=`pwd`
-    cp -r $ANDROID_HOME $buildDir/local_sdk
+    cp -rL $ANDROID_HOME $buildDir/local_sdk
     chmod -R 755 local_sdk
     export ANDROID_HOME=$buildDir/local_sdk/android-sdk
     # Key files cannot be stored in the user's home directory. This
@@ -88,7 +95,7 @@ stdenv.mkDerivation ({
     chmod -R 755 .m2
     mkdir -p .m2/repository/com/android/support
     cp -RL local_sdk/android-sdk/extras/android/m2repository/com/android/support/* .m2/repository/com/android/support/
-    gradle ${gradleTask} --offline --no-daemon -g ./tmp -Dmaven.repo.local=`pwd`/.m2/repository
+    gradle ${gradleTask} --offline --no-daemon -g ./tmp -Dmaven.repo.local=$(pwd)/.m2/repository
   '';
 
   installPhase = ''

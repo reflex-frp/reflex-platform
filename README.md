@@ -26,7 +26,7 @@ To see what has changed since a previous version of Reflex Platform, see `Change
 Important Notes
 ---------------
 
- ### OS Compatibility
+### OS Compatibility
 
 If you're using one of these platforms, please take a look at notes before you begin:
 
@@ -37,7 +37,7 @@ If you're using one of these platforms, please take a look at notes before you b
 
 If you encounter any problems that may be specific to your platform, please submit an issue or pull request so that we can add a note for future users.
 
- ### Memory Requirements
+### Memory Requirements
 
 GHCJS uses a lot of memory during compilation. 16GB of memory is recommended, with 8GB being pretty close to bare minimum.
 
@@ -67,7 +67,7 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
      ghc --make your-source-file.hs
      ./your-source-file
      ```
-     Compilation will produce a `your-source-file` native executable via [WebkitGtk](https://github.com/WebKit/webkit). Simply run it to launch your app.
+     Compilation will produce a `your-source-file` native executable via [WebkitGtk](https://github.com/WebKit/webkit). Simply run it to launch your app. Developer tools are available via `Inspect Element` in the right-click context menu.
 
    * GHCJS
      ```bash
@@ -77,22 +77,22 @@ This process will install the [Nix package manager](https://nixos.org/nix/). If 
 
 **Don't use** `cabal install` to install libraries while inside the try-reflex shell - the resulting libraries may not be found properly by ghc or ghcjs.  Using Cabal to configure, build, test, and run a particular package, however, should work just fine.
 
-`try-reflex` and `ghcjs --make` are not recommended for real-world projects — just as a quick and easy way to install Nix and experiment with `reflex-dom`. If you need to use additional Haskell libraries (e.g. from Hackage), we recommend using the tools described in [project-development.md](docs/project-development.md) instead.
+`try-reflex` and `ghcjs --make` are not recommended for real-world projects — just as a quick and easy way to install Nix and experiment with `reflex-dom`. If you need to use additional Haskell libraries (e.g. from Hackage), we recommend using the tools described in [project-development.rst](docs/project-development.rst) instead.
 
 Haddock
 ----
 If you've already set up nix, haddock documentation for the versions pinned by your current reflex-plaftorm can be browsed by running
 
-```shell
-$ ./scripts/docs-for reflex
-$ ./scripts/docs-for reflex-dom
+```bash
+./scripts/docs-for reflex
+./scripts/docs-for reflex-dom
 ```
 
 Tutorial
 --------
 In this example, we'll be following [Luite Stegemann's lead](http://weblog.luite.com/wordpress/?p=127) and building a simple functional reactive calculator to be used in a web browser.
 
- ### DOM Basics
+### DOM Basics
 
 Reflex's companion library, Reflex-DOM, contains a number of functions used to build and interact with the Document Object Model. Let's start by getting a basic app up and running.
 
@@ -101,12 +101,10 @@ Reflex's companion library, Reflex-DOM, contains a number of functions used to b
 #ifdef SNIPPET_0
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > import Reflex.Dom
 
 > main = mainWidget $ el "div" $ text "Welcome to Reflex"
-
 ```
 <!--
 #endif
@@ -143,7 +141,6 @@ text :: DomBuilder t m => Text -> m ()
 #ifdef SNIPPET_1
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > import Reflex.Dom
 
@@ -153,28 +150,24 @@ text :: DomBuilder t m => Text -> m ()
 >    el "li" $ text "Efficient"
 >    el "li" $ text "Higher-order"
 >    el "li" $ text "Glitch-free"
-
 ```
 <!--
 #endif
 -->
 
-
- ### Dynamics and Events
+### Dynamics and Events
 Of course, we want to do more than just view a static webpage. Let's start by getting some user input and printing it.
 
 <!--
 #ifdef SNIPPET_2
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > import Reflex.Dom
 
 > main = mainWidget $ el "div" $ do
 >   t <- inputElement def
 >   dynText $ _inputElement_value t
-
 ```
 <!--
 #endif
@@ -208,14 +201,13 @@ data InputElement er d t
 
 Here we are using `_inputElement_value` to access the `Dynamic Text` value of the `InputElement`. Conveniently, `dynText` takes a `Dynamic Text` and displays it. It is the dynamic version of `text`.
 
- ### A Number Input
+### A Number Input
 A calculator was promised, I know. We'll start building the calculator by creating an input for numbers.
 
 <!--
 #ifdef SNIPPET_4
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > import Reflex
 > import Reflex.Dom
@@ -227,7 +219,6 @@ A calculator was promised, I know. We'll start building the calculator by creati
 >     & inputElementConfig_initialValue .~ "0"
 >     & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
 >   dynText $ _inputElement_value t
-
 ```
 <!--
 #endif
@@ -243,7 +234,6 @@ Let's do more than just take the input value and print it out. First, let's make
 #ifdef SNIPPET_5
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > import Reflex.Dom
 > import Data.Map (Map)
@@ -262,7 +252,6 @@ Let's do more than just take the input value and print it out. First, let's make
 >     & inputElementConfig_initialValue .~ "0"
 >     & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
 >   return . fmap (readMaybe . unpack) $ _inputElement_value n
-
 ```
 <!--
 #endif
@@ -273,14 +262,13 @@ We've defined a function `numberInput` that both handles the creation of the `In
 
 Running the app at this point should produce an input and some text showing the `Maybe Double`. Typing in a number should produce output like `Just 12.0` and typing in other text should produce the output `Nothing`.
 
- ### Adding
+### Adding
 Now that we have `numberInput` we can put together a couple inputs to make a basic calculator.
 
 <!--
 #ifdef SNIPPET_6
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > import Reflex
 > import Reflex.Dom
@@ -304,7 +292,6 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 >     & inputElementConfig_initialValue .~ "0"
 >     & inputElementConfig_elementConfig . elementConfig_initialAttributes .~ ("type" =: "number")
 >   return . fmap (readMaybe . unpack) $ _inputElement_value n
-
 ```
 <!--
 #endif
@@ -313,7 +300,7 @@ Now that we have `numberInput` we can put together a couple inputs to make a bas
 `numberInput` hasn't changed here. Our `main` function now creates two inputs. `zipDynWith` is used to produce the actual sum of the values of the inputs. The type signature of `zipDynWith` is:
 
 ```haskell
-    Reflex t => (a -> b -> c) -> Dynamic t a -> Dynamic t b -> Dynamic t c
+zipDynWith :: Reflex t => (a -> b -> c) -> Dynamic t a -> Dynamic t b -> Dynamic t c
 ```
 
 You can see that it takes a function that combines two pure values and produces some other pure value, and two `Dynamic`s, and produces a `Dynamic`.
@@ -322,7 +309,7 @@ In our case, `zipDynWith` is combining the results of our two `numberInput`s (wi
 
 We use `fmap` again to apply `pack . show` to `result` (a `Dynamic (Maybe Double)`) resulting in a `Dynamic Text`. This `resultText` is then displayed using `dynText`.
 
- ### Supporting Multiple Operations
+### Supporting Multiple Operations
 Next, we'll add support for other operations. We're going to add a dropdown so that the user can select the operation to apply. The function `dropdown` has the type:
 
 ```haskell
@@ -351,7 +338,6 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 #ifdef SNIPPET_7
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > import Reflex
 > import Reflex.Dom
@@ -388,7 +374,6 @@ We are using `constDyn` again here to turn our `Map` of operations into a `Dynam
 >             Minus -> (-)
 >             Times -> (*)
 >             Divide -> (/)
-
 ```
 <!--
 #endif
@@ -406,7 +391,7 @@ Next, we call `zipDynWith` again, combining the `_dropdown_value` and `values`. 
 
 Running the app at this point will give us our two number inputs with a dropdown of operations sandwiched between them. Multiplication should be pre-selected when the page loads.
 
- ### Dynamic Element Attributes
+### Dynamic Element Attributes
 Let's spare a thought for the user of our calculator and add a little UI styling. Our number input currently looks like this:
 
 ```haskell
@@ -430,7 +415,7 @@ numberInput = do
   return . fmap (readMaybe . unpack) $ _inputElement_value n
 ```
 
-Here, we've used a `(Map Text Text)`. This `Map` represents the html attributes of our inputs. 
+Here, we've used a `(Map Text Text)`. This `Map` represents the html attributes of our inputs.
 
 Static attributes are useful and quite common, but attributes will often need to change.
 Instead of just making the `InputElement` blue, let's change it's color based on whether the input successfully parses to a `Double`:
@@ -438,7 +423,7 @@ Instead of just making the `InputElement` blue, let's change it's color based on
 ```haskell
 {-# LANGUAGE RecursiveDo #-}
 import Control.Monad.Fix (MonadFix)
-...
+
 numberInput :: (DomBuilder t m, MonadFix m) => m (Dynamic t (Maybe Double))
 numberInput = do
   let initAttrs = ("type" =: "number") <> (style False)
@@ -476,7 +461,6 @@ The complete program now looks like this:
 #ifdef SNIPPET_8
 -->
 ```haskell
-
 > {-# LANGUAGE OverloadedStrings #-}
 > {-# LANGUAGE RecursiveDo       #-}
 > import Reflex
@@ -527,7 +511,6 @@ The complete program now looks like this:
 >             Minus -> (-)
 >             Times -> (*)
 >             Divide -> (/)
-
 ```
 <!--
 #endif

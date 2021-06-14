@@ -12,9 +12,18 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0'
+        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.lint:lint:26.4.2'
         ${googleServicesClasspath}
     }
+}
+
+task proguard(type: proguard.gradle.ProGuardTask) {
+  configuration 'proguard.txt'
+
+    // injars 'build/libs/proguard-gradle-example.jar'
+    // outjars 'build/libs/proguard-gradle-example.out.jar'
+
 }
 
 allprojects {
@@ -22,10 +31,11 @@ allprojects {
         mavenLocal()
     }
 }
+
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion '28.0.3'
 
     sourceSets {
@@ -40,9 +50,10 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode ${version.code}
         versionName "${version.name}"
+        multiDexEnabled false
     }
 
     ${if releaseKey == null then "" else ''
@@ -58,16 +69,17 @@ android {
     }
 
     buildTypes {
-        ${if releaseKey == null then "" else ''
-            release {
-                minifyEnabled false
-                zipAlignEnabled true
-                signingConfig signingConfigs.release
-            }
-          ''
+        release {
+            minifyEnabled false
+            useProguard false
+            zipAlignEnabled true
+            ${if releaseKey == null then "" else ''
+            signingConfig signingConfigs.release
+            ''}
         }
         debug {
             minifyEnabled false
+            useProguard false
             debuggable true
         }
     }
@@ -108,7 +120,9 @@ android.applicationVariants.all { variant ->
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.google.firebase:firebase-iid:20.2.3'
+    implementation 'com.google.firebase:firebase-messaging:20.2.3'
     ${additionalDependencies}
 }
 
