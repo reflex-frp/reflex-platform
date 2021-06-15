@@ -53,7 +53,6 @@ in self: super: {
   gi-glib = addGIDeps (self.callHackage "gi-glib" "2.0.19" {}) [] [];
   gi-cairo = addGIDeps (self.callHackage "gi-cairo" "1.0.19" {}) [nixpkgs.cairo] [];
   gi-gobject = addGIDeps (self.callHackage "gi-gobject" "2.0.21" {}) [] [];
-  gi-pango = addGIDeps (self.callHackage "gi-pango" "1.0.21" {}) [nixpkgs.pango] [];
   gi-gio = addGIDeps (self.callHackage "gi-gio" "2.0.24" {}) [] [];
   gi-atk = addGIDeps (self.callHackage "gi-atk" "2.0.20" {}) [] [];
   gi-javascriptcore = addGIDeps (self.callHackage "gi-javascriptcore" "4.0.20" {}) [] [];
