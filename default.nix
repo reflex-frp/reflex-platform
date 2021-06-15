@@ -409,7 +409,7 @@ in let this = rec {
       ghcid
       hasktags
       hlint
-      # stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      stylish-haskell # Recent stylish-haskell only builds with AMP in place
       # reflex-ghci # Needs older reflex-vty
       ;
     inherit (nixpkgs)
