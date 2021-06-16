@@ -22,12 +22,6 @@ in self: super: {
   # Recently uploaded to hackage:
   haven = self.callHackage "haven" "0.2.0.2" {};
 
-  # Update hlint and add new dependency
-  hlint = self.callHackage "hlint" "2.2.2" {};
-  ghc-lib-parser = self.callHackage "ghc-lib-parser" "8.8.0.20190723" {};
-  haskell-src-exts-util = self.callHackage "haskell-src-exts-util" "0.2.5" {};
-  stylish-haskell = self.callHackage "stylish-haskell" "0.9.2.2" {};
-
   # Fixing things that are marked broken in 19.03:
   butcher = doJailbreak (self.callHackage "butcher" "1.3.2.3" {});
   multistate = self.callHackage "multistate" "0.8.0.2" {};
