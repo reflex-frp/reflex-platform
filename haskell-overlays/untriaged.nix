@@ -22,13 +22,13 @@ in self: super: {
   # Recently uploaded to hackage:
   haven = self.callHackage "haven" "0.2.0.2" {};
 
-  # Fixing things that are marked broken in 19.03:
-  butcher = doJailbreak (self.callHackage "butcher" "1.3.2.3" {});
-  multistate = self.callHackage "multistate" "0.8.0.2" {};
+  # Need an older version for GHC 8.6
   haddock-api = dontHaddock (doJailbreak (self.callHackage "haddock-api" "2.22.0" {}));
-  constrained-dynamic = self.callHackage "constrained-dynamic" "0.1.0.0" {};
-  hsimport = doJailbreak (self.callHackage "hsimport" "0.10.0" {});
-  webkit2gtk3-javascriptcore = self.callHackage "webkit2gtk3-javascriptcore" "0.14.2.1" {};
+  # TODO this conflicts with the pandoc version
+  # haddock-library = doJailbreak (self.callHackage "haddock-library" "1.7.0" {});
+
+  # Fixing things that are marked broken in 20.09:
+  constrained-dynamic = dontCheck (self.callHackage "constrained-dynamic" "0.1.0.0" {});
 
   # Snap and deps are marked broken in 19.03 but needed by obelisk
   snap = self.callHackage "snap" "1.1.2.0" {};
