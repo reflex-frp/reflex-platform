@@ -18,7 +18,6 @@
 
 let config'= config // {
       permittedInsecurePackages = (config.permittedInsecurePackages or []) ++ [
-        "webkitgtk-2.4.11"
         "chromium-81.0.4044.138"
         "chromium-unwrapped-81.0.4044.138"
       ];
