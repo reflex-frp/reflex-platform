@@ -49,9 +49,6 @@ in self: super: {
   cryptonite = dontCheck super.cryptonite;
   scientific = dontCheck super.scientific;
 
-  # Broken in 19.09
-  http-streams = doJailbreak (self.callHackage "http-streams" "0.8.6.1" {});
-
   # pandoc 2.11 and dependencies
   commonmark = self.callHackage "commonmark" "0.1.0.2" {};
   commonmark-extensions = self.callHackage "commonmark-extensions" "0.2.0.1" {};
