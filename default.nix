@@ -16,16 +16,6 @@
 , hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
 }:
 
-let config'= config // {
-      permittedInsecurePackages = (config.permittedInsecurePackages or []) ++ [
-        "chromium-81.0.4044.138"
-        "chromium-unwrapped-81.0.4044.138"
-      ];
-    };
-in
-let config = config';
-in
-
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
