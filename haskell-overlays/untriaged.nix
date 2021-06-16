@@ -88,8 +88,6 @@ in self: super: {
     self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-core") {};
   hnix-store-remote =
     self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-remote") {};
-  algebraic-graphs = self.callHackage "algebraic-graphs" "0.5" {};
-  nix-derivation = self.callHackage "nix-derivation" "1.1.1" {};
   data-fix = self.callHackage "data-fix" "0.3.0" {};
   neat-interpolation = self.callHackage "neat-interpolation" "0.4" {};
   prettyprinter = self.callHackage "prettyprinter" "1.7.0" {};
