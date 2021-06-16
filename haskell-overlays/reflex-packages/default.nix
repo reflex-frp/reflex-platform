@@ -73,7 +73,7 @@ in
         chrome-test-utils
       ];
 
-      testSystemDepends = with nixpkgs; (drv.testSystemDepends or []) ++ [
+      testSystemDepends = with nixpkgs; (drv.testSystemDepends or []) ++ lib.optionals (nixpkgs.stdenv.hostPlatform.isLinux) [
         oldnixpkgs.selenium-server-standalone
         oldnixpkgs.chromium
         which
