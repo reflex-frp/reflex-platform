@@ -19,16 +19,14 @@ let # Adds additional arguments to 'buildInputs' and the 'HASKELL_GI_GIR_SEARCH_
     });
 in self: super: {
 
-  # Recently uploaded to hackage:
-  haven = self.callHackage "haven" "0.2.0.2" {};
-
   # Need an older version for GHC 8.6
   haddock-api = dontHaddock (doJailbreak (self.callHackage "haddock-api" "2.22.0" {}));
   # TODO this conflicts with the pandoc version
   # haddock-library = doJailbreak (self.callHackage "haddock-library" "1.7.0" {});
 
   # Fixing things that are marked broken in 20.09:
-  constrained-dynamic = dontCheck (self.callHackage "constrained-dynamic" "0.1.0.0" {});
+  constrained-dynamic = dontCheck (markUnbroken super.constrained-dynamic);
+  haven = markUnbroken super.haven;
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (super.haskell-gi-base) [nixpkgs.glib] [];
