@@ -30,11 +30,6 @@ in self: super: {
   # Fixing things that are marked broken in 20.09:
   constrained-dynamic = dontCheck (self.callHackage "constrained-dynamic" "0.1.0.0" {});
 
-  # Snap and deps are marked broken in 19.03 but needed by obelisk
-  snap = self.callHackage "snap" "1.1.2.0" {};
-  heist = dontCheck (self.callHackage "heist" "1.1.0.1" {});
-  map-syntax = doJailbreak (self.callHackage "map-syntax" "0.3" {});
-
   # Fixing things that are marked broken in 19.09:
   brittany = dontCheck (self.callHackage "brittany" "0.12.0.0" {});
   witherable = self.callHackage "witherable" "0.3.1" {};
