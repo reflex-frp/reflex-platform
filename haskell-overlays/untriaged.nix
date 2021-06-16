@@ -30,12 +30,6 @@ in self: super: {
   # Fixing things that are marked broken in 20.09:
   constrained-dynamic = dontCheck (self.callHackage "constrained-dynamic" "0.1.0.0" {});
 
-  # Fixing things that are marked broken in 19.09:
-  brittany = dontCheck (self.callHackage "brittany" "0.12.0.0" {});
-  witherable = self.callHackage "witherable" "0.3.1" {};
-  time-compat = dontCheck super.time-compat;
-  bimap = self.callHackage "bimap" "0.3.3" {};
-
   # Overrides for gi-* family of libraries. See addGIDeps, above.
   haskell-gi-base = addGIDeps (super.haskell-gi-base) [nixpkgs.glib] [];
   gi-glib = addGIDeps (super.gi-glib) [] [];
@@ -50,10 +44,6 @@ in self: super: {
   gi-soup = addGIDeps (super.gi-soup) [nixpkgs.gdk_pixbuf] [nixpkgs.libsoup];
   gi-gtk = addGIDeps (super.gi-gtk) [nixpkgs.gdk_pixbuf nixpkgs.gtk3] [nixpkgs.gtk3 nixpkgs.atk nixpkgs.pango];
   gi-webkit2 = addGIDeps (super.gi-webkit2) [] [nixpkgs.webkitgtk];
-
-  # Required by butcher
-  deque = self.callHackage "deque" "0.4.2.3" {};
-  strict-list = self.callHackage "strict-list" "0.1.4" {};
 
   # These take over an hour to run, each
   cryptonite = dontCheck super.cryptonite;
@@ -101,7 +91,7 @@ in self: super: {
   algebraic-graphs = self.callHackage "algebraic-graphs" "0.5" {};
   nix-derivation = self.callHackage "nix-derivation" "1.1.1" {};
   data-fix = self.callHackage "data-fix" "0.3.0" {};
-  neat-interpolation = self.callHackage "neat-interpolation" "0.5.1.2" {};
+  neat-interpolation = self.callHackage "neat-interpolation" "0.4" {};
   prettyprinter = self.callHackage "prettyprinter" "1.7.0" {};
 
 }
