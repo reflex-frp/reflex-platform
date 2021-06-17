@@ -17,11 +17,7 @@ let # Adds additional arguments to 'buildInputs' and the 'HASKELL_GI_GIR_SEARCH_
         nixpkgs.lib.concatStringsSep ":"
           (map (x: "${x.dev}/share/gir-1.0") ([nixpkgs.gobjectIntrospection] ++ girSearchPathPackages));
     });
-    nixpkgs2003 = import (builtins.fetchTarball {
-      name = "nixpkgs-reflex-platform-20.03";
-      url = "https://github.com/obsidiansystems/nixpkgs/archive/dc919c12a635ed7944f6b89bf43e1366ba9a5c54.tar.gz";
-      sha256 = "0vcamk796jn1ry4cc6mf6c8n4qsvwn4lyvl5r3kavbyz0qmf2ajz";
-    }) {};
+    nixpkgs2003 = import ../nixpkgs-20.03 {};
 in self: super: {
 
   # Need an older version for GHC 8.6
