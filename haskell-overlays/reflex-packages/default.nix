@@ -20,11 +20,7 @@ let
 
   inherit (nixpkgs) stdenv;
   # Older chromium for reflex-dom-core test suite
-  oldnixpkgs = import (builtins.fetchTarball {
-    name = "oldnixpkgs";
-    url = "https://github.com/obsidiansystems/nixpkgs/archive/reflex-platform.tar.gz";
-    sha256 = "0qwrqilfn11sqlgsdrn99a623kxxxcbcy2acv9pmd620jvgmx0p9";
-  }) {};
+  nixpkgs1903 = import ../../nixpkgs-19.03 {};
 in
 {
   _dep = super._dep or {} // thunkSet ./dep;
@@ -74,8 +70,8 @@ in
       ];
 
       testSystemDepends = with nixpkgs; (drv.testSystemDepends or []) ++ lib.optionals (nixpkgs.stdenv.hostPlatform.isLinux) [
-        oldnixpkgs.selenium-server-standalone
-        oldnixpkgs.chromium
+        nixpkgs1903.selenium-server-standalone
+        nixpkgs1903.chromium
         which
       ] ++ stdenv.lib.optionals (!noGcTest) [
         nixpkgs.iproute
