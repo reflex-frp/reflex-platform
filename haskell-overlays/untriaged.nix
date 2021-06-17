@@ -29,19 +29,24 @@ in self: super: {
   haven = markUnbroken super.haven;
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
-  haskell-gi-base = addGIDeps (super.haskell-gi-base) [nixpkgs.glib] [];
-  gi-glib = addGIDeps (super.gi-glib) [] [];
-  gi-cairo = addGIDeps (super.gi-cairo) [nixpkgs.cairo] [];
-  gi-gobject = addGIDeps (super.gi-gobject) [] [];
-  gi-pango = addGIDeps (super.gi-pango) [nixpkgs.pango] [];
-  gi-gio = addGIDeps (super.gi-gio) [] [];
-  gi-atk = addGIDeps (super.gi-atk) [] [];
-  gi-javascriptcore = addGIDeps (super.gi-javascriptcore) [] [];
-  gi-gdkpixbuf = addGIDeps (super.gi-gdkpixbuf) [nixpkgs.gdk_pixbuf nixpkgs.gtk3] [nixpkgs.gtk3];
-  gi-gdk = addGIDeps (super.gi-gdk) [nixpkgs.gdk_pixbuf nixpkgs.pango nixpkgs.gtk3] [nixpkgs.gtk3];
-  gi-soup = addGIDeps (super.gi-soup) [nixpkgs.gdk_pixbuf] [nixpkgs.libsoup];
-  gi-gtk = addGIDeps (super.gi-gtk) [nixpkgs.gdk_pixbuf nixpkgs.gtk3] [nixpkgs.gtk3 nixpkgs.atk nixpkgs.pango];
-  gi-webkit2 = addGIDeps (super.gi-webkit2) [] [nixpkgs.webkitgtk];
+  # Also use an older version suitable for GHC 8.6.
+  # haskell-gi-base == 0.24.2 errors (needs newer compiler) https://github.com/haskell-gi/haskell-gi/issues/304
+  # haskell-gi-base == 0.23.0 errors (gi-pango 1.0.22 does not build) https://github.com/haskell-gi/haskell-gi/issues/298
+  # haskell-gi-base == 0.22.0 errors (gi-pango 1.0.21? does not build) https://github.com/haskell-gi/haskell-gi/issues/244
+  haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.23.0" {}) [nixpkgs.glib] [];
+  haskell-gi = addGIDeps (self.callHackage "haskell-gi" "0.23.0" {}) [] [];
+  gi-glib = addGIDeps (self.callHackage "gi-glib" "2.0.23" {}) [] [];
+  gi-cairo = addGIDeps (self.callHackage "gi-cairo" "1.0.23" {}) [nixpkgs.cairo] [];
+  gi-gobject = addGIDeps (self.callHackage "gi-gobject" "2.0.22" {}) [] [];
+  gi-pango = addGIDeps (self.callHackage "gi-pango" "1.0.22" {}) [nixpkgs.pango] [];
+  gi-gio = addGIDeps (self.callHackage "gi-gio" "2.0.25" {}) [] [];
+  gi-atk = addGIDeps (self.callHackage "gi-atk" "2.0.21" {}) [] [];
+  gi-javascriptcore = addGIDeps (self.callHackage "gi-javascriptcore" "4.0.21" {}) [] [];
+  gi-gdkpixbuf = addGIDeps (self.callHackage "gi-gdkpixbuf" "2.0.23" {}) [nixpkgs.gdk_pixbuf nixpkgs.gtk3] [nixpkgs.gtk3];
+  gi-gdk = addGIDeps (self.callHackage "gi-gdk" "3.0.22" {}) [nixpkgs.gdk_pixbuf nixpkgs.pango nixpkgs.gtk3] [nixpkgs.gtk3];
+  gi-soup = addGIDeps (self.callHackage "gi-soup" "2.4.22" {}) [nixpkgs.gdk_pixbuf] [nixpkgs.libsoup];
+  gi-gtk = addGIDeps (self.callHackage "gi-gtk" "3.0.32" {}) [nixpkgs.gdk_pixbuf nixpkgs.gtk3] [nixpkgs.gtk3 nixpkgs.atk nixpkgs.pango];
+  gi-webkit2 = addGIDeps (self.callHackage "gi-webkit2" "4.0.25" {}) [] [nixpkgs.webkitgtk];
 
   # These take over an hour to run, each
   cryptonite = dontCheck super.cryptonite;
