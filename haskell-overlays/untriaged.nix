@@ -17,7 +17,6 @@ let # Adds additional arguments to 'buildInputs' and the 'HASKELL_GI_GIR_SEARCH_
         nixpkgs.lib.concatStringsSep ":"
           (map (x: "${x.dev}/share/gir-1.0") ([nixpkgs.gobjectIntrospection] ++ girSearchPathPackages));
     });
-    nixpkgs2003 = import ../nixpkgs-20.03 {};
 in self: super: {
 
   # Need an older version for GHC 8.6
@@ -30,25 +29,19 @@ in self: super: {
   haven = markUnbroken super.haven;
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
-  # Also use an older version suitable for GHC 8.6, because haskell-gi-base ==
-  # 0.24.2 needs a newer compiler. https://github.com/haskell-gi/haskell-gi/issues/304
-  # We also need nixpkgs2003 for older gi* deps. TODO: This should be removed
-  # after GHC is bumped, and the uses of (callHackage "x") can be switched back
-  # to (super.x).
-  haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.23.0" {}) [nixpkgs.glib] [];
-  haskell-gi = addGIDeps (self.callHackage "haskell-gi" "0.23.0" {}) [] [];
-  gi-glib = addGIDeps (self.callHackage "gi-glib" "2.0.23" {}) [] [];
-  gi-cairo = addGIDeps (self.callHackage "gi-cairo" "1.0.23" {}) [nixpkgs.cairo] [];
-  gi-gobject = addGIDeps (self.callHackage "gi-gobject" "2.0.22" {}) [] [];
-  gi-pango = addGIDeps (self.callHackage "gi-pango" "1.0.22" {}) [nixpkgs2003.pango] [];
-  gi-gio = addGIDeps (self.callHackage "gi-gio" "2.0.25" {}) [] [];
-  gi-atk = addGIDeps (self.callHackage "gi-atk" "2.0.21" {}) [] [];
-  gi-javascriptcore = addGIDeps (self.callHackage "gi-javascriptcore" "4.0.21" {}) [] [];
-  gi-gdkpixbuf = addGIDeps (self.callHackage "gi-gdkpixbuf" "2.0.23" {}) [nixpkgs2003.gdk_pixbuf nixpkgs2003.gtk3] [nixpkgs2003.gtk3];
-  gi-gdk = addGIDeps (self.callHackage "gi-gdk" "3.0.22" {}) [nixpkgs2003.gdk_pixbuf nixpkgs2003.pango nixpkgs2003.gtk3] [nixpkgs2003.gtk3];
-  gi-soup = addGIDeps (self.callHackage "gi-soup" "2.4.22" {}) [nixpkgs2003.gdk_pixbuf] [nixpkgs2003.libsoup];
-  gi-gtk = addGIDeps (self.callHackage "gi-gtk" "3.0.32" {}) [nixpkgs2003.gdk_pixbuf nixpkgs2003.gtk3] [nixpkgs2003.gtk3 nixpkgs2003.atk nixpkgs2003.pango];
-  gi-webkit2 = addGIDeps (self.callHackage "gi-webkit2" "4.0.25" {}) [] [nixpkgs2003.webkitgtk];
+  haskell-gi-base = addGIDeps (super.haskell-gi-base) [nixpkgs.glib] [];
+  gi-glib = addGIDeps (super.gi-glib) [] [];
+  gi-cairo = addGIDeps (super.gi-cairo) [nixpkgs.cairo] [];
+  gi-gobject = addGIDeps (super.gi-gobject) [] [];
+  gi-pango = addGIDeps (super.gi-pango) [nixpkgs.pango] [];
+  gi-gio = addGIDeps (super.gi-gio) [] [];
+  gi-atk = addGIDeps (super.gi-atk) [] [];
+  gi-javascriptcore = addGIDeps (super.gi-javascriptcore) [] [];
+  gi-gdkpixbuf = addGIDeps (super.gi-gdkpixbuf) [nixpkgs.gdk_pixbuf nixpkgs.gtk3] [nixpkgs.gtk3];
+  gi-gdk = addGIDeps (super.gi-gdk) [nixpkgs.gdk_pixbuf nixpkgs.pango nixpkgs.gtk3] [nixpkgs.gtk3];
+  gi-soup = addGIDeps (super.gi-soup) [nixpkgs.gdk_pixbuf] [nixpkgs.libsoup];
+  gi-gtk = addGIDeps (super.gi-gtk) [nixpkgs.gdk_pixbuf nixpkgs.gtk3] [nixpkgs.gtk3 nixpkgs.atk nixpkgs.pango];
+  gi-webkit2 = addGIDeps (super.gi-webkit2) [] [nixpkgs.webkitgtk];
 
   # These take over an hour to run, each
   cryptonite = dontCheck super.cryptonite;
