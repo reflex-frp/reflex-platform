@@ -3,6 +3,6 @@
   "repo": "nixpkgs",
   "branch": "reflex-platform-20.09",
   "private": false,
-  "rev": "61654e246153a3d1db65ca26f1425e76f097ee8e",
-  "sha256": "14491s4ydmvp4w9ld61pdwgwhyjsgy3bbbxgaagvbihr14adlsyw"
+  "rev": "007da5d106b57c62435e4274abbb39db687e3df9",
+  "sha256": "1r0gx2nywc0q2m26rm4s850mgkmkscvhzyf5g3zh88c9ih6myyz2"
 }
