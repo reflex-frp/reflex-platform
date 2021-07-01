@@ -20,7 +20,16 @@ let
 
   inherit (nixpkgs) stdenv;
   # Older chromium for reflex-dom-core test suite
-  nixpkgs_oldChromium = import ../../nixpkgs-old-chromium {};
+  nixpkgs_oldChromium = import ../../nixpkgs-old-chromium {
+    overlays = [ (self: super: {
+      # Disable tests for p11-kit, a dependency of chromium
+      # They fail on non-NixOS systems
+      # https://github.com/NixOS/nixpkgs/issues/96715
+      p11-kit = super.p11-kit.overrideAttrs (oldAttrs: {
+        doCheck = false;
+      });
+    })];
+  };
 in
 {
   _dep = super._dep or {} // thunkSet ./dep;
