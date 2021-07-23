@@ -11,8 +11,12 @@ if [ "$#" = 2 ]; then
   bundleIdentifier="$2"
 fi
 
-runtime="$(xcrun simctl list runtimes -j | jq -r '.runtimes[].identifier' | head -n1)"
+# Choose the first runtime which allows simulation of an iPhone 8
+runtime="$(xcrun simctl list devices -j | jq -r '.devices | to_entries[] | (.key as $k | .value[] | if .isAvailable and .name == "iPhone 8" then $k else empty end)' | sort | head -n1)"
+echo "Using runtime $runtime"
+echo "Creating device $name"
 uuid="$(xcrun simctl create "$name" com.apple.CoreSimulator.SimDeviceType.iPhone-8 "$runtime")"
+echo "Device UUID $uuid"
 
 function cleanup {
   if [ -n "$uuid" ]; then
