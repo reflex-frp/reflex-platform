@@ -6,6 +6,7 @@ This project's release branch is `master`. This log is written from the perspect
 
 * Bump
   * patch to 0.0.4.0
+* ([#731](https://github.com/reflex-frp/reflex-platform/pull/731)) Choose iOS simulator runtime based on supported devices
 
 ## v0.7.1.0
 
