@@ -27,24 +27,18 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          # The compiler used to boot the cross compiler must be exactly the
-          # same commit as the cross compiler itself in order for the splices
-          # plugin to work correctly. So we specify the commit here, and
-          # override this compiler to make the cross compiler while keeping the
-          # same commit.
           ghc8104Splices = super.haskell.compiler.ghc8104.overrideAttrs (drv: {
-            enableParallelBuilding = false;
-            # Ensure we use the correct boot compiler
-            nativeBuildInputs = with nixpkgs;
-              let bootGhc = nixpkgs.haskell.compiler.ghc8104;
-                  bootPkgs = nixpkgs.haskell.packages.ghc8104;
-              in [
-                perl autoconf automake m4 python3 python3Packages.sphinx
-                bootGhc bootPkgs.alex bootPkgs.happy bootPkgs.hscolour
-              ];
+            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc;
+            # When building from the ghc git repo, ./boot must be run before configuring, whereas
+            # in the distribution tarball on the haskell.org downloads page, ./boot has already been
+            # run.
+            preConfigure= ''
+              echo ${drv.version} >VERSION
+              ./boot
+            '' + drv.preConfigure or "";
             patches = [
               # Patch libraries/unix/config.sub to fix android build
-              ./nixpkgs-overlays/unix-android.patch
+              ./nixpkgs-overlays/android-8.10-splices.patch
             ];
           });
         };
@@ -199,8 +193,6 @@ let iosSupport = system == "x86_64-darwin";
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
-        dependent-sum-template = dontCheck super.dependent-sum-template;
-        generic-deriving = dontCheck super.generic-deriving;
       })
     ]);
   };

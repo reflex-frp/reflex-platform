@@ -2,10 +2,12 @@
 
 self: super: {
   mkDerivation = attrs: let
+
     drv = (super.mkDerivation (attrs // {
-      preConfigure = ''
-        ${attrs.preConfigure or ""}
-        configureFlags+=" --ghc-option=-save-splices=$out$SPLICE_DIR"
+      preBuild = ''
+        ${attrs.preBuild or ""}
+        echo "!!! save-splices: $out$SPLICE_DIR"
+        export EXTERNAL_SPLICES_SAVE=$out$SPLICE_DIR
       '';
     }));
 

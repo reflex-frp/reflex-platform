@@ -1,5 +1,5 @@
 diff --git a/libraries/unix/config.sub b/libraries/unix/config.sub
-index 40ea5df..f3c3404 100755
+index 40ea5dfe..f3c3404a 100755
 --- a/libraries/unix/config.sub
 +++ b/libraries/unix/config.sub
 @@ -118,7 +118,7 @@ case $maybe_os in

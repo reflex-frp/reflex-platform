@@ -56,6 +56,7 @@ in
 
       # The headless browser run as part of the tests will exit without this
       preBuild = ''
+        ${drv.preBuild or ""}
         export HOME="$PWD"
       '';
 
