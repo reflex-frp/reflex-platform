@@ -122,10 +122,8 @@ let iosSupport = system == "x86_64-darwin";
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
-            # Hard to find newer 32-bit phone to test with that's newer than
-            # this. Concretely, doing so resulted in:
-            # https://android.googlesource.com/platform/bionic/+/master/libc/arch-common/bionic/pthread_atfork.h#19
-            sdkVer = "22";
+            # Choose an old version so it's easier to find phones to test on
+            sdkVer = "23";
           };
         };
       };
