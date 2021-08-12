@@ -1,9 +1,7 @@
 {
   "owner": "tomsmalley",
   "repo": "ghc",
-  "branch": "embedded-splices-plugin",
-  "private": false,
-  "rev": "39454adc4097b4e93e0710e183540177369064ac",
-  "sha256": "183lj2c4cpq76qiywhkpm3ayfhbrygg5bybkf1ffi1xyjwq5fphv",
+  "rev": "93063be3b9e3bcd973f2bd78fadb17f19888320e",
+  "sha256": "1xpdv3sxlppnfwzwkc18fp13srpbnca0qi8a6206ccpq3h48zv6n",
   "fetchSubmodules": true
 }
