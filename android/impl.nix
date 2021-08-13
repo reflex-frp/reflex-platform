@@ -28,19 +28,15 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
   buildApp = args: with args; addDeployScript (buildGradleApp {
-    inherit acceptAndroidSdkLicenses;
+    inherit acceptAndroidSdkLicenses mavenDeps;
     buildDirectory = "./.";
-    # Can be "assembleRelease" or "assembleDebug" (to build release or debug) or "assemble" (to build both)
-    gradleTask = if isRelease
-      then "assembleRelease"
-      else "assembleDebug";
+    inherit gradleTask;
     keyAlias = releaseKey.keyAlias or null;
     keyAliasPassword = releaseKey.keyPassword or null;
     keyStore = releaseKey.storeFile or null;
     keyStorePassword = releaseKey.storePassword or null;
-    mavenDeps = import ./defaults/deps.nix;
     name = applicationId;
-    platformVersions = [ "28" ];
+    platformVersions = [ "29" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;
@@ -62,12 +58,12 @@ in {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
           inherit applicationId version additionalDependencies releaseKey universalApk;
           googleServicesClasspath = optionalString (googleServicesJson != null)
-            "classpath 'com.google.gms:google-services:3.0.0'";
+            "classpath 'com.google.gms:google-services:4.3.3'";
           googleServicesPlugin = optionalString (googleServicesJson != null)
             "apply plugin: 'com.google.gms.google-services'";
         });
         androidManifestXml = builtins.toFile "AndroidManifest.xml" (import ./AndroidManifest.xml.nix {
-          inherit applicationId version iconPath intentFilters services permissions activityAttributes;
+          inherit applicationId version iconPath intentFilters services permissions activityAttributes usesCleartextTraffic;
         });
         stringsXml = builtins.toFile "strings.xml" (import ./strings.xml.nix {
           inherit displayName;
@@ -95,7 +91,7 @@ in {
           ln -s "$stringsXml" "$out/res/values/strings.xml"
           mkdir -p "$out/jni"
           ln -s "$applicationMk" "$out/jni/Application.mk"
-
+          ${optionalString (googleServicesJson != null) ''cp '${googleServicesJson}' "$out/google-services.json"''}
         '' + concatStrings (builtins.map (arch:
           let
             inherit (appSOs.${arch}) hsApp sharedLibs;

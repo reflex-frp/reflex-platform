@@ -1,7 +1,22 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash -p jq
+
 set -euo pipefail
 
-uuid="$(xcrun simctl create reflex-todomvc com.apple.CoreSimulator.SimDeviceType.iPhone-7 com.apple.CoreSimulator.SimRuntime.iOS-10-2)"
+name="${1##*/}"
+name="${name%.app}"
+
+bundleIdentifier="$name"
+if [ "$#" = 2 ]; then
+  bundleIdentifier="$2"
+fi
+
+# Choose the first runtime which allows simulation of an iPhone 8
+runtime="$(xcrun simctl list devices -j | jq -r '.devices | to_entries[] | (.key as $k | .value[] | if .isAvailable and .name == "iPhone 8" then $k else empty end)' | sort | head -n1)"
+echo "Using runtime $runtime"
+echo "Creating device $name"
+uuid="$(xcrun simctl create "$name" com.apple.CoreSimulator.SimDeviceType.iPhone-8 "$runtime")"
+echo "Device UUID $uuid"
 
 function cleanup {
   if [ -n "$uuid" ]; then
@@ -12,10 +27,12 @@ function cleanup {
 }
 trap cleanup EXIT
 
-name="${1##*/}"
-name="${name%.app}"
-
+echo Opening Simulator... >&2
 open -a Simulator --args -CurrentDeviceUDID "$uuid"
-sleep 5
+sleep 20
+
+echo Installing "$name".app >&2
 xcrun simctl install "$uuid" "$1"
-xcrun simctl launch --console "$uuid" "$name"
+
+echo Launching "$name" >&2
+xcrun simctl launch --console "$uuid" "$bundleIdentifier"

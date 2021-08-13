@@ -4,7 +4,76 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
-* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for WebGHC support.
+* Bump
+  * patch to 0.0.4.0
+
+## v0.7.1.0
+
+* Bump
+  * reflex to 0.8.1.0
+  * reflex-dom-core to 0.6.2.0
+  * jsaddle to 0.9.7.1
+  * jsaddle-dom to 0.9.4.1
+* New pins
+  * hnix 0.12.0.1 and dependencies
+  * dependent-monoidal-map 0.1.1.2
+
+## v0.7.0.0
+
+* Bump
+  * all-cabal-hashes ("Update from Hackage at 2020-12-01T14:56:13Z")
+  * beam-core to 0.9.0.0
+  * beam-migrate to 0.5.0.0
+  * beam-postgres to 0.5.0.0
+* New pins
+  * [beam-automigrate](https://github.com/obsidiansystems/beam-automigrate) 0.1.0.0
+* Android
+  * Add allowBackup/fullBackupContent to manifest
+  * Bump gradle to v3.4.0 and upgrade related maven dependencies
+  * Allow maven dependencies to be overridden
+  * Copy google-services.json to the location expected by google integrations
+  * Disable multi-dex on android builds (see [note](https://github.com/reflex-frp/reflex-platform/commit/0e3e94467ab117832989632d65cfcc9afd538809))
+  * Update to android sdk version 29
+* iOS
+  * Copy default splash screen images and app icon into sample application
+  * Make ios-deploy tool overridable
+  * Update iosSdkVersion to 13.2
+  * Make xcode version customizable
+  * Remove ResourceRules.plist as it is no longer necessary
+  * Set CFBundleIconName as required by App Store
+  * Add portable-deploy script for iOS for creating a pre-signed tarball which can be tested without Nix.
+  * Add iOS Simulator target
+
+## v0.6.1.0
+
+* Bump
+  * all-cabal-hashes ("Update from Hackage at 2020-11-06T16:55:57Z")
+  * which to 0.2.0.0
+  * gargoyle to 0.1.1.0
+  * gargoyle-postgresql to 0.2.0.1
+  * gargoyle-postgresql-nix to 0.3.0.0
+  * aeson-gadt-th to 0.2.4
+  * reflex-ghci to 0.1.5.1
+  * constraints-extras to 0.3.0.2
+  * some to 1.0.1
+  * prim-uniq to 0.2
+  * aeson-gadt-th to 0.2.4
+  * dependent-map to 0.4
+  * dependent-sum to 0.7.1.0
+  * dependent-sum-template to 0.1.0.3
+  * dependent-sum-aeson-orphans to 0.3.0.0
+  * reflex to 0.7.2.0
+  * reflex-vty to 0.1.4.1
+  * patch to 0.0.3.2
+  * reflex-dom to 0.6.1.0
+  * reflex-fsnotify to 0.2.1.2
+  * reflex-process to 0.3.1.0
+* New Pins
+  * gargoyle-postgresql-connect 0.1.0.0
+
+## v0.6.0.0
+
+* ([#658](https://github.com/reflex-frp/reflex-platform/pull/658)) Include infrastructure for experimental WebGHC support.
 * ([#664](https://github.com/reflex-frp/reflex-platform/pull/664)) Update GHCJS to include a critical bugfix to the `-dedupe` flag. (See [obsidiansystems/ghcjs#3](https://github.com/obsidiansystems/ghcjs/pull/3) for more information.)
 * Bump
   * `all-cabal-hashes` to more recent snapshot of Hackage.
@@ -15,6 +84,8 @@ This project's release branch is `master`. This log is written from the perspect
   * `reflex-process` to 0.3.0.0.
   * `reflex-vty` to 0.1.4.0.
   * `android-activity`. It now detects the number of cores on Android devices to utilize them better.
+  * pandoc to 2.11.0.2 (bumping various dependencies as well)
+* Remove support for haskell-ide-engine
 
 ## v0.5.3.0
 

@@ -1,7 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "android-activity",
+  "branch": "eac@port-firebase",
   "private": false,
-  "rev": "77f4cf9000beac3d94c61f63fddb3155701bac54",
-  "sha256": "0asbw3r79srd7qdn5i2qcgyif5097r8w7i3k39515vb6512v8ams"
+  "rev": "40fe4f9fb145b72bfee1f7d7fa0442523a11a798",
+  "sha256": "1rn2x7nc21b4sbfghk72c79s5a8ya5pi0qwfyjyf4dqv55b6c5zw"
 }

@@ -1,0 +1,8 @@
+{
+  "owner": "haskell-nix",
+  "repo": "hnix-store",
+  "branch": "master",
+  "private": false,
+  "rev": "3e043dc99d80335bdfb8e7e23094da6dfbbcc018",
+  "sha256": "0dykfdz8b8mzbjl201d0a7w45zvd0fcwypsdnzshcgxrlrvj222f"
+}
