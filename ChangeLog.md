@@ -6,6 +6,7 @@ This project's release branch is `master`. This log is written from the perspect
 
 * Bump
   * Nixpkgs to newer 20.03
+  * Add more hooks to android Native APIs
 
 ## v0.7.2.0
 
