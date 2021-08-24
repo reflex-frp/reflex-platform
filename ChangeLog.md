@@ -5,7 +5,15 @@ This project's release branch is `master`. This log is written from the perspect
 ## Unreleased
 
 * Bump
+  * Nixpkgs to newer 20.03
+  * Add more hooks to android Native APIs
+
+## v0.7.2.0
+
+* Bump
+  * Nixpkgs to newer 19.09
   * patch to 0.0.4.0
+* ([#731](https://github.com/reflex-frp/reflex-platform/pull/731)) Choose iOS simulator runtime based on supported devices
 
 ## v0.7.1.0
 
