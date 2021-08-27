@@ -1,17 +1,12 @@
 { reflex-platform }:
 
 let
-  skeletonSrc = reflex-platform.nixpkgs.fetchFromGitHub (builtins.fromJSON (builtins.readFile ../examples/project/reflex-project-skeleton/github.json))
-  // {
-    fetchSubmodules = false; # Not interested in its reflex-platform checkout
-  };
-
-  skeleton = import skeletonSrc { inherit reflex-platform; };
+  skeleton = import ../examples/project/reflex-project-skeleton { inherit reflex-platform; };
 
   mkCabalProject = { shellDrv, projectFile }: shellDrv.overrideAttrs (old: {
     name = "reflex-project-skeleton-${projectFile}";
     phases = [ "unpackPhase" "buildPhase" "installPhase" ];
-    src = skeletonSrc;
+    src = skeleton;
     CABAL_CONFIG = builtins.toFile "cabal.config" ''
     '';
     buildPhase = ''
