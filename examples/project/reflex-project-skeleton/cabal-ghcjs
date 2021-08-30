@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+nix-shell -Q $DIR/default.nix -A shells.ghcjs --add-root $DIR/dist-ghcjs/gc-roots/gc-root --indirect --run "cabal --project-file=$DIR/cabal-ghcjs.project --builddir=dist-ghcjs $(printf "%q " "$@")"

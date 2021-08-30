@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+nix-shell -Q $DIR/default.nix -A shells.ghc --add-root $DIR/dist-newstyle/gc-roots/gc-root --indirect --run "cabal $(printf "%q " "$@")"
