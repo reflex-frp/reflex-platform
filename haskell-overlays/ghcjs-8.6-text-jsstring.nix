@@ -25,8 +25,6 @@ self: super: {
       postFetch = ''
         sed -i.bak 's/\(base .*\)4\.12/\15/' $out/primitive.cabal
         # substituteInPlace $out/primitive.cabal --replace 'base >= 4.5 && < 4.12' 'base >= 4.5 && < 5'
-        sed -i.bak 's/Ghc-Options:/Cc-options: -fPIC\n  Ghc-Options: -fPIC/' $out/primitive.cabal
-        # build and link with -fPIC
         cat $out/primitive.cabal
       '';
 
