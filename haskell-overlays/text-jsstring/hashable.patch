@@ -74,7 +74,7 @@ index cc9fb87..bdf9cb1 100644
  -- in base-4.9 and onward.
  #if MIN_VERSION_base(4,9,0)
 diff --git a/hashable.cabal b/hashable.cabal
-index e19d056..e442956 100644
+index e19d056..1dfca0d 100644
 --- a/hashable.cabal
 +++ b/hashable.cabal
 @@ -57,6 +57,8 @@ Library
@@ -86,3 +86,13 @@ index e19d056..e442956 100644
    if flag(integer-gmp)
      Build-depends:   integer-gmp >= 0.4 && < 1.1
    else
+@@ -78,7 +80,8 @@ Library
+                      TypeOperators
+                      UnliftedFFITypes
+
+-  Ghc-options:       -Wall -fwarn-tabs
++  Ghc-options:       -Wall -fwarn-tabs -fPIC
++  Cc-options:        -fPIC
+
+ Test-suite tests
+   Type:              exitcode-stdio-1.0
