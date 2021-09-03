@@ -17,6 +17,12 @@ self: super: {
   blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
   cryptonite = haskellLib.disableCabalFlag super.cryptonite "integer-gmp";
 
+  hashable = haskellLib.overrideCabal super.hashable (drv: {
+    patches = (drv.patches or []) ++ [
+      ./patches/hashable.patch
+    ];
+  });
+
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;
     dontStrip = true;

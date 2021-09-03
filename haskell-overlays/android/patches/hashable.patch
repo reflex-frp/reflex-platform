@@ -1,0 +1,14 @@
+diff --git a/hashable.cabal b/hashable.cabal
+index e19d056..6d814af 100644
+--- a/hashable.cabal
++++ b/hashable.cabal
+@@ -78,7 +78,8 @@ Library
+                      TypeOperators
+                      UnliftedFFITypes
+
+-  Ghc-options:       -Wall -fwarn-tabs
++  Ghc-options:       -Wall -fwarn-tabs -fPIC
++  Cc-options:        -fPIC
+
+ Test-suite tests
+   Type:              exitcode-stdio-1.0
