@@ -10,8 +10,8 @@ This project's release branch is `master`. This log is written from the perspect
 ## v0.8.0.0
 
 * Bump
-  * Nixpkgs to newer 20.03
-  * Add more hooks to android Native APIs
+  * Nixpkgs to 20.03
+* Add more hooks to android Native APIs
 
 ## v0.7.2.0
 
