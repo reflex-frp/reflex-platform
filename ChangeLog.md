@@ -2,6 +2,14 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## v0.8.0.2
+
+* Bug fix relating to `preBuild` hook when TH splicing.
+
+## v0.8.0.1
+
+* Just fixing a change log entry.
+
 ## v0.8.0.0
 
 * Bump
