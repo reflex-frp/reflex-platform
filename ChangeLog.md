@@ -2,7 +2,7 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-## Unreleased
+## v0.8.0.0
 
 * Bump
   * Nixpkgs to newer 20.03
