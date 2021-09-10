@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "ts@tiny-test-fixes",
+  "branch": "master",
   "private": false,
-  "rev": "06ac0a83b680e497b0afe0a1dc863b9aa153834b",
-  "sha256": "0dlp71n06zgcnj6s04vmd3pca8smb8lav2a7ffax9ykfc6vfzvf4"
+  "rev": "112e626ce8dc97d17c8aa9092727fb824b6f9fba",
+  "sha256": "12bggm7p69fq3pc0s5wfwg6rvp207lny24xxsx72xyynz1b8ym3l"
 }
