@@ -7,6 +7,10 @@ This project's release branch is `master`. This log is written from the perspect
 * Bump
   * Nixpkgs to 20.09
 
+## v0.8.0.3
+
+* Fix pure Nix evaluation.
+
 ## v0.8.0.2
 
 * Bug fix relating to `preBuild` hook when TH splicing.
