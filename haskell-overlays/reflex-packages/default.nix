@@ -20,7 +20,7 @@ let
 
   inherit (nixpkgs) stdenv;
   # Older chromium for reflex-dom-core test suite
-  nixpkgs_oldChromium = import ../../nixpkgs-old-chromium { inherit (nixpkgs.stdenv) system; };
+  nixpkgs_oldChromium = import ../../nixpkgs-old-chromium { inherit (nixpkgs.stdenv.buildPlatform) system; };
 in
 {
   _dep = super._dep or {} // thunkSet ./dep;
