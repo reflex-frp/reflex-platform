@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex",
-  "branch": "ts@relax-hlint-bounds",
+  "branch": "master",
   "private": false,
-  "rev": "6fa856ba38d764f7d84a41d8c7ae81534a623b7e",
-  "sha256": "003nkmcl6xq043y264lz992fmgp7yggszqz3lmmj7ys0m88xf8vh"
+  "rev": "86ab4e2b3c41ef521ca1e90e403c0b126ac70f64",
+  "sha256": "0xpyh7kql3a3yvanm4g7a3jab13llnpmc00ri3zv4w9jafydxm5a"
 }

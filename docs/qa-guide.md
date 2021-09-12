@@ -117,6 +117,15 @@ result/bin/deploy <team-id>
 ```
 For more information on finding out what your team-id is, please see the [Obelisk's `README.md`](https://github.com/obsidiansystems/obelisk/blob/develop/README.md#ios).
 
+If you run into error 0xe800001c (device does not recognize this host) or similar when deploying, you need to make sure your device "trusts" your computer before deploying. On macOS 10.15 (Catalina) and newer:
+
+1. Open the Finder app.
+2. After plugging the device in with a lightning cable, it should appear in the sidebar on the left.
+3. Click the device and click the "Trust" button that appears in Finder.
+4. Unlock your device and tap the "Trust" button that should pop up.
+
+After this, you should be able to deploy to your device.
+
 ### Testing the 'work-on' and 'work-on-multi' scripts
 
 ```bash

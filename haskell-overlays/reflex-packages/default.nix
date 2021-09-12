@@ -21,6 +21,7 @@ let
   inherit (nixpkgs) stdenv;
   # Older chromium for reflex-dom-core test suite
   nixpkgs_oldChromium = import ../../nixpkgs-old-chromium {
+    inherit (nixpkgs.stdenv.buildPlatform) system;
     overlays = [ (self: super: {
       # Disable tests for p11-kit, a dependency of chromium
       # They fail on non-NixOS systems
