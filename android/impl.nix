@@ -1,7 +1,7 @@
 env: with env;
 let overrideAndroidCabal = package: overrideCabal package (drv: {
       preConfigure = (drv.preConfigure or "") + ''
-        sed -i 's%^executable *\(.*\)$%executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog%i' *.cabal
+        sed -i 's%^executable *\(.*\)$%executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lffi -lm -llog%i' *.cabal
       '';
     });
     androidenv = nixpkgs.androidenv;
@@ -42,7 +42,7 @@ in {
       let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
-            sharedLibs = runtimeSharedLibs myNixpkgs;
+            sharedLibs = runtimeSharedLibs myNixpkgs ++ [ "${myNixpkgs.libffi}/lib/libffi.so" ];
           }) {
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
