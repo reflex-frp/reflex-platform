@@ -29,7 +29,7 @@ in self: super: {
   haven = markUnbroken super.haven;
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
-  haskell-gi-base = addGIDeps (super.haskell-gi-base) [nixpkgs.glib] [];
+  haskell-gi-base = addGIDeps (self.callHackage "haskell-gi-base" "0.24.4" {}) [nixpkgs.glib] [];
   gi-glib = addGIDeps (super.gi-glib) [] [];
   gi-cairo = addGIDeps (super.gi-cairo) [nixpkgs.cairo] [];
   gi-gobject = addGIDeps (super.gi-gobject) [] [];
