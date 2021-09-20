@@ -34,6 +34,7 @@ in self: super: {
   gi-cairo = addGIDeps (super.gi-cairo) [nixpkgs.cairo] [];
   gi-gobject = addGIDeps (super.gi-gobject) [] [];
   gi-pango = addGIDeps (super.gi-pango) [nixpkgs.pango] [];
+  gi-harfbuzz = addGIDeps (super.gi-harfbuzz) [] [nixpkgs.harfbuzz];
   gi-gio = addGIDeps (super.gi-gio) [] [];
   gi-atk = addGIDeps (super.gi-atk) [] [];
   gi-javascriptcore = addGIDeps (super.gi-javascriptcore) [] [];
