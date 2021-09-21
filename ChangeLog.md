@@ -2,6 +2,11 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* Bump
+  * [reflex-vty to 0.2.0.0](https://github.com/reflex-frp/reflex-vty/releases/tag/v0.2.0.0)
+
 ## v0.9.0.0
 
 * Bump
