@@ -2,6 +2,10 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unrelased
+
+* Add GHC 8.10 support
+
 ## v0.9.0.0
 
 * Bump
