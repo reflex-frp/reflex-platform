@@ -45,8 +45,8 @@ let iosSupport = system == "x86_64-darwin";
             # from the src proper.
             patches = [];
           });
-          ghc8104Splices = super.haskell.compiler.ghc8104.overrideAttrs (drv: {
-            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc810;
+          ghc8107Splices = super.haskell.compiler.ghc8107.overrideAttrs (drv: {
+            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
@@ -65,9 +65,9 @@ let iosSupport = system == "x86_64-darwin";
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_6;
             ghc = self.buildPackages.haskell.compiler.ghcSplices-8_6;
           };
-          ghc8104Splices = super.haskell.packages.ghc8104.override {
-            buildHaskellPackages = self.buildPackages.haskell.packages.ghc8104Splices;
-            ghc = self.buildPackages.haskell.compiler.ghc8104Splices;
+          ghc8107Splices = super.haskell.packages.ghc8107.override {
+            buildHaskellPackages = self.buildPackages.haskell.packages.ghc8107Splices;
+            ghc = self.buildPackages.haskell.compiler.ghc8107Splices;
           };
         };
       };
@@ -218,7 +218,7 @@ let iosSupport = system == "x86_64-darwin";
       })
     ]);
   };
-  ghcSavedSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghc8104Splices).override {
+  ghcSavedSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghc8107Splices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgs.haskell.overlays;
     in [
@@ -259,7 +259,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghc8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc8104).override {
+  ghc8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc8107).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc865).override {
@@ -288,7 +288,7 @@ let iosSupport = system == "x86_64-darwin";
          (haskellOverlays.loadSplices "8.6")
        ]);
   });
-  ghcAndroidAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc8104Splices).override {
+  ghcAndroidAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc8107Splices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch64.haskell.overlays;
     in [ haskellOverlays.combined
@@ -303,7 +303,7 @@ let iosSupport = system == "x86_64-darwin";
          (haskellOverlays.loadSplices "8.6")
        ]);
   });
-  ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc8104Splices).override {
+  ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc8107Splices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.android.aarch32.haskell.overlays;
     in [ haskellOverlays.combined
@@ -319,7 +319,7 @@ let iosSupport = system == "x86_64-darwin";
          (haskellOverlays.loadSplices "8.6")
        ]);
   });
-  ghcIosSimulator64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc8104Splices).override {
+  ghcIosSimulator64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc8107Splices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.simulator64.haskell.overlays;
     in [ haskellOverlays.combined
@@ -334,7 +334,7 @@ let iosSupport = system == "x86_64-darwin";
          (haskellOverlays.loadSplices "8.6")
        ]);
   });
-  ghcIosAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc8104Splices).override {
+  ghcIosAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc8107Splices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch64.haskell.overlays;
     in [ haskellOverlays.combined
@@ -349,7 +349,7 @@ let iosSupport = system == "x86_64-darwin";
          (haskellOverlays.loadSplices "8.6")
        ]);
   });
-  ghcIosAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc8104Splices).override {
+  ghcIosAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc8107Splices).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgsCross.ios.aarch32.haskell.overlays;
     in [ haskellOverlays.combined
