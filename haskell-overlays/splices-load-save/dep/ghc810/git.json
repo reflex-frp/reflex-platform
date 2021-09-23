@@ -1,6 +1,0 @@
-{
-  "url": "https://gitlab.haskell.org/obsidiansystems/ghc",
-  "rev": "b627d8693d8a4cf43b95e76e0fa0d0bd784dae6d",
-  "sha256": "1rc1kwqwb2qgcfw17flgyx7fc1la8n21zp014zlrds5q957cxdvb",
-  "fetchSubmodules": true
-}
