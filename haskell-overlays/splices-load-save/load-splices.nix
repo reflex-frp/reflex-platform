@@ -1,4 +1,4 @@
-{ haskellLib, fetchFromGitHub, lib, splicedHaskellPackages, ghcVersion }:
+{ haskellLib, fetchFromGitHub, lib, splicedHaskellPackages, isExternalPlugin }:
 
 self: super:
 
@@ -26,8 +26,6 @@ let splicedPkg = drv:
       else if splicedDrv.compiler == null
       then throw "spliceDrv.compiler == null"
       else "${splicedDrv}/lib/${splicedDrv.compiler.name}/${splicedDrv.name}";
-
-    isExternalPlugin = lib.versionOlder "8.6" ghcVersion;
 in {
   buildHaskellPackages = splicedHaskellPackages;
 
