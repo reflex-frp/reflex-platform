@@ -1,0 +1,7 @@
+{
+  "url": "https://gitlab.haskell.org/obsidiansystems/ghc",
+  "rev": "856e342d906e39e8bf2ece1f73445f616b74946e",
+  "sha256": "1r3glwyp84agzssgr3kh0ylh098yrzjprbvfhgxwy2vsn2d2c0b3",
+  "fetchSubmodules": true,
+  "branch": "wip/abrar/splices-8.6.5"
+}
