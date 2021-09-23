@@ -67,6 +67,8 @@ rec {
   combined-any-8 = self: super: foldExtensions [
     any-8
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) any-8_6)
+    (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) haskell-gi-8_6)
+    (optionalExtension (versionWildcard [ 8 10 ] (getGhcVersion super.ghc)) haskell-gi-8_10)
     (optionalExtension (lib.versionOlder "8.11"  (getGhcVersion super.ghc)) any-head)
   ] self super;
 
@@ -143,6 +145,17 @@ rec {
   ios = import ./ios.nix {
     inherit haskellLib;
     inherit (nixpkgs) lib;
+  };
+
+  haskell-gi-8_6 = import ./haskell-gi-8.6 {
+    inherit haskellLib;
+    inherit fetchFromGitHub;
+    inherit nixpkgs;
+  };
+  haskell-gi-8_10 = import ./haskell-gi-8.10 {
+    inherit haskellLib;
+    inherit fetchFromGitHub;
+    inherit nixpkgs;
   };
 
   untriaged = import ./untriaged.nix {
