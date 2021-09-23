@@ -52,6 +52,8 @@ rec {
     (optionalExtension (super.ghc.isGhcjs or false && useTextJSString) textJSString)
     (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices)
 
+    haskell-gi
+
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isWasm or false) wasm)
@@ -143,6 +145,12 @@ rec {
   ios = import ./ios.nix {
     inherit haskellLib;
     inherit (nixpkgs) lib;
+  };
+
+  haskell-gi = import ./haskell-gi {
+    inherit haskellLib;
+    inherit fetchFromGitHub;
+    inherit nixpkgs;
   };
 
   untriaged = import ./untriaged.nix {
