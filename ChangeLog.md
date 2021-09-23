@@ -2,10 +2,18 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-# Unreleased
+## Unrelased
+
+* Add GHC 8.10 support
+
+## v0.9.0.0
 
 * Bump
   * Nixpkgs to 20.09
+
+## v0.8.0.3
+
+* Fix pure Nix evaluation.
 
 ## v0.8.0.2
 
