@@ -94,7 +94,7 @@ let
         skeleton-test-project-android = skeleton-test.project.android;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
-        inherit (reflex-platform) iosReflexTodomvc-8_6
+        inherit (reflex-platform) iosReflexTodomvc-8_6;
         inherit (reflex-platform) iosReflexTodomvc-8_10;
         inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
