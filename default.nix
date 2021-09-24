@@ -247,6 +247,10 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
+  ghcjs8_10 = (makeRecursivelyOverridable nixpkgsCross.ghcjs.haskell.packages.ghcjs810).override {
+    overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
+  };
+
   wasm = ghcWasm32-8_6;
   ghcWasm32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
     # Due to the splices changes the parallel build fails while building the libraries
@@ -375,6 +379,7 @@ in let this = rec {
           ghcAndroidAarch32-8_10
           ghcjs
           ghcjs8_6
+          ghcjs8_10
           ghcSavedSplices
           ghcSavedSplices-8_6
           ghcSavedSplices-8_10

@@ -25,10 +25,7 @@ rec {
 
   foldExtensions = lib.foldr lib.composeExtensions (_: _: {});
 
-  getGhcVersion = ghc:
-    if ghc.isGhcjs or false
-    then ghc.ghcVersion
-    else ghc.version;
+  getGhcVersion = ghc: ghc.version;
 
   ##
   ## Conventional roll ups of all the constituent overlays below.
@@ -50,7 +47,6 @@ rec {
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
-    (optionalExtension (super.ghc.isGhcjs or false && useTextJSString) textJSString)
     (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices-8_6)
     (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices-8_10)
 
@@ -80,9 +76,8 @@ rec {
   ] self super;
 
   combined-ghcjs = self: super: foldExtensions [
-    ghcjs
-    (optionalExtension (versionWildcard [ 8 6 ] super.ghc.ghcVersion) ghcjs-8_6)
-    (optionalExtension useFastWeak ghcjs-fast-weak)
+    (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) ghcjs-8_6)
+    (optionalExtension (versionWildcard [ 8 10 ] (getGhcVersion super.ghc)) ghcjs-8_10)
   ] self super;
 
   ##
@@ -96,10 +91,6 @@ rec {
       ;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
-  textJSString = import ./text-jsstring {
-    inherit lib haskellLib fetchFromGitHub versionWildcard;
-    inherit (nixpkgs) fetchpatch thunkSet;
-  };
 
   # For GHC and GHCJS
   any = _: _: {};
@@ -140,11 +131,27 @@ rec {
       enableLibraryProfiling
       ;
   };
-  ghcjs-fast-weak = import ./ghcjs-fast-weak {
-   inherit lib;
+  ghcjs-8_6 = self: super: foldExtensions [
+    ghcjs
+    (optionalExtension useTextJSString textJSString)
+    (optionalExtension useTextJSString (import ./ghcjs-8.6-text-jsstring.nix { inherit lib fetchgit; }))
+    (optionalExtension useFastWeak (import ./ghcjs-fast-weak {inherit lib;}))
+  ] self super;
+  ghcjs-8_10 = self: super: foldExtensions [
+    (optionalExtension useTextJSString textJSString-810)
+    (optionalExtension useTextJSString (import ./ghcjs-8.10-text-jsstring.nix { inherit lib fetchgit; }))
+    (optionalExtension useFastWeak (import ./ghcjs-8_10-fast-weak {inherit lib;}))
+  ] self super;
+
+  textJSString = import ./text-jsstring {
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
+    inherit (nixpkgs) fetchpatch thunkSet;
   };
-  ghcjs-8_6 = optionalExtension useTextJSString
-    (import ./ghcjs-8.6-text-jsstring.nix { inherit lib fetchgit; });
+
+  textJSString-810 = import ./text-jsstring-810 {
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
+    inherit (nixpkgs) fetchpatch thunkSet;
+  };
 
   android = import ./android {
     inherit haskellLib;

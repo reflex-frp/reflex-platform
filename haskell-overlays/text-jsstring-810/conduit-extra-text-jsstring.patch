@@ -1,0 +1,48 @@
+diff --git a/Data/Conduit/Attoparsec.hs b/Data/Conduit/Attoparsec.hs
+index bd889f8..a620675 100644
+--- a/Data/Conduit/Attoparsec.hs
++++ b/Data/Conduit/Attoparsec.hs
+@@ -1,4 +1,5 @@
+ {-# LANGUAGE BangPatterns       #-}
++{-# LANGUAGE CPP                #-}
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE FlexibleContexts   #-}
+ {-# LANGUAGE RankNTypes         #-}
+@@ -33,6 +34,9 @@ import qualified Data.Text                  as T
+ import qualified Data.Text.Internal         as TI
+ import           Data.Typeable              (Typeable)
+ import           Prelude                    hiding (lines)
++#ifdef __GHCJS__
++import qualified Data.JSString.Raw as JSS
++#endif
+ 
+ import qualified Data.Attoparsec.ByteString
+ import qualified Data.Attoparsec.Text
+@@ -105,8 +109,13 @@ instance AttoparsecInput T.Text where
+         f (Position l c o) ch
+           | ch == '\n' = Position (l + 1) 0 (o + 1)
+           | otherwise = Position l (c + 1) (o + 1)
++#ifndef __GHCJS__
+     stripFromEnd (TI.Text arr1 off1 len1) (TI.Text _ _ len2) =
+         TI.text arr1 off1 (len1 - len2)
++#else
++    stripFromEnd (TI.Text str1) (TI.Text str2) =
++        TI.Text $ JSS.rawDropEnd (JSS.rawLength str1 - JSS.rawLength str2) str1
++#endif
+ 
+ -- | Convert an Attoparsec 'A.Parser' into a 'Sink'. The parser will
+ -- be streamed bytes until it returns 'A.Done' or 'A.Fail'.
+diff --git a/conduit-extra.cabal b/conduit-extra.cabal
+index f6dfe7a..b5b2515 100644
+--- a/conduit-extra.cabal
++++ b/conduit-extra.cabal
+@@ -58,6 +58,9 @@ Library
+                      , unliftio-core
+                      , typed-process            >= 0.2
+ 
++  if impl(ghcjs)
++      Build-depends: ghcjs-base
++
+   ghc-options:     -Wall
+ 
+ test-suite test
