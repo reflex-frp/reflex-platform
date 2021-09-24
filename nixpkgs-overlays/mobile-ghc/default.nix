@@ -12,6 +12,6 @@ in self: super: {
       patches = (drv.patches or []) ++ lib.optionals self.stdenv.targetPlatform.useAndroidPrebuilt [
         ./8.6.y/android-patches/force-relocation.patch
       ];
-    })) { inherit (super.haskell.compiler) ghc865 ghcSplices-8_6 ghc8104 ghc8104Splices; };
+    })) { inherit (super.haskell.compiler) ghc865 ghcSplices-8_6 ghc8104 ghcSplices-8_10; };
   };
 }
