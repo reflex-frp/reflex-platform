@@ -3,6 +3,7 @@
   "repo": "reflex-project-skeleton",
   "branch": "dn-relax-base-constraints",
   "private": false,
+  "fetchSubmodules": false,
   "rev": "f77fd2ea189e6850b83e4ba3b5aed0da8fcc8b49",
   "sha256": "0cahpv5s2jcwb6qhyl7d35f4vj340hv0cki39vf1zhpcxnymamkv"
 }
