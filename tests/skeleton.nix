@@ -1,12 +1,14 @@
 { reflex-platform }:
 
 let
-  skeleton = import ../examples/project/reflex-project-skeleton { inherit reflex-platform; };
+  skeletonSrc = reflex-platform.hackGet ../examples/project/reflex-project-skeleton;
+
+  skeleton = import skeletonSrc { inherit reflex-platform; };
 
   mkCabalProject = { shellDrv, projectFile }: shellDrv.overrideAttrs (old: {
     name = "reflex-project-skeleton-${projectFile}";
     phases = [ "unpackPhase" "buildPhase" "installPhase" ];
-    src = skeleton;
+    src = skeletonSrc;
     CABAL_CONFIG = builtins.toFile "cabal.config" ''
     '';
     buildPhase = ''
