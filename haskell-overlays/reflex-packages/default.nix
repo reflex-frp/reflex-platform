@@ -65,8 +65,7 @@ in
       doCheck = stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
 
       # The headless browser run as part of the tests will exit without this
-      preBuild = ''
-        ${drv.preBuild or ""}
+      preBuild = (drv.preBuild or "") + ''
         export HOME="$PWD"
       '';
 
@@ -91,7 +90,7 @@ in
       # The headless browser run as part of gc tests would hang/crash without this
       preCheck = ''
         export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
-      '';
+      '' + (drv.preCheck or "");
     });
 
   reflex-dom = haskellLib.overrideCabal
