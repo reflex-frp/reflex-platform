@@ -1,4 +1,4 @@
-{ lib }:
+{ bar }:
 
 self: super:
 
