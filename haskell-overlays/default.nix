@@ -49,7 +49,6 @@ rec {
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
-    (optionalExtension (super.ghc.isGhcjs or false && useTextJSString) textJSString)
     (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices)
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
@@ -67,6 +66,7 @@ rec {
   combined-any-8 = self: super: foldExtensions [
     any-8
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) any-8_6)
+    (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) haskell-gi-8_6)
     (optionalExtension (lib.versionOlder "8.7"  (getGhcVersion super.ghc)) any-head)
   ] self super;
 
@@ -77,8 +77,13 @@ rec {
 
   combined-ghcjs = self: super: foldExtensions [
     ghcjs
-    (optionalExtension (versionWildcard [ 8 6 ] super.ghc.ghcVersion) ghcjs-8_6)
-    (optionalExtension useFastWeak ghcjs-fast-weak)
+    (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) combined-ghcjs-8_6)
+  ] self super;
+
+  combined-ghcjs-8_6 = self: super: foldExtensions [
+    (optionalExtension useTextJSString textJSString-8_6)
+    (optionalExtension useTextJSString ghcjs-8_6-textJSString)
+    (optionalExtension useFastWeak ghcjs-fast-weak_8_6)
   ] self super;
 
   ##
@@ -92,10 +97,6 @@ rec {
       ;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
-  textJSString = import ./text-jsstring {
-    inherit lib haskellLib fetchFromGitHub versionWildcard;
-    inherit (nixpkgs) fetchpatch thunkSet;
-  };
 
   # For GHC and GHCJS
   any = _: _: {};
@@ -129,11 +130,19 @@ rec {
       enableLibraryProfiling
       ;
   };
-  ghcjs-fast-weak = import ./ghcjs-fast-weak {
-   inherit lib;
+
+  ghcjs-8_6-textJSString = import ./ghcjs-8.6-text-jsstring.nix {
+    inherit lib fetchgit;
   };
-  ghcjs-8_6 = optionalExtension useTextJSString
-    (import ./ghcjs-8.6-text-jsstring.nix { inherit lib fetchgit; });
+
+  textJSString-8_6 = import ./text-jsstring-8.6 {
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
+    inherit (nixpkgs) fetchpatch thunkSet;
+  };
+
+  ghcjs-fast-weak_8_6 = import ./ghcjs-8.6-fast-weak {
+    inherit lib;
+  };
 
   android = import ./android {
     inherit haskellLib;
@@ -143,6 +152,12 @@ rec {
   ios = import ./ios.nix {
     inherit haskellLib;
     inherit (nixpkgs) lib;
+  };
+
+  haskell-gi-8_6 = import ./haskell-gi-8.6 {
+    inherit haskellLib;
+    inherit fetchFromGitHub;
+    inherit nixpkgs;
   };
 
   untriaged = import ./untriaged.nix {

@@ -29,7 +29,7 @@ let iosSupport = system == "x86_64-darwin";
         compiler = super.haskell.compiler // {
           ghcSplices-8_6 = super.haskell.compiler.ghc865.overrideAttrs (drv: {
             enableParallelBuilding = false;
-            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc;
+            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.6;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
