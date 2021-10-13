@@ -1,7 +1,7 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "nginx-accept-encoding",
+  "branch": "nginx-accept-encoding-19.09",
   "private": false,
   "rev": "377f58fd3a577b410cc8ee13e53682ae19a09bca",
   "sha256": "1cjizrj500ydli782i6jn0l879f9q5rr5mr69g5fs0b9q767q628"
