@@ -1,8 +1,8 @@
 {
-  "owner": "obsidiansystems",
+  "owner": "BeFunctional",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-20.09",
+  "branch": "reflex-platform-20.09-backport-big-sur",
   "private": false,
-  "rev": "11a1f6a60d43885b6deefc83447d032c0a8ee931",
-  "sha256": "154xfibydwwjzc23ggwjv1dsyvrhsqyjra1h1ix64hw1fcka1256"
+  "rev": "a281b19c91fa2e5648e807c92bc0700185d2b2a4",
+  "sha256": "1d4wp8sd99mkdqd4crla1vvw4r9i6ghyf0abmn0q1h3fr2hsncgs"
 }
