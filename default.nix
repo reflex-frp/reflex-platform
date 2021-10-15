@@ -200,6 +200,9 @@ let iosSupport = system == "x86_64-darwin";
         dependent-sum-template = dontCheck super.dependent-sum-template;
         generic-deriving = dontCheck super.generic-deriving;
       })
+      (self: super : {
+        libtapi = lib.markUnbroken super.libtapi;
+        })
     ]);
   };
   ghcjs = ghcjs8_6;
