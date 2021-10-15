@@ -52,8 +52,8 @@ self: super: {
       librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.nix ];
       testHaskellDepends = (drv.testHaskellDepends or []) ++ [ nixpkgs.nix super.criterion ];
     }));
-  hnix-store-core =
-    self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-core") {};
+  hnix-store-core = dontCheck
+    (self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-core") {});
   hnix-store-remote =
     self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-remote") {};
   data-fix = self.callHackage "data-fix" "0.3.0" {};
