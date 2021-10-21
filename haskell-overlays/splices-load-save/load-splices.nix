@@ -1,4 +1,4 @@
-{ haskellLib, fetchFromGitHub, lib, splicedHaskellPackages }:
+{ haskellLib, fetchFromGitHub, lib, splicedHaskellPackages, isExternalPlugin }:
 
 self: super:
 
@@ -32,12 +32,13 @@ in {
   # Add some flags to load splices from nativeHaskellPackages
   mkDerivation = drv: super.mkDerivation (drv //
   {
-    buildFlags = lib.optional (hasSplicedPkg drv) "--ghc-option=-load-splices=${spliceDir drv}"
+    buildFlags = lib.optional (hasSplicedPkg drv && !isExternalPlugin) "--ghc-option=-load-splices=${spliceDir drv}"
               ++ (drv.buildFlags or []);
     preBuild = ''
       ${drv.preBuild or ""}
       echo "!!! has splices: ${if hasSplicedPkg drv then "yes" else "no"}"
       echo "!!! splices at: ${if hasSplicedPkg drv then spliceDir drv else "N/A"} !!!"
+      ${if (hasSplicedPkg drv && isExternalPlugin) then "export EXTERNAL_SPLICES_LOAD=${spliceDir drv}" else ""}
     '';
   });
 

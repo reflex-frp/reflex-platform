@@ -1,12 +1,21 @@
-{ haskellLib, fetchFromGitHub, lib }:
-
-self: super: {
+{ haskellLib, fetchFromGitHub, lib, ghcVersion }:
+let
+  isExternalPlugin = lib.versionOlder "8.6" ghcVersion;
+in self: super: {
   mkDerivation = attrs: let
+
     drv = (super.mkDerivation (attrs // {
-      preConfigure = ''
-        ${attrs.preConfigure or ""}
-        configureFlags+=" --ghc-option=-save-splices=$out$SPLICE_DIR"
-      '';
+      preConfigure =
+        let extras = if isExternalPlugin then "" else ''
+            configureFlags+=" --ghc-option=-save-splices=$out$SPLICE_DIR"
+          '';
+        in (attrs.preConfigure or "") + extras;
+      preBuild =
+        let extras = if !isExternalPlugin then "" else ''
+            echo "!!! save-splices: $out$SPLICE_DIR"
+            export EXTERNAL_SPLICES_SAVE=$out$SPLICE_DIR
+          '';
+        in (attrs.preBuild or "") + extras;
     }));
 
     SPLICE_DIR = "/lib/${drv.compiler.name}/${drv.name}";
