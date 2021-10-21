@@ -1,6 +1,12 @@
 #!/usr/bin/env nix-shell
 #!nix-shell -i bash -p jq
 
+# NB: Running the "xcrun simctl" command below may result in the error:
+#
+#    xcrun: error: unable to find utility "simctl", not a developer tool or in PATH
+#
+# The fix is to open up Xcode Preferences, go to Locations, and set the "Command Line Tools" option.
+
 set -euo pipefail
 
 name="${1##*/}"
