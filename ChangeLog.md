@@ -10,6 +10,7 @@ This project's release branch is `master`. This log is written from the perspect
   * [reflex-vty to 0.2.0.0](https://github.com/reflex-frp/reflex-vty/releases/tag/v0.2.0.0)
   * reflex-process to 0.3.1.1
   * reflex-ghci to 0.1.5.2
+  * cabal-macosx to 0.2.4.2
 
 ## v0.9.0.0
 
