@@ -24,10 +24,7 @@ rec {
 
   foldExtensions = lib.foldr lib.composeExtensions (_: _: {});
 
-  getGhcVersion = ghc:
-    if ghc.isGhcjs or false
-    then ghc.ghcVersion
-    else ghc.version;
+  getGhcVersion = ghc: ghc.version;
 
   ##
   ## Conventional roll ups of all the constituent overlays below.
@@ -67,20 +64,21 @@ rec {
     any-8
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) any-8_6)
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) haskell-gi-8_6)
-    (optionalExtension (lib.versionOlder "8.7"  (getGhcVersion super.ghc)) any-head)
+    (optionalExtension (versionWildcard [ 8 10 ] (getGhcVersion super.ghc)) haskell-gi-8_10)
+    (optionalExtension (lib.versionOlder "8.11"  (getGhcVersion super.ghc)) any-head)
   ] self super;
 
   combined-ghc = self: super: foldExtensions [
     (optionalExtension (versionWildcard [ 8 6 ] super.ghc.version) ghc-8_6)
-    (optionalExtension (lib.versionOlder "8.7"  super.ghc.version) ghc-head)
+    (optionalExtension (lib.versionOlder "8.11"  super.ghc.version) ghc-head)
   ] self super;
 
   combined-ghcjs = self: super: foldExtensions [
-    ghcjs
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) combined-ghcjs-8_6)
   ] self super;
 
   combined-ghcjs-8_6 = self: super: foldExtensions [
+    ghcjs
     (optionalExtension useTextJSString textJSString-8_6)
     (optionalExtension useTextJSString ghcjs-8_6-textJSString)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_6)
@@ -155,6 +153,11 @@ rec {
   };
 
   haskell-gi-8_6 = import ./haskell-gi-8.6 {
+    inherit haskellLib;
+    inherit fetchFromGitHub;
+    inherit nixpkgs;
+  };
+  haskell-gi-8_10 = import ./haskell-gi-8.10 {
     inherit haskellLib;
     inherit fetchFromGitHub;
     inherit nixpkgs;

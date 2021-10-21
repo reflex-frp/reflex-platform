@@ -59,5 +59,7 @@ self: super: {
   data-fix = self.callHackage "data-fix" "0.3.0" {};
   neat-interpolation = self.callHackage "neat-interpolation" "0.4" {};
   prettyprinter = self.callHackage "prettyprinter" "1.7.0" {};
+  cryptohash-sha512 = doJailbreak super.cryptohash-sha512;
+  ListLike = self.callHackage "ListLike" "4.7.3" {};
 
 }

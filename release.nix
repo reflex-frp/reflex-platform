@@ -75,6 +75,7 @@ let
         # tryReflexShell = reflex-platform.tryReflexShell;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
+        ghc8_10.reflexTodomvc = reflex-platform.ghc8_10.reflex-todomvc;
         ghc.reflex-vty = reflex-platform.ghc.reflex-vty;
         ghc.reflex-process = reflex-platform.ghc.reflex-process;
         ghc.reflex-fsnotify = reflex-platform.ghc.reflex-fsnotify;
@@ -91,7 +92,9 @@ let
         };
         skeleton-test-project-android = skeleton-test.project.android;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
-        inherit (reflex-platform) iosReflexTodomvc iosReflexTodomvc-8_6 iosSimulatorReflexTodomvc;
+        inherit (reflex-platform) iosReflexTodomvc;
+        inherit (reflex-platform) iosReflexTodomvc-8_6;
+        inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
       } // drvListToAttrs otherDeps
         # TODO fix GHCJS profiling builds
