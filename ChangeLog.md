@@ -4,7 +4,7 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
-* Add some optional GHC 8.10 support
+* Add a partial preview of GHC 8.10 support, not on by default.
   * native: linux and macOS
   * iOS
 
