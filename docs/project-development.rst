@@ -85,6 +85,9 @@ Finally, Nix will fail to build ``common`` if it exports no modules.
 .. code:: yaml
 
    ...
+   # common/common.cabal
+   library
+     builds-depends: base
      exposed-modules: Common
    ...
 
