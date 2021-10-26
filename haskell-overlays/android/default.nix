@@ -1,5 +1,12 @@
 { haskellLib, nixpkgs, thunkSet }:
-
+let
+  # add the "-fPIC" option to both "ghc-options" and "cc-options" for the library component of a package
+  enableFPic = pkg: haskellLib.overrideCabal pkg (old: {
+    preConfigure = ''
+      sed -i 's/^library *\(.*\)$/library \1\n  cc-options: -fPIC\n  ghc-options: -fPIC/i' *.cabal
+    '';
+  });
+in
 self: super: {
   _dep = super._dep or {} // thunkSet ./dep;
 
@@ -16,6 +23,9 @@ self: super: {
 
   blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
   cryptonite = haskellLib.disableCabalFlag super.cryptonite "integer-gmp";
+
+  hashable = enableFPic super.hashable;
+  primitive = enableFPic super.primitive;
 
   mkDerivation = drv: super.mkDerivation (drv // {
     doHaddock = false;

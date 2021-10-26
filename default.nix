@@ -54,7 +54,10 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
-            patches = [];
+            patches = [
+              # Patch libraries/unix/config.sub to fix android build
+              ./nixpkgs-overlays/android-8.10-splices.patch
+            ];
           });
         };
         packages = super.haskell.packages // {
@@ -141,10 +144,8 @@ let iosSupport = system == "x86_64-darwin";
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
-            # Hard to find newer 32-bit phone to test with that's newer than
-            # this. Concretely, doing so resulted in:
-            # https://android.googlesource.com/platform/bionic/+/master/libc/arch-common/bionic/pthread_atfork.h#19
-            sdkVer = "22";
+            # Choose an old version so it's easier to find phones to test on
+            sdkVer = "23";
           };
         };
       };
@@ -287,8 +288,14 @@ let iosSupport = system == "x86_64-darwin";
   ghcAndroidAarch64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   });
+  ghcAndroidAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_10).override {
+    overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
+  });
   ghcAndroidAarch32 = ghcAndroidAarch32-8_6;
   ghcAndroidAarch32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_6).override {
+    overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
+  });
+  ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   });
 
@@ -322,6 +329,10 @@ let iosSupport = system == "x86_64-darwin";
   android-8_6 = androidWithHaskellPackages {
     ghcAndroidAarch64 = ghcAndroidAarch64-8_6;
     ghcAndroidAarch32 = ghcAndroidAarch32-8_6;
+  };
+  android-8_10 = androidWithHaskellPackages {
+    ghcAndroidAarch64 = ghcAndroidAarch64-8_10;
+    ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
   };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     inherit nixpkgs nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
@@ -362,8 +373,10 @@ in let this = rec {
           ghcIosAarch32-8_10
           ghcAndroidAarch64
           ghcAndroidAarch64-8_6
+          ghcAndroidAarch64-8_10
           ghcAndroidAarch32
           ghcAndroidAarch32-8_6
+          ghcAndroidAarch32-8_10
           ghcjs
           ghcjs8_6
           ghcSavedSplices
@@ -396,6 +409,12 @@ in let this = rec {
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc.via_8_6";
     displayName = "Reflex TodoMVC via GHC 8.6";
+  };
+  androidReflexTodomvc-8_10 = android-8_10.buildApp {
+    package = p: p.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    applicationId = "org.reflexfrp.todomvc.via_8_10";
+    displayName = "Reflex TodoMVC via GHC 8.10";
   };
   iosReflexTodomvc = ios.buildApp {
     package = p: p.reflex-todomvc;
