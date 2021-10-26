@@ -4,8 +4,8 @@ let
   # add the "-fPIC" option to both "ghc-options" and "cc-options" for the library component of a package
   enableFPic = pkg: haskellLib.overrideCabal pkg (old: {
     preConfigure = ''
-                    sed -i 's/^library *\(.*\)$/library \1\n  cc-options: -fPIC\n  ghc-options: -fPIC/i' *.cabal
-                    '';
+      sed -i 's/^library *\(.*\)$/library \1\n  cc-options: -fPIC\n  ghc-options: -fPIC/i' *.cabal
+    '';
   });
 in
 self: super: {
