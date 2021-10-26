@@ -1,19 +1,20 @@
 Reflex Platform
 ===============
 
-reflex-platform is a curated package set and set of tools that let you build Haskell packages so they can run on a variety of platforms. reflex-platform is built on top of the [nix](https://nixos.org/nix/) package manager.
+Reflex Platform is a curated package set and set of tools that let you build Haskell packages so they can run on a variety of platforms.
+Reflex Platform is built on top of the [nix](https://nixos.org/nix/) package manager.
 
-There are five main reasons to use reflex-platform:
+There are five main reasons to use Reflex Platform:
 
-1. It's curated: the core packages in reflex-platform are known to work together and are tested together.
+1. It's curated: the core packages in Reflex Platform are known to work together and are tested together.
 
-2. It's cached: the core packages in reflex-platform are cached so you can download prebuilt binaries from the public cache instead of building from scratch.
+2. It's cached: the core packages in Reflex Platform are cached so you can download prebuilt binaries from the public cache instead of building from scratch.
 
 3. It's consistent: nix locks down dependencies even outside the Haskell ecosystem (e.g., versions of C libraries that the Haskell code depends on), so you get completely reproducible builds.
 
-4. It's cross-platform: reflex-platform is designed to target iOS and Android on mobile, JavaScript on the web, and Linux and macOS on desktop. It's Haskell, everywhere.
+4. It's cross-platform: Reflex Platform is designed to target iOS and Android on mobile, JavaScript on the web, and Linux and macOS on desktop. It's Haskell, everywhere.
 
-5. It's convenient: reflex-platform comes packaged with tools to make development easier, like a [hoogle](https://hoogle.haskell.org/) server that you can run locally to look up definitions.
+5. It's convenient: Reflex Platform comes packaged with tools to make development easier, like a [hoogle](https://hoogle.haskell.org/) server that you can run locally to look up definitions.
 
 To get started with Reflex development, follow the instructions below.
 
