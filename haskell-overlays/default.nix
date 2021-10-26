@@ -3,7 +3,8 @@
 , nixpkgs
 , useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
 , useTextJSString, enableExposeAllUnfoldings, __useTemplateHaskell
-, ghcSavedSplices
+, ghcSavedSplices-8_6
+, ghcSavedSplices-8_10
 , haskellOverlaysPre
 , haskellOverlaysPost
 }:
@@ -46,7 +47,8 @@ rec {
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices-8_6)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices-8_10)
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
@@ -111,13 +113,20 @@ rec {
     inherit enableLibraryProfiling;
   };
 
-  saveSplices = import ./splices-load-save/save-splices.nix {
-    inherit lib haskellLib fetchFromGitHub;
+  saveSplices = ghcVersion: import ./splices-load-save/save-splices.nix {
+    inherit lib haskellLib fetchFromGitHub ghcVersion;
   };
 
-  loadSplices = import ./splices-load-save/load-splices.nix {
+  loadSplices-8_6 = import ./splices-load-save/load-splices.nix {
     inherit lib haskellLib fetchFromGitHub;
-    splicedHaskellPackages = ghcSavedSplices;
+    isExternalPlugin = false;
+    splicedHaskellPackages = ghcSavedSplices-8_6;
+  };
+
+  loadSplices-8_10 = import ./splices-load-save/load-splices.nix {
+    inherit lib haskellLib fetchFromGitHub;
+    isExternalPlugin = true;
+    splicedHaskellPackages = ghcSavedSplices-8_10;
   };
 
   # Just for GHCJS
