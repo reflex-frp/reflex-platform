@@ -83,6 +83,7 @@ let
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
         inherit (reflex-platform) androidReflexTodomvc-8_6;
+        inherit (reflex-platform) androidReflexTodomvc-8_10;
         androidReflexTodomvc-release = reflex-platform.android.buildApp {
           package = p: p.reflex-todomvc;
           executableName = "reflex-todomvc";
