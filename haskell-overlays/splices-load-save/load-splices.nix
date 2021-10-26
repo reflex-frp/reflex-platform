@@ -26,20 +26,32 @@ let splicedPkg = drv:
       else if splicedDrv.compiler == null
       then throw "spliceDrv.compiler == null"
       else "${splicedDrv}/lib/${splicedDrv.compiler.name}/${splicedDrv.name}";
+
+    # Base steps for every preBuild phase
+    preBuildBaseAttrs = drv:
+      {
+        preBuild = ''
+          ${drv.preBuild or ""}
+          echo "!!! has splices: ${if hasSplicedPkg drv then "yes" else "no"}"
+          echo "!!! splices at: ${if hasSplicedPkg drv then spliceDir drv else "N/A"} !!!"
+        '';
+      };
+    # Additional preBuilds steps if the compiler supports external plugins
+    # E.g. GHC version > 8.6
+    preBuildExternalPluginAttrs = drv: lib.optionalAttrs (hasSplicedPkg drv && isExternalPlugin)
+      {
+        preBuild = ''
+          export EXTERNAL_SPLICES_LOAD=${spliceDir drv}
+        '';
+      };
 in {
   buildHaskellPackages = splicedHaskellPackages;
 
   # Add some flags to load splices from nativeHaskellPackages
   mkDerivation = drv: super.mkDerivation (drv //
-  {
-    buildFlags = lib.optional (hasSplicedPkg drv && !isExternalPlugin) "--ghc-option=-load-splices=${spliceDir drv}"
-              ++ (drv.buildFlags or []);
-    preBuild = ''
-      ${drv.preBuild or ""}
-      echo "!!! has splices: ${if hasSplicedPkg drv then "yes" else "no"}"
-      echo "!!! splices at: ${if hasSplicedPkg drv then spliceDir drv else "N/A"} !!!"
-      ${if (hasSplicedPkg drv && isExternalPlugin) then "export EXTERNAL_SPLICES_LOAD=${spliceDir drv}" else ""}
-    '';
-  });
-
+    {
+      buildFlags = lib.optional (hasSplicedPkg drv && !isExternalPlugin) "--ghc-option=-load-splices=${spliceDir drv}"
+                ++ (drv.buildFlags or []);
+      preBuild = (preBuildBaseAttrs drv).preBuild + ((preBuildExternalPluginAttrs drv).preBuild or "");
+    });
 }
