@@ -28,7 +28,6 @@ self: super: {
   jsaddle = haskellLib.doJailbreak super.jsaddle;
   exceptions = haskellLib.doJailbreak super.exceptions;
   keycode = haskellLib.doJailbreak super.keycode;
-  HUnit = haskellLib.dontCheck super.HUnit;
 
   aeson = super.aeson_1_4_0_0;
 
