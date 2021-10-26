@@ -83,7 +83,6 @@ let
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
         inherit (reflex-platform) androidReflexTodomvc-8_6;
-        inherit (reflex-platform) androidReflexTodomvc-8_10;
         androidReflexTodomvc-release = reflex-platform.android.buildApp {
           package = p: p.reflex-todomvc;
           executableName = "reflex-todomvc";
@@ -92,6 +91,10 @@ let
           isRelease = true;
         };
         skeleton-test-project-android = skeleton-test.project.android;
+      } // lib.optionalAttrs (reflex-platform.androidSupport && variant == "unprofiled") {
+        # TODO fix GHC 8.10 profiling on Android
+        # Only allow on Android building with GHC 8.10 in unprofiled mode
+        inherit (reflex-platform) androidReflexTodomvc-8_10;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
         inherit (reflex-platform) iosReflexTodomvc-8_6;
