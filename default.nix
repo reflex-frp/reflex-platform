@@ -54,7 +54,10 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
-            patches = [];
+            patches = [
+              # Patch libraries/unix/config.sub to fix android build
+              ./nixpkgs-overlays/android-8.10-splices.patch
+            ];
           });
         };
         packages = super.haskell.packages // {
