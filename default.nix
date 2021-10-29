@@ -58,6 +58,8 @@ let iosSupport = system == "x86_64-darwin";
               # Patch libraries/unix/config.sub to fix android build
               ./nixpkgs-overlays/android-8.10-splices.patch
             ];
+            # New option for GHC 8.10. Explicitly enable profiling builds
+            enableProfiledLibs = enableLibraryProfiling;
           });
         };
         packages = super.haskell.packages // {
