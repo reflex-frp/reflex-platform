@@ -77,6 +77,7 @@ rec {
 
   combined-ghcjs = self: super: foldExtensions [
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) combined-ghcjs-8_6)
+    (optionalExtension (versionWildcard [ 8 10 ] (getGhcVersion super.ghc)) combined-ghcjs-8_10)
   ] self super;
 
   combined-ghcjs-8_6 = self: super: foldExtensions [
@@ -84,6 +85,12 @@ rec {
     (optionalExtension useTextJSString textJSString-8_6)
     (optionalExtension useTextJSString ghcjs-8_6-textJSString)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_6)
+  ] self super;
+
+  combined-ghcjs-8_10 = self: super: foldExtensions [
+    (optionalExtension useTextJSString textJSString-8_10)
+    (optionalExtension useTextJSString ghcjs-8_10-textJSString)
+    (optionalExtension useFastWeak ghcjs-fast-weak_8_10)
   ] self super;
 
   ##
@@ -142,12 +149,25 @@ rec {
     inherit lib fetchgit;
   };
 
+  ghcjs-8_10-textJSString = import ./ghcjs-8.10-text-jsstring.nix {
+    inherit lib fetchgit;
+  };
+
   textJSString-8_6 = import ./text-jsstring-8.6 {
     inherit lib haskellLib fetchFromGitHub versionWildcard;
     inherit (nixpkgs) fetchpatch thunkSet;
   };
 
+  textJSString-8_10 = import ./text-jsstring-8.10 {
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
+    inherit (nixpkgs) fetchpatch thunkSet;
+  };
+
   ghcjs-fast-weak_8_6 = import ./ghcjs-8.6-fast-weak {
+    inherit lib;
+  };
+
+  ghcjs-fast-weak_8_10 = import ./ghcjs-8.10-fast-weak {
     inherit lib;
   };
 
