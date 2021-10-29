@@ -1,4 +1,5 @@
 { haskellLib, nixpkgs, thunkSet }:
+
 let
   # add the "-fPIC" option to both "ghc-options" and "cc-options" for the library component of a package
   enableFPic = pkg: haskellLib.overrideCabal pkg (old: {

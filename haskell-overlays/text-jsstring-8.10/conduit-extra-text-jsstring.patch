@@ -15,7 +15,7 @@ index bd889f8..a620675 100644
 +#ifdef __GHCJS__
 +import qualified Data.JSString.Raw as JSS
 +#endif
-
+ 
  import qualified Data.Attoparsec.ByteString
  import qualified Data.Attoparsec.Text
 @@ -105,8 +109,13 @@ instance AttoparsecInput T.Text where
@@ -29,7 +29,7 @@ index bd889f8..a620675 100644
 +    stripFromEnd (TI.Text str1) (TI.Text str2) =
 +        TI.Text $ JSS.rawDropEnd (JSS.rawLength str1 - JSS.rawLength str2) str1
 +#endif
-
+ 
  -- | Convert an Attoparsec 'A.Parser' into a 'Sink'. The parser will
  -- be streamed bytes until it returns 'A.Done' or 'A.Fail'.
 diff --git a/conduit-extra.cabal b/conduit-extra.cabal
@@ -39,11 +39,10 @@ index f6dfe7a..b5b2515 100644
 @@ -58,6 +58,9 @@ Library
                       , unliftio-core
                       , typed-process            >= 0.2
-
+ 
 +  if impl(ghcjs)
 +      Build-depends: ghcjs-base
 +
    ghc-options:     -Wall
-
- test-suite test
  
+ test-suite test
