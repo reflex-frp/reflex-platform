@@ -1,0 +1,65 @@
+From 0f9ddde468687d25fa6c4c9accb02a034bc2f9c3 Mon Sep 17 00:00:00 2001
+From: Luigy Leon <luigy@outlook.com>
+Date: Thu, 1 Dec 2016 12:43:59 -0500
+Subject: [PATCH] Add text jsstring support for ghcjs.
+
+---
+ Data/Double/Conversion/Text.hs | 17 +++++++++++++++--
+ double-conversion.cabal        |  4 ++++
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/Data/Double/Conversion/Text.hs b/Data/Double/Conversion/Text.hs
+index 2e89705..3b315a7 100644
+--- a/Data/Double/Conversion/Text.hs
++++ b/Data/Double/Conversion/Text.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP, MagicHash, Rank2Types #-}
++{-# LANGUAGE CPP, MagicHash, Rank2Types, ForeignFunctionInterface, UnliftedFFITypes #-}
+ 
+ -- |
+ -- Module      : Data.Double.Conversion.Text
+@@ -33,7 +33,12 @@ import Control.Monad.ST (runST)
+ import Data.Double.Conversion.FFI
+ import Data.Text.Internal (Text(Text))
+ import Foreign.C.Types (CDouble, CInt)
+-import GHC.Prim (MutableByteArray#)
++#ifndef __GHCJS__
++import GHC.Prim (MutableByteArray#, ByteArray#)
++#else
++import GHC.Prim (MutableByteArray#, Int#, ByteArray#)
++import Data.JSString
++#endif
+ import qualified Data.Text.Array as A
+ 
+ -- | Compute a representation in exponential format with the requested
+@@ -81,4 +86,12 @@ convert func len act val = runST go
+         fail $ "Data.Double.Conversion.Text." ++ func ++
+                ": conversion failed (invalid precision requested)"
+       frozen <- A.unsafeFreeze buf
++#ifndef __GHCJS__
+       return $ Text frozen 0 (fromIntegral size)
++#else
++      return $ Text $ js_toString (A.aBA frozen) 0# (fromIntegral size)
++
++foreign import javascript unsafe
++  "h$textToString"
++  js_toString :: ByteArray# -> Int# -> Int -> JSString
++#endif
+diff --git a/double-conversion.cabal b/double-conversion.cabal
+index d177d3f..5f0527f 100644
+--- a/double-conversion.cabal
++++ b/double-conversion.cabal
+@@ -90,6 +90,10 @@ library
+     ghc-prim,
+     text >= 0.11.0.8
+ 
++  if impl(ghcjs)
++    build-depends:
++      ghcjs-base
++
+   if flag(developer)
+     ghc-options: -Werror
+     ghc-prof-options: -auto-all
+-- 
+2.31.1
+

@@ -8,6 +8,7 @@ This project's release branch is `master`. This log is written from the perspect
   * native: linux and macOS
   * iOS, unprofiled only
   * android, unprofiled only
+  * Add GHCJS 8.10.7
 
 * Bump
   * [reflex to 0.8.2.0](https://github.com/reflex-frp/reflex/releases/tag/v0.8.2.0)

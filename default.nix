@@ -379,6 +379,7 @@ in let this = rec {
           ghcAndroidAarch32-8_10
           ghcjs
           ghcjs8_6
+          ghcjs8_10
           ghcSavedSplices
           ghcSavedSplices-8_6
           ghcSavedSplices-8_10
