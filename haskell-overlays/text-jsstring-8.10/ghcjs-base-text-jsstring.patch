@@ -38,7 +38,7 @@ index 176aad4..9ca6693 100644
 -{-# INLINE span #-}
 +              else (# js_substr 0# i x, js_substr1 i x #)
 +{-# INLINE span_ #-}
-
+ 
  -- | /O(n)/ 'break' is like 'span', but the prefix returned is
  -- over elements that fail the predicate @p@.
 diff --git a/GHCJS/Foreign.hs b/GHCJS/Foreign.hs
@@ -51,8 +51,8 @@ index 5bbc5c5..b128f24 100644
  import           Data.String (IsString(..))
 -import qualified Data.Text as T
 +-- import qualified Data.Text as T
-
-
+ 
+ 
  class ToJSString a where
 diff --git a/GHCJS/Foreign/Internal.hs b/GHCJS/Foreign/Internal.hs
 index 5ac81f0..449bfe4 100644
@@ -61,7 +61,7 @@ index 5ac81f0..449bfe4 100644
 @@ -100,10 +100,10 @@ import           Data.Typeable (Typeable)
  import           Data.ByteString (ByteString)
  import           Data.ByteString.Unsafe (unsafePackAddressLen)
-
+ 
 -import qualified Data.Text.Array as A
 -import qualified Data.Text as T
 -import qualified Data.Text.Internal as T
@@ -70,26 +70,26 @@ index 5ac81f0..449bfe4 100644
 +-- import qualified Data.Text as T
 +-- import qualified Data.Text.Internal as T
 +-- import qualified Data.Text.Lazy as TL (Text, toStrict, fromStrict)
-
+ 
  import           Unsafe.Coerce
-
+ 
 diff --git a/GHCJS/Marshal.hs b/GHCJS/Marshal.hs
 index a36aca2..6256a73 100644
 --- a/GHCJS/Marshal.hs
 +++ b/GHCJS/Marshal.hs
 @@ -16,7 +16,7 @@
-
+ 
  module GHCJS.Marshal ( FromJSVal(..)
                       , ToJSVal(..)
 -                     , toJSVal_aeson
 +                     -- , toJSVal_aeson
                       , toJSVal_pure
                       ) where
-
+ 
 @@ -24,17 +24,17 @@ import           Control.Applicative
  import           Control.Monad
  import           Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
-
+ 
 -import qualified Data.Aeson as AE
 -import           Data.Attoparsec.Number (Number(..))
 +-- import qualified Data.Aeson as AE
@@ -195,7 +195,7 @@ index a36aca2..6256a73 100644
 @@ -285,21 +285,21 @@ foreign import javascript unsafe "[$1,$2,$3,$4,$5]"       arr5     :: JSVal -> J
  foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6]"    arr6     :: JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
  foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6,$7]" arr7     :: JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
-
+ 
 -toJSVal_aeson :: AE.ToJSON a => a -> IO JSVal
 -toJSVal_aeson x = cv (AE.toJSON x)
 -  where
@@ -204,7 +204,7 @@ index a36aca2..6256a73 100644
 +-- toJSVal_aeson x = cv (AE.toJSON x)
 +--   where
 +--     cv = convertValue
-
+ 
 -    convertValue :: AE.Value -> IO JSVal
 -    convertValue AE.Null       = return jsNull
 -    convertValue (AE.String t) = return (pToJSVal t)
@@ -227,8 +227,8 @@ index a36aca2..6256a73 100644
 +--       obj@(OI.Object obj') <- OI.create
 +--       mapM_ (\(k,v) -> convertValue v >>= \v' -> OI.setProp (JSS.textToJSString k) v' obj) (H.toList o)
 +--       return obj'
-
-
+ 
+ 
 diff --git a/GHCJS/Marshal/Pure.hs b/GHCJS/Marshal/Pure.hs
 index 902fa20..268489d 100644
 --- a/GHCJS/Marshal/Pure.hs
@@ -274,46 +274,46 @@ index 2b288ec..6d7074c 100644
 --- a/JavaScript/JSON/Types/Instances.hs
 +++ b/JavaScript/JSON/Types/Instances.hs
 @@ -57,7 +57,7 @@ import Control.Applicative ((<$>), (<*>), (<|>), pure, empty)
-
+ 
  import           Data.JSString      (JSString)
  import qualified Data.JSString      as JSS
 -import qualified Data.JSString.Text as JSS
 +-- import qualified Data.JSString.Text as JSS
-
+ 
  import           JavaScript.Array (JSArray)
  import qualified JavaScript.Array as JSA
 @@ -335,21 +335,21 @@ instance FromJSON JSString where
      parseJSON = withJSString "JSString" pure
      {-# INLINE parseJSON #-}
-
+ 
 -instance ToJSON Text where
 -    toJSON = stringValue . JSS.textToJSString
 -    {-# INLINE toJSON #-}
 +-- instance ToJSON Text where
 +--     toJSON = stringValue . JSS.textToJSString
 +--     {-# INLINE toJSON #-}
-
+ 
 -instance FromJSON Text where
 -    parseJSON = withJSString "Text" ( pure . JSS.textFromJSString )
 -    {-# INLINE parseJSON #-}
 +-- instance FromJSON Text where
 +--     parseJSON = withJSString "Text" ( pure . JSS.textFromJSString )
 +--     {-# INLINE parseJSON #-}
-
+ 
 -instance ToJSON LT.Text where
 -    toJSON = stringValue . JSS.textToJSString . LT.toStrict
 -    {-# INLINE toJSON #-}
 +-- instance ToJSON LT.Text where
 +--     toJSON = stringValue . JSS.textToJSString . LT.toStrict
 +--     {-# INLINE toJSON #-}
-
+ 
 -instance FromJSON LT.Text where
 -    parseJSON = withJSString "Lazy Text" $ pure . LT.fromStrict . JSS.textFromJSString
 -    {-# INLINE parseJSON #-}
 +-- instance FromJSON LT.Text where
 +--     parseJSON = withJSString "Lazy Text" $ pure . LT.fromStrict . JSS.textFromJSString
 +--     {-# INLINE parseJSON #-}
-
+ 
  instance (ToJSON a) => ToJSON [a] where
      toJSON = arrayValue . arrayValueList . map toJSON
 diff --git a/JavaScript/Web/Canvas.hs b/JavaScript/Web/Canvas.hs
@@ -321,13 +321,13 @@ index 0a7684c..74490c2 100644
 --- a/JavaScript/Web/Canvas.hs
 +++ b/JavaScript/Web/Canvas.hs
 @@ -69,7 +69,7 @@ import Control.Monad
-
+ 
  import Data.Data
  import Data.Maybe (fromJust)
 -import Data.Text (Text)
 +-- import Data.Text (Text)
  import Data.Typeable
-
+ 
  import GHCJS.Foreign
 diff --git a/ghcjs-base.cabal b/ghcjs-base.cabal
 index 4a64694..acf8806 100644
