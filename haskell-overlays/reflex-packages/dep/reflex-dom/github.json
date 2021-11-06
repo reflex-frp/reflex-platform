@@ -3,6 +3,6 @@
   "repo": "reflex-dom",
   "branch": "fix-android-build-ghc810",
   "private": false,
-  "rev": "3dcde35259ffa7368d9d106f00aa72af5559fced",
-  "sha256": "026ps8ksirfwwbx4vlhd6zqmnk1msyqva9z612ws8vv9qgz6vf7s"
+  "rev": "ea4c78edcd4cfa164fdfbeacb9bc4eea00a7ca48",
+  "sha256": "1s30xn8h4iwr00skahyjlahfj39858432lanm8wd7idx8v9vwpaa"
 }
