@@ -26,6 +26,13 @@ To see what has changed since a previous version of Reflex Platform, see `Change
 Important Notes
 ---------------
 
+### Branches
+
+The default branch for this git repo is `develop`, but the latest release is `master`.
+End-users should prefer to use `master`, *not* `develop`.
+
+The default branch is just `develop` to ensure new PRs go to the right place by default.
+
 ### OS Compatibility
 
 If you're using one of these platforms, please take a look at notes before you begin:

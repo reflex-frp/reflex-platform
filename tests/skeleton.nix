@@ -21,6 +21,12 @@ let
   });
 in {
   project = skeleton;
-  ghc = skeleton.shells.ghc;
-  ghcjs = skeleton.shells.ghcjs;
+  ghc = mkCabalProject {
+    shellDrv = skeleton.shells.ghc;
+    projectFile = "cabal.project";
+  };
+  ghcjs = mkCabalProject {
+    shellDrv = skeleton.shells.ghcjs;
+    projectFile = "cabal-ghcjs.project";
+  };
 }
