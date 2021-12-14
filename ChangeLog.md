@@ -2,13 +2,9 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-## Unrelased
+## Unreleased
 
-* Add a partial preview of GHC 8.10 support, not on by default.
-  * native: linux and macOS
-  * iOS, unprofiled only
-  * android, unprofiled only
-  * Add GHCJS 8.10.7
+* Add GHC 8.10 support
 
 * Bump
   * [reflex-vty to 0.2.0.0](https://github.com/reflex-frp/reflex-vty/releases/tag/v0.2.0.0)
