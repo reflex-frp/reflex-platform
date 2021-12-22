@@ -17,6 +17,7 @@ This project's release branch is `master`. This log is written from the perspect
   * reflex-ghci to 0.1.5.2
   * cabal-macosx to 0.2.4.2
   * all-cabal-hashes ("Update from Hackage at 2021-12-22T18:48:06Z")
+  * beam-automigrate to 0.1.2.0
 
 ## v0.9.0.0
 

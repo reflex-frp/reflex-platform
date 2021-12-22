@@ -44,7 +44,7 @@ self: super: {
   beam-core = self.callHackage "beam-core" "0.9.0.0" {};
   beam-migrate = self.callHackage "beam-migrate" "0.5.0.0" {};
   beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.0.0" {});
-  beam-automigrate = self.callHackage "beam-automigrate" "0.1.0.0" {};
+  beam-automigrate = self.callHackage "beam-automigrate" "0.1.2.0" {};
 
   # hnix 0.12 and dependencies
   hnix = dontCheck
