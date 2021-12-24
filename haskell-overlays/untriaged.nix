@@ -20,31 +20,21 @@ self: super: {
   cryptonite = dontCheck super.cryptonite;
   scientific = dontCheck super.scientific;
 
-  # pandoc 2.11 and dependencies
-  commonmark = self.callHackage "commonmark" "0.1.0.2" {};
-  commonmark-extensions = self.callHackage "commonmark-extensions" "0.2.0.1" {};
-  commonmark-pandoc = self.callHackage "commonmark-pandoc" "0.2.0.1" {};
-  citeproc = doJailbreak (self.callHackage "citeproc" "0.1.0.2" {});
-  emojis = self.callHackage "emojis" "0.1" {};
-  jira-wiki-markup = self.callHackage "jira-wiki-markup" "1.3.2" {};
-  pandoc = self.callHackage "pandoc" "2.11.0.2" {};
-  pandoc-types = self.callHackage "pandoc-types" "1.22" {};
-  texmath = self.callHackage "texmath" "0.12.0.3" {};
-  rfc5051 = self.callHackage "rfc5051" "0.2" {};
-  HsYAML = self.callHackage "HsYAML" "0.2.1.0" {};
-  connection = self.callHackage "connection" "0.3.1" {};
-  doclayout = self.callHackage "doclayout" "0.3" {};
-  doctemplates = self.callHackage "doctemplates" "0.8.2" {};
-  haddock-library = doJailbreak (self.callHackage "haddock-library" "1.8.0" {});
-  hslua  = self.callHackage "hslua" "1.1.0" {};
-  skylighting = self.callHackage "skylighting" "0.10.0.2" {};
-  skylighting-core = self.callHackage "skylighting-core" "0.10.0.2" {};
+  # pandoc 2.16 and dependencies
+  pandoc = self.callHackage "pandoc" "2.16.2" {};
+  citeproc = self.callHackage "citeproc" "0.6" {};
+  hslua-marshalling = self.callHackage "hslua-marshalling" "2.0.1" {};
+  hslua-module-path  = self.callHackage "hslua-module-path" "1.0.0" {};
+  hslua-module-version  = self.callHackage "hslua-module-version" "1.0.0" {};
+  lpeg = self.callHackage "lpeg" "1.0.1" {};
+  tasty-bench = self.callHackage "tasty-bench" "0.3.1" {};
+  unicode-collation = self.callHackage "unicode-collation" "0.1.3.1" {};
 
   # beam packages
-  beam-core = self.callHackage "beam-core" "0.9.0.0" {};
-  beam-migrate = self.callHackage "beam-migrate" "0.5.0.0" {};
-  beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.0.0" {});
-  beam-automigrate = self.callHackage "beam-automigrate" "0.1.0.0" {};
+  beam-core = self.callHackage "beam-core" "0.9.1.0" {};
+  beam-migrate = self.callHackage "beam-migrate" "0.5.1.0" {};
+  beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.1.0" {});
+  beam-automigrate = self.callHackage "beam-automigrate" "0.1.2.0" {};
 
   # hnix 0.12 and dependencies
   hnix = dontCheck

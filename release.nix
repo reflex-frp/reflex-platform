@@ -119,6 +119,7 @@ let
       ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
       # TODO Doesn't currently build. Removing from CI until fixed.
       ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
+      ghcjs8_10.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_10.reflex-todomvc;
       # TODO  move back to `perOptDebugVariant`
       skeleton-test-ghcjs = skeleton-test.ghcjs;
       nojsstring = {
