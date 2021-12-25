@@ -12,6 +12,8 @@ This project's release branch is `master`. This log is written from the perspect
 
 * Bump
   * [reflex to 0.8.2.0](https://github.com/reflex-frp/reflex/releases/tag/v0.8.2.0)
+  * [reflex-dom-core to 0.6.3.0](https://github.com/reflex-frp/reflex-dom/releases/tag/reflex-dom-core-0.6.3.0)
+  * [reflex-dom to 0.6.1.1](https://github.com/reflex-frp/reflex-dom/releases/tag/reflex-dom-0.6.1.1)
   * [reflex-vty to 0.2.0.0](https://github.com/reflex-frp/reflex-vty/releases/tag/v0.2.0.0)
   * reflex-process to 0.3.1.1
   * reflex-ghci to 0.1.5.2
