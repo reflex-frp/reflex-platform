@@ -24,6 +24,8 @@ This project's release branch is `master`. This log is written from the perspect
   * beam-migrate to 0.5.1.0
   * beam-postgres to 0.5.1.0
   * pandoc to 2.16.2
+* New pins
+  * ghcjs-promise 0.1.0.3
 
 ## v0.9.0.0
 

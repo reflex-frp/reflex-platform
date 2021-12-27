@@ -52,4 +52,6 @@ self: super: {
   cryptohash-sha512 = doJailbreak super.cryptohash-sha512;
   ListLike = self.callHackage "ListLike" "4.7.3" {};
 
+  # ghcjs-promise is marked broken in nixpkgs
+  ghcjs-promise = self.callHackage "ghcjs-promise" "0.1.0.3" {};
 }
