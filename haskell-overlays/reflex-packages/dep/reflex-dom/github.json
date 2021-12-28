@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "release/reflex-dom/0.6.1.1",
+  "branch": "aa/remove-hasjscontext",
   "private": false,
-  "rev": "05d8bf4d7f9ce9da39669cd0d6e03c06b0691aab",
-  "sha256": "17njzfbmfwdfz7l0y36qw0yqpjax4bbmpgrmdbyxh13a8vz82an4"
+  "rev": "de85e850d529ceebd77e9cd9124e5b9b83cf2120",
+  "sha256": "04lrdhfkbk4nlj2lw7q96apjqmdydqafpylf10qgpjzpvn9la278"
 }
