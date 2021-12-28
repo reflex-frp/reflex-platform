@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "fix-android-build-ghc810",
+  "branch": "aa/remove-hasjscontext",
   "private": false,
-  "rev": "ea4c78edcd4cfa164fdfbeacb9bc4eea00a7ca48",
-  "sha256": "1s30xn8h4iwr00skahyjlahfj39858432lanm8wd7idx8v9vwpaa"
+  "rev": "cd7c93bee4e9cd6046d3a383910ee7bbe2c84a78",
+  "sha256": "1xa11ilh038xf6n0q55gh4vhsgvpdwybdaxf5y1m7dklbbyw1i7c"
 }
