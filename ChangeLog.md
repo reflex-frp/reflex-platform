@@ -2,6 +2,48 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* GHCJS 8.6 no longer uses older versions of some libraries with "text JS-string"
+
+  * `dlist`
+  * `ghcjs-base`
+  * `ghcjs-base`
+  * `primitive`
+  * `vector`
+  * hashable
+
+  Instead it uses the same versions as everything else.
+
+* Bump
+
+  Intentional bumps:
+
+  * dependent-sum-template to 0.1.1.0
+  * some to 1.0.2
+
+  Prerequisite bumps:
+
+  * OneTuple 0.3.1
+  * QuickCheck 2.14.1
+  * aeson 1.5.4.1
+  * base-orphans 0.8.6
+  * bifunctors 5.5.11
+  * comonad 5.0.8
+  * generic-deriving 1.14.1
+  * hashable 1.3.5.0
+  * index-traversable 0.1.2
+  * invariant 0.5.5
+  * lens 4.19.2
+  * microlens-th 0.4.3.10
+  * quickcheck-instances 0.3.27
+  * splitmix 0.1.0.4
+  * strict 0.4.0.1
+  * tagged 0.8.6.1
+  * th-abstraction 0.4.3.0
+  * th-lift 0.8.2
+  * time-compat 1.9.4
+
 ## v0.9.2.0
 
 * Bump

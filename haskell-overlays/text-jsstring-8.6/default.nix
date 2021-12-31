@@ -5,22 +5,8 @@ with haskellLib;
 
 self: super: {
   _dep = super._dep or {} // thunkSet ./dep // {
-    ghcjsBaseTextJSStringSrc = self._dep.ghcjsBaseSrc.overrideAttrs (drv: {
-      outputHash = "0l7xadhcmc8wg9l6p91gi1a5bjbil8gqmd7jkx2758b73y8faxzi";
-      postFetch = (drv.postFetch or "") + ''
-        ( cd $out
-          patch -p1 < ${./ghcjs-base-text-jsstring.patch}
-        )
-      '';
-    });
   };
 
-  jsaddle = overrideCabal super.jsaddle (drv: {
-    buildDepends = (drv.buildDepends or []) ++ [
-      self.ghcjs-base
-      self.ghcjs-prim
-    ];
-  });
   attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
@@ -31,18 +17,6 @@ self: super: {
       sha256 = "18dd2ydva3hnsfyrzmi3y3r41g2l4r0kfijaan85y6rc507k6x5c";
     };
   });
-  hashable = overrideCabal super.hashable (drv: {
-    revision = null;
-    editedCabalFile = null;
-    jailbreak = true;
-    doCheck = false;
-    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
-      self.text
-    ];
-    patches = (drv.patches or []) ++ [
-      ./hashable.patch
-    ];
-  });
   conduit-extra = dontCheck (appendPatch super.conduit-extra ./conduit-extra-text-jsstring.patch);
   double-conversion = overrideCabal super.double-conversion (drv: {
     src = fetchFromGitHub {
@@ -52,13 +26,4 @@ self: super: {
       sha256 = "0sjljf1sbwalw1zycpjf6bqhljag9i1k77b18b0fd1pzrc29wnks";
     };
   });
-  say = overrideCabal super.say (drv: {
-    patches = (drv.patches or []) ++ [
-      ./say.patch
-    ];
-    buildDepends = (drv.buildDepends or []) ++ [
-      self.ghcjs-base
-    ];
-  });
-  aeson = dontCheck (self.callCabal2nix "aeson" self._dep.aeson {});
 }

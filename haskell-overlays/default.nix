@@ -81,15 +81,17 @@ rec {
   ] self super;
 
   combined-ghcjs-8_6 = self: super: foldExtensions [
-    ghcjs
+    ghcjs_8_6
+    (optionalExtension useTextJSString textJSString)
     (optionalExtension useTextJSString textJSString-8_6)
-    (optionalExtension useTextJSString ghcjs-8_6-textJSString)
+    (optionalExtension useTextJSString ghcjs-textJSString-8_6)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_6)
   ] self super;
 
   combined-ghcjs-8_10 = self: super: foldExtensions [
+    (optionalExtension useTextJSString textJSString)
     (optionalExtension useTextJSString textJSString-8_10)
-    (optionalExtension useTextJSString ghcjs-8_10-textJSString)
+    (optionalExtension useTextJSString ghcjs-textJSString-8_10)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_10)
   ] self super;
 
@@ -137,20 +139,26 @@ rec {
   };
 
   # Just for GHCJS
-  ghcjs = import ./ghcjs.nix {
+  ghcjs_8_6 = import ./ghcjs-8.6 {
     inherit
       lib haskellLib nixpkgs fetchgit fetchFromGitHub
       useReflexOptimizer
+      useTextJSString
       enableLibraryProfiling
       ;
   };
 
-  ghcjs-8_6-textJSString = import ./ghcjs-8.6-text-jsstring.nix {
+  ghcjs-textJSString-8_6 = import ./ghcjs-text-jsstring-8.6 {
     inherit lib fetchgit;
   };
 
-  ghcjs-8_10-textJSString = import ./ghcjs-8.10-text-jsstring.nix {
+  ghcjs-textJSString-8_10 = import ./ghcjs-text-jsstring-8.10 {
     inherit lib fetchgit;
+  };
+
+  textJSString = import ./text-jsstring {
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
+    inherit (nixpkgs) fetchpatch thunkSet;
   };
 
   textJSString-8_6 = import ./text-jsstring-8.6 {
