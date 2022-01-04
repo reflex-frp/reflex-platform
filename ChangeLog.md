@@ -2,6 +2,12 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## v0.9.2.0
+
+* Bump
+  * [reflex-dom-core to 0.7.0.0](https://github.com/reflex-frp/reflex-dom/releases/tag/reflex-dom-core-0.7.0.0).
+  * reflex-dom to 0.6.1.1-r1
+
 ## v0.9.1.0
 
 * Add a partial preview of GHC 8.10 support, not on by default.
