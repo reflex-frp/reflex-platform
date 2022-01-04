@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "aa/remove-hasjscontext",
+  "branch": "release/reflex-dom-core/0.7.0.0",
   "private": false,
-  "rev": "de85e850d529ceebd77e9cd9124e5b9b83cf2120",
+  "rev": "a5ae0c8a8598ce531f80b8443cd3042314e821f3",
   "sha256": "04lrdhfkbk4nlj2lw7q96apjqmdydqafpylf10qgpjzpvn9la278"
 }
