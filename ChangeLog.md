@@ -2,7 +2,13 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-## Unreleased
+## v0.9.2.0
+
+* Bump
+  * [reflex-dom-core to 0.7.0.0](https://github.com/reflex-frp/reflex-dom/releases/tag/reflex-dom-core-0.7.0.0).
+  * reflex-dom to 0.6.1.1-r1
+
+## v0.9.1.0
 
 * Add a partial preview of GHC 8.10 support, not on by default.
   * native: linux and macOS
@@ -11,10 +17,21 @@ This project's release branch is `master`. This log is written from the perspect
   * Add GHCJS 8.10.7
 
 * Bump
+  * [reflex to 0.8.2.0](https://github.com/reflex-frp/reflex/releases/tag/v0.8.2.0)
+  * [reflex-dom-core to 0.6.3.0](https://github.com/reflex-frp/reflex-dom/releases/tag/reflex-dom-core-0.6.3.0)
+  * [reflex-dom to 0.6.1.1](https://github.com/reflex-frp/reflex-dom/releases/tag/reflex-dom-0.6.1.1)
   * [reflex-vty to 0.2.0.0](https://github.com/reflex-frp/reflex-vty/releases/tag/v0.2.0.0)
   * reflex-process to 0.3.1.1
   * reflex-ghci to 0.1.5.2
   * cabal-macosx to 0.2.4.2
+  * all-cabal-hashes ("Update from Hackage at 2021-12-22T18:48:06Z")
+  * beam-automigrate to 0.1.2.0
+  * beam-core to 0.9.1.0
+  * beam-migrate to 0.5.1.0
+  * beam-postgres to 0.5.1.0
+  * pandoc to 2.16.2
+* New pins
+  * ghcjs-promise 0.1.0.3
 
 ## v0.9.0.0
 

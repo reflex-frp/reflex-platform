@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-dom",
-  "branch": "fix-android-build-ghc810",
+  "branch": "release/reflex-dom-core/0.7.0.0",
   "private": false,
-  "rev": "a5fac42d1c29d62f12e49bc95620efd0d4a45648",
-  "sha256": "17d2k21a72c9wf9iqfzx4y9vxrvm81ivs0l2lb1dqcyr5ybz8jgf"
+  "rev": "a5ae0c8a8598ce531f80b8443cd3042314e821f3",
+  "sha256": "04lrdhfkbk4nlj2lw7q96apjqmdydqafpylf10qgpjzpvn9la278"
 }
