@@ -45,7 +45,7 @@ let iosSupport = system == "x86_64-darwin";
             # from the src proper.
             patches = [];
           });
-          ghcSplices-8_10 = super.haskell.compiler.ghc8104.overrideAttrs (drv: {
+          ghcSplices-8_10 = (super.haskell.compiler.ghc8104.overrideAttrs (drv: {
             src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
@@ -58,9 +58,10 @@ let iosSupport = system == "x86_64-darwin";
               # Patch libraries/unix/config.sub to fix android build
               ./nixpkgs-overlays/android-8.10-splices.patch
             ];
+          })).override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = enableLibraryProfiling;
-          });
+          };
         };
         packages = super.haskell.packages // {
           ghcSplices-8_6 = super.haskell.packages.ghc865.override {
