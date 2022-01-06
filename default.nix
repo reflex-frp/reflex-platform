@@ -60,7 +60,7 @@ let iosSupport = system == "x86_64-darwin";
             ];
           })).override {
             # New option for GHC 8.10. Explicitly enable profiling builds
-            enableProfiledLibs = enableLibraryProfiling;
+            enableProfiledLibs = true;
           };
         };
         packages = super.haskell.packages // {
