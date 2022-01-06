@@ -95,14 +95,10 @@ let
       }  // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
         inherit (reflex-platform) iosReflexTodomvc-8_6;
+        inherit (reflex-platform) iosReflexTodomvc-8_10;
         inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
-      } // lib.optionalAttrs (reflex-platform.iosSupport && variant == "unprofiled") {
-        # TODO fix GHC 8.10 profiling on iOS
-        # Only allow on iOS building with GHC 8.10 in unprofiled mode
-        inherit (reflex-platform) iosReflexTodomvc-8_10;
-      } // drvListToAttrs otherDeps
-        # TODO fix GHCJS profiling builds
+      }  // drvListToAttrs otherDeps
         # // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
       ;
     in packages // {
