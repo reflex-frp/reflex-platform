@@ -71,7 +71,7 @@ let
       skeleton-test = import ./tests/skeleton.nix { inherit reflex-platform; };
       otherDeps = getOtherDeps reflex-platform;
       packages = {
-        # TODO fix GHCJS profiling builds
+        # TODO uncomment this once GHCJS profiling builds are fixed
         # tryReflexShell = reflex-platform.tryReflexShell;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
@@ -92,13 +92,14 @@ let
           isRelease = true;
         };
         skeleton-test-project-android = skeleton-test.project.android;
-      }  // lib.optionalAttrs (reflex-platform.iosSupport) {
+      } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
         inherit (reflex-platform) iosReflexTodomvc-8_6;
         inherit (reflex-platform) iosReflexTodomvc-8_10;
         inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
-      }  // drvListToAttrs otherDeps
+      } // drvListToAttrs otherDeps
+        # TODO uncomment this once GHCJS profiling builds are fixed
         # // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
       ;
     in packages // {
