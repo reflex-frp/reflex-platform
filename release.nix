@@ -71,7 +71,7 @@ let
       skeleton-test = import ./tests/skeleton.nix { inherit reflex-platform; };
       otherDeps = getOtherDeps reflex-platform;
       packages = {
-        # TODO fix GHCJS profiling builds
+        # TODO uncomment this once GHCJS profiling builds are fixed
         # tryReflexShell = reflex-platform.tryReflexShell;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
@@ -83,6 +83,7 @@ let
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
         inherit (reflex-platform) androidReflexTodomvc-8_6;
+        inherit (reflex-platform) androidReflexTodomvc-8_10;
         androidReflexTodomvc-release = reflex-platform.android.buildApp {
           package = p: p.reflex-todomvc;
           executableName = "reflex-todomvc";
@@ -91,21 +92,14 @@ let
           isRelease = true;
         };
         skeleton-test-project-android = skeleton-test.project.android;
-      } // lib.optionalAttrs (reflex-platform.androidSupport && variant == "unprofiled") {
-        # TODO fix GHC 8.10 profiling on Android
-        # Only allow on Android building with GHC 8.10 in unprofiled mode
-        inherit (reflex-platform) androidReflexTodomvc-8_10;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
         inherit (reflex-platform) iosReflexTodomvc-8_6;
+        inherit (reflex-platform) iosReflexTodomvc-8_10;
         inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
-      } // lib.optionalAttrs (reflex-platform.iosSupport && variant == "unprofiled") {
-        # TODO fix GHC 8.10 profiling on iOS
-        # Only allow on iOS building with GHC 8.10 in unprofiled mode
-        inherit (reflex-platform) iosReflexTodomvc-8_10;
       } // drvListToAttrs otherDeps
-        # TODO fix GHCJS profiling builds
+        # TODO uncomment this once GHCJS profiling builds are fixed
         # // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
       ;
     in packages // {
