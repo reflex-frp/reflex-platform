@@ -118,6 +118,8 @@ let
       skeleton-test-ghcjs = skeleton-test.ghcjs;
       nojsstring = {
         ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
+        ghcjs8_6.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_6.reflex-todomvc;
+        ghcjs8_10.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_10.reflex-todomvc;
       };
     } // lib.optionalAttrs (system == "x86_64-linux") {
       inherit
