@@ -1,8 +1,8 @@
 {
-  "owner": "reflex-frp",
+  "owner": "hSloan",
   "repo": "reflex-dom",
-  "branch": "master",
+  "branch": "is-enable-bluetooth",
   "private": false,
-  "rev": "112e626ce8dc97d17c8aa9092727fb824b6f9fba",
-  "sha256": "12bggm7p69fq3pc0s5wfwg6rvp207lny24xxsx72xyynz1b8ym3l"
+  "rev": "5baf2c071c886995eab154bb1640686759fc676f",
+  "sha256": "10grawkaz15vdy9k3431hi9szk7mgg8p40kr9cvm4ygkj9q4pl02"
 }

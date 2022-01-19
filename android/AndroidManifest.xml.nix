@@ -37,7 +37,6 @@ in ''
         </activity>
         ${services}
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
     ${permissions}
 </manifest>
 ''
