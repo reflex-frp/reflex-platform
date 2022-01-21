@@ -4,6 +4,9 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
+* GHC 8.10 support is complete, with the remaining profiling builds
+  that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
+
 * GHCJS 8.6 no longer uses older versions of some libraries with "text JS-string"
 
   * `dlist`
