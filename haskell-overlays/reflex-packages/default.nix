@@ -189,13 +189,13 @@ in
   }) {};
 
   constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
-  some = self.callHackage "some" "1.0.1" {};
+  some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
   dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
   dependent-monoidal-map = self.callCabal2nix "dependent-monoidal-map" self._dep.dependent-monoidal-map {};
   dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
-  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.0.3" {};
+  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.1.0" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
   dependent-sum-aeson-orphans = self.callHackage "dependent-sum-aeson-orphans" "0.3.0.0" {};
 
@@ -206,6 +206,58 @@ in
   universe-instances-extended = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-instances-extended" {};
   universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
+
+  th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
+
+  # Needed because we force newer th-abstraction for our TH libraries.
+  aeson = self.callHackage "aeson" "1.5.4.1" {};
+  bifunctors = self.callHackage "bifunctors" "5.5.11" {};
+  generic-deriving = self.callHackage "generic-deriving" "1.14.1" {};
+  invariant = self.callHackage "invariant" "0.5.5" {};
+  lens = self.callHackage "lens" "4.19.2" {};
+  microlens-th = self.callHackage "microlens-th" "0.4.3.10" {};
+  th-lift = self.callHackage "th-lift" "0.8.2" {};
+
+  # For aeson
+  quickcheck-instances = self.callHackage "quickcheck-instances" "0.3.27" {};
+  strict = self.callHackage "strict" "0.4.0.1" {};
+
+  # For quickcheck-instanaces
+  OneTuple = doJailbreak (self.callHackage "OneTuple" "0.3.1" {});
+  QuickCheck = self.callHackage "QuickCheck" "2.14.1" {};
+  # Avoid Infinite recursursion
+  text-short = dontCheck super.text-short;
+  time-compat = self.callHackage "time-compat" "1.9.4" {};
+
+  # For OneTuple and strict
+  hashable = self.callHackage "hashable" "1.3.5.0" {};
+
+  # For QuickCheck
+  splitmix = dontCheck (self.callHackage "splitmix" "0.1.0.4" (lib.optionalAttrs stdenv.hostPlatform.isLinux {
+    # Non-Haskell library needed for the test suite
+    testu01 = null;
+  }));
+
+  # Due to newer QuickCheck
+  HsYAML = doJailbreak super.HsYAML;
+  attoparsec = doJailbreak super.attoparsec;
+  cassava = doJailbreak super.cassava;
+  psqueues = doJailbreak super.psqueues;
+  vector = doJailbreak super.vector;
+  # quick check arbitrary was trying harder, maybe?
+  hackage-security = dontCheck super.hackage-security;
+
+  # Due to strict
+  stylish-haskell = doJailbreak super.stylish-haskell;
+
+  # For bifunctors, bumped above
+  comonad = self.callHackage "comonad" "5.0.8" {};
+  base-orphans = self.callHackage "base-orphans" "0.8.6" {};
+
+  # For comonad
+  tagged = self.callHackage "tagged" "0.8.6.1" {};
+  # this package didn't exist in the package set before
+  indexed-traversable = self.callHackage "indexed-traversable" "0.1.2" {};
 
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13

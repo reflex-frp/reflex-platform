@@ -71,7 +71,7 @@ let
       skeleton-test = import ./tests/skeleton.nix { inherit reflex-platform; };
       otherDeps = getOtherDeps reflex-platform;
       packages = {
-        # TODO fix GHCJS profiling builds
+        # TODO uncomment this once GHCJS profiling builds are fixed
         # tryReflexShell = reflex-platform.tryReflexShell;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
         ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
@@ -99,7 +99,7 @@ let
         inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
       } // drvListToAttrs otherDeps
-        # TODO fix GHCJS profiling builds
+        # TODO uncomment this once GHCJS profiling builds are fixed
         # // drvListToAttrs (lib.filter lib.isDerivation reflex-platform.cachePackages)
       ;
     in packages // {
@@ -118,6 +118,8 @@ let
       skeleton-test-ghcjs = skeleton-test.ghcjs;
       nojsstring = {
         ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
+        ghcjs8_6.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_6.reflex-todomvc;
+        ghcjs8_10.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_10.reflex-todomvc;
       };
     } // lib.optionalAttrs (system == "x86_64-linux") {
       inherit
