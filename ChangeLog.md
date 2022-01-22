@@ -4,6 +4,13 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
+* Bump
+  * Nixpkgs to 21.05
+
+* Drop GHC 8.6 support which was removed in the new Nixpkgs.
+
+## Unreleased
+
 * Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10.
   Previously we were using mixed GHC 8.10 versions to avoid issues.
 
