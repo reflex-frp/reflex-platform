@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "android-activity",
-  "branch": "eac@port-firebase",
+  "branch": "is-bluetooth",
   "private": false,
-  "rev": "ff27970dca5fb5f4979af23dbf1264c6cc50e2e3",
-  "sha256": "069ihs9ns6f0dlaqh064b34axfvv7nayhfj5yrp65nhw9vs42asa"
+  "rev": "650241a170c55dac41ea7b990ea020911b7a2001",
+  "sha256": "09ggvnghjcb548dk8ky09a1zvdicb9fydl4hrgp7c0a310w9p0fs"
 }
