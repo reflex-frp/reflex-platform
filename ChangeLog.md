@@ -4,6 +4,11 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
+* Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10.
+  Previously we were using mixed GHC 8.10 versions to avoid issues.
+
+## Unreleased
+
 * GHC 8.10 support is complete, with the remaining profiling builds
   that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
 
