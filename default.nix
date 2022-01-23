@@ -45,7 +45,7 @@ let iosSupport = system == "x86_64-darwin";
             # from the src proper.
             patches = [];
           });
-          ghcSplices-8_10 = (super.haskell.compiler.ghc8104.override {
+          ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
           }).overrideAttrs (drv: {
@@ -68,7 +68,7 @@ let iosSupport = system == "x86_64-darwin";
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_6;
             ghc = self.buildPackages.haskell.compiler.ghcSplices-8_6;
           };
-          ghcSplices-8_10 = super.haskell.packages.ghc8104.override {
+          ghcSplices-8_10 = super.haskell.packages.ghc8107.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_10;
             ghc = self.buildPackages.haskell.compiler.ghcSplices-8_10;
           };
@@ -266,7 +266,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
-  ghc8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc8104).override {
+  ghc8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc8107).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc865).override {
