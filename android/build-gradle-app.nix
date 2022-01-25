@@ -48,6 +48,7 @@ let
        '');
   androidsdkComposition = androidenv.composeAndroidPackages {
     inherit platformVersions useGoogleAPIs buildToolsVersions;
+    includeNDK = true;
     includeExtras = [ "extras;android;m2repository" ]
       ++ optional useGooglePlayServices "extras;google;google_play_services";
   };
