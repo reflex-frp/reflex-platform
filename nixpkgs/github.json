@@ -3,6 +3,6 @@
   "repo": "nixpkgs",
   "branch": "bump-ghcjs-8.10",
   "private": false,
-  "rev": "c5a5df4d7f445ca2208303a6079aed9cd8015dbc",
-  "sha256": "0824nvfqlh41i0cvm8y1h03h38xifms1l2pi858p56hx88jpvppv"
+  "rev": "bb216498eda422a07150f9c2203085696bef986f",
+  "sha256": "0g52ina86r1vnfscxwfjy2vid8v7bdcmlaym5wb9xaxwggj29dhd"
 }
