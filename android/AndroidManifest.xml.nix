@@ -18,6 +18,7 @@ in ''
       android:versionCode="${version.code}"
       android:versionName="${version.name}">
     <application android:label="@string/app_name"
+                 android:debuggable="true"
                  android:icon="${iconPath}"
                  android:allowBackup="${boolStr allowBackup}"
                  android:fullBackupContent="${boolStr fullBackupContent}"
