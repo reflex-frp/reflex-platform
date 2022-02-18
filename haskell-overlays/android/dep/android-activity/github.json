@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "android-activity",
-  "branch": "is-class-bluetooth",
+  "branch": "delete-bluetooth-class",
   "private": false,
-  "rev": "7d41921a5d0ede2c865b03ffa0f23e8cdffd9432",
-  "sha256": "1pilszssqadachij3yj5dk3c6kx39c03xff521l8p532dw7spxia"
+  "rev": "ae7ac0edc45797ea5c91f84ad08d4d826baa5e0c",
+  "sha256": "123q4bmf217zhrs2fxmm27gmhkahp0v6a2m8rymch3r4lffir8bk"
 }
