@@ -254,7 +254,7 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
-  wasm = ghcWasm32-8_10;
+  wasm = ghcWasm32-8_6;
   ghcWasm32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
     # Due to the splices changes the parallel build fails while building the libraries
     ghc = old.ghc.overrideAttrs (drv: { enableParallelBuilding = false; });
