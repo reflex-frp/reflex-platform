@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "reflex-platform",
+  "branch": "cn/ignore-more-libuv-tests",
   "private": false,
-  "rev": "e6e5ff9cb3529b6de75e5d217222086de17e093a",
-  "sha256": "0qwrqilfn11sqlgsdrn99a623kxxxcbcy2acv9pmd620jvgmx0p9"
+  "rev": "c2304d2565502216d65fd68660c39784fe253104",
+  "sha256": "0rlpv0wn8vpkxc7kf4cxs3xrviklabk6jpgnrl633hk0ql4ch4rm"
 }
