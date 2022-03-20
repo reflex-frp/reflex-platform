@@ -479,12 +479,12 @@ in let this = rec {
   generalDevTools' = { nativeHaskellPackages ? ghc }: {
     inherit (nativeHaskellPackages)
       Cabal
-      cabal-install
-      ghcid
-      hasktags
-      hlint
-      stylish-haskell # Recent stylish-haskell only builds with AMP in place
-      reflex-ghci
+      # ghcid
+      # cabal-install
+      # hasktags
+      # hlint
+      # stylish-haskell # Recent stylish-haskell only builds with AMP in place
+      # reflex-ghci
       ;
     inherit (nixpkgs)
       cabal2nix
