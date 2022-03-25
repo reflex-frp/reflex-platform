@@ -1,0 +1,24 @@
+diff --git a/libraries/bytestring/Data/ByteString/Builder/Prim/Internal.hs b/libraries/bytestring/Data/ByteString/Builder/Prim/Internal.hs
+index fb52404..572b4b7 100644
+--- a/libraries/bytestring/Data/ByteString/Builder/Prim/Internal.hs
++++ b/libraries/bytestring/Data/ByteString/Builder/Prim/Internal.hs
+@@ -198,7 +198,19 @@ liftFixedToBounded = toB
+ 
+ {-# INLINE CONLIKE storableToF #-}
+ storableToF :: forall a. Storable a => FixedPrim a
++-- Not all architectures are forgiving of unaligned accesses; whitelist ones
++-- which are known not to trap (either to the kernel for emulation, or crash).
++#if defined(i386_HOST_ARCH) || defined(x86_64_HOST_ARCH) \
++    || ((defined(arm_HOST_ARCH) || defined(aarch64_HOST_ARCH)) \
++        && defined(__ARM_FEATURE_UNALIGNED)) \
++    || defined(powerpc_HOST_ARCH) || defined(powerpc64_HOST_ARCH) \
++    || defined(powerpc64le_HOST_ARCH)
+ storableToF = FP (sizeOf (undefined :: a)) (\x op -> poke (castPtr op) x)
++#else
++storableToF = FP (sizeOf (undefined :: a)) $ \x op ->
++    if ptrToWordPtr op `mod` fromIntegral (alignment (undefined :: a)) == 0 then poke (castPtr op) x
++    else with x $ \tp -> copyBytes op (castPtr tp) (sizeOf (undefined :: a))
++#endif
+ 
+ {-
+ {-# INLINE CONLIKE liftIOF #-}
