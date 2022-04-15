@@ -54,4 +54,6 @@ self: super: {
 
   # ghcjs-promise is marked broken in nixpkgs
   ghcjs-promise = self.callHackage "ghcjs-promise" "0.1.0.3" {};
+
+  time-compat = self.callHackage "time-compat" "1.9.6.1" {};
 }
