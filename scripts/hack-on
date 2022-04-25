@@ -35,7 +35,7 @@ elif [ -e "$REPO/github.json" ] ; then
     JSON_FILE="$REPO/github.json"
     GITHUB_OWNER="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).owner")")"
     GITHUB_REPO="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).repo")")"
-    URL="git://github.com/$GITHUB_OWNER/$GITHUB_REPO"
+    URL="https://github.com/$GITHUB_OWNER/$GITHUB_REPO"
     REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).rev")")"
 fi
 
@@ -48,7 +48,17 @@ if [ -f "$REPO/thunk.nix" ] ; then
     rm "$REPO/thunk.nix"
 fi
 rm "$JSON_FILE"
+
+# Install the cleanup trap handler *after* `rmdir` to avoid overwriting any
+# newly added files that are preventing the directory from being removed.
+trap "echo 'Attempted to replace $REPO but encountered unexpected file(s). Please remove.'" ERR
 rmdir "$REPO"
+
+# Though it might be best to use some combination of `checkout`, `clean`, and
+# `restore`, this approach is most widely supported across git versions.
+# Additionally, this is also the least surprising when dealing with oddities
+# around nested git repositories at the price of a scary `rm -f`.
+trap "rm -rf $REPO && git checkout $REPO 2> /dev/null" ERR
 
 git clone -n "$URL" "$REPO"
 REMOTE_URL="$(git -C "$REPO" config --get remote.origin.url)"
