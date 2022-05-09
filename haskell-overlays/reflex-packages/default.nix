@@ -62,7 +62,8 @@ in
     ])) {})
     (drv: {
       # TODO: Get hlint working for cross-compilation
-      doCheck = stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
+      # doCheck = stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
+      doCheck = false; # stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
 
       # The headless browser run as part of the tests will exit without this
       preBuild = (drv.preBuild or "") + ''
@@ -99,6 +100,7 @@ in
       useTemplateHaskellFlag
     ])) {})
     (drv: {
+      doCheck = false;
       # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
       libraryHaskellDepends = (drv.libraryHaskellDepends or [])
         ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [

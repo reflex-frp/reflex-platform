@@ -1,6 +1,6 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? builtins.currentSystem
-, config ? {}
+, config ? { android_sdk.accept_license = true; }
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? true
 , enableTraceReflexEvents ? false
