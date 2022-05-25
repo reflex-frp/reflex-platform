@@ -1,7 +1,7 @@
 {
   "url": "ssh://git@code.obsidian.systems/lodewallet/reflex-dom.git",
-  "rev": "b6f2b094cf1700e6467a913732287b5c94da86d5",
-  "sha256": "06nvm6b7xqz8v8v14dgbgwb41avny0xkz0iddfgjs5b6mwd84q0x",
+  "rev": "e41024de38efb76a28acf21abbf17cc1f946b438",
+  "sha256": "13kqw4fca1yagmm7h535dh1zy68n5ij869rlyizhgghmvhn9asix",
   "private": true,
   "fetchSubmodules": false,
   "branch": "webview-experiments"
