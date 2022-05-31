@@ -49,16 +49,10 @@ if [ -f "$REPO/thunk.nix" ] ; then
 fi
 rm "$JSON_FILE"
 
-# Install the cleanup trap handler *after* `rmdir` to avoid overwriting any
-# newly added files that are preventing the directory from being removed.
 trap "echo 'Attempted to replace $REPO but encountered unexpected file(s). Please remove.'" ERR
 rmdir "$REPO"
 
-# Though it might be best to use some combination of `checkout`, `clean`, and
-# `restore`, this approach is most widely supported across git versions.
-# Additionally, this is also the least surprising when dealing with oddities
-# around nested git repositories at the price of a scary `rm -f`.
-trap "rm -rf $REPO && git checkout $REPO 2> /dev/null" ERR
+trap "echo 'Could not clone $REPO. This thunk may be in a bad state.'" ERR
 
 git clone -n "$URL" "$REPO"
 REMOTE_URL="$(git -C "$REPO" config --get remote.origin.url)"
