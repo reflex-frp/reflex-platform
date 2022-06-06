@@ -32,7 +32,7 @@ runCommand "android-icons" {
       convert -resize "$(launcherIconSize "$x")" -flatten "${rasterInput}" "$dir/ic_launcher.png"
     done
   '' + lib.optionalString (adaptiveIcon != null) ''
-    mkidr -p "$out/mipmap-anydpi-v26/"
+    mkdir -p "$out/mipmap-anydpi-v26/"
     cp "${adaptiveIcon}" "$out/mipmap-anydpi-v26/ic_launcher.xml"
   '';
   nativeBuildInputs = [
