@@ -74,10 +74,11 @@ in {
         });
         javaSrc = nixpkgs.buildEnv {
           name = applicationId + "-java";
-          paths = javaSources ++ [
+          paths = javaSources
+            # Sets up the main Activity using [android-activity](https://hackage.haskell.org/package/android-activity)
             (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
-            (ghcAndroidAarch64.reflex-dom.src + "/java")
-          ];
+            # Sets up the main webview using [reflex-dom](https://github.com/reflex-frp/reflex-dom/blob/develop/reflex-dom/java/org/reflexfrp/reflexdom/MainWidget.java)
+            (ghcAndroidAarch64.reflex-dom.src + "/java");
         };
         src = ./src;
         nativeBuildInputs = [ nixpkgs.rsync ];

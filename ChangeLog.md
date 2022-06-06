@@ -20,6 +20,10 @@ This project's release branch is `master`. This log is written from the perspect
   Previously we were using mixed GHC 8.10 versions to avoid issues.
 * GHC 8.10 support is complete, with the remaining profiling builds
   that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
+* *Breaking Change*: The `javaSources` argument of `android/default.nix` is now
+  a function that takes the default sources as arguments instead of a list that
+  is always appended to the default sources. It is now possible to override the
+  default java sources. See the documentation [here](android/default.nix).
 
 * GHCJS 8.6 no longer uses older versions of some libraries with "text JS-string"
 
