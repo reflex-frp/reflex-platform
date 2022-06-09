@@ -11,11 +11,9 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
+* Fix SIGBUS crashes on armv7a due unaligned writes ([!774](https://github.com/reflex-frp/reflex-platform/pull/774))
 * Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10.
   Previously we were using mixed GHC 8.10 versions to avoid issues.
-
-## Unreleased
-
 * GHC 8.10 support is complete, with the remaining profiling builds
   that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
 
@@ -34,6 +32,7 @@ This project's release branch is `master`. This log is written from the perspect
 
   Intentional bumps:
 
+  * all-cabal-hashes "Update from Hackage at 2022-01-20T19:38:07Z"
   * dependent-sum-template to 0.1.1.0
   * some to 1.0.2
 
