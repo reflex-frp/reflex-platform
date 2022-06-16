@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "bump-ghcjs-8.10",
+  "branch": "reflex-platform-21.05",
   "private": false,
-  "rev": "4e243931107ee18274d861a56c24528a0ac9c775",
-  "sha256": "00vyfmaib8wxxdvvfbmb4gwdvkflbpl1kx5j6nlvpmgv7zlliz8a"
+  "rev": "4516c1a5bb5d11209324bd00239448528bd5fb6d",
+  "sha256": "1xigr1hcihjy3fl25681k908apkia0w0vmmz1wk8w35927qxb9a1"
 }
