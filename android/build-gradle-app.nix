@@ -1,4 +1,4 @@
-{ stdenv, androidenv, jdk, gnumake, gawk, file
+{ stdenv, lib, androidenv, jdk, gnumake, gawk, file
 , which, gradle, fetchurl, buildEnv, runCommand }:
 
 args@{ name, src, platformVersions ? [ "8" ]
@@ -16,7 +16,7 @@ assert release -> keyAliasPassword != null;
 assert acceptAndroidSdkLicenses;
 
 let
-  inherit (stdenv.lib) optionalString optional;
+  inherit (lib) optionalString optional;
 
   m2install = { repo, version, artifactId, groupId
               , jarSha256, pomSha256, aarSha256, suffix ? ""
@@ -60,7 +60,7 @@ stdenv.mkDerivation ({
   ANDROID_HOME = "${androidsdkComposition.androidsdk}/libexec";
   ANDROID_NDK_HOME = "${androidsdkComposition.ndk-bundle}/libexec/android-sdk/ndk-bundle";
 
-  buildInputs = [ jdk gradle ] ++ buildInputs ++ stdenv.lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
+  buildInputs = [ jdk gradle ] ++ buildInputs ++ lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
 
   DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
                             paths = map m2install mavenDeps;
@@ -105,6 +105,6 @@ stdenv.mkDerivation ({
   '';
 
   meta = {
-    license = stdenv.lib.licenses.unfree;
+    license = lib.licenses.unfree;
   };
 } // builtins.removeAttrs args ["name" "mavenDeps"])
