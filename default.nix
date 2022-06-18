@@ -90,7 +90,7 @@ let iosSupport = system == "x86_64-darwin";
             useTextJSString enableExposeAllUnfoldings __useTemplateHaskell
             haskellOverlaysPre
             haskellOverlaysPost;
-          inherit ghcSavedSplices-8_6 ghcSavedSplices-8_10;
+          inherit ghcSavedSplices-8_10;
         };
       };
     };
@@ -205,23 +205,7 @@ let iosSupport = system == "x86_64-darwin";
     });
 
   ghcSavedSplices = ghcSavedSplices-8_10;
-  ghcSavedSplices-8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_6).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      haskellOverlays.combined
-      (haskellOverlays.saveSplices "8.6")
-      (self: super: with haskellLib; {
-        blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
-        cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
-        integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
-        scientific = enableCabalFlag super.scientific "integer-simple";
-        dependent-sum-template = dontCheck super.dependent-sum-template;
-        generic-deriving = dontCheck super.generic-deriving;
-      })
-    ]);
-  };
-  ghcSavedSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_10).override {
+    ghcSavedSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgs.haskell.overlays;
     in [
@@ -236,21 +220,7 @@ let iosSupport = system == "x86_64-darwin";
     ]);
   };
   ghcjs = ghcjs8_10;
-  ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
-    ghc = old.ghc.override {
-      bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
-      ghcjsSrc = fetchgit {
-        url = "https://github.com/obsidiansystems/ghcjs.git";
-        rev = "a00ecf0b2eaddbc4101c76e6ac95fc97b0f75840"; # ghc-8.6 branch
-        sha256 = "06cwpijwhj4jpprn07y3pkxmv40pwmqqw5jbdv4s7c67j5pmirnc";
-        fetchSubmodules = true;
-      };
-    };
-  }))).override {
-    overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
-  };
-
-  ghcjs8_10 = (makeRecursivelyOverridable nixpkgsCross.ghcjs.haskell.packages.ghcjs810).override {
+    ghcjs8_10 = (makeRecursivelyOverridable nixpkgsCross.ghcjs.haskell.packages.ghcjs810).override {
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
@@ -267,9 +237,6 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgs.haskell.overlays.combined;
   };
   ghc8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc8107).override {
-    overrides = nixpkgs.haskell.overlays.combined;
-  };
-  ghc8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc865).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
 
@@ -329,10 +296,6 @@ let iosSupport = system == "x86_64-darwin";
   android = androidWithHaskellPackages {
     inherit ghcAndroidAarch64 ghcAndroidAarch32;
   };
-  android-8_6 = androidWithHaskellPackages {
-    ghcAndroidAarch64 = ghcAndroidAarch64-8_6;
-    ghcAndroidAarch32 = ghcAndroidAarch32-8_6;
-  };
   android-8_10 = androidWithHaskellPackages {
     ghcAndroidAarch64 = ghcAndroidAarch64-8_10;
     ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
@@ -342,10 +305,8 @@ let iosSupport = system == "x86_64-darwin";
     acceptAndroidSdkLicenses = config.android_sdk.accept_license or false;
   };
   iosAarch64 = iosWithHaskellPackages ghcIosAarch64;
-  iosAarch64-8_6 = iosWithHaskellPackages ghcIosAarch64-8_6;
   iosAarch64-8_10 = iosWithHaskellPackages ghcIosAarch64-8_10;
   iosAarch32 = iosWithHaskellPackages ghcIosAarch32;
-  iosAarch32-8_6 = iosWithHaskellPackages ghcIosAarch32-8_6;
   iosAarch32-8_10 = iosWithHaskellPackages ghcIosAarch32-8_10;
   iosSimulator = {
     buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs; ghc = ghcIosSimulator64; withSimulator = true; });
@@ -365,26 +326,19 @@ in let this = rec {
           overrideCabal
           ghc
           ghcHEAD
-          ghc8_6
           ghc8_10
           ghcIosSimulator64
           ghcIosAarch64
-          ghcIosAarch64-8_6
           ghcIosAarch64-8_10
           ghcIosAarch32
-          ghcIosAarch32-8_6
           ghcIosAarch32-8_10
           ghcAndroidAarch64
-          ghcAndroidAarch64-8_6
           ghcAndroidAarch64-8_10
           ghcAndroidAarch32
-          ghcAndroidAarch32-8_6
           ghcAndroidAarch32-8_10
           ghcjs
-          ghcjs8_6
           ghcjs8_10
           ghcSavedSplices
-          ghcSavedSplices-8_6
           ghcSavedSplices-8_10
           android
           androidWithHaskellPackages
@@ -408,12 +362,6 @@ in let this = rec {
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
   };
-  androidReflexTodomvc-8_6 = android-8_6.buildApp {
-    package = p: p.reflex-todomvc;
-    executableName = "reflex-todomvc";
-    applicationId = "org.reflexfrp.todomvc.via_8_6";
-    displayName = "Reflex TodoMVC via GHC 8.6";
-  };
   androidReflexTodomvc-8_10 = android-8_10.buildApp {
     package = p: p.reflex-todomvc;
     executableName = "reflex-todomvc";
@@ -425,12 +373,6 @@ in let this = rec {
     executableName = "reflex-todomvc";
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
-  };
-  iosReflexTodomvc-8_6 = iosAarch64-8_6.buildApp {
-    package = p: p.reflex-todomvc;
-    executableName = "reflex-todomvc";
-    bundleIdentifier = "org.reflexfrp.todomvc.via_8_6";
-    bundleName = "Reflex TodoMVC via GHC 8.6";
   };
   iosReflexTodomvc-8_10 = iosAarch64-8_10.buildApp {
     package = p: p.reflex-todomvc;
