@@ -121,7 +121,7 @@ let iosSupport = system == "x86_64-darwin";
         splicesEval
         mobileGhcOverlay
         allCabalHashesOverlay
-        (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
+        (import ./nixpkgs-overlays/ghc.nix { inherit lib; pkgs = nixpkgs; })
       ] ++ nixpkgsOverlays;
       config = config // {
         permittedInsecurePackages = (config.permittedInsecurePackages or []) ++ [

@@ -1,8 +1,8 @@
 {
-  "owner": "chrbauer",
+  "owner": "NixOS",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-21.05",
+  "branch": "release-21.1",
   "private": false,
-  "rev": "9aad5511bfe9bf0de601063cc1367193308ccdd",
-  "sha256": "1fazmvs62gman9z3wscfyybxwvdw055y8cjl1xi0xdl3z6k4f0j1"
+  "rev": "be7173e188365d35b45c4d029cd49c8fea834922",
+  "sha256": "1lc1zskpfbpa3j34lwdbqx57v6chxawg8qkp98vaianqwhqyv7p5"
 }
