@@ -152,6 +152,7 @@ in
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
+  ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
 
   ##
   ## Gargoyle and dependencies
@@ -190,7 +191,7 @@ in
     sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
   }) {};
 
-  constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
+  #constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
   some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
@@ -212,55 +213,6 @@ in
   th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
 
   # Needed because we force newer th-abstraction for our TH libraries.
-  aeson = self.callHackage "aeson" "1.5.4.1" {};
-  bifunctors = self.callHackage "bifunctors" "5.5.11" {};
-  generic-deriving = self.callHackage "generic-deriving" "1.14.1" {};
-  invariant = self.callHackage "invariant" "0.5.5" {};
-  lens = self.callHackage "lens" "4.19.2" {};
-  microlens-th = self.callHackage "microlens-th" "0.4.3.10" {};
-  th-lift = self.callHackage "th-lift" "0.8.2" {};
-
-  # For aeson
-  quickcheck-instances = self.callHackage "quickcheck-instances" "0.3.27" {};
-  strict = self.callHackage "strict" "0.4.0.1" {};
-
-  # For quickcheck-instanaces
-  OneTuple = doJailbreak (self.callHackage "OneTuple" "0.3.1" {});
-  QuickCheck = self.callHackage "QuickCheck" "2.14.1" {};
-  # Avoid Infinite recursursion
-  text-short = dontCheck super.text-short;
-  time-compat = self.callHackage "time-compat" "1.9.4" {};
-
-  # For OneTuple and strict
-  hashable = self.callHackage "hashable" "1.3.5.0" {};
-
-  # For QuickCheck
-  splitmix = dontCheck (self.callHackage "splitmix" "0.1.0.4" (lib.optionalAttrs stdenv.hostPlatform.isLinux {
-    # Non-Haskell library needed for the test suite
-    testu01 = null;
-  }));
-
-  # Due to newer QuickCheck
-  HsYAML = doJailbreak super.HsYAML;
-  attoparsec = doJailbreak super.attoparsec;
-  cassava = doJailbreak super.cassava;
-  psqueues = doJailbreak super.psqueues;
-  vector = doJailbreak super.vector;
-  # quick check arbitrary was trying harder, maybe?
-  hackage-security = dontCheck super.hackage-security;
-
-  # Due to strict
-  stylish-haskell = doJailbreak super.stylish-haskell;
-
-  # For bifunctors, bumped above
-  comonad = self.callHackage "comonad" "5.0.8" {};
-  base-orphans = self.callHackage "base-orphans" "0.8.6" {};
-
-  # For comonad
-  tagged = self.callHackage "tagged" "0.8.6.1" {};
-  # this package didn't exist in the package set before
-  indexed-traversable = self.callHackage "indexed-traversable" "0.1.2" {};
-
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
   cabal-macosx = self.callHackage "cabal-macosx" "0.2.4.2" {};
