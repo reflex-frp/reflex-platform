@@ -22,6 +22,8 @@ in self: super: {
           bootPkgs.ghc
           bootPkgs.alex bootPkgs.happy_1_19_12 bootPkgs.hscolour
         ];
+      enableDocs = false;
+      enableHaddockProgram = false;
     })){ inherit (super.haskell.compiler) ghc865 ghcSplices-8_6 ghc8107 ghcSplices-8_10; };
   };
 }

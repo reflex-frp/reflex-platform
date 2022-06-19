@@ -10,6 +10,7 @@ self: super: {
                 bootPkgs.ghc
                 bootPkgs.alex bootPkgs.happy_1_19_12 bootPkgs.hscolour
               ];
+              enableDocs = false;
             });
     };
   };
