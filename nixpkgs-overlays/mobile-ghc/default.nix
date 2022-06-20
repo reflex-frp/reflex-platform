@@ -7,7 +7,9 @@ let
   in version: lib.versionOlder version top && lib.versionAtLeast version bottom;
 in self: super: {
   haskell = super.haskell // {
-    compiler = super.haskell.compiler //  lib.mapAttrs (n: v: v.overrideAttrs (drv: {
+    compiler = super.haskell.compiler //  lib.mapAttrs (n: v: (v.override {
+      enableDocs = false;
+    }).overrideAttrs (drv: {
       patches =
         let isAndroid = self.stdenv.targetPlatform.useAndroidPrebuilt;
         in
@@ -18,12 +20,10 @@ in self: super: {
       nativeBuildInputs =
         let   bootPkgs = drv.passthru.bootPkgs; in
         with pkgs; [
-          perl autoconf269 automake m4 python3 sphinx
+          perl autoconf269 automake m4 python3
           bootPkgs.ghc
           bootPkgs.alex bootPkgs.happy_1_19_12 bootPkgs.hscolour
         ];
-      enableDocs = false;
-      enableHaddockProgram = false;
-    })){ inherit (super.haskell.compiler) ghc865 ghcSplices-8_6 ghc8107 ghcSplices-8_10; };
+    })){ inherit (super.haskell.compiler) ghc8107 ghcSplices-8_10; };
   };
 }
