@@ -152,8 +152,9 @@ in
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
-  # ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
+  ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
 
+  #witherable =  self.callHackage "witherable" "0.3.5" {};
   ##
   ## Gargoyle and dependencies
   ##
@@ -198,7 +199,7 @@ in
   dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
   dependent-monoidal-map = self.callCabal2nix "dependent-monoidal-map" self._dep.dependent-monoidal-map {};
   dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
-  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.1.0" {};
+  #dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.1.0" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
   dependent-sum-aeson-orphans = self.callHackage "dependent-sum-aeson-orphans" "0.3.0.0" {};
 
