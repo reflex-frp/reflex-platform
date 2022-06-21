@@ -152,7 +152,7 @@ in
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
-  ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
+  # ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
 
   ##
   ## Gargoyle and dependencies
@@ -178,7 +178,7 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
   monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
-  patch = self.callCabal2nix "patch" self._dep.patch {};
+  #patch = self.callCabal2nix "patch" self._dep.patch {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
 
