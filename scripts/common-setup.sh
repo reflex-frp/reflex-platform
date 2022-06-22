@@ -248,13 +248,13 @@ cleanup_nix_path() {
 }
 
 prebuild_try_reflex_shell() {
-  nix-instantiate "$DIR/shell.nix" --indirect --add-root "$DIR/gc-roots/shell.drv" $NIXOPTS >/dev/null
+  nix-instantiate "$DIR/shell.nix" --indirect --add-root "$DIR/gc-roots/shell.drv" $NIXOPTS --show-trace
   nix-store --realize "$DIR/gc-roots/shell.drv" --indirect --add-root "$DIR/gc-roots/shell.out" >/dev/null
 }
 
 try_reflex_shell() {
   prebuild_try_reflex_shell
-  nix-shell -E '{path}: import path' --arg path "$(readlink "$DIR/gc-roots/shell.drv")" $NIXOPTS "$@"
+  nix-shell -E '{path}: import path' --arg path "$(readlink "$DIR/gc-roots/shell.drv")" $NIXOPTS "$@" --show-trace
 }
 
 # For a given effective platform, turn a string representing a package, which

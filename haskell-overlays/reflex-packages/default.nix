@@ -38,13 +38,13 @@ in
   ##
   ## Reflex family
   ##
-
-  reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
-    (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
-    reflexOptimizerFlag
-    useTemplateHaskellFlag
-    (lib.optional useFastWeak "-ffast-weak")
-  ])) {};
+  random = self.callHackage "random" "1.1" {};
+  # reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
+  #   (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
+  #   reflexOptimizerFlag
+  #   useTemplateHaskellFlag
+  #   (lib.optional useFastWeak "-ffast-weak")
+  # ])) {};
 
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
@@ -153,7 +153,8 @@ in
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
   ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
-
+  #witherable =  self.callHackage "witherable" "0.3.5" {};
+  witherable-class =  self.callHackage "witherable-class" "0.0.1" {};
   #witherable =  self.callHackage "witherable" "0.3.5" {};
   ##
   ## Gargoyle and dependencies
@@ -179,7 +180,7 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
   monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
-  #patch = self.callCabal2nix "patch" self._dep.patch {};
+  #patch = self.callHackage "patch" "0.0.5.2" {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
 
@@ -193,6 +194,7 @@ in
   }) {};
 
   #constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
+  constraints = self.callHackage "constraints" "0.12" {};
   some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
@@ -212,6 +214,9 @@ in
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
   th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
+
+
+
 
   # Needed because we force newer th-abstraction for our TH libraries.
   # Slightly newer version to fix
