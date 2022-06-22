@@ -39,6 +39,7 @@ in
   ## Reflex family
   ##
   random = self.callHackage "random" "1.1" {};
+  foldl = self.callHackage "foldl" "1.4.11" {};
   # reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
   #   (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
   #   reflexOptimizerFlag
