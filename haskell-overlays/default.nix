@@ -37,14 +37,13 @@ rec {
   splices-load-save-nix = nixpkgs.fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
-    rev = "f23074aac612e1047d5b58bf8fe9528ee86a5a26";
-    sha256 = lib.fakeHash;
+    rev = "95e2980210920d52618465970313882cb8356a0e";
+    sha256 = "sha256-WkViWz5e0tbVc6mgp+fQyC069nXQe6uvmDFN4/Os81g=";
   };
-  splices-func = import splices-load-save-nix { pkgs = nixpkgs; };
+  splices-func = import "${splices-load-save-nix}" {
+    pkgs = nixpkgs;
+  };
 
-  ##
-  ## Conventional roll ups of all the constituent overlays below.
-  ##
 
   # `super.ghc` is used so that the use of an overlay does not depend on that
   # overlay. At the cost of violating the usual rules on using `self` vs
@@ -62,8 +61,8 @@ rec {
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices8_6)
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) splices-func.loadSplices8_10 ghcSplices-8_10)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) lsplices8_6)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) lsplices8_10)
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
@@ -151,9 +150,9 @@ rec {
     inherit enableLibraryProfiling;
   };
 
-  saveSplices = ghcVersion: import "${splices-load-save-nix}/save-splices.nix" {
-    inherit lib haskellLib fetchFromGitHub ghcVersion;
-  };
+  saveSplices = name: splices-func.saveSplices name;
+  lsplices8_10 = splices-func.loadSplices-8_10 ghcSavedSplices-8_10;
+  lsplices8_6 = splices-func.loadSplices-8_6 ghcSavedSplices-8_6;
 
   loadSplices-8_6 = import "${splices-load-save-nix}/load-splices.nix" {
     inherit lib haskellLib fetchFromGitHub;

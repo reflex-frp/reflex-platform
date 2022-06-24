@@ -27,8 +27,8 @@ let
   splices-load-save-nix = nixpkgs.fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
-    rev = "f23074aac612e1047d5b58bf8fe9528ee86a5a26";
-    sha256 = lib.fakeHash;
+    rev = "95e2980210920d52618465970313882cb8356a0e";
+    sha256 = "sha256-WkViWz5e0tbVc6mgp+fQyC069nXQe6uvmDFN4/Os81g=";
   };
 
   splices-src = import splices-load-save-nix { pkgs = nixpkgs; };
@@ -54,25 +54,25 @@ let
           # from the src proper.
           patches = [ ];
         });
-        ghcSplices-8_10 = (splices-src.patchGHC (super.haskell.compiler.ghc8107)).override { }; /*(splices-src.ghc810patched.override
-          {
-            # New option for GHC 8.10. Explicitly enable profiling builds
-            enableProfiledLibs = true;
-          }).overrideAttrs
-          (drv: {
-            # When building from the ghc git repo, ./boot must be run before configuring, whereas
-            # in the distribution tarball on the haskell.org downloads page, ./boot has already been
-            # run.
-            preConfigure = ''
+        ghcSplices-8_10 = splices-src.patchGHC (super.haskell.compiler.ghc8107); /*(splices-src.ghc810patched.override
+        /*{
+        # New option for GHC 8.10. Explicitly enable profiling builds
+        enableProfiledLibs = true;
+      }).overrideAttrs
+      (drv: {
+      # When building from the ghc git repo, ./boot must be run before configuring, whereas
+      # in the distribution tarball on the haskell.org downloads page, ./boot has already been
+      # run.
+      preConfigure = ''
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or " ";
-            patches = [
-              #Patch libraries/unix/config.sub to fix android build
-              ./nixpkgs-overlays/android-8.10-splices.patch
-            ];
-            });
-            */
+      patches = [
+        #Patch libraries/unix/config.sub to fix android build
+        ./nixpkgs-overlays/android-8.10-splices.patch
+      ];
+          });
+        */
       };
       packages = super.haskell.packages // {
         ghcSplices-8_6 = super.haskell.packages.ghc865.override {
@@ -240,21 +240,22 @@ let
     );
   };
   ghcSavedSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_10).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: { }) (
-      let
-        haskellOverlays = nixpkgs.haskell.overlays;
-      in
-      [
-        haskellOverlays.combined
-        (haskellOverlays.saveSplices "8.10")
-        (self: super: with haskellLib; {
-          blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
-          cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
-          integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
-          scientific = enableCabalFlag super.scientific "integer-simple";
-        })
-      ]
-    );
+    overrides = lib.foldr lib.composeExtensions (_: _: { })
+      (
+        let
+          haskellOverlays = nixpkgs.haskell.overlays;
+        in
+        [
+          haskellOverlays.combined
+          (haskellOverlays.saveSplices "8.10")
+          (self: super: with haskellLib; {
+            blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+            cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
+            integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
+            scientific = enableCabalFlag super.scientific "integer-simple";
+          })
+        ]
+      );
   };
   ghcjs = ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
@@ -283,7 +284,7 @@ let
     overrides = nixpkgsCross.wasm.haskell.overlays.combined;
   });
 
-  ghc = ghc8_6;
+  ghc = ghcSavedSplices-8_10;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
