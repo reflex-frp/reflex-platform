@@ -24,7 +24,12 @@ let
     "13.2" = "11.3.1";
   }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
-  splices-load-save-nix = ../splices-load-save.nix/default.nix;
+  splices-load-save-nix = nixpkgs.fetchFromGitHub {
+    owner = "obsidiansystems";
+    repo = "splices-load-save.nix";
+    rev = "f23074aac612e1047d5b58bf8fe9528ee86a5a26";
+    sha256 = lib.fakeHash;
+  };
 
   splices-src = import splices-load-save-nix { pkgs = nixpkgs; };
   # Overlay for GHC which supports the external splices plugin
