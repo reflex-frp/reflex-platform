@@ -1,8 +1,7 @@
 {
-  "owner": "reflex-frp",
+  "owner": "chrbauer",
   "repo": "reflex",
-  "branch": "release/0.8.2.0",
   "private": false,
-  "rev": "c9175f4733dba055a778d1a42baf85c5f6b9bb17",
-  "sha256": "0p20h8nha757q3l6klxa3pl178jq1rs1c314kcszqqq2s2810ka0"
+  "rev": "523ce3ef121053d71c0e52b7e0b0b4401284d7f4",
+  "sha256": "1n50m4lx6h4q5mdz3gd515qi8ck51f7p5h42b31sp0jyh3fpm0y0"
 }

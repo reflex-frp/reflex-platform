@@ -38,14 +38,18 @@ in
   ##
   ## Reflex family
   ##
-  random = self.callHackage "random" "1.1" {};
-  foldl = self.callHackage "foldl" "1.4.11" {};
-  # reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
-  #   (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
-  #   reflexOptimizerFlag
-  #   useTemplateHaskellFlag
-  #   (lib.optional useFastWeak "-ffast-weak")
-  # ])) {};
+  #random = self.callHackage "random" "1.1" {};
+  #foldl = self.callHackage "foldl" "1.4.11" {};
+  reflex = haskellLib.overrideCabal
+    (self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
+    (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
+    reflexOptimizerFlag
+    useTemplateHaskellFlag
+    (lib.optional useFastWeak "-ffast-weak")
+    ])) {})
+    (drv: {
+       editedCabalFile = "1msjk8bk59dv1pm90l2hxkrl185aj4xblzgc7nkwn7x31ykcnhyw";
+    });
 
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
@@ -155,7 +159,7 @@ in
   ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
   ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
   #witherable =  self.callHackage "witherable" "0.3.5" {};
-  witherable-class =  self.callHackage "witherable-class" "0.0.1" {};
+  #witherable-class =  self.callHackage "witherable-class" "0.0.1" {};
   #witherable =  self.callHackage "witherable" "0.3.5" {};
   ##
   ## Gargoyle and dependencies

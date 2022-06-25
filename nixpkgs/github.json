@@ -1,8 +1,8 @@
 {
   "owner": "NixOS",
   "repo": "nixpkgs",
-  "branch": "release-21.1",
+  "branch": "fix-ghc-8-10-7",
   "private": false,
-  "rev": "be7173e188365d35b45c4d029cd49c8fea834922",
-  "sha256": "1lc1zskpfbpa3j34lwdbqx57v6chxawg8qkp98vaianqwhqyv7p5"
+  "rev": "cfc1b41dc70888ce80ac3db7dd2ce9acb0f27306",
+  "sha256": "12gfc6dvysq5n9qv3jvz45d19xwpnw64wykrb70aav7c9h13v0g4"
 }
