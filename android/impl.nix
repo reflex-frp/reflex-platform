@@ -1,88 +1,109 @@
 env: with env;
-let overrideAndroidCabal = package: overrideCabal package (drv: {
-      preConfigure = (drv.preConfigure or "") + ''
+  let overrideAndroidCabal = package: overrideCabal package (drv: {
+        preConfigure = (drv.preConfigure or "") + ''
         sed -i 's%^executable *\(.*\)$%executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lffi -lm -llog%i' *.cabal
       '';
-    });
-    androidenv = nixpkgs.androidenv;
-    #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
-    addDeployScript = src: nixpkgs.runCommand "android-app" {
-      inherit src;
-      buildCommand = ''
+      });
+      androidenv = nixpkgs.androidenv;
+      androidComposition = androidenv.composeAndroidPackages {
+        toolsVersion = "26.1.1";
+        platformToolsVersion = "31.0.3";
+        buildToolsVersions = [ "31.0.0" ];
+        includeEmulator = false;
+        emulatorVersion = "30.9.0";
+        platformVersions = [ "30" ];
+        includeSources = false;
+        includeSystemImages = false;
+        systemImageTypes = [ "google_apis_playstore" ];
+        abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
+        cmakeVersions = [ "3.10.2" ];
+        includeNDK = true;
+        ndkVersions = ["22.0.7026061"];
+        useGoogleAPIs = true;
+        useGoogleTVAddOns = false;
+        includeExtras = [
+          "extras;google;gcm"
+        ];
+      };
+      #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
+      addDeployScript = src: nixpkgs.runCommand "android-app" {
+        inherit src;
+        buildCommand = ''
         mkdir -p "$out/bin"
         cp -r "$src"/* "$out"
         substitute ${./deploy.sh} $out/bin/deploy \
           --subst-var-by coreutils ${nixpkgs.coreutils} \
-          --subst-var-by adb ${androidenv.androidPkgs_9_0.platform-tools} \
-          --subst-var-by java ${nixpkgs.openjdk11} \
+          --subst-var-by adb ${androidComposition.platform-tools} \
+          --subst-var-by java ${nixpkgs.openjdk17_headless} \
           --subst-var-by out $out
         chmod +x "$out/bin/deploy"
       '';
-      buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
-    } "";
-    buildGradleApp = import ./build-gradle-app.nix {
-      inherit (nixpkgs) stdenv lib jdk gnumake gawk file runCommand
-                     which gradle fetchurl buildEnv;
-      inherit androidenv;
-    };
-    inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
-in {
-  buildApp = args: with args; addDeployScript (buildGradleApp {
-    inherit acceptAndroidSdkLicenses mavenDeps;
-    buildDirectory = "./.";
-    inherit gradleTask;
-    keyAlias = releaseKey.keyAlias or null;
-    keyAliasPassword = releaseKey.keyPassword or null;
-    keyStore = releaseKey.storeFile or null;
-    keyStorePassword = releaseKey.storePassword or null;
-    name = applicationId;
-    platformVersions = [ "30" ];
-    release = false;
-    src =
-      let splitApplicationId = splitString "." applicationId;
-          appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
-            hsApp = overrideAndroidCabal (package myHaskellPackages);
-            sharedLibs = runtimeSharedLibs myNixpkgs ++ [ "${myNixpkgs.libffi}/lib/libffi.so" ];
-          }) {
-            "arm64-v8a" = {
-              myNixpkgs = nixpkgsCross.android.aarch64;
-              myHaskellPackages = ghcAndroidAarch64;
+        buildInputs = [ androidComposition.androidsdk ];
+      } "";
+      buildGradleApp = import ./build-gradle-app.nix {
+        inherit (nixpkgs) stdenv lib  gnumake gawk file runCommand
+          which gradle fetchurl buildEnv;
+        inherit androidenv;
+        jdk = nixpkgs.openjdk17_headless;
+      };
+      inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
+  in {
+    buildApp = args: with args; addDeployScript (buildGradleApp {
+      inherit acceptAndroidSdkLicenses mavenDeps;
+      buildDirectory = "./.";
+      inherit gradleTask;
+      keyAlias = releaseKey.keyAlias or null;
+      keyAliasPassword = releaseKey.keyPassword or null;
+      keyStore = releaseKey.storeFile or null;
+      keyStorePassword = releaseKey.storePassword or null;
+      name = applicationId;
+      platformVersions = [ "30" ];
+      release = false;
+      src =
+        let splitApplicationId = splitString "." applicationId;
+            appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
+              hsApp = overrideAndroidCabal (package myHaskellPackages);
+              sharedLibs = runtimeSharedLibs myNixpkgs ++ [ "${myNixpkgs.libffi}/lib/libffi.so" ];
+            }) {
+              "arm64-v8a" = {
+                myNixpkgs = nixpkgsCross.android.aarch64;
+                myHaskellPackages = ghcAndroidAarch64;
+              };
+              # "armeabi-v7a" = {
+              #   myNixpkgs = nixpkgsCross.android.aarch32;
+              #   myHaskellPackages = ghcAndroidAarch32;
+              # };
             };
-            # "armeabi-v7a" = {
-            #   myNixpkgs = nixpkgsCross.android.aarch32;
-            #   myHaskellPackages = ghcAndroidAarch32;
-            # };
+            abiVersions = attrNames appSOs;
+        in nixpkgs.runCommand "android-app" {
+          buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
+            inherit applicationId version additionalDependencies releaseKey universalApk;
+            googleServicesClasspath = optionalString (googleServicesJson != null)
+              "classpath 'com.google.gms:google-services:4.3.3'";
+            googleServicesPlugin = optionalString (googleServicesJson != null)
+              "apply plugin: 'com.google.gms.google-services'";
+          });
+          androidManifestXml = builtins.toFile "AndroidManifest.xml" (import ./AndroidManifest.xml.nix {
+            inherit applicationId version iconPath intentFilters services permissions activityAttributes usesCleartextTraffic;
+          });
+          stringsXml = builtins.toFile "strings.xml" (import ./strings.xml.nix {
+            inherit displayName;
+          });
+          applicationMk = builtins.toFile "Application.mk" (import ./Application.mk.nix {
+            inherit nixpkgs abiVersions;
+          });
+          javaSrc = nixpkgs.buildEnv {
+            name = applicationId + "-java";
+            paths = javaSources
+              # Sets up the main Activity using [android-activity](https://hackage.haskell.org/package/android-activity)
+              (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
+              # Sets up the main webview using [reflex-dom](https://github.com/reflex-frp/reflex-dom/blob/develop/reflex-dom/java/org/reflexfrp/reflexdom/MainWidget.java)
+              (ghcAndroidAarch64.reflex-dom.src + "/java");
           };
-          abiVersions = attrNames appSOs;
-      in nixpkgs.runCommand "android-app" {
-        buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
-          inherit applicationId version additionalDependencies releaseKey universalApk;
-          googleServicesClasspath = optionalString (googleServicesJson != null)
-            "classpath 'com.google.gms:google-services:4.3.3'";
-          googleServicesPlugin = optionalString (googleServicesJson != null)
-            "apply plugin: 'com.google.gms.google-services'";
-        });
-        androidManifestXml = builtins.toFile "AndroidManifest.xml" (import ./AndroidManifest.xml.nix {
-          inherit applicationId version iconPath intentFilters services permissions activityAttributes usesCleartextTraffic;
-        });
-        stringsXml = builtins.toFile "strings.xml" (import ./strings.xml.nix {
-          inherit displayName;
-        });
-        applicationMk = builtins.toFile "Application.mk" (import ./Application.mk.nix {
-          inherit nixpkgs abiVersions;
-        });
-        javaSrc = nixpkgs.buildEnv {
-          name = applicationId + "-java";
-          paths = javaSources
-            # Sets up the main Activity using [android-activity](https://hackage.haskell.org/package/android-activity)
-            (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
-            # Sets up the main webview using [reflex-dom](https://github.com/reflex-frp/reflex-dom/blob/develop/reflex-dom/java/org/reflexfrp/reflexdom/MainWidget.java)
-            (ghcAndroidAarch64.reflex-dom.src + "/java");
-        };
-        src = ./src;
-        nativeBuildInputs = [ nixpkgs.rsync ];
-        unpackPhase = "";
-      } (''
+          src = ./src;
+          nativeBuildInputs = [ nixpkgs.rsync ];
+          unpackPhase = "";
+        } (''
           cp -r --no-preserve=mode "$src" "$out"
           mkdir -p "$out/src/main"
           cp -r --no-preserve=mode "$javaSrc" "$out/src/main/java"
@@ -124,14 +145,14 @@ in {
           [ -d "$out/assets" ]
           [ -d "$out/res" ]
         '');
-    useGooglePlayServices = true; # TODO: Should this be enabled by default?
-    useGoogleAPIs = true; #TODO: Should this be enabled by default?
+      useGooglePlayServices = true; # TODO: Should this be enabled by default?
+      useGoogleAPIs = true; #TODO: Should this be enabled by default?
 
-    # We use the NDK build process
-    useNDK = true;
-  });
+      # We use the NDK build process
+      useNDK = true;
+    });
 
-  intentFilterXml = args: with args; ''
+    intentFilterXml = args: with args; ''
     <intent-filter android:autoVerify="true">
       <action android:name="android.intent.action.VIEW" />
       <category android:name="android.intent.category.DEFAULT" />
@@ -142,4 +163,4 @@ in {
             android:pathPrefix="${pathPrefix}" />
     </intent-filter>
   '';
-}
+  }

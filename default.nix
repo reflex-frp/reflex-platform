@@ -293,6 +293,26 @@ let iosSupport = system == "x86_64-darwin";
   iosWithHaskellPackages = ghc: {
     buildApp = nixpkgs.lib.makeOverridable (import ./ios { inherit nixpkgs ghc; });
   };
+  androidComposition = nixpkgs.androidenv.composeAndroidPackages {
+        toolsVersion = "26.1.1";
+        platformToolsVersion = "31.0.3";
+        buildToolsVersions = [ "31.0.0" ];
+        includeEmulator = false;
+        emulatorVersion = "30.9.0";
+        platformVersions = [ "30" ];
+        includeSources = false;
+        includeSystemImages = false;
+        systemImageTypes = [ "google_apis_playstore" ];
+        abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
+        cmakeVersions = [ "3.10.2" ];
+        includeNDK = true;
+        ndkVersions = ["22.0.7026061"];
+        useGoogleAPIs = true;
+        useGoogleTVAddOns = false;
+        includeExtras = [
+          "extras;google;gcm"
+        ];
+      };
 
 in let this = rec {
   inherit (nixpkgs)
@@ -393,7 +413,7 @@ in let this = rec {
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
-    nixpkgs.androidsdk_9_0
+    androidComposition
   ];
 
   # Tools that are useful for development under both ghc and ghcjs
