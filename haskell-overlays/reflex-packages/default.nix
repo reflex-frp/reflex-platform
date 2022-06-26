@@ -150,15 +150,15 @@ in
   # another broken test
   # phantomjs has issues with finding the right port
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
-  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
+  # jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
 
-  jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
-  jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + "/jsaddle-wasm")) {};
-  ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
-  ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
-  ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
+  #jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
+  # jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + "/jsaddle-wasm")) {};
+  #ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
+  #ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};
+  #ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
   ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
-  #witherable =  self.callHackage "witherable" "0.3.5" {};
+  # witherable =  self.callHackage "witherable" "0.3.5" {};
   #witherable-class =  self.callHackage "witherable-class" "0.0.1" {};
   #witherable =  self.callHackage "witherable" "0.3.5" {};
   ##
@@ -184,7 +184,7 @@ in
   ##
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-  monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
+  #monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
   #patch = self.callHackage "patch" "0.0.5.2" {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};

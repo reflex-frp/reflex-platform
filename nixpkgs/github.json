@@ -1,8 +1,8 @@
 {
   "owner": "NixOS",
   "repo": "nixpkgs",
-  "branch": "fix-ghc-8-10-7",
+  "branch": "ix-cross-aarch64-bintools",
   "private": false,
-  "rev": "cfc1b41dc70888ce80ac3db7dd2ce9acb0f27306",
-  "sha256": "12gfc6dvysq5n9qv3jvz45d19xwpnw64wykrb70aav7c9h13v0g4"
+  "rev": "dc1d00c6b83213d1c99fa5f4c260aca734432e5b",
+  "sha256": "0238lw8q6y1290k91czfh28as3gi5kxn5warjgjwsgnk4mv6fn3p"
 }
