@@ -198,6 +198,8 @@ in
     sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
   }) {};
 
+#  data-fix = self.callHackage "data-fix" "0.3.2" {};
+  aeson = self.callHackage "aeson" "1.5.2.0" {};
   #constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
   constraints = self.callHackage "constraints" "0.12" {};
   some = self.callHackage "some" "1.0.2" {};
