@@ -32,8 +32,8 @@ let iosSupport = system == "x86_64-darwin";
             enableProfiledLibs = true;
             enableDocs = false;
           }).overrideAttrs (drv: {
-            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
-            # When building from the ghc git repo, ./boot must be run before configuring, whereas
+            #src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
+            # When bui#lding from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
             preConfigure= ''
@@ -42,7 +42,7 @@ let iosSupport = system == "x86_64-darwin";
             '' + drv.preConfigure or "";
             patches = [
               # Patch libraries/unix/config.sub to fix android build
-              ./nixpkgs-overlays/android-8.10-splices.patch
+              #./nixpkgs-overlays/android-8.10-splices.patch
             ];
           });
         };

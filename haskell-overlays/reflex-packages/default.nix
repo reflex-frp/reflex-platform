@@ -46,9 +46,9 @@ in
     reflexOptimizerFlag
     useTemplateHaskellFlag
     (lib.optional useFastWeak "-ffast-weak")
-    ])) {})
+    ])) {commutative-semigroups = self.callHackage "commutative-semigroups" "0.0.2.0" {}; })
     (drv: {
-       editedCabalFile = "1msjk8bk59dv1pm90l2hxkrl185aj4xblzgc7nkwn7x31ykcnhyw";
+       editedCabalFile = null; # "1msjk8bk59dv1pm90l2hxkrl185aj4xblzgc7nkwn7x31ykcnhyw";
     });
 
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
@@ -71,7 +71,7 @@ in
       doCheck = false; # stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
 
       # The headless browser run as part of the tests will exit without this
-      preBuild = (drv.preBuild or "") + ''
+      preBuild = (drv.preBuild or "") + '' self.callHackage "reflex-fsnotify" "0.2.1.2" {};
         export HOME="$PWD"
       '';
 
@@ -135,17 +135,17 @@ in
   ## GHCJS and JSaddle
   ##
 
-  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + "/jsaddle") {};
-  jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + "/jsaddle-clib") {};
-  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + "/jsaddle-webkit2gtk") {};
-  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + "/jsaddle-webkitgtk") {};
-  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
-    libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
-      (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
-         "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
-       ] else (with nixpkgs.buildPackages.darwin.apple_sdk.frameworks; [ Cocoa WebKit  ]));
-    buildDepends = lib.optional (!nixpkgs.stdenv.hostPlatform.useiOSPrebuilt) [ nixpkgs.buildPackages.darwin.cf-private ];
-  });
+  #jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + "/jsaddle") {};
+  #jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + "/jsaddle-clib") {};
+ # jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + "/jsaddle-webkit2gtk") {};
+#  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + "/jsaddle-webkitgtk") {};
+#  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
+#    libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
+#      (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
+#         "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
+#       ] else (with nixpkgs.buildPackages.darwin.apple_sdk.frameworks; [ Cocoa WebKit  ]));
+#    buildDepends = lib.optional (!nixpkgs.stdenv.hostPlatform.useiOSPrebuilt) [ nixpkgs.buildPackages.darwin.cf-private ];
+#  });
 
   # another broken test
   # phantomjs has issues with finding the right port

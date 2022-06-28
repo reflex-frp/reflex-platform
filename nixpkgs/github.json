@@ -1,7 +1,7 @@
 {
   "owner": "NixOS",
   "repo": "nixpkgs",
-  "branch": "ix-cross-aarch64-bintools",
+  "branch": "fix-cross-aarch64-bintools",
   "private": false,
   "rev": "dc1d00c6b83213d1c99fa5f4c260aca734432e5b",
   "sha256": "0238lw8q6y1290k91czfh28as3gi5kxn5warjgjwsgnk4mv6fn3p"
