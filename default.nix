@@ -27,9 +27,10 @@ let
   splices-load-save-nix = nixpkgs.fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
-    rev = "95e2980210920d52618465970313882cb8356a0e";
-    sha256 = "sha256-WkViWz5e0tbVc6mgp+fQyC069nXQe6uvmDFN4/Os81g=";
+    rev = "8b437239873c4f054cf5d03e61047a294bba5e4a";
+    sha256 = "sha256-cWbF23Dqnpc9+UUnK7TxcPzVEE4rj2Ld+1gwiw027ls=";
   };
+  #splices-load-save-nix = ../splices-load-save.nix/default.nix;
 
   splices-src = import splices-load-save-nix { pkgs = nixpkgs; };
   # Overlay for GHC which supports the external splices plugin
@@ -54,25 +55,8 @@ let
           # from the src proper.
           patches = [ ];
         });
-        ghcSplices-8_10 = splices-src.patchGHC (super.haskell.compiler.ghc8107); /*(splices-src.ghc810patched.override
-        /*{
-        # New option for GHC 8.10. Explicitly enable profiling builds
-        enableProfiledLibs = true;
-      }).overrideAttrs
-      (drv: {
-      # When building from the ghc git repo, ./boot must be run before configuring, whereas
-      # in the distribution tarball on the haskell.org downloads page, ./boot has already been
-      # run.
-      preConfigure = ''
-              echo ${drv.version} >VERSION
-              ./boot
-            '' + drv.preConfigure or " ";
-      patches = [
-        #Patch libraries/unix/config.sub to fix android build
-        ./nixpkgs-overlays/android-8.10-splices.patch
-      ];
-          });
-        */
+        ghcSplices-8_10 = splices-src.patchGHC (super.haskell.compiler.ghc8107);
+        ghcjsSplices-8_10 = splices-src.patchGHCJS (super.haskell.compiler.ghcjs810);
       };
       packages = super.haskell.packages // {
         ghcSplices-8_6 = super.haskell.packages.ghc865.override {
@@ -82,6 +66,10 @@ let
         ghcSplices-8_10 = super.haskell.packages.ghc8107.override {
           buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_10;
           ghc = self.buildPackages.haskell.compiler.ghcSplices-8_10;
+        };
+        ghcjsSplices-8_10 = super.haskell.packages.ghcjs810.override {
+          buildHaskellPackages = self.buildPackages.haskell.packages.ghcjsSplices-8_10;
+          ghc = self.buildPackages.haskell.compiler.ghcjsSplices-8_10;
         };
       };
     };
@@ -94,6 +82,7 @@ let
     haskell = super.haskell // {
       overlays = super.haskell.overlays or { } // import ./haskell-overlays {
         nixpkgs = self;
+        splices-func = splices-src;
         inherit (self) lib;
         haskellLib = self.haskell.lib;
         inherit
@@ -276,6 +265,13 @@ let
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
+  ghcjsSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcjsSplices-8_10).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: { }) ([
+      nixpkgs.haskell.overlays.combined
+      nixpkgs.haskell.overlays.ghcjs-splices
+    ]);
+  };
+
   wasm = ghcWasm32-8_6;
   ghcWasm32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
     # Due to the splices changes the parallel build fails while building the libraries
@@ -393,6 +389,7 @@ let
       ghcjs
       ghcjs8_6
       ghcjs8_10
+      ghcjsSplices-8_10
       ghcSavedSplices
       ghcSavedSplices-8_6
       ghcSavedSplices-8_10
@@ -540,6 +537,12 @@ let
       '';
       inherit buildInputs;
     });
+
+    forceGHC = rp:
+      let
+        rp810 = rp // { ghc = rp.ghc8_10; ghcjs = rp.ghcjs8_10; };
+      in
+      rp810 // { project = args: import ((hackGet ./dep/reflex-platform) + "/project") rp810 (args ({ pkgs = rp.nixpkgs; } // rp810)); };
 
     reflexEnv = platform:
       let

@@ -12,6 +12,7 @@
 , ghcSavedSplices-8_10
 , haskellOverlaysPre
 , haskellOverlaysPost
+, splices-func
 }:
 
 let
@@ -34,17 +35,6 @@ rec {
 
   getGhcVersion = ghc: ghc.version;
 
-  splices-load-save-nix = nixpkgs.fetchFromGitHub {
-    owner = "obsidiansystems";
-    repo = "splices-load-save.nix";
-    rev = "95e2980210920d52618465970313882cb8356a0e";
-    sha256 = "sha256-WkViWz5e0tbVc6mgp+fQyC069nXQe6uvmDFN4/Os81g=";
-  };
-  splices-func = import "${splices-load-save-nix}" {
-    pkgs = nixpkgs;
-  };
-
-
   # `super.ghc` is used so that the use of an overlay does not depend on that
   # overlay. At the cost of violating the usual rules on using `self` vs
   # `super`, this avoids a bunch of strictness issues keeping us terminating.
@@ -61,8 +51,8 @@ rec {
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) lsplices8_6)
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) lsplices8_10)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && hostPlatform != buildPlatform) (lsplices8_6 ghcSavedSplices-8_6))
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && hostPlatform != buildPlatform) (lsplices8_10 ghcSavedSplices-8_10))
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
@@ -123,6 +113,12 @@ rec {
     self
     super;
 
+  ghcjs-splices = self: super: foldExtensions [
+    (lsplices8_10 ghcSavedSplices-8_10)
+  ]
+    self
+    super;
+
   ##
   ## Constituent
   ##
@@ -151,20 +147,21 @@ rec {
   };
 
   saveSplices = name: splices-func.saveSplices name;
-  lsplices8_10 = splices-func.loadSplices-8_10 ghcSavedSplices-8_10;
-  lsplices8_6 = splices-func.loadSplices-8_6 ghcSavedSplices-8_6;
+  lsplices8_10 = splicepkgs: splices-func.loadSplices8_10 splicepkgs;
+  lsplices8_6 = splicepkgs: splices-func.loadSplices-8_6 splicepkgs;
 
-  loadSplices-8_6 = import "${splices-load-save-nix}/load-splices.nix" {
+  /*loadSplices-8_6 = import "${splices-load-save-nix}/load-splices.nix" {
     inherit lib haskellLib fetchFromGitHub;
     isExternalPlugin = false;
     splicedHaskellPackages = ghcSavedSplices-8_6;
-  };
+    };
 
-  loadSplices-8_10 = import "${splices-load-save-nix}/load-splices.nix" {
+    loadSplices-8_10 = import "${splices-load-save-nix}/load-splices.nix" {
     inherit lib haskellLib fetchFromGitHub;
     isExternalPlugin = true;
     splicedHaskellPackages = ghcSavedSplices-8_10;
-  };
+    };
+  */
 
   # Just for GHCJS
   ghcjs_8_6 = import ./ghcjs-8.6 {
