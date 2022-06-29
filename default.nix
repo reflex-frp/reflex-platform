@@ -27,10 +27,9 @@ let
   splices-load-save-nix = nixpkgs.fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
-    rev = "7d51421ebb054ba86d890d7cac91bc8f91240148";
-    sha256 = "sha256-gw1EwL5MqbVK0enGoD3hcRtRn7+6JAjmk4iF5HShH34=";
+    rev = "921812b408fb2ca3db72bb0e42d0655fbf28cbb0";
+    sha256 = lib.fakeHash;
   };
-  #splices-load-save-nix = ../splices-load-save.nix/default.nix;
 
   splices-src = import splices-load-save-nix { pkgs = nixpkgs; };
   # Overlay for GHC which supports the external splices plugin
