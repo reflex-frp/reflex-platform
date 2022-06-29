@@ -46,7 +46,7 @@ in
     reflexOptimizerFlag
     useTemplateHaskellFlag
     (lib.optional useFastWeak "-ffast-weak")
-    ])) {commutative-semigroups = self.callHackage "commutative-semigroups" "0.0.2.0" {}; })
+    ])) {} )
     (drv: {
        editedCabalFile = null; # "1msjk8bk59dv1pm90l2hxkrl185aj4xblzgc7nkwn7x31ykcnhyw";
     });
@@ -159,8 +159,19 @@ in
   #ghcjs-dom-jsffi = self.callCabal2nix "ghcjs-dom-jsffi" (self._dep.ghcjs-dom + "/ghcjs-dom-jsffi") {};
   #
   #
- ghcjs-dom =  self.callHackage "ghcjs-dom" "0.9.5.0" {};
-
+  ghcjs-dom =  self.callHackage "ghcjs-dom" "0.9.5.0" {};
+commutative-semigroups = super.callPackage
+    ({ mkDerivation, base, containers }:
+     mkDerivation {
+       pname = "commutative-semigroups";
+       version = "0.1.0.0";
+       sha256 = "06063ayahakj0wdwwzqwbb61cxjrrkpayzmvbvf7pcdsgyn427b6";
+       revision = "1";
+       editedCabalFile = "107qs0srrd88n5hz1v2fwapsr36zr5lnz04lxsicj1mq7ss54zm3";
+       libraryHaskellDepends = [ base containers ];
+       description = "Commutative semigroups";
+       license = lib.licenses.bsd3;
+     }) {};
    ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
   # witherable =  self.callHackage "witherable" "0.3.5" {};
   #witherable-class =  self.callHackage "witherable-class" "0.0.1" {};
@@ -189,7 +200,29 @@ in
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
   #monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
-  #patch = self.callHackage "patch" "0.0.5.2" {};
+  patch = super.callPackage
+    ({ mkDerivation, base, commutative-semigroups, constraints-extras
+     , containers, dependent-map, dependent-sum, directory, filemanip
+     , filepath, hedgehog, hlint, HUnit, indexed-traversable, lens
+     , monoidal-containers, semialign, semigroupoids, these
+     , transformers, witherable
+     }:
+     mkDerivation {
+       pname = "patch";
+       version = "0.0.7.0";
+       sha256 = "0hpx1sh90rhvvd9j8nmpibdhj9jd4mmwbsr1c220ywaz7g6f3bxv";
+       libraryHaskellDepends = [
+         base commutative-semigroups constraints-extras containers
+         dependent-map dependent-sum indexed-traversable lens
+         monoidal-containers semialign semigroupoids these transformers
+         witherable
+       ];
+       testHaskellDepends = [
+         base containers directory filemanip filepath hedgehog hlint HUnit
+       ];
+       description = "Data structures for describing changes to other data structures";
+       license = lib.licenses.bsd3;
+     }) {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
 
