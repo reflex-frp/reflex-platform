@@ -38,12 +38,18 @@ let
   splicesEval = self: super: {
     haskell = super.haskell // {
       compiler = super.haskell.compiler // {
-        ghcSplices-8_6 = (splices-src.patchGHC (super.haskell.compiler.ghc865) "ghc-8.6.5");
-        ghcSplices-8_10 = ((splices-src.patchGHC (super.haskell.compiler.ghc8107) "ghc-8.10.7").overrideAttrs (drv: {
-          patches = [ ] ++ (drv.patches or [ ]);
-        })).override {
-          enableProfiledLibs = true;
-        };
+        ghcSplices-8_6 = (splices-src.patchGHC
+          (super.haskell.compiler.ghc865.overrideAttrs (old: {
+            enableParallelBuilding = false;
+            patches = [ ];
+          })) "ghc-8.6.5");
+
+        ghcSplices-8_10 = (splices-src.patchGHC
+          (super.haskell.compiler.ghc8107.overrideAttrs (old: {
+            patches = [ ];
+          })) "ghc-8.10.7").override
+          { enableProfiledLibs = true; };
+
         ghcjsSplices-8_10 = splices-src.patchGHCJS (super.haskell.compiler.ghcjs810);
       };
       packages = super.haskell.packages // {
