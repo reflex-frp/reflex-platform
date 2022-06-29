@@ -1,6 +1,8 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? builtins.currentSystem
-, config ? { }
+, config ? {
+    android_sdk.accept_license = true;
+  }
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? true
 , enableTraceReflexEvents ? false
@@ -27,7 +29,7 @@ let
   splices-load-save-nix = nixpkgs.fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
-    rev = "921812b408fb2ca3db72bb0e42d0655fbf28cbb0";
+    rev = "2ec45a6382e1a09fb13531ad8af1ffca596458b3";
     sha256 = "sha256-gSO+46bnyvFCG6fT5uLSSqUSfN+8t7pQnS2NBUlaRrM=";
   };
 
@@ -37,7 +39,11 @@ let
     haskell = super.haskell // {
       compiler = super.haskell.compiler // {
         ghcSplices-8_6 = (splices-src.patchGHC (super.haskell.compiler.ghc865) "ghc-8.6.5");
-        ghcSplices-8_10 = (splices-src.patchGHC (super.haskell.compiler.ghc8107) "ghc-8.10.7");
+        ghcSplices-8_10 = ((splices-src.patchGHC (super.haskell.compiler.ghc8107) "ghc-8.10.7").overrideAttrs (drv: {
+          patches = [ ] ++ (drv.patches or [ ]);
+        })).override {
+          enableProfiledLibs = true;
+        };
         ghcjsSplices-8_10 = splices-src.patchGHCJS (super.haskell.compiler.ghcjs810);
       };
       packages = super.haskell.packages // {
@@ -83,7 +89,7 @@ let
         lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
           postInstall = "
             rm $out/include/libcharset.h $out/include/localcharset.h ";
-          configureFlags = [ " - -disable-shared " " - -enable-static " ];
+          configureFlags = [ " --disable-shared " " --enable-static " ];
         });
     };
     zlib = super.zlib.override (lib.optionalAttrs
@@ -108,8 +114,7 @@ let
     ] ++ nixpkgsOverlays;
     config = config // {
       permittedInsecurePackages = (config.permittedInsecurePackages or [ ]) ++ [
-        "
-            webkitgtk-2 .4 .11 "
+        "webkitgtk-2.4.11"
       ];
 
       # XCode needed for native macOS app
@@ -132,7 +137,7 @@ let
       aarch32 = {
         crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
           # Choose an old version so it's easier to find phones to test on
-          sdkVer = " 23 ";
+          sdkVer = "23";
         };
       };
     };
@@ -156,12 +161,7 @@ let
         };
       };
       # Back compat
-      arm64 = lib.warn "
-            nixpkgsCross.ios.arm64
-            has
-            been
-            deprecated, using nixpkgsCross.ios.aarch64 instead."
-        aarch64;
+      arm64 = lib.warn "nixpkgsCross.ios.arm64 has been deprecated, using nixpkgsCross.ios.aarch64 instead." aarch64;
     };
     ghcjs = nixpkgsFunc (nixpkgsArgs // {
       crossSystem = lib.systems.examples.ghcjs;
@@ -182,8 +182,7 @@ let
   # function which takes the old argument set and combining it. What a tongue
   # twister!
 
-  cabal2nixResult = src: builtins.trace "cabal2nixResult is deprecated;
-          use ghc.haskellSrc2nix or ghc.callCabal2nix instead"
+  cabal2nixResult = src: builtins.trace "cabal2nixResult is deprecated; use ghc.haskellSrc2nix or ghc.callCabal2nix instead"
     (ghc.haskellSrc2nix {
       name = "for-unknown-package";
       src = "file://${src}";
