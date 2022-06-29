@@ -280,7 +280,7 @@ let
     overrides = nixpkgsCross.wasm.haskell.overlays.combined;
   });
 
-  ghc = ghcSavedSplices-8_10;
+  ghc = ghc8_6;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -537,12 +537,6 @@ let
       '';
       inherit buildInputs;
     });
-
-    forceGHC = rp:
-      let
-        rp810 = rp // { ghc = rp.ghc8_10; ghcjs = rp.ghcjs8_10; };
-      in
-      rp810 // { project = args: import ((hackGet ./dep/reflex-platform) + "/project") rp810 (args ({ pkgs = rp.nixpkgs; } // rp810)); };
 
     reflexEnv = platform:
       let
