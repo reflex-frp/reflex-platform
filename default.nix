@@ -28,7 +28,7 @@ let
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
     rev = "921812b408fb2ca3db72bb0e42d0655fbf28cbb0";
-    sha256 = lib.fakeHash;
+    sha256 = "sha256-gSO+46bnyvFCG6fT5uLSSqUSfN+8t7pQnS2NBUlaRrM=";
   };
 
   splices-src = import splices-load-save-nix { pkgs = nixpkgs; };
