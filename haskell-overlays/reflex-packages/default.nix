@@ -51,7 +51,7 @@ in
        editedCabalFile = null; # "1msjk8bk59dv1pm90l2hxkrl185aj4xblzgc7nkwn7x31ykcnhyw";
     });
 
-  reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
+  #reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
 
   reflex-dom-core = let
@@ -229,5 +229,5 @@ in
   # Needed because we force newer th-abstraction for our TH libraries.
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
-  cabal-macosx = self.callHackage "cabal-macosx" "0.2.4.2" {};
+  #cabal-macosx = self.callHackage "cabal-macosx" "0.2.4.2" {};
 }
