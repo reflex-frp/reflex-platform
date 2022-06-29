@@ -148,7 +148,7 @@ rec {
 
   saveSplices = name: splices-func.saveSplices name;
   lsplices8_10 = splicepkgs: splices-func.loadSplices8_10 splicepkgs;
-  lsplices8_6 = splicepkgs: splices-func.loadSplices-8_6 splicepkgs;
+  lsplices8_6 = splicepkgs: splices-func.loadSplices8_6 splicepkgs;
 
   /*loadSplices-8_6 = import "${splices-load-save-nix}/load-splices.nix" {
     inherit lib haskellLib fetchFromGitHub;

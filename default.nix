@@ -27,8 +27,8 @@ let
   splices-load-save-nix = nixpkgs.fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
-    rev = "8b437239873c4f054cf5d03e61047a294bba5e4a";
-    sha256 = "sha256-cWbF23Dqnpc9+UUnK7TxcPzVEE4rj2Ld+1gwiw027ls=";
+    rev = "7d51421ebb054ba86d890d7cac91bc8f91240148";
+    sha256 = "sha256-gw1EwL5MqbVK0enGoD3hcRtRn7+6JAjmk4iF5HShH34=";
   };
   #splices-load-save-nix = ../splices-load-save.nix/default.nix;
 
@@ -37,25 +37,8 @@ let
   splicesEval = self: super: {
     haskell = super.haskell // {
       compiler = super.haskell.compiler // {
-        ghcSplices-8_6 = super.haskell.compiler.ghc865.overrideAttrs (drv: {
-          enableParallelBuilding = false;
-          src = nixpkgs.hackGet "${splices-load-save-nix}";
-          # When building from the ghc git repo, ./boot must be run before configuring, whereas
-          # in the distribution tarball on the haskell.org downloads page, ./boot has already been
-          # run.
-          preConfigure = ''
-            echo ${drv.version} >VERSION
-            ./boot
-          '' + drv.preConfigure or "";
-          # Our fork of 8.6 with splices includes these patches.
-          # Specifically, is up to date with the `ghc-8.6` branch upstream,
-          # which contains various backports for any potential newer 8.6.x
-          # release. Nixpkgs manually applied some of those backports as
-          # patches onto 8.6.5 ahead of such a release, but now we get them
-          # from the src proper.
-          patches = [ ];
-        });
-        ghcSplices-8_10 = splices-src.patchGHC (super.haskell.compiler.ghc8107);
+        ghcSplices-8_6 = (splices-src.patchGHC (super.haskell.compiler.ghc865) "ghc-8.6.5");
+        ghcSplices-8_10 = (splices-src.patchGHC (super.haskell.compiler.ghc8107) "ghc-8.10.7");
         ghcjsSplices-8_10 = splices-src.patchGHCJS (super.haskell.compiler.ghcjs810);
       };
       packages = super.haskell.packages // {
