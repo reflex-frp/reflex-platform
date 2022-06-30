@@ -71,7 +71,7 @@ in
       doCheck = false; # stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
 
       # The headless browser run as part of the tests will exit without this
-      preBuild = (drv.preBuild or "") + '' self.callHackage "reflex-fsnotify" "0.2.1.2" {};
+      preBuild = (drv.preBuild or "") + ''
         export HOME="$PWD"
       '';
 
