@@ -1,7 +1,8 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? builtins.currentSystem
 , config ? {
-    android_sdk.accept_license = true;
+    # Accept license to build android apps
+    #android_sdk.accept_license = true;
   }
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? true
@@ -29,10 +30,9 @@ let
   splices-load-save-nix = nixpkgs.fetchFromGitHub {
     owner = "obsidiansystems";
     repo = "splices-load-save.nix";
-    rev = "2ec45a6382e1a09fb13531ad8af1ffca596458b3";
-    sha256 = "sha256-gSO+46bnyvFCG6fT5uLSSqUSfN+8t7pQnS2NBUlaRrM=";
+    rev = "5f8c1cea99ca6a8a871c7bdd26b709b59efa0534";
+    sha256 = "sha256-4TusDSv4tQOLtfuDZnfJrdg41MXGx6+mOzl6NwycRxY=";
   };
-
   splices-src = import splices-load-save-nix { pkgs = nixpkgs; };
   # Overlay for GHC which supports the external splices plugin
   splicesEval = self: super: {
