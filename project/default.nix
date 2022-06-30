@@ -8,45 +8,45 @@ let
 in
 
 # This function simplifies the definition of Haskell projects that
-# have multiple packages. It provides shells for incrementally working
-# on all your packages at once using `cabal.project` files, using any
-# version of GHC provided by `reflex-platform`, including GHCJS. It
-# also produces individual derivations for each package, which can
-# ease devops or integration with other Nix setups.
-#
-# Example:
-#
-# > default.nix
-#
-#     (import ./reflex-platform {}).project ({ pkgs, ... }: {
-#       packages = {
-#         common = ./common;
-#         backend = ./backend;
-#         frontend = ./frontend;
-#       };
-#
-#       shells = {
-#         ghc = ["common" "backend" "frontend"];
-#         ghcjs = ["common" "frontend"];
-#       };
-#
-#       android.frontend = {
-#         executableName = "frontend";
-#         applicationId = "org.example.frontend";
-#         displayName = "Example App";
-#       };
-#     })
-#
-# > example commands
-#
-#     $ nix-build
-#     $ nix-build -A ghc.backend
-#     $ nix-build -A ghcjs.frontend
-#     $ nix-build -A android.frontend
-#
-#     $ nix-shell -A shells.ghc
-#     $ nix-shell -A shells.ghcjs
-#
+  # have multiple packages. It provides shells for incrementally working
+  # on all your packages at once using `cabal.project` files, using any
+  # version of GHC provided by `reflex-platform`, including GHCJS. It
+  # also produces individual derivations for each package, which can
+  # ease devops or integration with other Nix setups.
+  #
+  # Example:
+  #
+  # > default.nix
+  #
+  #     (import ./reflex-platform {}).project ({ pkgs, ... }: {
+  #       packages = {
+  #         common = ./common;
+  #         backend = ./backend;
+  #         frontend = ./frontend;
+  #       };
+  #
+  #       shells = {
+  #         ghc = ["common" "backend" "frontend"];
+  #         ghcjs = ["common" "frontend"];
+  #       };
+  #
+  #       android.frontend = {
+  #         executableName = "frontend";
+  #         applicationId = "org.example.frontend";
+  #         displayName = "Example App";
+  #       };
+  #     })
+  #
+  # > example commands
+  #
+  #     $ nix-build
+  #     $ nix-build -A ghc.backend
+  #     $ nix-build -A ghcjs.frontend
+  #     $ nix-build -A android.frontend
+  #
+  #     $ nix-shell -A shells.ghc
+  #     $ nix-shell -A shells.ghcjs
+  #
 { name ? "reflex-project"
   # An optional name for your entire project.
 
@@ -57,7 +57,7 @@ in
   # cabal package name and values are the path to the source
   # directory.
 
-, shells ? {}
+, shells ? { }
   # :: { <platform name> :: [PackageName] }
   #
   # The `shells` field defines which platforms we'd like to develop
@@ -69,7 +69,7 @@ in
   # build all three packages in a shared incremental environment, for
   # both GHC and GHCJS.
 
-, overrides ? _: _: {}
+, overrides ? _: _: { }
   # :: PackageSet -> PackageSet ->  { <package name> :: Derivation }
   #
   # A function for overriding Haskell packages. You can use
@@ -86,7 +86,7 @@ in
   #       }) {};
   #     };
 
-, shellToolOverrides ? _: _: {}
+, shellToolOverrides ? _: _: { }
   # A function returning a record of tools to provide in the
   # nix-shells.
   #
@@ -108,7 +108,7 @@ in
   # the same name in your record. They can be disabled by setting them
   # to null.
 
-, tools ? _: []
+, tools ? _: [ ]
   # An older, obsolete version of `shellToolOverrides`.
   #
   #     tools = ghc: with ghc; [ hpack pkgs.chromium ];
@@ -120,7 +120,7 @@ in
 , useWarp ? false
   # Configure `reflex-dom` to use `jsaddle-warp`.
 
-, android ? {}
+, android ? { }
   # ::
   # { <app name> ::
   #   { executableName :: String
@@ -136,7 +136,7 @@ in
   # argument can be set to use a different Haskell package than the
   # one named <app name>.
 
-, ios ? {}
+, ios ? { }
   # ::
   # { <app name> ::
   #   { executableName :: String
@@ -151,14 +151,15 @@ in
   # will be in `ios.<app name>`. The `package` argument can be set to
   # use a different Haskell package than the one named <app name>.
 
-, passthru ? {}
+, passthru ? { }
 
 }:
 let
-  overrides' = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
-    (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages)
+  overrides' = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: { }) [
+    (self: super: mapAttrs (name: path: self.callCabal2nix name path { }) packages)
     (self: super: {
-      reflex-dom = if useWarp && (with self.ghc.stdenv; hostPlatform == targetPlatform) && !(self.ghc.isGhcjs or false)
+      reflex-dom =
+        if useWarp && (with self.ghc.stdenv; hostPlatform == targetPlatform) && !(self.ghc.isGhcjs or false)
         then nixpkgs.haskell.lib.addBuildDepend (nixpkgs.haskell.lib.enableCabalFlag super.reflex-dom "use-warp") self.jsaddle-warp
         else super.reflex-dom;
     })
@@ -166,36 +167,50 @@ let
   ];
   mkPkgSet = name: _: this.${name}.override { overrides = overrides'; };
   prj = mapAttrs mkPkgSet shells // {
-    shells = mapAttrs (name: pnames:
-      workOnMulti {
-        envFunc = _: prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
-          ghcWithPackages = self.ghcWithHoogle;
-        }; };
-        packageNames = pnames;
-        inherit tools shellToolOverrides;
-      }
-    ) shells;
+    shells = mapAttrs
+      (name: pnames:
+        workOnMulti {
+          envFunc = _: prj.${name}.override {
+            overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
+              ghcWithPackages = self.ghcWithHoogle;
+            };
+          };
+          packageNames = pnames;
+          inherit tools shellToolOverrides;
+        }
+      )
+      shells;
 
-    android = if this.androidSupport
-      then mapAttrs (name: config:
-             let
-               ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
-               ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
-             in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
-               ({ package = p: p.${name}; } // config)
-           ) android
+    android =
+      if this.androidSupport
+      then
+        mapAttrs
+          (name: config:
+            let
+              ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
+              ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
+            in
+            (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
+              ({ package = p: p.${name}; } // config)
+          )
+          android
       else throw "Android builds are not supported on this platform.";
 
-    ios = if this.iosSupport
-      then mapAttrs (name: config:
-             let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
-             in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
-               ({ package = p: p.${name}; } // config)
-           ) ios
+    ios =
+      if this.iosSupport
+      then
+        mapAttrs
+          (name: config:
+            let ghcIosAarch64 = this.ghcIosAarch64.override { overrides = overrides'; };
+            in (this.iosWithHaskellPackages ghcIosAarch64).buildApp
+              ({ package = p: p.${name}; } // config)
+          )
+          ios
       else throw "iOS builds are not supported on this platform.";
 
     reflex = this;
 
     inherit passthru;
   };
-in prj
+in
+prj

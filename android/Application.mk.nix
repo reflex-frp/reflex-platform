@@ -2,5 +2,5 @@
 , abiVersions
 }:
 ''
-APP_ABI := ${nixpkgs.lib.concatStringsSep " " abiVersions}
+  APP_ABI := ${nixpkgs.lib.concatStringsSep " " abiVersions}
 ''

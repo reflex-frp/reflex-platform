@@ -1,7 +1,9 @@
 { system ? builtins.currentSystem
-, config ? {}
+, config ? { }
 }:
-let reflex-platform = import ../../. { inherit system config; };
-    projSrc = reflex-platform.hackGet ./reflex-project-skeleton;
-    proj = import projSrc { inherit reflex-platform; };
-in proj
+let
+  reflex-platform = import ../../. { inherit system config; };
+  projSrc = reflex-platform.hackGet ./reflex-project-skeleton;
+  proj = import projSrc { inherit reflex-platform; };
+in
+proj

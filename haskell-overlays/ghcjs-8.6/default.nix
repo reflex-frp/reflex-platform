@@ -1,4 +1,8 @@
-{ lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub
+{ lib
+, haskellLib
+, nixpkgs
+, fetchgit
+, fetchFromGitHub
 , useReflexOptimizer
 , useTextJSString
 , enableLibraryProfiling
@@ -15,17 +19,19 @@ self: super: {
     broken = drv.broken or false || enableLibraryProfiling;
   });
 
-  ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-    inherit (self) ghc llvmPackages;
-    packages = selectFrom self;
-  } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
+  ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix")
+    {
+      inherit (self) ghc llvmPackages;
+      packages = selectFrom self;
+    } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
     ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
 
-  ghc = if !(lib.versionAtLeast super.ghc.ghcVersion "8.2") then super.ghc else super.ghc.overrideAttrs (_: {
-    # TODO: I don't think this is needed except for maybe the fast-weak patch, but doing this to preserve hashes.
-    phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
-  }) // {
+  ghc = if !(lib.versionAtLeast super.ghc.ghcVersion "8.2") then super.ghc else super.ghc.overrideAttrs
+    (_: {
+      # TODO: I don't think this is needed except for maybe the fast-weak patch, but doing this to preserve hashes.
+      phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
+    }) // {
     withPackages = self.ghcWithPackages;
   };
 
@@ -35,7 +41,7 @@ self: super: {
   network = haskellLib.overrideCabal super.network (drv: {
     revision = null;
     editedCabalFile = null;
-    patches = (drv.patches or []) ++ [ ./ghcjs-network.patch ];
+    patches = (drv.patches or [ ]) ++ [ ./ghcjs-network.patch ];
   });
 
   # These packages require doctest
@@ -68,7 +74,8 @@ self: super: {
   cabal-macosx = null;
 
   # When we don't use text-jsstring, we hit cabal version too new issue.
-  ghcjs-base = if useTextJSString
+  ghcjs-base =
+    if useTextJSString
     then super.ghcjs-base
     else appendPatch super.ghcjs-base ./ghcjs-base-cabal-version.patch;
 }

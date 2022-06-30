@@ -9,7 +9,7 @@ let
   });
 in
 self: super: {
-  _dep = super._dep or {} // thunkSet ./dep;
+  _dep = super._dep or { } // thunkSet ./dep;
 
   android-activity = self.callPackage self._dep.android-activity {
     inherit (nixpkgs.buildPackages) jdk;

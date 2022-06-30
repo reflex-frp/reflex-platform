@@ -1,7 +1,7 @@
 { lib, fetchgit }:
 
 self: super: {
-  _dep = super._dep or {} // {
+  _dep = super._dep or { } // {
     textSrc = fetchgit {
       url = "https://github.com/dfordivam/text.git";
       rev = "126174753ea8e5f45df8fcbba609e3f1c453bf27";
