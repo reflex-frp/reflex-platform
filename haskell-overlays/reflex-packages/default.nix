@@ -177,6 +177,8 @@ commutative-semigroups = super.callPackage
   #witherable-class =  self.callHackage "witherable-class" "0.0.1" {};
   #witherable =  self.callHackage "witherable" "0.3.5" {};
   ##
+
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
   ## Gargoyle and dependencies
   ##
 
@@ -260,6 +262,10 @@ commutative-semigroups = super.callPackage
 
   th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
 
+  th-orphans = haskellLib.overrideCabal (self.callHackage "th-orphans" "0.13.12" {})
+    (drv: {
+      configureFlags = [ "--ghc-option=-fexternal-interpreter" ];
+    });
 
 
 
