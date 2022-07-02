@@ -15,7 +15,7 @@ self: super: {
   });
 
   aeson = dontCheck (self.callCabal2nix "aeson" self._dep.aeson {});
-  # attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
   hashable = overrideCabal super.hashable (drv: {
     revision = null;
     editedCabalFile = null;
@@ -24,6 +24,7 @@ self: super: {
     libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
       self.text
     ];
+    #buildInputs = (drv.buildDepends or []) ++ [ iconv  ];
     patches = (drv.patches or []) ++ [
       ./hashable.patch
     ];

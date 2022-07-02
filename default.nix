@@ -31,6 +31,7 @@ let iosSupport = system == "x86_64-darwin";
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
             enableDocs = false;
+            libiconv = nixpkgs.libiconv;
           }).overrideAttrs (drv: {
             #src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
             # When bui#lding from the ghc git repo, ./boot must be run before configuring, whereas
