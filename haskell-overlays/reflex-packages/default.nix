@@ -240,7 +240,11 @@ commutative-semigroups = super.callPackage
   # aeson = self.callHackageDirect "aeson" "2.0.3.0" {
   #   data-fix = self.callHackage "data-fix" "0.3.2" {};
   # };
-  #constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
+  constraints-extras = haskellLib.overrideCabal (self.callHackage "constraints-extras" "0.3.2.1" {})
+    (drv: {
+      configureFlags = [ "--ghc-option=-fexternal-interpreter" "-f-build-readme"  ];
+    });
+
   constraints = self.callHackage "constraints" "0.12" {};
   some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
