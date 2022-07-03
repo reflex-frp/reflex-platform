@@ -145,6 +145,7 @@ in rec {
               universalApk
               mavenDeps
               usesCleartextTraffic
-              gradleTask;
+              gradleTask
+              lib;
     };
 }

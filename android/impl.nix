@@ -5,6 +5,27 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       '';
     });
     androidenv = nixpkgs.androidenv;
+    androidComposition = androidenv.composeAndroidPackages {
+  toolsVersion = "26.1.1";
+        platformToolsVersion = "31.0.3";
+        buildToolsVersions = [ "31.0.0" ];
+        includeEmulator = false;
+        emulatorVersion = "30.9.0";
+        platformVersions = [ "30" ];
+        includeSources = false;
+        includeSystemImages = false;
+        systemImageTypes = [ "google_apis_playstore" ];
+        abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
+        cmakeVersions = [ "3.10.2" ];
+        includeNDK = true;
+        ndkVersions = ["22.0.7026061"];
+        useGoogleAPIs = true;
+        useGoogleTVAddOns = false;
+        includeExtras = [
+          "extras;google;gcm"
+        ];
+    };
+    jdk = nixpkgs.openjdk17_headless;
     #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
     addDeployScript = src: nixpkgs.runCommand "android-app" {
       inherit src;
@@ -13,17 +34,17 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         cp -r "$src"/* "$out"
         substitute ${./deploy.sh} $out/bin/deploy \
           --subst-var-by coreutils ${nixpkgs.coreutils} \
-          --subst-var-by adb ${androidenv.androidPkgs_9_0.platform-tools} \
-          --subst-var-by java ${nixpkgs.openjdk11} \
+          --subst-var-by adb ${androidComposition.platform-tools} \
+          --subst-var-by java ${jdk} \
           --subst-var-by out $out
         chmod +x "$out/bin/deploy"
       '';
-      buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
+      buildInputs = [ androidComposition.androidsdk ];
     } "";
     buildGradleApp = import ./build-gradle-app.nix {
-      inherit (nixpkgs) stdenv jdk gnumake gawk file runCommand
-                     which gradle fetchurl buildEnv;
-      inherit androidenv;
+      inherit (nixpkgs) stdenv gnumake gawk file runCommand
+                     which gradle fetchurl buildEnv lib;
+      inherit androidenv jdk;
     };
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
@@ -36,7 +57,7 @@ in {
     keyStore = releaseKey.storeFile or null;
     keyStorePassword = releaseKey.storePassword or null;
     name = applicationId;
-    platformVersions = [ "29" ];
+    platformVersions = [ "30" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;

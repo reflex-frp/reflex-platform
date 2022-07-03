@@ -1,8 +1,8 @@
 {
-  "owner": "obsidiansystems",
+  "owner": "NixOS",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-20.09",
+  "branch": "fix-cross-aarch64-bintools",
   "private": false,
-  "rev": "4e243931107ee18274d861a56c24528a0ac9c775",
-  "sha256": "00vyfmaib8wxxdvvfbmb4gwdvkflbpl1kx5j6nlvpmgv7zlliz8a"
+  "rev": "dc1d00c6b83213d1c99fa5f4c260aca734432e5b",
+  "sha256": "0238lw8q6y1290k91czfh28as3gi5kxn5warjgjwsgnk4mv6fn3p"
 }

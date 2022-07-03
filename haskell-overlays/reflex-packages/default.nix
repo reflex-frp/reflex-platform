@@ -72,7 +72,7 @@ in
       # Show some output while running tests, so we might notice what's wrong
       testTarget = "--show-details=streaming";
 
-      testHaskellDepends = with self; (drv.testHaskellDepends or []) ++ stdenv.lib.optionals (!noGcTest) [
+      testHaskellDepends = with self; (drv.testHaskellDepends or []) ++ lib.optionals (!noGcTest) [
         temporary
         jsaddle-warp
         process
@@ -83,10 +83,10 @@ in
         nixpkgs_oldChromium.selenium-server-standalone
         nixpkgs_oldChromium.chromium
         which
-      ] ++ stdenv.lib.optionals (!noGcTest) [
+      ] ++ lib.optionals (!noGcTest) [
         nixpkgs.iproute
       ];
-    } // stdenv.lib.optionalAttrs (!noGcTest) {
+    } // lib.optionalAttrs (!noGcTest) {
       # The headless browser run as part of gc tests would hang/crash without this
       preCheck = ''
         export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
@@ -101,9 +101,9 @@ in
     (drv: {
       # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
       libraryHaskellDepends = (drv.libraryHaskellDepends or [])
-        ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
+        ++ lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
         self.android-activity
-      ] ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
+      ] ++ lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
         self.jsaddle-wasm
       ];
     });
@@ -232,12 +232,6 @@ in
   # For OneTuple and strict
   hashable = self.callHackage "hashable" "1.3.5.0" {};
 
-  # For QuickCheck
-  splitmix = dontCheck (self.callHackage "splitmix" "0.1.0.4" (lib.optionalAttrs stdenv.hostPlatform.isLinux {
-    # Non-Haskell library needed for the test suite
-    testu01 = null;
-  }));
-
   # Due to newer QuickCheck
   HsYAML = doJailbreak super.HsYAML;
   attoparsec = doJailbreak super.attoparsec;
@@ -261,5 +255,5 @@ in
 
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
-  cabal-macosx = self.callHackage "cabal-macosx" "0.2.4.2" {};
+  #cabal-macosx = self.callHackage "cabal-macosx" "0.2.4.2" {};
 }

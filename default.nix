@@ -8,7 +8,7 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
-, __useNewerCompiler ? false
+, __useNewerCompiler ? true
 , iosSdkVersion ? "13.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
@@ -49,19 +49,21 @@ let iosSupport = system == "x86_64-darwin";
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
+            enableDocs = false;
+            libiconv = nixpkgs.libiconv;
           }).overrideAttrs (drv: {
-            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
+            #src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
-            preConfigure= ''
-              echo ${drv.version} >VERSION
-              ./boot
-            '' + drv.preConfigure or "";
-            patches = [
+            # preConfigure= ''
+            #   echo ${drv.version} >VERSION
+            #   ./boot
+            # '' + drv.preConfigure or "";
+            # p atches = [
               # Patch libraries/unix/config.sub to fix android build
-              ./nixpkgs-overlays/android-8.10-splices.patch
-            ];
+              #./nixpkgs-overlays/android-8.10-splices.patch
+            #];
           });
         };
         packages = super.haskell.packages // {
@@ -109,7 +111,7 @@ let iosSupport = system == "x86_64-darwin";
         { static = true; shared = false; });
     };
 
-    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; pkgs = nixpkgs; };
 
     allCabalHashesOverlay = import ./nixpkgs-overlays/all-cabal-hashes;
 
@@ -122,7 +124,7 @@ let iosSupport = system == "x86_64-darwin";
         splicesEval
         mobileGhcOverlay
         allCabalHashesOverlay
-        (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
+        (import ./nixpkgs-overlays/ghc.nix { inherit lib; pkgs = nixpkgs; })
       ] ++ nixpkgsOverlays;
       config = config // {
         permittedInsecurePackages = (config.permittedInsecurePackages or []) ++ [
@@ -251,7 +253,7 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
-  ghcjs8_10 = (makeRecursivelyOverridable nixpkgsCross.ghcjs.haskell.packages.ghcjs810).override {
+  ghcjs8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcjs810).override {
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
@@ -473,9 +475,26 @@ in let this = rec {
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
-    nixpkgs.androidsdk_9_0
-  ];
-
+    nixpkgs.androidenv.composeAndroidPackages {
+        toolsVersion = "26.1.1";
+        platformToolsVersion = "31.0.3";
+        buildToolsVersions = [ "31.0.0" ];
+        includeEmulator = false;
+        emulatorVersion = "30.9.0";
+        platformVersions = [ "30" ];
+        includeSources = false;
+        includeSystemImages = false;
+        systemImageTypes = [ "google_apis_playstore" ];
+        abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
+        cmakeVersions = [ "3.10.2" ];
+        includeNDK = true;
+        ndkVersions = ["22.0.7026061"];
+        useGoogleAPIs = true;
+        useGoogleTVAddOns = false;
+        includeExtras = [
+          "extras;google;gcm"
+        ];
+    }];
   # Tools that are useful for development under both ghc and ghcjs
   generalDevTools' = { nativeHaskellPackages ? ghc }: {
     inherit (nativeHaskellPackages)

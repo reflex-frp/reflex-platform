@@ -12,7 +12,8 @@ self: super: {
   _dep = super._dep or {} // thunkSet ./dep;
 
   android-activity = self.callPackage self._dep.android-activity {
-    inherit (nixpkgs.buildPackages) jdk;
+    inherit (nixpkgs.buildPackages);
+    jdk = nixpkgs.buildPackages.openjdk17_headless;
   };
 
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
