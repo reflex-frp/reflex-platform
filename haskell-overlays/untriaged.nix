@@ -46,12 +46,13 @@ self: super: {
     self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-core") {};
   hnix-store-remote =
     self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-remote") {};
-  data-fix = self.callHackage "data-fix" "0.3.0" {};
   neat-interpolation = self.callHackage "neat-interpolation" "0.4" {};
   prettyprinter = self.callHackage "prettyprinter" "1.7.0" {};
   cryptohash-sha512 = doJailbreak super.cryptohash-sha512;
-  ListLike = self.callHackage "ListLike" "4.7.3" {};
 
   # ghcjs-promise is marked broken in nixpkgs
   ghcjs-promise = self.callHackage "ghcjs-promise" "0.1.0.3" {};
+
+  # stylish-haskell = self.callHackage "stylish-haskell" "0.13.0.0" {};
+  Cabal = self.callHackage "Cabal" "3.6.3.0" {};
 }

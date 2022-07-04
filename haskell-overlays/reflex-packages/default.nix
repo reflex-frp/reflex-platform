@@ -128,17 +128,13 @@ in
   ## GHCJS and JSaddle
   ##
 
-  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + "/jsaddle") {};
-  jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + "/jsaddle-clib") {};
-  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + "/jsaddle-webkit2gtk") {};
-  jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + "/jsaddle-webkitgtk") {};
-  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
-    libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
-      (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
-         "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
-       ] else (with nixpkgs.buildPackages.darwin.apple_sdk.frameworks; [ Cocoa WebKit  ]));
-    buildDepends = lib.optional (!nixpkgs.stdenv.hostPlatform.useiOSPrebuilt) [ nixpkgs.buildPackages.darwin.cf-private ];
-  });
+  # jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
+  #   libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
+  #     (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
+  #        "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
+  #      ] else (with nixpkgs.buildPackages.darwin.apple_sdk.frameworks; [ Cocoa WebKit  ]));
+  #   buildDepends = lib.optional (!nixpkgs.stdenv.hostPlatform.useiOSPrebuilt) [ nixpkgs.buildPackages.darwin.cf-private ];
+  # });
 
   # another broken test
   # phantomjs has issues with finding the right port
@@ -167,7 +163,6 @@ in
       librarySystemDepends = (drv.librarySystemDepends or []) ++ [ nixpkgs.postgresql_10 ];
     });
   gargoyle-postgresql-connect = self.callCabal2nixWithOptions "gargoyle-postgresql-connect" gargoyleSrc "--subpath gargoyle-postgresql-connect" {};
-  which = self.callHackage "which" "0.2" {};
 
   ##
   ## Misc other dependencies
@@ -177,6 +172,7 @@ in
   monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
   commutative-semigroups = self.callHackage "commutative-semigroups" "0.1.0.0" {};
   patch = self.callCabal2nix "patch" self._dep.patch {};
+  shelly = self.callHackage "shelly" "1.9.0" {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
 
@@ -189,8 +185,7 @@ in
     sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
   }) {};
 
-  constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
-  some = self.callHackage "some" "1.0.2" {};
+  constraints = self.callHackage "constraints" "0.12" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
   dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
@@ -208,51 +203,6 @@ in
   universe-reverse-instances = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe-reverse-instances" {};
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
-  th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
-
-  # Needed because we force newer th-abstraction for our TH libraries.
-  aeson = self.callHackage "aeson" "1.5.4.1" {};
-  bifunctors = self.callHackage "bifunctors" "5.5.11" {};
-  generic-deriving = self.callHackage "generic-deriving" "1.14.1" {};
-  invariant = self.callHackage "invariant" "0.5.5" {};
-  lens = self.callHackage "lens" "4.19.2" {};
-  microlens-th = self.callHackage "microlens-th" "0.4.3.10" {};
-  th-lift = self.callHackage "th-lift" "0.8.2" {};
-
-  # For aeson
-  quickcheck-instances = self.callHackage "quickcheck-instances" "0.3.27" {};
-  strict = self.callHackage "strict" "0.4.0.1" {};
-
-  # For quickcheck-instanaces
-  OneTuple = doJailbreak (self.callHackage "OneTuple" "0.3.1" {});
-  QuickCheck = self.callHackage "QuickCheck" "2.14.1" {};
-  # Avoid Infinite recursursion
-  text-short = dontCheck super.text-short;
-  time-compat = self.callHackage "time-compat" "1.9.4" {};
-
-  # For OneTuple and strict
-  hashable = self.callHackage "hashable" "1.3.5.0" {};
-
-  # Due to newer QuickCheck
-  HsYAML = doJailbreak super.HsYAML;
-  attoparsec = doJailbreak super.attoparsec;
-  cassava = doJailbreak super.cassava;
-  psqueues = doJailbreak super.psqueues;
-  vector = doJailbreak super.vector;
-  # quick check arbitrary was trying harder, maybe?
-  hackage-security = dontCheck super.hackage-security;
-
-  # Due to strict
-  stylish-haskell = doJailbreak super.stylish-haskell;
-
-  # For bifunctors, bumped above
-  comonad = self.callHackage "comonad" "5.0.8" {};
-  base-orphans = self.callHackage "base-orphans" "0.8.6" {};
-
-  # For comonad
-  tagged = self.callHackage "tagged" "0.8.6.1" {};
-  # this package didn't exist in the package set before
-  indexed-traversable = self.callHackage "indexed-traversable" "0.1.2" {};
 
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
