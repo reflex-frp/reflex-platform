@@ -35,6 +35,9 @@ This project's release branch is `master`. This log is written from the perspect
   * all-cabal-hashes "Update from Hackage at 2022-01-20T19:38:07Z"
   * dependent-sum-template to 0.1.1.0
   * some to 1.0.2
+  * monoidal-containers to 0.6.2.0
+  * witherable to 0.4.2
+  * patch to 0.0.7.0
 
   Prerequisite bumps:
 

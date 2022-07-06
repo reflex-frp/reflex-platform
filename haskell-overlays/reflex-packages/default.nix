@@ -174,8 +174,10 @@ in
   ##
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-  monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
+  monoidal-containers = self.callHackage "monoidal-containers" "0.6.2.0" {};
   patch = self.callCabal2nix "patch" self._dep.patch {};
+  commutative-semigroups = self.callCabal2nix "commutative-semigroups" self._dep.commutative-semigroups {};
+  witherable = self.callHackage "witherable" "0.4.2" {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
 
@@ -188,7 +190,7 @@ in
     sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
   }) {};
 
-  constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
+  constraints-extras = self.callHackage "constraints-extras" "0.3.2.1" {};
   some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};

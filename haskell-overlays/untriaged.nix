@@ -54,4 +54,6 @@ self: super: {
 
   # ghcjs-promise is marked broken in nixpkgs
   ghcjs-promise = self.callHackage "ghcjs-promise" "0.1.0.3" {};
+
+  utf8-string = self.callHackage "utf8-string" "1.0.1.1" {};
 }
