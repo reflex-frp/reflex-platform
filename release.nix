@@ -143,9 +143,7 @@ let
 
   lint-run =
     let
-      localpkgs = (import <nixpkgs> { system = builtins.currentSystem; });
-      nixpkgs-fmt = localpkgs.nixpkgs-fmt;
-
+      nixpkgs-fmt = local-self.nixpkgs.nixpkgs-fmt;
       lint-script = local-self.nixpkgs.writeShellScriptBin "lint" ''
         ln -s ${./.} $out
         ${nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
