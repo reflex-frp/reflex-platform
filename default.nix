@@ -30,6 +30,9 @@ let iosSupport = system == "x86_64-darwin";
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
+            bootPkgs = super.haskell.packages.ghc865Binary // {
+              happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
+            };
           }).overrideAttrs (drv: {
             src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
@@ -40,8 +43,6 @@ let iosSupport = system == "x86_64-darwin";
               ./boot
             '' + drv.preConfigure or "";
             patches = [
-              # Patch libraries/unix/config.sub to fix android build
-              ./nixpkgs-overlays/android-8.10-splices.patch
             ];
           });
         };
