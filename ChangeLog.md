@@ -38,6 +38,8 @@ This project's release branch is `master`. This log is written from the perspect
   * monoidal-containers to 0.6.2.0
   * witherable to 0.4.2
   * patch to 0.0.7.0
+  * reflex-vty to 0.2.0.1
+  * reflex-ghci to 0.1.5.3
 
   Prerequisite bumps:
 
