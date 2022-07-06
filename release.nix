@@ -6,7 +6,7 @@
 , cacheBuildSystems ? [
     "x86_64-linux"
     # "i686-linux"
-    "x86_64-darwin"
+    #"x86_64-darwin"
   ]
 }:
 
@@ -141,5 +141,15 @@ let
   metaCache = local-self.pinBuildInputs "reflex-platform-everywhere"
     (map (a: a.cache) (builtins.attrValues perPlatform));
 
+  localpkgs = (import <nixpkgs> { system = builtins.currentSystem; });
+  nixpkgs-fmt = localpkgs.nixpkgs-fmt;
+
+  lint-script = local-self.nixpkgs.writeShellScriptBin "lint" ''
+    ln -s ${./.} $out
+    ${nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
+  '';
+
+  lint-run = local-self.nixpkgs.runCommandLocal "lint" { buildInputs = [ nixpkgs-fmt ]; } "${lint-script}/bin/lint";
+
 in
-perPlatform // { inherit metaCache; }
+perPlatform // { inherit metaCache lint-run; }
