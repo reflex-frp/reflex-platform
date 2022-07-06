@@ -16,19 +16,18 @@ self: super: {
 
   aeson = dontCheck (self.callCabal2nix "aeson" self._dep.aeson {});
   # attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
-  hashable = self.callHackage "hashable" "1.4.0.2" {};
-  # hashable = overrideCabal super.hashable (drv: {
-  #   revision = null;
-  #   editedCabalFile = null;
-  #   jailbreak = true;
-  #   doCheck = false;
-  #   libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
-  #     self.text
-  #   ];
-  #   patches = (drv.patches or []) ++ [
-  #     ./hashable.patch
-  #   ];
-  # });
+  hashable = overrideCabal (self.callCabal2nix "hashable" self._dep.hashable {}) (drv: {
+    revision = null;
+    editedCabalFile = null;
+    jailbreak = true;
+    doCheck = false;
+    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+      self.text
+    ];
+    patches = (drv.patches or []) ++ [
+      ./hashable.patch
+    ];
+  });
   say = overrideCabal super.say (drv: {
     patches = (drv.patches or []) ++ [
       ./say.patch
