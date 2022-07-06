@@ -20,18 +20,18 @@ let # Adds additional arguments to 'buildInputs' and the 'HASKELL_GI_GIR_SEARCH_
 in self: super: {
 
   # Overrides for gi-* family of libraries. See addGIDeps, above.
-  haskell-gi-base = addGIDeps (super.haskell-gi-base) [nixpkgs.glib] [];
-  gi-glib = addGIDeps (super.gi-glib) [] [];
-  gi-cairo = addGIDeps (super.gi-cairo) [nixpkgs.cairo] [];
-  gi-gobject = addGIDeps (super.gi-gobject) [] [];
-  gi-pango = addGIDeps (super.gi-pango) [nixpkgs.pango] [];
-  gi-gio = addGIDeps (super.gi-gio) [] [];
-  gi-atk = addGIDeps (super.gi-atk) [] [];
-  gi-javascriptcore = addGIDeps (super.gi-javascriptcore) [] [];
-  gi-gdkpixbuf = addGIDeps (super.gi-gdkpixbuf) [nixpkgs.gdk-pixbuf nixpkgs.gtk3] [nixpkgs.gtk3];
-  gi-gdk = addGIDeps (super.gi-gdk) [nixpkgs.gdk-pixbuf nixpkgs.pango nixpkgs.gtk3] [nixpkgs.gtk3];
-  gi-soup = addGIDeps (super.gi-soup) [nixpkgs.gdk-pixbuf] [nixpkgs.libsoup];
-  gi-gtk = addGIDeps (super.gi-gtk) [nixpkgs.gdk-pixbuf nixpkgs.gtk3] [nixpkgs.gtk3 nixpkgs.atk nixpkgs.pango];
-  gi-webkit2 = addGIDeps (super.gi-webkit2) [] [nixpkgs.webkitgtk];
+  # haskell-gi-base = addGIDeps (super.haskell-gi-base) [nixpkgs.glib] [];
+  # gi-glib = addGIDeps (super.gi-glib) [] [];
+  # gi-cairo = addGIDeps (super.gi-cairo) [nixpkgs.cairo] [];
+  # gi-gobject = addGIDeps (super.gi-gobject) [] [];
+  # gi-pango = addGIDeps (super.gi-pango) [nixpkgs.pango] [];
+  # gi-gio = addGIDeps (super.gi-gio) [] [];
+  # gi-atk = addGIDeps (super.gi-atk) [] [];
+  # gi-javascriptcore = addGIDeps (super.gi-javascriptcore) [] [];
+  # gi-gdkpixbuf = addGIDeps (super.gi-gdkpixbuf) [nixpkgs.gdk-pixbuf nixpkgs.gtk3] [nixpkgs.gtk3];
+  # gi-gdk = addGIDeps (super.gi-gdk) [nixpkgs.gdk-pixbuf nixpkgs.pango nixpkgs.gtk3] [nixpkgs.gtk3];
+  # gi-soup = addGIDeps (super.gi-soup) [nixpkgs.gdk-pixbuf] [nixpkgs.libsoup];
+  # gi-gtk = addGIDeps (super.gi-gtk) [nixpkgs.gdk-pixbuf nixpkgs.gtk3] [nixpkgs.gtk3 nixpkgs.atk nixpkgs.pango];
+  # gi-webkit2 = addGIDeps (super.gi-webkit2) [] [nixpkgs.webkitgtk];
 
 }
