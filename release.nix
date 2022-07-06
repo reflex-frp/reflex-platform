@@ -141,15 +141,17 @@ let
   metaCache = local-self.pinBuildInputs "reflex-platform-everywhere"
     (map (a: a.cache) (builtins.attrValues perPlatform));
 
-  localpkgs = (import <nixpkgs> { system = builtins.currentSystem; });
-  nixpkgs-fmt = localpkgs.nixpkgs-fmt;
+  lint-run =
+    let
+      localpkgs = (import <nixpkgs> { system = builtins.currentSystem; });
+      nixpkgs-fmt = localpkgs.nixpkgs-fmt;
 
-  lint-script = local-self.nixpkgs.writeShellScriptBin "lint" ''
-    ln -s ${./.} $out
-    ${nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
-  '';
-
-  lint-run = local-self.nixpkgs.runCommandLocal "lint" { buildInputs = [ nixpkgs-fmt ]; } "${lint-script}/bin/lint";
+      lint-script = local-self.nixpkgs.writeShellScriptBin "lint" ''
+        ln -s ${./.} $out
+        ${nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
+      '';
+    in
+    local-self.nixpkgs.runCommandLocal "lint" { buildInputs = [ nixpkgs-fmt ]; } "${lint-script}/bin/lint";
 
 in
 perPlatform // { inherit metaCache lint-run; }
