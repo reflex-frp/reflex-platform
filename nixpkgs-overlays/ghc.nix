@@ -11,6 +11,7 @@ self: super: {
                 bootPkgs.alex bootPkgs.happy_1_19_12 bootPkgs.hscolour
               ];
               enableDocs = false;
+              libiconv = pkgs.libiconv;
             });
     };
   };

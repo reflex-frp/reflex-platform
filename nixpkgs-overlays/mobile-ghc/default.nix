@@ -9,6 +9,7 @@ in self: super: {
   haskell = super.haskell // {
     compiler = super.haskell.compiler //  lib.mapAttrs (n: v: (v.override {
       enableDocs = false;
+      libiconv = pkgs.libiconv;
     }).overrideAttrs (drv: {
       patches =
         let isAndroid = self.stdenv.targetPlatform.useAndroidPrebuilt;
@@ -23,6 +24,7 @@ in self: super: {
           perl autoconf269 automake m4
           bootPkgs.ghc
           bootPkgs.alex bootPkgs.happy_1_19_12 bootPkgs.hscolour
+          libiconv
         ];
     })){ inherit (super.haskell.compiler) ghc8107 ghcSplices-8_10; };
   };
