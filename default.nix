@@ -56,10 +56,10 @@ let iosSupport = system == "x86_64-darwin";
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
-            # preConfigure= ''
-            #   echo ${drv.version} >VERSION
-            #   ./boot
-            # '' + drv.preConfigure or "";
+             preConfigure= ''
+               echo ${drv.version} >VERSION
+               ./boot
+             '' + drv.preConfigure or "";
             # p atches = [
               # Patch libraries/unix/config.sub to fix android build
               #./nixpkgs-overlays/android-8.10-splices.patch
@@ -111,7 +111,7 @@ let iosSupport = system == "x86_64-darwin";
         { static = true; shared = false; });
     };
 
-    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib nixpkgsCross; pkgs = nixpkgs; };
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; pkgs = nixpkgs; };
 
     allCabalHashesOverlay = import ./nixpkgs-overlays/all-cabal-hashes;
 
