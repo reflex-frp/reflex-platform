@@ -111,7 +111,7 @@ let iosSupport = system == "x86_64-darwin";
         { static = true; shared = false; });
     };
 
-    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; pkgs = nixpkgs; };
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib nixpkgsCross; pkgs = nixpkgs; };
 
     allCabalHashesOverlay = import ./nixpkgs-overlays/all-cabal-hashes;
 
