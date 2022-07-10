@@ -139,7 +139,8 @@ in
   # another broken test
   # phantomjs has issues with finding the right port
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
-  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
+  #jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
+ jsaddle-warp = markUnbroken super.jsaddle-warp;
 
   jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + "/jsaddle-wasm")) {};
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
@@ -172,7 +173,7 @@ in
   patch = self.callCabal2nix "patch" self._dep.patch {};
   shelly = self.callHackage "shelly" "1.9.0" {};
 
-  webdriver = self.callHackage "webdriver" "0.9.0.1" {};
+  webdriver = self.callCabal2nix "webdriver" self._dep.webdriver {};
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet

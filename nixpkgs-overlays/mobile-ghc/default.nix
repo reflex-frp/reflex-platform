@@ -20,7 +20,7 @@ in self: super: {
       nativeBuildInputs =
         let   bootPkgs = drv.passthru.bootPkgs; in
         with pkgs; [
-          perl autoconf269 automake m4 python3
+          perl autoconf automake m4 python3
           bootPkgs.ghc
           bootPkgs.alex bootPkgs.happy_1_19_12 bootPkgs.hscolour
         ];
