@@ -174,15 +174,7 @@ in
   shelly = self.callHackage "shelly" "1.9.0" {};
 
   webdriver = self.callCabal2nix "webdriver" self._dep.webdriver {};
-
-  # Not on Hackage yet
-  # Version 1.2.1 not on Hackage yet
-  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromGitHub {
-    owner = "dfordivam";
-    repo = "hspec-webdriver-clone";
-    rev = "0d748b7bb7cd74dce0a55a1ec86b01dbb8a71cd8";
-    sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
-  }) {};
+  hspec-webdriver = self.callCabal2nix "hspec-webdriver" self._dep.hspec-webdriver {};
 
   constraints = self.callHackage "constraints" "0.12" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
