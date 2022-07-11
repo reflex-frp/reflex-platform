@@ -48,7 +48,7 @@ let iosSupport = system == "x86_64-darwin";
           });
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
-            enableProfiledLibs = true;
+            # enableProfiledLibs = true;
             enableDocs = false;
             #libiconv = nixpkgs.libiconv;
           }).overrideAttrs (drv: {
@@ -111,7 +111,7 @@ let iosSupport = system == "x86_64-darwin";
         { static = true; shared = false; });
     };
 
-    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; pkgs = nixpkgs; };
+    mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib nixpkgsCross; pkgs = nixpkgs; };
 
     allCabalHashesOverlay = import ./nixpkgs-overlays/all-cabal-hashes;
 
@@ -148,12 +148,12 @@ let iosSupport = system == "x86_64-darwin";
         aarch64 = {
           crossSystem = lib.systems.examples.aarch64-android-prebuilt;
         };
-        aarch32 = {
-          crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
-            # Choose an old version so it's easier to find phones to test on
-            sdkVer = "23";
-          };
-        };
+        # aarch32 = {
+        #   crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
+        #     # Choose an old version so it's easier to find phones to test on
+        #     sdkVer = "23";
+        #   };
+        # };
       };
       ios = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         simulator64 = {
@@ -297,13 +297,13 @@ let iosSupport = system == "x86_64-darwin";
   ghcAndroidAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   });
-  ghcAndroidAarch32 = if __useNewerCompiler then ghcAndroidAarch32-8_10 else ghcAndroidAarch32-8_6;
-  ghcAndroidAarch32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_6).override {
-    overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
-  });
-  ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_10).override {
-    overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
-  });
+  # ghcAndroidAarch32 = if __useNewerCompiler then ghcAndroidAarch32-8_10 else ghcAndroidAarch32-8_6;
+  # ghcAndroidAarch32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_6).override {
+  #   overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
+  # });
+  # ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_10).override {
+  #   overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
+  # });
 
   ghcIosSimulator64 = if __useNewerCompiler then ghcIosSimulator64-8_10 else ghcIosSimulator64-8_6;
   ghcIosSimulator64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_6).override {
@@ -330,18 +330,19 @@ let iosSupport = system == "x86_64-darwin";
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages {
-    inherit ghcAndroidAarch64 ghcAndroidAarch32;
+    #inherit ghcAndroidAarch64 ghcAndroidAarch32;
+    inherit ghcAndroidAarch64 ;
   };
   android-8_6 = androidWithHaskellPackages {
     ghcAndroidAarch64 = ghcAndroidAarch64-8_6;
-    ghcAndroidAarch32 = ghcAndroidAarch32-8_6;
+    #ghcAndroidAarch32 = ghcAndroidAarch32-8_6;
   };
   android-8_10 = androidWithHaskellPackages {
     ghcAndroidAarch64 = ghcAndroidAarch64-8_10;
-    ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
+    #ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
   };
-  androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
-    inherit nixpkgs nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
+  androidWithHaskellPackages = { ghcAndroidAarch64 }: import ./android {
+    inherit nixpkgs nixpkgsCross ghcAndroidAarch64 overrideCabal;
     acceptAndroidSdkLicenses = config.android_sdk.accept_license or false;
   };
   iosAarch64 = iosWithHaskellPackages ghcIosAarch64;
@@ -380,9 +381,9 @@ in let this = rec {
           ghcAndroidAarch64
           ghcAndroidAarch64-8_6
           ghcAndroidAarch64-8_10
-          ghcAndroidAarch32
-          ghcAndroidAarch32-8_6
-          ghcAndroidAarch32-8_10
+          # ghcAndroidAarch32
+          # ghcAndroidAarch32-8_6
+          # ghcAndroidAarch32-8_10
           ghcjs
           ghcjs8_6
           ghcjs8_10
@@ -402,7 +403,7 @@ in let this = rec {
   # Back compat
   ios = iosAarch64;
   ghcAndroidArm64 = lib.warn "ghcAndroidArm64 has been deprecated, using ghcAndroidAarch64 instead." ghcAndroidAarch64;
-  ghcAndroidArmv7a = lib.warn "ghcAndroidArmv7a has been deprecated, using ghcAndroidAarch32 instead." ghcAndroidAarch32;
+  # ghcAndroidArmv7a = lib.warn "ghcAndroidArmv7a has been deprecated, using ghcAndroidAarch32 instead." ghcAndroidAarch32;
   ghcIosArm64 = lib.warn "ghcIosArm64 has been deprecated, using ghcIosAarch64 instead." ghcIosAarch64;
 
   androidReflexTodomvc = android.buildApp {
@@ -485,7 +486,7 @@ in let this = rec {
         includeSources = false;
         includeSystemImages = false;
         systemImageTypes = [ "google_apis_playstore" ];
-        abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
+        abiVersions = [ "arm64-v8a" ];
         cmakeVersions = [ "3.10.2" ];
         includeNDK = true;
         ndkVersions = ["22.0.7026061"];
@@ -581,6 +582,7 @@ in let this = rec {
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
+
 };
 
 # Deprecated reexports. These were made for `./scripts/*`, but are reexported

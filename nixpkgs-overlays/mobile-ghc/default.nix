@@ -1,4 +1,4 @@
-{ lib, pkgs }:
+{ lib, pkgs, nixpkgsCross  }:
 let
   versionWildcard = versionList: let
     versionListInc = lib.init versionList ++ [ (lib.last versionList + 1) ];
@@ -9,6 +9,8 @@ in self: super: {
   haskell = super.haskell // {
     compiler = super.haskell.compiler //  lib.mapAttrs (n: v: (v.override {
       enableDocs = false;
+      # ghcFlavour = "quick-cross-ncg";
+      libiconv = if self.stdenv.targetPlatform.useAndroidPrebuilt then nixpkgsCross.android.aarch64.libiconv else null;
     }).overrideAttrs (drv: {
       patches =
         let isAndroid = self.stdenv.targetPlatform.useAndroidPrebuilt;
@@ -17,8 +19,9 @@ in self: super: {
           lib.optionals isAndroid [
             ./8.6.y/android-patches/force-relocation.patch
           ];
+
       nativeBuildInputs =
-        let   bootPkgs = drv.passthru.bootPkgs; in
+        let bootPkgs = drv.passthru.bootPkgs; in
         with pkgs; [
           perl autoconf automake m4 python3
           bootPkgs.ghc
