@@ -62,7 +62,7 @@ in
     ])) {})
     (drv: {
       # TODO: Get hlint working for cross-compilation
-      doCheck = stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
+      doCheck = false; # TODO: stdenv.hostPlatform == stdenv.buildPlatform && !(ghc.isGhcjs or false);
 
       # The headless browser run as part of the tests will exit without this
       preBuild = (drv.preBuild or "") + ''
@@ -99,6 +99,7 @@ in
       useTemplateHaskellFlag
     ])) {})
     (drv: {
+      doCheck = false; # TODO
       # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
       libraryHaskellDepends = (drv.libraryHaskellDepends or [])
         ++ lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
@@ -116,8 +117,6 @@ in
 
   reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
   reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
-  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.2" {};
-  ref-tf = self.callHackage "ref-tf" "0.4.0.2" {};
 
   ##
   ## Tooling
