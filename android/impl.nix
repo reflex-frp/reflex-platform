@@ -21,7 +21,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
     } "";
     buildGradleApp = import ./build-gradle-app.nix {
-      inherit (nixpkgs) stdenv jdk gnumake gawk file runCommand
+      inherit (nixpkgs) stdenv lib jdk gnumake gawk file runCommand
                      which gradle fetchurl buildEnv;
       inherit androidenv;
     };
