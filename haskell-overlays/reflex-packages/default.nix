@@ -93,20 +93,11 @@ in
       '' + (drv.preCheck or "");
     });
 
-  reflex-dom = haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
+  reflex-dom =
+    self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
-    ])) {})
-    (drv: {
-      # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
-      libraryHaskellDepends = (drv.libraryHaskellDepends or [])
-        ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
-        self.android-activity
-      ] ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
-        self.jsaddle-wasm
-      ];
-    });
+    ])) {};
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
