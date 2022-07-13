@@ -9,7 +9,6 @@ This project's release branch is `master`. This log is written from the perspect
   * Android: Use gradle v7 and build-tools 30.0.2 by default
 
 * Android: Automatically set build tool version in gradle.properties based on the configured `buildToolsVersions`
-* Drop GHC 8.6 support which was removed in the new Nixpkgs.
 
 ## Unreleased
 
