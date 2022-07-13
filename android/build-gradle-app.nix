@@ -2,7 +2,7 @@
 , which, gradle, fetchurl, buildEnv, runCommand }:
 
 args@{ name, src, platformVersions ? [ "8" ]
-     , buildToolsVersions ? [ "28.0.3" ]
+     , buildToolsVersions ? [ "30.0.2" ]
      , useGoogleAPIs ? false, useGooglePlayServices ? false
      , release ? false, keyStore ? null, keyAlias ? null
      , keyStorePassword ? null, keyAliasPassword ? null
@@ -74,6 +74,9 @@ stdenv.mkDerivation ({
         echo "RELEASE_STORE_PASSWORD=${keyStorePassword}"
         echo "RELEASE_KEY_PASSWORD=${keyAliasPassword}"
       ) >> gradle.properties
+    ''}
+    ${optionalString (builtins.length buildToolsVersions > 0) ''
+      echo "android.aapt2FromMavenOverride=local_sdk/android-sdk/build-tools/${builtins.head buildToolsVersions}/aapt2" >> gradle.properties
     ''}
     buildDir=`pwd`
     cp -rL $ANDROID_HOME $buildDir/local_sdk
