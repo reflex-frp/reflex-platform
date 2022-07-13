@@ -105,7 +105,7 @@ When you are completely done with a sub-repository, you can remove it
 using `hack-off`:
 
 ```
-~/reflex-platform/scripts/hack-add haskell-overlays/reflex-packages/dep/reflex
+~/reflex-platform/scripts/hack-off haskell-overlays/reflex-packages/dep/reflex
 ```
 
 This will remove the repository and replace the `default.nix` and

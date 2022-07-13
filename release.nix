@@ -50,6 +50,7 @@ let
 
     dep = {}
       // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
+      // reflex-platform.ghcjs8_6._dep
       // benchmark.dep
       ;
 
@@ -73,6 +74,7 @@ let
         # TODO uncomment this once GHCJS profiling builds are fixed
         # tryReflexShell = reflex-platform.tryReflexShell;
         ghc.ReflexTodomvc = reflex-platform.ghc.reflex-todomvc;
+        ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
         ghc8_10.reflexTodomvc = reflex-platform.ghc8_10.reflex-todomvc;
         ghc.reflex-vty = reflex-platform.ghc.reflex-vty;
         ghc.reflex-process = reflex-platform.ghc.reflex-process;
@@ -80,6 +82,7 @@ let
         skeleton-test-ghc = skeleton-test.ghc;
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
+        inherit (reflex-platform) androidReflexTodomvc-8_6;
         inherit (reflex-platform) androidReflexTodomvc-8_10;
         androidReflexTodomvc-release = reflex-platform.android.buildApp {
           package = p: p.reflex-todomvc;
@@ -91,6 +94,7 @@ let
         skeleton-test-project-android = skeleton-test.project.android;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
+        inherit (reflex-platform) iosReflexTodomvc-8_6;
         inherit (reflex-platform) iosReflexTodomvc-8_10;
         inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
@@ -108,11 +112,13 @@ let
       tryReflexShell = reflex-platform.tryReflexShell;
       ghcjs.reflexTodomvc = jsexeHydra reflex-platform.ghcjs.reflex-todomvc;
       # TODO Doesn't currently build. Removing from CI until fixed.
+      ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
       ghcjs8_10.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_10.reflex-todomvc;
       # TODO  move back to `perOptDebugVariant`
       skeleton-test-ghcjs = skeleton-test.ghcjs;
       nojsstring = {
         ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
+        ghcjs8_6.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_6.reflex-todomvc;
         ghcjs8_10.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_10.reflex-todomvc;
       };
     } // lib.optionalAttrs (system == "x86_64-linux") {

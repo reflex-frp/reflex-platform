@@ -45,6 +45,10 @@ If you're using one of these platforms, please take a look at notes before you b
 
 If you encounter any problems that may be specific to your platform, please submit an issue or pull request so that we can add a note for future users.
 
+#### Windows
+
+Reflex Platform will not work on Windows because we rely on [Nix](https://nixos.org/nix/) to define and construct our environment. You may have some success by using the Windows Subsystem for Linux, but we do not provide support for this platform.
+
 ### Memory Requirements
 
 GHCJS uses a lot of memory during compilation.
