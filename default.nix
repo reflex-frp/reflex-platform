@@ -476,26 +476,8 @@ in let this = rec {
   androidDevTools = [
     ghc.haven
     nixpkgs.maven
-    nixpkgs.androidenv.composeAndroidPackages {
-        toolsVersion = "26.1.1";
-        platformToolsVersion = "31.0.3";
-        buildToolsVersions = [ "31.0.0" ];
-        includeEmulator = false;
-        emulatorVersion = "30.9.0";
-        platformVersions = [ "30" ];
-        includeSources = false;
-        includeSystemImages = false;
-        systemImageTypes = [ "google_apis_playstore" ];
-        abiVersions = [ "arm64-v8a" ];
-        cmakeVersions = [ "3.10.2" ];
-        includeNDK = true;
-        ndkVersions = ["22.0.7026061"];
-        useGoogleAPIs = true;
-        useGoogleTVAddOns = false;
-        includeExtras = [
-          "extras;google;gcm"
-        ];
-    }];
+    (import ./android/androidComposition.nix { inherit nixpkgs;  })
+    ];
   # Tools that are useful for development under both ghc and ghcjs
   generalDevTools' = { nativeHaskellPackages ? ghc }: {
     inherit (nativeHaskellPackages)

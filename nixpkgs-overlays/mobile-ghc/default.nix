@@ -10,7 +10,13 @@ in self: super: {
     compiler = super.haskell.compiler //  lib.mapAttrs (n: v: (v.override {
       enableDocs = false;
       # ghcFlavour = "quick-cross-ncg";
-      libiconv = if self.stdenv.targetPlatform.useAndroidPrebuilt then nixpkgsCross.android.aarch64.libiconv else null;
+      libiconv =
+        if self.stdenv.targetPlatform.useAndroidPrebuilt then
+          nixpkgsCross.android.aarch64.libiconv.overrideAttrs (drv:
+            {
+              configureFlags = ["--disable-shared" "--enable-static"];
+            }
+          ) else null;
     }).overrideAttrs (drv: {
       patches =
         let isAndroid = self.stdenv.targetPlatform.useAndroidPrebuilt;

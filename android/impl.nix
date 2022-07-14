@@ -5,24 +5,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       '';
     });
     androidenv = nixpkgs.androidenv;
-    androidComposition = androidenv.composeAndroidPackages {
-  toolsVersion = "26.1.1";
-        includeEmulator = false;
-        emulatorVersion = "30.9.0";
-        platformVersions = [ "30" ];
-        includeSources = false;
-        includeSystemImages = false;
-        systemImageTypes = [ "google_apis_playstore" ];
-        abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
-        cmakeVersions = [ "3.10.2" ];
-        includeNDK = true;
-        ndkVersions = ["22.0.7026061"];
-        useGoogleAPIs = true;
-        useGoogleTVAddOns = false;
-        includeExtras = [
-          "extras;google;gcm"
-        ];
-    };
+    androidComposition = (import ./androidComposition.nix { inherit nixpkgs;  });
     jdk = nixpkgs.openjdk17_headless;
     #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
     addDeployScript = src: nixpkgs.runCommand "android-app" {

@@ -135,6 +135,7 @@ in
   #      ] else (with nixpkgs.buildPackages.darwin.apple_sdk.frameworks; [ Cocoa WebKit  ]));
   #   buildDepends = lib.optional (!nixpkgs.stdenv.hostPlatform.useiOSPrebuilt) [ nixpkgs.buildPackages.darwin.cf-private ];
   # });
+  jsaddle-wkwebview = markUnbroken super.jsaddle-wkwebview;
 
   # another broken test
   # phantomjs has issues with finding the right port
