@@ -1,8 +1,7 @@
 {
   "owner": "dfordivam",
   "repo": "attoparsec",
-  "branch": "text-jsstring",
   "private": false,
-  "rev": "cbfb944aeff61144059a28ada93c579e93ccf7d2",
-  "sha256": "0bbr4943439sy3grwpwbna4mk7iv87ijaiv3jjfhxhp7y67z51h8"
+  "rev": "3e03733d0fb66b3be4f012f9b3cbe2976bd8bcae",
+  "sha256": "0bbr4943439sy3grwpwbna4mk7iv87ijaiv3j1fhxhp7y67z51h8"
 }

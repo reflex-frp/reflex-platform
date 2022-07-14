@@ -196,6 +196,8 @@ in
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
 
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
+
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
   #cabal-macosx = self.callHackage "cabal-macosx" "0.2.4.2" {};

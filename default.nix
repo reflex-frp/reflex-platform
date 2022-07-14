@@ -146,7 +146,10 @@ let iosSupport = system == "x86_64-darwin";
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
-          crossSystem = lib.systems.examples.aarch64-android-prebuilt;
+          crossSystem = lib.systems.examples.aarch64-android-prebuilt // {
+            #isStatic = true;
+          };
+
         };
         # aarch32 = {
         #   crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
