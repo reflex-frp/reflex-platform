@@ -244,12 +244,12 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs = if __useNewerCompiler then ghcjs8_10 else ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
-      ghcjsSrc = fetchgit {
-        url = "https://github.com/obsidiansystems/ghcjs.git";
-        rev = "a00ecf0b2eaddbc4101c76e6ac95fc97b0f75840"; # ghc-8.6 branch
-        sha256 = "06cwpijwhj4jpprn07y3pkxmv40pwmqqw5jbdv4s7c67j5pmirnc";
-        fetchSubmodules = true;
+      bootPkgs = with nixpkgsCross.ghcjs.buildPackages.haskell.packages;
+        ghc865 // { happy = ghc865.callHackage "happy" "1.19.9" {}; };
+      cabal-install = import ./haskell-overlays/ghcjs-8.6/cabal-install.nix { inherit nixpkgs; };
+      ghcjsSrc = import ./haskell-overlays/ghcjs-8.6/src.nix {
+        inherit (nixpkgs.stdenvNoCC) mkDerivation;
+        inherit (nixpkgs) fetchgit;
       };
     };
   }))).override {
