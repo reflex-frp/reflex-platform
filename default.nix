@@ -38,13 +38,11 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
-            # Our fork of 8.6 with splices includes these patches.
-            # Specifically, is up to date with the `ghc-8.6` branch upstream,
-            # which contains various backports for any potential newer 8.6.x
-            # release. Nixpkgs manually applied some of those backports as
-            # patches onto 8.6.5 ahead of such a release, but now we get them
-            # from the src proper.
-            patches = [];
+            patches = [
+              # nixpkgs-21.05 ships with a version of autoreconf that is incompatible with ghc 8.6.5,
+              # Cf. https://gitlab.haskell.org/ghc/ghc/-/commit/ad2ef3a13f1eb000eab8e3d64592373b91a52806
+              ./haskell-overlays/splices-load-save/ghc-8.6-autoreconf.patch
+            ];
           });
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
