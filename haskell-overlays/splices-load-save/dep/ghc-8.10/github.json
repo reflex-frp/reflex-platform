@@ -1,7 +1,7 @@
 {
-  "owner": "obsidiansystems",
+  "owner": "chrbauer",
   "repo": "ghc",
-  "rev": "93063be3b9e3bcd973f2bd78fadb17f19888320e",
-  "sha256": "1xpdv3sxlppnfwzwkc18fp13srpbnca0qi8a6206ccpq3h48zv6n",
+  "rev": "b01845a32c294d95bfdcfeeab8b35069fe6f7841",
+  "sha256": "sha256-X2XAPpCH9gG63OX2OBe1EKgOLgW8nvuof6pOUiIY+lg=",
   "fetchSubmodules": true
 }
