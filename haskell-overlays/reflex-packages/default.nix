@@ -177,13 +177,15 @@ in
   webdriver = self.callCabal2nix "webdriver" self._dep.webdriver {};
   hspec-webdriver = self.callCabal2nix "hspec-webdriver" self._dep.hspec-webdriver {};
 
-  constraints = self.callHackage "constraints" "0.12" {};
+  constraints-extras = haskellLib.overrideCabal (self.callHackage "constraints-extras" "0.3.2.1" {})
+    (drv: {
+      configureFlags = [ "--ghc-option=-fexternal-interpreter" "-f-build-readme"  ];
+    });
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
   dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
   dependent-monoidal-map = self.callCabal2nix "dependent-monoidal-map" self._dep.dependent-monoidal-map {};
   dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
-  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.1.0" {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
   dependent-sum-aeson-orphans = self.callHackage "dependent-sum-aeson-orphans" "0.3.0.0" {};
 
@@ -197,6 +199,12 @@ in
 
 
   attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
+
+
+  th-orphans = haskellLib.overrideCabal (self.callHackage "th-orphans" "0.13.12" {})
+    (drv: {
+      configureFlags = [ "--ghc-option=-fexternal-interpreter" ];
+    });
 
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
