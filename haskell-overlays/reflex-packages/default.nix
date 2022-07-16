@@ -97,7 +97,9 @@ in
     (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
-    ])) {})
+      (lib.optional (with stdenv.hostPlatform; isAndroid)
+      "-fno-webkit2gtk"
+      )])) {})
     (drv: {
       doCheck = false; # TODO
       # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
