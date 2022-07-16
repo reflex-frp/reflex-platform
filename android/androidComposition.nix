@@ -1,5 +1,5 @@
-{ nixpkgs }:
-nixpkgs.androidenv.composeAndroidPackages {
+{ androidenv }:
+androidenv.composeAndroidPackages {
   toolsVersion = "26.1.1";
   platformToolsVersion = "31.0.3";
   buildToolsVersions = [ "30.0.3" ];
@@ -16,6 +16,8 @@ nixpkgs.androidenv.composeAndroidPackages {
   useGoogleAPIs = true;
   useGoogleTVAddOns = false;
   includeExtras = [
-    "extras;google;gcm"
+    "extras;android;m2repository"
+    # TODO: optional useGooglePlayServices
+    "extras;google;google_play_services"
   ];
 }

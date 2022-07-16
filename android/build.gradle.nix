@@ -12,7 +12,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         classpath 'com.android.tools.lint:lint:26.4.2'
         ${googleServicesClasspath}
     }
@@ -35,8 +35,8 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 30
+    buildToolsVersion '30.0.3'
 
     sourceSets {
       main {
@@ -50,7 +50,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode ${version.code}
         versionName "${version.name}"
         multiDexEnabled false
