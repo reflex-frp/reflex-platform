@@ -66,21 +66,19 @@ android {
       ''
     }
 
-    // buildTypes {
-    //     release {
-    //         minifyEnabled false
-    //         useProguard false
-    //         zipAlignEnabled true
-    //         ${if releaseKey == null then "" else ''
-    //         signingConfig signingConfigs.release
-    //         ''}
-    //     }
-    //     debug {
-    //         minifyEnabled false
-    //         useProguard false
-    //         debuggable true
-    //     }
-    // }
+    buildTypes {
+         release {
+             minifyEnabled false
+             zipAlignEnabled true
+             ${if releaseKey == null then "" else ''
+             signingConfig signingConfigs.release
+             ''}
+         }
+         debug {
+             minifyEnabled false
+             debuggable true
+         }
+    }
 
     packagingOptions {
     }
