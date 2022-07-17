@@ -7,35 +7,30 @@
 , universalApk
 }:
 ''
+
 buildscript {
     repositories {
         mavenLocal()
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
-        classpath 'com.android.tools.lint:lint:26.4.2'
-        ${googleServicesClasspath}
+   dependencies {
+      classpath 'com.android.tools.build:gradle:7.1.3'
+     // classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30"
     }
 }
 
-task proguard(type: proguard.gradle.ProGuardTask) {
-  configuration 'proguard.txt'
-
-    // injars 'build/libs/proguard-gradle-example.jar'
-    // outjars 'build/libs/proguard-gradle-example.out.jar'
-
+plugins {
+    id 'com.android.application' version '7.1.3' apply false
+    //id 'com.android.library' version '7.1.3' apply false
 }
 
 allprojects {
     repositories {
         mavenLocal()
-    }
+   }
 }
-
 apply plugin: 'com.android.application'
-
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion '30.0.3'
 
     sourceSets {
@@ -50,7 +45,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode ${version.code}
         versionName "${version.name}"
         multiDexEnabled false
@@ -68,21 +63,21 @@ android {
       ''
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            useProguard false
-            zipAlignEnabled true
-            ${if releaseKey == null then "" else ''
-            signingConfig signingConfigs.release
-            ''}
-        }
-        debug {
-            minifyEnabled false
-            useProguard false
-            debuggable true
-        }
-    }
+    // buildTypes {
+    //     release {
+    //         minifyEnabled false
+    //         useProguard false
+    //         zipAlignEnabled true
+    //         ${if releaseKey == null then "" else ''
+    //         signingConfig signingConfigs.release
+    //         ''}
+    //     }
+    //     debug {
+    //         minifyEnabled false
+    //         useProguard false
+    //         debuggable true
+    //     }
+    // }
 
     packagingOptions {
     }
@@ -106,12 +101,13 @@ android {
 
 ext.abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2] // This order is important!
 
-import com.android.build.OutputFile
+import com.android.build.api.variant.FilterConfiguration;
+//import com.android.build.OutputFile.FilterType
 
 android.applicationVariants.all { variant ->
   variant.outputs.each { output ->
-    def baseAbiVersionCode =
-      project.ext.abiCodes.get(output.getFilter(OutputFile.ABI))
+    def baseAbiVersionCode = 1
+    //  project.ext.abiCodes.get(output.filters.find( filter -> filter.filterType == FilterConfigurotion.FilterType.ABI).identifier);
 
     if (baseAbiVersionCode != null) { // this will be null if splitting was disabled
       output.versionCodeOverride = baseAbiVersionCode * 1000 + variant.versionCode
@@ -121,8 +117,8 @@ android.applicationVariants.all { variant ->
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.firebase:firebase-iid:20.2.3'
-    implementation 'com.google.firebase:firebase-messaging:20.2.3'
+    implementation 'com.google.firebase:firebase-iid:21.1.0'
+    implementation 'com.google.firebase:firebase-messaging:23.0.6'
     ${additionalDependencies}
 }
 

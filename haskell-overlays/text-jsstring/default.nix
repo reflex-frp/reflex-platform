@@ -15,7 +15,7 @@ self: super: {
   });
 
   aeson = dontCheck (self.callCabal2nix "aeson" self._dep.aeson {});
-  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
+  # attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
   hashable = self.callHackage "hashable" "1.4.0.2" {};
   # hashable = overrideCabal super.hashable (drv: {
   #   revision = null;

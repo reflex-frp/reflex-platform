@@ -119,7 +119,7 @@ in
 
   reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
   reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
-
+  reflex-fsnotify = markUnbroken super.reflex-fsnotify;
   ##
   ## Tooling
   ##
