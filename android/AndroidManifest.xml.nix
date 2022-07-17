@@ -27,6 +27,7 @@ in ''
                   android:label="@string/app_name"
                   android:configChanges="orientation|screenSize"
                   android:windowSoftInputMode="adjustResize"
+                  android:exported="true"
                   ${activityAttributes}
                   >
             <intent-filter>

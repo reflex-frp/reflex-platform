@@ -13,14 +13,17 @@ buildscript {
         mavenLocal()
     }
    dependencies {
-      classpath 'com.android.tools.build:gradle:7.1.3'
-     // classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30"
+      classpath 'com.android.tools.build:gradle:7.2.1'
+      classpath "com.android.tools.lint:lint-gradle:30.2.1"
+      // implementation 'com.android.tools.lint:lint-gradle:30.2.1'
     }
-}
+    ext {
+        ndkVersion = "22.0.7026061"
+     }
+ }
 
 plugins {
-    id 'com.android.application' version '7.1.3' apply false
-    //id 'com.android.library' version '7.1.3' apply false
+    id 'com.android.application' version '7.2.1' apply false
 }
 
 allprojects {
