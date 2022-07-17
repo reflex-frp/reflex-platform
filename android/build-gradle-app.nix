@@ -2,7 +2,7 @@
 , which, gradle, fetchurl, buildEnv, runCommand, lib  }:
 
 args@{ name, src, platformVersions ? [ "8" ]
-     , buildToolsVersion ?  "30.0.3"  # TODO
+     , buildToolsVersion ?  "31.0.0"  # TODO
      , useGoogleAPIs ? false, useGooglePlayServices ? false
      , release ? false, keyStore ? null, keyAlias ? null
      , keyStorePassword ? null, keyAliasPassword ? null

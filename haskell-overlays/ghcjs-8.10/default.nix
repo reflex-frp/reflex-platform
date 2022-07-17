@@ -7,4 +7,5 @@
 with haskellLib;
 
 self: super: {
+  text-short = dontCheck super.text-short;
 }
