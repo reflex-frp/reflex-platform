@@ -28,7 +28,7 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          ghcSplices-8_6 = super.haskell.compiler.ghc865.overrideAttrs (drv: {
+          ghcSplices-8_6 = (super.haskell.compiler.ghc865.overrideAttrs (drv: {
             enableParallelBuilding = false;
             src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.6;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
@@ -43,7 +43,11 @@ let iosSupport = system == "x86_64-darwin";
               # Cf. https://gitlab.haskell.org/ghc/ghc/-/commit/ad2ef3a13f1eb000eab8e3d64592373b91a52806
               ./haskell-overlays/splices-load-save/ghc-8.6-autoreconf.patch
             ];
-          });
+          })).override {
+            bootPkgs = super.haskell.packages.ghc865Binary // {
+              happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
+            };
+          };
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
@@ -59,8 +63,6 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
-            patches = [
-            ];
           });
         };
         packages = super.haskell.packages // {
@@ -216,7 +218,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.combined
       (haskellOverlays.saveSplices "8.6")
       (self: super: with haskellLib; {
-        blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+        blaze-textual = enableCabalFlag super.blaze-textual "integer-simple";
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
@@ -232,7 +234,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.combined
       (haskellOverlays.saveSplices "8.10")
       (self: super: with haskellLib; {
-        blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+        blaze-textual = enableCabalFlag super.blaze-textual "integer-simple";
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
