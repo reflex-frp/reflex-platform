@@ -1,9 +1,9 @@
 {
   "owner": "obsidiansystems",
   "repo": "ghc",
-  "branch": "ghc-8.10-android",
+  "branch": "ghc-8.10.7-android",
   "private": false,
-  "rev": "8c8bb87f4ba16a5262f68e6cfde31b2ec0a92067",
-  "sha256": "sha256-fNs3I27mv47mFV0D6iz8fQ1cs8yX3X5usw87km9CTwA=",
+  "rev": "bd86357260ee65c8a9fe884419346d408b399aab",
+  "sha256": "1crm7496q29mn50vfij25ii05vvw18g31b2sj6c2ihdn9ws3g7v1",
   "fetchSubmodules": true
 }

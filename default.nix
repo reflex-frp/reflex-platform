@@ -34,7 +34,7 @@ let iosSupport = system == "x86_64-darwin";
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
-            preConfigure= ''
+            preConfigure = ''
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
@@ -59,8 +59,9 @@ let iosSupport = system == "x86_64-darwin";
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
-            preConfigure= ''
+            prePatch = ''
               echo ${drv.version} >VERSION
+              patchShebangs boot
               ./boot
             '' + drv.preConfigure or "";
           });
