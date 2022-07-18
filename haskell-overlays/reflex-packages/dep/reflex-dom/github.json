@@ -1,8 +1,8 @@
 {
-  "owner": "reflex-frp",
+  "owner": "dfordivam",
   "repo": "reflex-dom",
-  "branch": "release/reflex-dom-core/0.7.0.0",
+  "branch": "dn-jsaddle-core2-4",
   "private": false,
-  "rev": "a5ae0c8a8598ce531f80b8443cd3042314e821f3",
-  "sha256": "04lrdhfkbk4nlj2lw7q96apjqmdydqafpylf10qgpjzpvn9la278"
+  "rev": "d27b99c1a5a17caef1e52c1699266bff54edc085",
+  "sha256": "03waakjwg3wh3llfsg8fay87y26mais4m7ckbr127qkggdl5w336"
 }

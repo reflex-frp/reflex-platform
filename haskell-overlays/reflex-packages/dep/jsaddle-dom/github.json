@@ -1,8 +1,8 @@
 {
-  "owner": "ghcjs",
+  "owner": "ohri-anurag",
   "repo": "jsaddle-dom",
-  "branch": "master",
+  "branch": "dn-jsaddle-core2",
   "private": false,
-  "rev": "5f5094277d4b11f3dc3e2df6bb437b75712d268f",
-  "sha256": "07azigc19wjkni49f5mrvr75vd276w0616sb28j0y63q54gp2k3p"
+  "rev": "322fa405f356924a6ffe4aa9a93dcde08c42298f",
+  "sha256": "1nhy7pxlgwlkrr08xmzx71y6kbaq5p6s18xy9j9b0id74jz9pgzc"
 }
