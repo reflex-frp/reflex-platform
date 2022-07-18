@@ -100,7 +100,9 @@ stdenv.mkDerivation ({
 
   installPhase = ''
     mkdir -p $out
-    cp -RL build/outputs/apk/*/*.apk $out
+    ${if gradleTask == "bundleRelease"
+    then "cp -RL build/outputs/bundle/release/*.aab $out"
+    else "cp -RL build/outputs/apk/*/*.apk $out"}
   '';
 
   meta = {
