@@ -9,11 +9,15 @@
 ''
 buildscript {
     repositories {
-        mavenLocal()
+        mavenLocal {
+          metadataSources {
+            mavenPom()
+            artifact()
+          }
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
-        classpath 'com.android.tools.lint:lint:26.4.2'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         ${googleServicesClasspath}
     }
 }
@@ -28,7 +32,12 @@ task proguard(type: proguard.gradle.ProGuardTask) {
 
 allprojects {
     repositories {
-        mavenLocal()
+        mavenLocal {
+          metadataSources {
+            mavenPom()
+            artifact()
+          }
+        }
     }
 }
 
@@ -36,7 +45,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
+    buildToolsVersion '30.0.2'
 
     sourceSets {
       main {

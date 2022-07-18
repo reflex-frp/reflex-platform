@@ -1,6 +1,6 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? builtins.currentSystem
-, config ? { android_sdk.accept_license = true; }
+, config ? {}
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? true
 , enableTraceReflexEvents ? false
@@ -28,7 +28,7 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
-          ghcSplices-8_6 = super.haskell.compiler.ghc865.overrideAttrs (drv: {
+          ghcSplices-8_6 = (super.haskell.compiler.ghc865.overrideAttrs (drv: {
             enableParallelBuilding = false;
             src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.6;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
@@ -38,17 +38,22 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
-            # Our fork of 8.6 with splices includes these patches.
-            # Specifically, is up to date with the `ghc-8.6` branch upstream,
-            # which contains various backports for any potential newer 8.6.x
-            # release. Nixpkgs manually applied some of those backports as
-            # patches onto 8.6.5 ahead of such a release, but now we get them
-            # from the src proper.
-            patches = [];
-          });
+            patches = [
+              # nixpkgs-21.05 ships with a version of autoreconf that is incompatible with ghc 8.6.5,
+              # Cf. https://gitlab.haskell.org/ghc/ghc/-/commit/ad2ef3a13f1eb000eab8e3d64592373b91a52806
+              ./haskell-overlays/splices-load-save/ghc-8.6-autoreconf.patch
+            ];
+          })).override {
+            bootPkgs = super.haskell.packages.ghc865Binary // {
+              happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
+            };
+          };
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
+            bootPkgs = super.haskell.packages.ghc865Binary // {
+              happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
+            };
           }).overrideAttrs (drv: {
             src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
@@ -58,10 +63,6 @@ let iosSupport = system == "x86_64-darwin";
               echo ${drv.version} >VERSION
               ./boot
             '' + drv.preConfigure or "";
-            patches = [
-              # Patch libraries/unix/config.sub to fix android build
-              ./nixpkgs-overlays/android-8.10-splices.patch
-            ];
           });
         };
         packages = super.haskell.packages // {
@@ -140,14 +141,16 @@ let iosSupport = system == "x86_64-darwin";
     inherit (nixpkgs) lib fetchurl fetchgit fetchgitPrivate fetchFromGitHub fetchFromBitbucket;
 
     wasmCross = nixpkgs.hackGet ./wasm-cross;
-    webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc865SplicesSrc;
+    webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc8107SplicesSrc;
     nixpkgsCross = {
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
-          crossSystem = lib.systems.examples.aarch64-android-prebuilt;
+          crossSystem = lib.systems.examples.aarch64-android-prebuilt //
+          { isStatic = true; };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
+            isStatic = true;
             # Choose an old version so it's easier to find phones to test on
             sdkVer = "23";
           };
@@ -162,12 +165,14 @@ let iosSupport = system == "x86_64-darwin";
         };
         aarch64 = {
           crossSystem = lib.systems.examples.iphone64 // {
+            isStatic = true;
             sdkVer = iosSdkVersion;
             inherit xcodeVer;
           };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.iphone32 // {
+            isStatic = true;
             sdkVer = iosSdkVersion;
             inherit xcodeVer;
           };
@@ -213,7 +218,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.combined
       (haskellOverlays.saveSplices "8.6")
       (self: super: with haskellLib; {
-        blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+        blaze-textual = enableCabalFlag super.blaze-textual "integer-simple";
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
@@ -229,7 +234,7 @@ let iosSupport = system == "x86_64-darwin";
       haskellOverlays.combined
       (haskellOverlays.saveSplices "8.10")
       (self: super: with haskellLib; {
-        blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
+        blaze-textual = enableCabalFlag super.blaze-textual "integer-simple";
         cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
         integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
         scientific = enableCabalFlag super.scientific "integer-simple";
@@ -239,12 +244,12 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs = if __useNewerCompiler then ghcjs8_10 else ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
-      ghcjsSrc = fetchgit {
-        url = "https://github.com/obsidiansystems/ghcjs.git";
-        rev = "a00ecf0b2eaddbc4101c76e6ac95fc97b0f75840"; # ghc-8.6 branch
-        sha256 = "06cwpijwhj4jpprn07y3pkxmv40pwmqqw5jbdv4s7c67j5pmirnc";
-        fetchSubmodules = true;
+      bootPkgs = with nixpkgsCross.ghcjs.buildPackages.haskell.packages;
+        ghc865 // { happy = ghc865.callHackage "happy" "1.19.9" {}; };
+      cabal-install = import ./haskell-overlays/ghcjs-8.6/cabal-install.nix { inherit nixpkgs; };
+      ghcjsSrc = import ./haskell-overlays/ghcjs-8.6/src.nix {
+        inherit (nixpkgs.stdenvNoCC) mkDerivation;
+        inherit (nixpkgs) fetchgit;
       };
     };
   }))).override {
@@ -255,8 +260,8 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.ghcjs.haskell.overlays.combined;
   };
 
-  wasm = ghcWasm32-8_6;
-  ghcWasm32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
+  wasm = ghcWasm32-8_10;
+  ghcWasm32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable (nixpkgsCross.wasm.haskell.packages.ghcWasm.override (old: {
     # Due to the splices changes the parallel build fails while building the libraries
     ghc = old.ghc.overrideAttrs (drv: { enableParallelBuilding = false; });
   }))).override {

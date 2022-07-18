@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-vty",
-  "branch": "release/0.2.0.0",
+  "branch": "aa/bump-deps",
   "private": false,
-  "rev": "15d317203ae601ea13e0ed41c0dfac4ea08c9903",
-  "sha256": "14rr7yq2h6gs1x8f10m2pal3ly7hgxi3ikzsycafwbn1ib961b5a"
+  "rev": "cf039c499b3a4de427cf79e7e03857deb457c63d",
+  "sha256": "1nm6ixh07mi7v5n2anpchyrbzz5r3zminb2aa6dad8r4hawbgp8h"
 }

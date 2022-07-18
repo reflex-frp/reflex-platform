@@ -49,8 +49,8 @@ let
     # attributes in the overlays.
 
     dep = {}
-      // reflex-platform.ghcjs8_6._dep
       // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
+      // reflex-platform.ghcjs8_6._dep
       // benchmark.dep
       ;
 

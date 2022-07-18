@@ -1,8 +1,8 @@
-{ stdenv, androidenv, jdk, gnumake, gawk, file
+{ stdenv, lib, androidenv, jdk, gnumake, gawk, file
 , which, gradle, fetchurl, buildEnv, runCommand }:
 
 args@{ name, src, platformVersions ? [ "8" ]
-     , buildToolsVersions ? [ "28.0.3" ]
+     , buildToolsVersions ? [ "30.0.2" ]
      , useGoogleAPIs ? false, useGooglePlayServices ? false
      , release ? false, keyStore ? null, keyAlias ? null
      , keyStorePassword ? null, keyAliasPassword ? null
@@ -16,7 +16,7 @@ assert release -> keyAliasPassword != null;
 assert acceptAndroidSdkLicenses;
 
 let
-  inherit (stdenv.lib) optionalString optional;
+  inherit (lib) optionalString optional;
 
   m2install = { repo, version, artifactId, groupId
               , jarSha256, pomSha256, aarSha256, suffix ? ""
@@ -48,6 +48,7 @@ let
        '');
   androidsdkComposition = androidenv.composeAndroidPackages {
     inherit platformVersions useGoogleAPIs buildToolsVersions;
+    includeNDK = true;
     includeExtras = [ "extras;android;m2repository" ]
       ++ optional useGooglePlayServices "extras;google;google_play_services";
   };
@@ -59,7 +60,7 @@ stdenv.mkDerivation ({
   ANDROID_HOME = "${androidsdkComposition.androidsdk}/libexec";
   ANDROID_NDK_HOME = "${androidsdkComposition.ndk-bundle}/libexec/android-sdk/ndk-bundle";
 
-  buildInputs = [ jdk gradle ] ++ buildInputs ++ stdenv.lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
+  buildInputs = [ jdk gradle ] ++ buildInputs ++ lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
 
   DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
                             paths = map m2install mavenDeps;
@@ -73,6 +74,9 @@ stdenv.mkDerivation ({
         echo "RELEASE_STORE_PASSWORD=${keyStorePassword}"
         echo "RELEASE_KEY_PASSWORD=${keyAliasPassword}"
       ) >> gradle.properties
+    ''}
+    ${optionalString (builtins.length buildToolsVersions > 0) ''
+      echo "android.aapt2FromMavenOverride=local_sdk/android-sdk/build-tools/${builtins.head buildToolsVersions}/aapt2" >> gradle.properties
     ''}
     buildDir=`pwd`
     cp -rL $ANDROID_HOME $buildDir/local_sdk
@@ -106,6 +110,6 @@ stdenv.mkDerivation ({
   '';
 
   meta = {
-    license = stdenv.lib.licenses.unfree;
+    license = lib.licenses.unfree;
   };
 } // builtins.removeAttrs args ["name" "mavenDeps"])
