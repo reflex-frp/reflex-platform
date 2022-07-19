@@ -3,7 +3,7 @@
   "repo": "ghc",
   "branch": "ghc-8.10.7-android",
   "private": false,
-  "rev": "bd86357260ee65c8a9fe884419346d408b399aab",
-  "sha256": "1crm7496q29mn50vfij25ii05vvw18g31b2sj6c2ihdn9ws3g7v1",
+  "rev": "162f1476c19f4cdb80cac1356639fb13c62a6e0c",
+  "sha256": "11kagvwg436ch3dlckz1m3l8kqrgw6rhs9prwn5mksg8778h6cw1",
   "fetchSubmodules": true
 }
