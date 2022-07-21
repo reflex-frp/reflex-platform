@@ -11,8 +11,8 @@ in self: super: {
       enableDocs = false;
       # ghcFlavour = "quick-cross-ncg";
       libiconv =
-        if self.stdenv.targetPlatform.useAndroidPrebuilt then
-          nixpkgsCross.android.aarch64.libiconv.overrideAttrs (drv:
+       with self.stdenv.targetPlatform;  if useAndroidPrebuilt then
+         (with  nixpkgsCross.android; if is32bit then aarch32 else aarch64).libiconv.overrideAttrs (drv:
             {
               configureFlags = ["--disable-shared" "--enable-static"];
             }
@@ -23,7 +23,7 @@ in self: super: {
         in
           (drv.patches or []) ++
           lib.optionals isAndroid [
-            ./8.6.y/android-patches/force-relocation.patch
+            ./8.6.y/android-patches/force-relocation.patch 
           ];
 
       nativeBuildInputs =

@@ -2,7 +2,7 @@ env@{
   nixpkgs
 , nixpkgsCross
 , ghcAndroidAarch64
-# , ghcAndroidAarch32
+, ghcAndroidAarch32
 , overrideCabal
 , acceptAndroidSdkLicenses
 }:
