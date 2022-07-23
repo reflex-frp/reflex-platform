@@ -16,7 +16,15 @@ in self: super: {
             {
               configureFlags = ["--disable-shared" "--enable-static"];
             }
-          ) else null;
+          )
+	  else if isiOS then
+	   (with  nixpkgsCross.ios; if is32bit then aarch32 else aarch64).libiconv.overrideAttrs (drv:
+            {
+              configureFlags = ["--disable-shared" "--enable-static"];
+            }
+          )
+	  else if isMacOS then pkgs.libiconv
+	  else null;
     }).overrideAttrs (drv: {
       patches =
         let isAndroid = self.stdenv.targetPlatform.useAndroidPrebuilt;
