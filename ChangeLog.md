@@ -31,22 +31,32 @@ This project's release branch is `master`. This log is written from the perspect
 
   * all-cabal-hashes "Update from Hackage at 2022-06-29T01:24:32Z"
   * dependent-sum-template to 0.1.1.0
+  * ghcjs-base 0.2.1.0
   * some to 1.0.2
   * patch to 0.0.7.0
   * reflex to 0.8.2.1
   * reflex-dom-core to 0.7.0.2
+  * reflex-ghci git:adf36146953
+  * reflex-fsnotify 0.2.1.2
+  * reflex-todomvc git:df60a2fafc9cf
+  * reflex-vty git:a5a8da28f096
+  
 
   Prerequisite bumps:
 
+  * Cabal 3.6.3.0
   * OneTuple 0.3.1
   * QuickCheck 2.14.1
   * aeson 1.5.4.1
+  * attoparsec git:3e03733d0fb
   * base-orphans 0.8.6
   * bifunctors 5.5.11
   * commutative-semigroups (newly added at 0.1.0.0)
   * comonad 5.0.8
+  * constraints-extra 0.3.2.1
   * generic-deriving 1.14.1
   * hashable 1.3.5.0
+  * hspec-ẁebdriver (unreleased)
   * index-traversable 0.1.2
   * invariant 0.5.5
   * lens 4.19.2
@@ -57,7 +67,32 @@ This project's release branch is `master`. This log is written from the perspect
   * tagged 0.8.6.1
   * th-abstraction 0.4.3.0
   * th-lift 0.8.2
+  * th-orphans 0.13.12
   * time-compat 1.9.4
+  * webdriver git:9c08a4d30ab
+
+  Nixpkgs
+
+  * nixos-22.05
+
+  Android Environment
+
+  * Platform Tools 31.0.3
+  * Build Tools 26.1.1
+  * NDK 22.0.7026061
+  * Target SDK 31
+  * OpenJDK 17 (headless)
+
+  * gradle 7.2.1
+  * lint-gradle 30.2.1
+  * firebase-iid 21.1.0
+  * firebase-messaging 23.0.6
+
+  * maven repo https://central.maven.org/maven2/ removed
+  
+  
+  
+	
 
 ## v0.9.2.0
 
