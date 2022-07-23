@@ -38,7 +38,7 @@ in {
     keyStore = releaseKey.storeFile or null;
     keyStorePassword = releaseKey.storePassword or null;
     name = applicationId;
-    platformVersions = [ "30" ];
+    platformVersions = [ "31" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;

@@ -15,7 +15,6 @@ buildscript {
    dependencies {
       classpath 'com.android.tools.build:gradle:7.2.1'
       classpath "com.android.tools.lint:lint-gradle:30.2.1"
-      // implementation 'com.android.tools.lint:lint-gradle:30.2.1'
     }
     ext {
         ndkVersion = "22.0.7026061"
@@ -97,25 +96,27 @@ android {
             }
         }
         ''
-    }
+     }
+
 }
 
-ext.abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2] // This order is important!
 
-import com.android.build.api.variant.FilterConfiguration;
-//import com.android.build.OutputFile.FilterType
+${if universalApk then "" else '' 
+  ext.abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2] // This order is important!
 
-android.applicationVariants.all { variant ->
-  variant.outputs.each { output ->
-    def baseAbiVersionCode = 1
-    //  project.ext.abiCodes.get(output.filters.find( filter -> filter.filterType == FilterConfigurotion.FilterType.ABI).identifier);
+  android.applicationVariants.all { variant ->
+    variant.outputs.each { output ->
+    def baseAbiVersionCode = 
+      project.ext.abiCodes.get(output.filters.find ( filter -> filter.filterType == FilterConfiguration.FilterType.ABI)?.identifier);
 
-    if (baseAbiVersionCode != null) { // this will be null if splitting was disabled
-      output.versionCodeOverride = baseAbiVersionCode * 1000 + variant.versionCode
+    if (baseAbiVersionCode != null) { // this will be null if splitting was disabled. TODO: remove if?
+      output.versionCodeOverride = baseAbiVersionCode ?: 0 * 1000 + variant.versionCode
     }
   }
+  ''
 }
-
+                                  
+ 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.google.firebase:firebase-iid:21.1.0'
