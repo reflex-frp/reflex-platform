@@ -169,7 +169,7 @@ let
     shells = mapAttrs (name: pnames:
       workOnMulti {
         envFunc = _: prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
-          ghcWithPackages = self.ghcWithHoogle;
+         # ghcWithPackages = self.ghcWithPackages;
         }; };
         packageNames = pnames;
         inherit tools shellToolOverrides;
