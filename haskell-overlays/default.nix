@@ -59,6 +59,7 @@ rec {
             "--ghc-option=-optl-fuse-ld=gold"
             "--ld-option=-fuse-ld=gold"
             "--ghc-option=-fPIC"
+            "--ld-option=-Bsymbolic"
           ] ++ (drv.buildFlags or [ ]);
 
           configureFlags = [
