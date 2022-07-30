@@ -1,8 +1,8 @@
 {
-  "owner": "NixOS",
+  "owner": "chrbauer",
   "repo": "nixpkgs",
   "branch": "ghc-8.10.7-use-iconv-release",
   "private": false,
-  "rev": "066198c48b32e5aa32447c5077678999405f254b",
-  "sha256": "163qyzpp1ay1lwwgblhmp26lp5yk0xg4wblmzj1zg57r8qnxjvw6"
+  "rev": "903576ebce446410ed60d42b103b97ad1578f055",
+  "sha256": "1bhhpj7x04qysqx4h2alfcdbjrc6fpqjhbfw9kzk9kqlgzg653as"
 }
