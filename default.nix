@@ -14,7 +14,6 @@
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
 , haskellOverlaysPost ? haskellOverlays
-, hideDeprecated ? false # The moral equivalent of "-Wcompat -Werror" for using reflex-platform.
 }:
 
 let iosSupport = system == "x86_64-darwin";
@@ -570,35 +569,4 @@ in let this = rec {
 
 };
 
-# Deprecated reexports. These were made for `./scripts/*`, but are reexported
-# here for backwards compatability.
-legacy = {
-  # Added 2019-12, will be removed 2020-06.
-  inherit
-    (import ./nix-utils/hackage { reflex-platform = this; })
-    attrsToList
-    mapSet
-    mkSdist
-    sdists
-    mkHackageDocs
-    hackageDocs
-    mkReleaseCandidate
-    releaseCandidates
-    ;
-  generalDevTools = _: builtins.attrValues (this.generalDevTools' {});
-  generalDevToolsAttrs = _: this.generalDevTools' {};
-  nativeHaskellPackages = haskellPackages:
-    if haskellPackages.isGhcjs or false
-    then haskellPackages.ghc
-    else haskellPackages;
-  workOnMulti' = { env, packageNames }:
-    (import ./nix-utils/work-on-multi {}).workOnMulti {
-      envFunc = _: env;
-      inherit packageNames;
-    };
-  workOnMulti = env: packageNames: legacy.workOnMulti' { inherit env packageNames; };
-};
-
-in this // lib.optionalAttrs
-  (!hideDeprecated)
-  (lib.mapAttrs (attrName: builtins.trace "The attribute \"${attrName}\" is deprecated. See reflex-platform's root default.nix.") legacy)
+in this
