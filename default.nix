@@ -91,7 +91,7 @@ let iosSupport = system == "x86_64-darwin";
             useTextJSString enableExposeAllUnfoldings __useTemplateHaskell
             haskellOverlaysPre
             haskellOverlaysPost;
-          inherit ghcSavedSplices-8_6 ghcSavedSplices-8_10;
+          inherit  ghcSavedSplices-8_10;
         };
       };
     };
