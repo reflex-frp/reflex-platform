@@ -8,7 +8,6 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
-, __useNewerCompiler ? true
 , iosSdkVersion ? "13.2"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
@@ -209,7 +208,7 @@ let iosSupport = system == "x86_64-darwin";
       sha256 = null;
     });
 
-  ghcSavedSplices = if __useNewerCompiler then ghcSavedSplices-8_10 else ghcSavedSplices-8_6;
+  ghcSavedSplices = ghcSavedSplices-8_10;
   ghcSavedSplices-8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgs.haskell.overlays;
@@ -240,7 +239,7 @@ let iosSupport = system == "x86_64-darwin";
       })
     ]);
   };
-  ghcjs = if __useNewerCompiler then ghcjs8_10 else ghcjs8_6;
+  ghcjs = ghcjs8_10;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
       bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
@@ -267,7 +266,7 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.wasm.haskell.overlays.combined;
   });
 
-  ghc = if __useNewerCompiler then ghc8_10 else ghc8_6;
+  ghc = ghc8_10;
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -292,14 +291,14 @@ let iosSupport = system == "x86_64-darwin";
         new));
   };
 
-  ghcAndroidAarch64 = if __useNewerCompiler then ghcAndroidAarch64-8_10 else ghcAndroidAarch64-8_6;
+  ghcAndroidAarch64 = ghcAndroidAarch64-8_10;
   ghcAndroidAarch64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   });
   ghcAndroidAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   });
-  ghcAndroidAarch32 = if __useNewerCompiler then ghcAndroidAarch32-8_10 else ghcAndroidAarch32-8_6;
+  ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
   ghcAndroidAarch32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_6).override {
      overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   });
@@ -307,21 +306,21 @@ let iosSupport = system == "x86_64-darwin";
      overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   });
 
-  ghcIosSimulator64 = if __useNewerCompiler then ghcIosSimulator64-8_10 else ghcIosSimulator64-8_6;
+  ghcIosSimulator64 = ghcIosSimulator64-8_10;
   ghcIosSimulator64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   });
   ghcIosSimulator64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   });
-  ghcIosAarch64 = if __useNewerCompiler then ghcIosAarch64-8_10 else ghcIosAarch64-8_6;
+  ghcIosAarch64 = ghcIosAarch64-8_10;
   ghcIosAarch64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   });
   ghcIosAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   });
-  ghcIosAarch32 = if __useNewerCompiler then ghcIosAarch32-8_10 else ghcIosAarch32-8_6;
+  ghcIosAarch32 = ghcIosAarch32-8_10;
   ghcIosAarch32-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   });
