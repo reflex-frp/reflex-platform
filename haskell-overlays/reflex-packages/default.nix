@@ -233,10 +233,11 @@ in
   hashable = self.callHackage "hashable" "1.3.5.0" {};
 
   # For QuickCheck
-  splitmix = dontCheck (self.callHackage "splitmix" "0.1.0.4" (lib.optionalAttrs stdenv.hostPlatform.isLinux {
-    # Non-Haskell library needed for the test suite
-    testu01 = null;
-  }));
+  splitmix = dontCheck (self.callHackage "splitmix" "0.1.0.4" (
+    lib.optionalAttrs (stdenv.hostPlatform.isLinux && !stdenv.hostPlatform.isAndroid) {
+      # Non-Haskell library needed for the test suite
+      testu01 = null;
+    }));
 
   # Due to newer QuickCheck
   HsYAML = doJailbreak super.HsYAML;
