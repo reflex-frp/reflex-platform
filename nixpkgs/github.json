@@ -3,6 +3,6 @@
   "repo": "nixpkgs",
   "branch": "aa/reflex-platform-21.05-backport-ghc8.6.5",
   "private": false,
-  "rev": "8c37a39fd1e3aaf886f28e07d57ea23383fbfb8f",
-  "sha256": "0mfnzjz9lcf9mi5v370k1nx8cx4ajz3ba3g19lsjavfppcbvikjw"
+  "rev": "f0f5e6e0759a7f98887952ead900c0c2c40eb5f6",
+  "sha256": "1mxm3j3bl618s09b6pyglkx6d68cpdsqp5iphckl42220pk188qm"
 }
