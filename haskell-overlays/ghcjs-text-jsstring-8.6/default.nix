@@ -8,7 +8,7 @@ self: super: {
       sha256 = "1vy7a81b1vcbfhv7l3m7p4hx365ss13mzbzkjn9751bn4n7x2ydd";
     };
     ghcjsBaseTextJSStringSrc = super.ghcjs-base.src.overrideAttrs (drv: {
-      outputHash = "1pdxlb67f94bl2b6k0m4flpjbf07g7fgqbyjnki4y57a5r0iympd";
+      outputHash = "19bsvv8g4kgjj2z7a8r8in4g8sshvvwn717n4664fnfn6xhzm2i6";
       postFetch = (drv.postFetch or "") + ''
         ( cd $out
           patch -p1 < ${./ghcjs-base-text-jsstring.patch}

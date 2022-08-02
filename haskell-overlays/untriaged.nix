@@ -14,7 +14,7 @@ self: super: {
 
   # Fixing things that are marked broken in 20.09:
   constrained-dynamic = dontCheck (markUnbroken super.constrained-dynamic);
-  haven = markUnbroken super.haven;
+  haven = doJailbreak (markUnbroken super.haven);
 
   # These take over an hour to run, each
   cryptonite = dontCheck super.cryptonite;
@@ -54,4 +54,7 @@ self: super: {
 
   # ghcjs-promise is marked broken in nixpkgs
   ghcjs-promise = self.callHackage "ghcjs-promise" "0.1.0.3" {};
+
+  utf8-string = self.callHackage "utf8-string" "1.0.1.1" {};
+
 }

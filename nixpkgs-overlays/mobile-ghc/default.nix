@@ -19,7 +19,7 @@ in self: super: {
         lib.optionals (isAndroid && isGhc86x) [
           ./8.6.y/android-patches/strict-align.patch
         ];
-    })) { inherit (super.haskell.compiler) ghc865 ghcSplices-8_6 ghc8107 ghcSplices-8_10; };
+    })) { inherit (super.haskell.compiler) ghc8107 ghcSplices-8_10; };
   };
 }
 

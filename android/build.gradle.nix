@@ -9,11 +9,15 @@
 ''
 buildscript {
     repositories {
-        mavenLocal()
+        mavenLocal {
+          metadataSources {
+            mavenPom()
+            artifact()
+          }
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
-        classpath 'com.android.tools.lint:lint:26.4.2'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         ${googleServicesClasspath}
     }
 }
@@ -28,15 +32,20 @@ task proguard(type: proguard.gradle.ProGuardTask) {
 
 allprojects {
     repositories {
-        mavenLocal()
+        mavenLocal {
+          metadataSources {
+            mavenPom()
+            artifact()
+          }
+        }
     }
 }
 
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 30
+    buildToolsVersion '30.0.2'
 
     sourceSets {
       main {
@@ -47,10 +56,16 @@ android {
         jniLibs.srcDir 'lib'
       }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode ${version.code}
         versionName "${version.name}"
         multiDexEnabled false

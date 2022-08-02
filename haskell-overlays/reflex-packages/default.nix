@@ -72,7 +72,7 @@ in
       # Show some output while running tests, so we might notice what's wrong
       testTarget = "--show-details=streaming";
 
-      testHaskellDepends = with self; (drv.testHaskellDepends or []) ++ stdenv.lib.optionals (!noGcTest) [
+      testHaskellDepends = with self; (drv.testHaskellDepends or []) ++ lib.optionals (!noGcTest) [
         temporary
         jsaddle-warp
         process
@@ -83,30 +83,21 @@ in
         nixpkgs_oldChromium.selenium-server-standalone
         nixpkgs_oldChromium.chromium
         which
-      ] ++ stdenv.lib.optionals (!noGcTest) [
+      ] ++ lib.optionals (!noGcTest) [
         nixpkgs.iproute
       ];
-    } // stdenv.lib.optionalAttrs (!noGcTest) {
+    } // lib.optionalAttrs (!noGcTest) {
       # The headless browser run as part of gc tests would hang/crash without this
       preCheck = ''
         export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
       '' + (drv.preCheck or "");
     });
 
-  reflex-dom = haskellLib.overrideCabal
-    (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
+  reflex-dom =
+    self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
-    ])) {})
-    (drv: {
-      # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
-      libraryHaskellDepends = (drv.libraryHaskellDepends or [])
-        ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
-        self.android-activity
-      ] ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
-        self.jsaddle-wasm
-      ];
-    });
+    ])) {};
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
@@ -174,8 +165,10 @@ in
   ##
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-  monoidal-containers = self.callHackage "monoidal-containers" "0.6.0.1" {};
+  monoidal-containers = self.callHackage "monoidal-containers" "0.6.2.0" {};
   patch = self.callCabal2nix "patch" self._dep.patch {};
+  commutative-semigroups = self.callCabal2nix "commutative-semigroups" self._dep.commutative-semigroups {};
+  witherable = self.callHackage "witherable" "0.4.2" {};
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
 
@@ -188,7 +181,7 @@ in
     sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
   }) {};
 
-  constraints-extras = self.callHackage "constraints-extras" "0.3.0.2" {};
+  constraints-extras = self.callHackage "constraints-extras" "0.3.2.1" {};
   some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
@@ -208,56 +201,6 @@ in
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
   th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
-
-  # Needed because we force newer th-abstraction for our TH libraries.
-  aeson = self.callHackage "aeson" "1.5.4.1" {};
-  bifunctors = self.callHackage "bifunctors" "5.5.11" {};
-  generic-deriving = self.callHackage "generic-deriving" "1.14.1" {};
-  invariant = self.callHackage "invariant" "0.5.5" {};
-  lens = self.callHackage "lens" "4.19.2" {};
-  microlens-th = self.callHackage "microlens-th" "0.4.3.10" {};
-  th-lift = self.callHackage "th-lift" "0.8.2" {};
-
-  # For aeson
-  quickcheck-instances = self.callHackage "quickcheck-instances" "0.3.27" {};
-  strict = self.callHackage "strict" "0.4.0.1" {};
-
-  # For quickcheck-instanaces
-  OneTuple = doJailbreak (self.callHackage "OneTuple" "0.3.1" {});
-  QuickCheck = self.callHackage "QuickCheck" "2.14.1" {};
-  # Avoid Infinite recursursion
-  text-short = dontCheck super.text-short;
-  time-compat = self.callHackage "time-compat" "1.9.4" {};
-
-  # For OneTuple and strict
-  hashable = self.callHackage "hashable" "1.3.5.0" {};
-
-  # For QuickCheck
-  splitmix = dontCheck (self.callHackage "splitmix" "0.1.0.4" (lib.optionalAttrs stdenv.hostPlatform.isLinux {
-    # Non-Haskell library needed for the test suite
-    testu01 = null;
-  }));
-
-  # Due to newer QuickCheck
-  HsYAML = doJailbreak super.HsYAML;
-  attoparsec = doJailbreak super.attoparsec;
-  cassava = doJailbreak super.cassava;
-  psqueues = doJailbreak super.psqueues;
-  vector = doJailbreak super.vector;
-  # quick check arbitrary was trying harder, maybe?
-  hackage-security = dontCheck super.hackage-security;
-
-  # Due to strict
-  stylish-haskell = doJailbreak super.stylish-haskell;
-
-  # For bifunctors, bumped above
-  comonad = self.callHackage "comonad" "5.0.8" {};
-  base-orphans = self.callHackage "base-orphans" "0.8.6" {};
-
-  # For comonad
-  tagged = self.callHackage "tagged" "0.8.6.1" {};
-  # this package didn't exist in the package set before
-  indexed-traversable = self.callHackage "indexed-traversable" "0.1.2" {};
 
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13

@@ -4,11 +4,23 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
+* Bump
+  * Nixpkgs to 21.05
+  * Android: Use gradle v7 and build-tools 30.0.2 by default
+
+* Android: Automatically set build tool version in gradle.properties based on the configured `buildToolsVersions`
+
+## Unreleased
+
 * Fix SIGBUS crashes on armv7a due unaligned writes ([!774](https://github.com/reflex-frp/reflex-platform/pull/774))
 * Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10.
   Previously we were using mixed GHC 8.10 versions to avoid issues.
 * GHC 8.10 support is complete, with the remaining profiling builds
   that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
+* *Breaking Change*: The `javaSources` argument of `android/default.nix` is now
+  a function that takes the default sources as arguments instead of a list that
+  is always appended to the default sources. It is now possible to override the
+  default java sources. See the documentation [here](android/default.nix).
 
 * GHCJS 8.6 no longer uses older versions of some libraries with "text JS-string"
 
@@ -28,6 +40,11 @@ This project's release branch is `master`. This log is written from the perspect
   * all-cabal-hashes "Update from Hackage at 2022-01-20T19:38:07Z"
   * dependent-sum-template to 0.1.1.0
   * some to 1.0.2
+  * monoidal-containers to 0.6.2.0
+  * witherable to 0.4.2
+  * patch to 0.0.7.0
+  * reflex-vty to 0.2.0.1
+  * reflex-ghci to 0.1.5.3
 
   Prerequisite bumps:
 
