@@ -261,12 +261,11 @@ let iosSupport = system == "x86_64-darwin";
   #TODO: Separate debug and release APKs
   #TODO: Warn the user that the android app name can't include dashes
   android = androidWithHaskellPackages {
-    #inherit ghcAndroidAarch64 ghcAndroidAarch32;
-    inherit ghcAndroidAarch64 ;
+    inherit ghcAndroidAarch64 ghcAndroidAarch32;
   };
   android-8_10 = androidWithHaskellPackages {
     ghcAndroidAarch64 = ghcAndroidAarch64-8_10;
-    #ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
+    ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
   };
   androidWithHaskellPackages = { ghcAndroidAarch64, ghcAndroidAarch32 }: import ./android {
     inherit nixpkgs nixpkgsCross ghcAndroidAarch64 ghcAndroidAarch32 overrideCabal;
