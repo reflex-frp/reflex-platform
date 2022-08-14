@@ -1,8 +1,8 @@
 { stdenv, androidenv, jdk, gnumake, gawk, file
-, which, gradle, fetchurl, buildEnv, runCommand }:
+, which, gradle, fetchurl, buildEnv, runCommand, lib  }:
 
 args@{ name, src, platformVersions ? [ "8" ]
-     , buildToolsVersions ? [ "28.0.3" ]
+     , buildToolsVersion ?  "31.0.0"  # TODO
      , useGoogleAPIs ? false, useGooglePlayServices ? false
      , release ? false, keyStore ? null, keyAlias ? null
      , keyStorePassword ? null, keyAliasPassword ? null
@@ -16,7 +16,7 @@ assert release -> keyAliasPassword != null;
 assert acceptAndroidSdkLicenses;
 
 let
-  inherit (stdenv.lib) optionalString optional;
+  inherit (lib) optionalString optional;
 
   m2install = { repo, version, artifactId, groupId
               , jarSha256, pomSha256, aarSha256, suffix ? ""
@@ -46,11 +46,7 @@ let
                         sha256 = aarSha256;
                       }} "$installPath/${m2Name}${suffix}.aar"
        '');
-  androidsdkComposition = androidenv.composeAndroidPackages {
-    inherit platformVersions useGoogleAPIs buildToolsVersions;
-    includeExtras = [ "extras;android;m2repository" ]
-      ++ optional useGooglePlayServices "extras;google;google_play_services";
-  };
+  androidsdkComposition = import ./androidComposition.nix { inherit androidenv; };
 in
 stdenv.mkDerivation ({
   inherit src;
@@ -58,8 +54,10 @@ stdenv.mkDerivation ({
 
   ANDROID_HOME = "${androidsdkComposition.androidsdk}/libexec";
   ANDROID_NDK_HOME = "${androidsdkComposition.ndk-bundle}/libexec/android-sdk/ndk-bundle";
+  GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidsdkComposition.androidsdk}/libexec/android-sdk/build-tools/${buildToolsVersion}/aapt2";
 
-  buildInputs = [ jdk gradle ] ++ buildInputs ++ stdenv.lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
+
+  buildInputs = [ jdk gradle ] ++ buildInputs ++ lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
 
   DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
                             paths = map m2install mavenDeps;
@@ -104,6 +102,6 @@ stdenv.mkDerivation ({
   '';
 
   meta = {
-    license = stdenv.lib.licenses.unfree;
+    license = lib.licenses.unfree;
   };
 } // builtins.removeAttrs args ["name" "mavenDeps"])

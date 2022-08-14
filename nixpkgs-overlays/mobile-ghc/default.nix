@@ -1,4 +1,4 @@
-{ lib }:
+{ lib, pkgs, nixpkgsCross  }:
 let
   versionWildcard = versionList: let
     versionListInc = lib.init versionList ++ [ (lib.last versionList + 1) ];
@@ -7,19 +7,40 @@ let
   in version: lib.versionOlder version top && lib.versionAtLeast version bottom;
 in self: super: {
   haskell = super.haskell // {
-    compiler = super.haskell.compiler // lib.mapAttrs (n: v: v.overrideAttrs (drv: {
-      patches = let
-        isAndroid = self.stdenv.targetPlatform.useAndroidPrebuilt;
-        isGhc86x = versionWildcard [ 8 6 ] v.version;
-      in
-        (drv.patches or []) ++
-        lib.optionals isAndroid [
-          ./8.6.y/android-patches/force-relocation.patch
-        ] ++
-        lib.optionals (isAndroid && isGhc86x) [
-          ./8.6.y/android-patches/strict-align.patch
+    compiler = super.haskell.compiler //  lib.mapAttrs (n: v: (v.override {
+      enableDocs = false;
+      # ghcFlavour = "quick-cross-ncg";
+      libiconv =
+       with self.stdenv.targetPlatform;  if useAndroidPrebuilt then
+         (with  nixpkgsCross.android; if is32bit then aarch32 else aarch64).libiconv.overrideAttrs (drv:
+            {
+              configureFlags = ["--disable-shared" "--enable-static"];
+            }
+          )
+	  else if isiOS then
+	   (with  nixpkgsCross.ios; if is32bit then aarch32 else aarch64).libiconv.overrideAttrs (drv:
+            {
+              configureFlags = ["--disable-shared" "--enable-static"];
+            }
+          )
+	  else if isMacOS then pkgs.libiconv
+	  else null;
+    }).overrideAttrs (drv: {
+      patches =
+        let isAndroid = self.stdenv.targetPlatform.useAndroidPrebuilt;
+        in
+          (drv.patches or []) ++
+          lib.optionals isAndroid [
+            ./8.6.y/android-patches/force-relocation.patch 
+          ];
+
+      nativeBuildInputs =
+        let bootPkgs = drv.passthru.bootPkgs; in
+        with pkgs; [
+          perl autoconf269 automake m4 python3
+          bootPkgs.ghc
+          bootPkgs.alex bootPkgs.happy_1_19_12 bootPkgs.hscolour
         ];
-    })) { inherit (super.haskell.compiler) ghc865 ghcSplices-8_6 ghc8107 ghcSplices-8_10; };
+    })){ inherit (super.haskell.compiler) ghc8107 ghcSplices-8_10; };
   };
 }
-

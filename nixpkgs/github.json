@@ -1,8 +1,9 @@
 {
-  "owner": "obsidiansystems",
+  "owner": "chrbauer",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-20.09",
+  "branch": "ghc-8.10.7-use-iconv-release",
   "private": false,
-  "rev": "4e243931107ee18274d861a56c24528a0ac9c775",
-  "sha256": "00vyfmaib8wxxdvvfbmb4gwdvkflbpl1kx5j6nlvpmgv7zlliz8a"
+  "rev": "903576ebce446410ed60d42b103b97ad1578f055",
+  "sha256": "1bhhpj7x04qysqx4h2alfcdbjrc6fpqjhbfw9kzk9kqlgzg653as"
 }
+

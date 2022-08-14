@@ -1,8 +1,7 @@
 {
-  "owner": "reflex-frp",
+  "owner": "chrbauer",
   "repo": "reflex-dom",
-  "branch": "release/reflex-dom-core/0.7.0.0",
   "private": false,
-  "rev": "a5ae0c8a8598ce531f80b8443cd3042314e821f3",
-  "sha256": "04lrdhfkbk4nlj2lw7q96apjqmdydqafpylf10qgpjzpvn9la278"
+  "rev": "daf45c049a6ed3c3be9ea3017b2a54969238c450",
+  "sha256": "1dzrk49a3ha8dxwj6ldfxdmmqa5cs3gd26k229z5skhdngihh4kb"
 }

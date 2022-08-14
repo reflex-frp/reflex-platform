@@ -18,4 +18,4 @@ jobs:
           trusted-public-keys = ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=
           substituters = https://cache.nixos.org/ https://nixcache.reflex-frp.org
       - name: try-reflex
-        run: nix-build -A tryReflexShell
+        run: nix-build -A tryReflexShell --show-trace

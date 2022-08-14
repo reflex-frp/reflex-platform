@@ -1,7 +1,7 @@
 {
-  "owner": "reflex-frp",
+  "owner": "chrbauer",
   "repo": "reflex-todomvc",
-  "branch": "master",
-  "rev": "3facdd7fc1cc585611012c6fef1cafb77a2dfa7a",
-  "sha256": "1h01lxfmsfvq9bxfhgbixkjm7j1myy2wvdxlksgw8s0cp389v4r1"
+  "branch": "nixpkgs-22.05",
+  "rev": "df60a2fafc9cf8866fc53315d82f5052d2f240ec",
+  "sha256": "152bbnyn55v7zw5yy48lqqm1qpv9krgmg04hay163pf0cgd1443m"
 }

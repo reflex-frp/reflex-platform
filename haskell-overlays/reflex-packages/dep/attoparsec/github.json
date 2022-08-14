@@ -1,6 +1,7 @@
 {
-  "owner": "dfordivam",
+  "owner": "tfausak",
   "repo": "attoparsec",
+  "branch": "remove-internal-library",
   "private": false,
   "rev": "3e03733d0fb66b3be4f012f9b3cbe2976bd8bcae",
   "sha256": "1ppkp0w348lcrk2icw4qqyxiyv18r1bvx7s4pjil0dzfwzr5xr8x"

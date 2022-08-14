@@ -5,6 +5,8 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       '';
     });
     androidenv = nixpkgs.androidenv;
+    androidComposition = (import ./androidComposition.nix { inherit (nixpkgs) androidenv;  });
+    jdk = nixpkgs.openjdk17_headless;
     #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
     addDeployScript = src: nixpkgs.runCommand "android-app" {
       inherit src;
@@ -13,17 +15,17 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         cp -r "$src"/* "$out"
         substitute ${./deploy.sh} $out/bin/deploy \
           --subst-var-by coreutils ${nixpkgs.coreutils} \
-          --subst-var-by adb ${androidenv.androidPkgs_9_0.platform-tools} \
-          --subst-var-by java ${nixpkgs.openjdk11} \
+          --subst-var-by adb ${androidComposition.platform-tools} \
+          --subst-var-by java ${jdk} \
           --subst-var-by out $out
         chmod +x "$out/bin/deploy"
       '';
-      buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
+      buildInputs = [ androidComposition.androidsdk ];
     } "";
     buildGradleApp = import ./build-gradle-app.nix {
-      inherit (nixpkgs) stdenv jdk gnumake gawk file runCommand
-                     which gradle fetchurl buildEnv;
-      inherit androidenv;
+      inherit (nixpkgs) stdenv gnumake gawk file runCommand
+                     which gradle fetchurl buildEnv lib;
+      inherit androidenv jdk;
     };
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
@@ -36,7 +38,7 @@ in {
     keyStore = releaseKey.storeFile or null;
     keyStorePassword = releaseKey.storePassword or null;
     name = applicationId;
-    platformVersions = [ "29" ];
+    platformVersions = [ "31" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;
@@ -49,9 +51,9 @@ in {
               myHaskellPackages = ghcAndroidAarch64;
             };
             "armeabi-v7a" = {
-              myNixpkgs = nixpkgsCross.android.aarch32;
-              myHaskellPackages = ghcAndroidAarch32;
-            };
+               myNixpkgs = nixpkgsCross.android.aarch32;
+               myHaskellPackages = ghcAndroidAarch32;
+             };
           };
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
@@ -73,10 +75,11 @@ in {
         });
         javaSrc = nixpkgs.buildEnv {
           name = applicationId + "-java";
-          paths = javaSources ++ [
+          paths = javaSources
+            # Sets up the main Activity using [android-activity](https://hackage.haskell.org/package/android-activity)
             (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
-            (ghcAndroidAarch64.reflex-dom.src + "/java")
-          ];
+            # Sets up the main webview using [reflex-dom](https://github.com/reflex-frp/reflex-dom/blob/develop/reflex-dom/java/org/reflexfrp/reflexdom/MainWidget.java)
+            (ghcAndroidAarch64.reflex-dom.src + "/java");
         };
         src = ./src;
         nativeBuildInputs = [ nixpkgs.rsync ];

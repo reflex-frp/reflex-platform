@@ -7,36 +7,33 @@
 , universalApk
 }:
 ''
+
 buildscript {
     repositories {
         mavenLocal()
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
-        classpath 'com.android.tools.lint:lint:26.4.2'
-        ${googleServicesClasspath}
+   dependencies {
+      classpath 'com.android.tools.build:gradle:7.2.1'
+      classpath "com.android.tools.lint:lint-gradle:30.2.1"
     }
-}
+    ext {
+        ndkVersion = "22.0.7026061"
+     }
+ }
 
-task proguard(type: proguard.gradle.ProGuardTask) {
-  configuration 'proguard.txt'
-
-    // injars 'build/libs/proguard-gradle-example.jar'
-    // outjars 'build/libs/proguard-gradle-example.out.jar'
-
+plugins {
+    id 'com.android.application' version '7.2.1' apply false
 }
 
 allprojects {
     repositories {
         mavenLocal()
-    }
+   }
 }
-
 apply plugin: 'com.android.application'
-
 android {
-    compileSdkVersion 29
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 31
+    buildToolsVersion '31.0.0'
 
     sourceSets {
       main {
@@ -50,7 +47,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 31
         versionCode ${version.code}
         versionName "${version.name}"
         multiDexEnabled false
@@ -69,19 +66,17 @@ android {
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-            useProguard false
-            zipAlignEnabled true
-            ${if releaseKey == null then "" else ''
-            signingConfig signingConfigs.release
-            ''}
-        }
-        debug {
-            minifyEnabled false
-            useProguard false
-            debuggable true
-        }
+         release {
+             minifyEnabled false
+             zipAlignEnabled true
+             ${if releaseKey == null then "" else ''
+             signingConfig signingConfigs.release
+             ''}
+         }
+         debug {
+             minifyEnabled false
+             debuggable true
+         }
     }
 
     packagingOptions {
@@ -101,28 +96,31 @@ android {
             }
         }
         ''
-    }
+     }
+
 }
 
-ext.abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2] // This order is important!
 
-import com.android.build.OutputFile
+${if universalApk then "" else '' 
+  ext.abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2] // This order is important!
 
-android.applicationVariants.all { variant ->
-  variant.outputs.each { output ->
-    def baseAbiVersionCode =
-      project.ext.abiCodes.get(output.getFilter(OutputFile.ABI))
+  android.applicationVariants.all { variant ->
+    variant.outputs.each { output ->
+    def baseAbiVersionCode = 
+      project.ext.abiCodes.get(output.filters.find ( filter -> filter.filterType == FilterConfiguration.FilterType.ABI)?.identifier);
 
-    if (baseAbiVersionCode != null) { // this will be null if splitting was disabled
-      output.versionCodeOverride = baseAbiVersionCode * 1000 + variant.versionCode
+    if (baseAbiVersionCode != null) { // this will be null if splitting was disabled. TODO: remove if?
+      output.versionCodeOverride = baseAbiVersionCode ?: 0 * 1000 + variant.versionCode
     }
   }
+  ''
 }
-
+                                  
+ 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.firebase:firebase-iid:20.2.3'
-    implementation 'com.google.firebase:firebase-messaging:20.2.3'
+    implementation 'com.google.firebase:firebase-iid:21.1.0'
+    implementation 'com.google.firebase:firebase-messaging:23.0.6'
     ${additionalDependencies}
 }
 
