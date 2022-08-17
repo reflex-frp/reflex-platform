@@ -1,0 +1,8 @@
+{
+  "url": "git://github.com/input-output-hk/haskell.nix.git",
+  "rev": "17e5f35d56c57b20ba2397010fcd4032fb6acc2b",
+  "sha256": "0b3pwrib289bhidv1q27k6k53zwyahdffi2ynww19qnviqwlm21a",
+  "fetchSubmodules": false,
+  "deepClone": false,
+  "leaveDotGit": false
+}

@@ -48,7 +48,9 @@ let iosSupport = system == "x86_64-darwin";
               happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
             };
           };
-          ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
+          ghcSplices-8_10 = let
+            haskellNixSrc = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/haskell.nix;
+          in (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
             bootPkgs = super.haskell.packages.ghc865Binary // {
@@ -59,11 +61,24 @@ let iosSupport = system == "x86_64-darwin";
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
             # in the distribution tarball on the haskell.org downloads page, ./boot has already been
             # run.
-            prePatch = ''
+            preConfigure = ''
               echo ${drv.version} >VERSION
               patchShebangs boot
               ./boot
             '' + drv.preConfigure or "";
+            patches = builtins.map (path: haskellNixSrc + "/overlays/patches/ghc/${path}") [
+              # See upstream patch at
+              # https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4885. Since we build
+              # from source distributions, the auto-generated configure script needs to be
+              # patched as well, therefore we use an in-tree patch instead of pulling the
+              # upstream patch. Don't forget to check backport status of the upstream patch
+              # when adding new GHC releases in nixpkgs.
+              "respect-ar-path.patch"
+              # cabal passes incorrect --host= when cross-compiling
+              # https://github.com/haskell/cabal/issues/5887
+              "cabal-host.patch"
+              "AC_PROG_CC_99.patch"
+            ];
           });
         };
         packages = super.haskell.packages // {
