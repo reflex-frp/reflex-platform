@@ -9,7 +9,7 @@
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
 , __useNewerCompiler ? false
-, iosSdkVersion ? "13.2"
+, iosSdkVersion ? "14.3"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
@@ -21,7 +21,7 @@ let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
     xcodeVer = {
-      "13.2" = "11.3.1";
+      "14.3" = "12.3";
     }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
     # Overlay for GHC which supports the external splices plugin
