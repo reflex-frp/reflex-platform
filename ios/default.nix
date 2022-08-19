@@ -131,7 +131,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if [ "$#" -ne 1 ]; then
+    if [ "$#" < 1 ]; then
       echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
