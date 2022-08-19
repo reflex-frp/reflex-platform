@@ -173,6 +173,10 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
     chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
+
+    # Fix CoreFoundation path
+    install_name_tool -change /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation "$tmpdir/${executableName}.app/${executableName}"
+
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
