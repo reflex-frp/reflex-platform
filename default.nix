@@ -21,6 +21,7 @@ let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
     xcodeVer = {
+      "13.2" = "11.3.1";
       "14.3" = "12.3";
     }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
