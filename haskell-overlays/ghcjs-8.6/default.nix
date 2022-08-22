@@ -67,6 +67,9 @@ self: super: {
   # Cross fix is working for iOS but not JS for some reason
   cabal-macosx = null;
 
+  # Haddock internal error
+  patch = dontHaddock super.patch;
+
   # When we don't use text-jsstring, we hit cabal version too new issue.
   ghcjs-base = if useTextJSString
     then super.ghcjs-base
