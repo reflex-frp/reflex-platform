@@ -50,9 +50,14 @@ rec {
 
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
 
-    # Force "gold" on aarch32 due to a linker bug on bfd
-    # Also force -fPIC on for aarch32, we need it either way
-    (optionalExtension (super.ghc.stdenv.targetPlatform.isAarch32 or false) (self: super:
+    # Force "gold" on Android due to a linker bug on bfd
+    # Also force -fPIC on for Android, we need it either way
+
+    # NOTE(Dylan Green): Please do not only enable based on CPU arch, this will cause
+    # more problems then it's worth
+    # arm* needs the same linker options, x86* -> arm* does not
+
+    (optionalExtension (super.ghc.stdenv.targetPlatform.isAndroid or false) (self: super:
       {
         mkDerivation = drv: super.mkDerivation (drv // {
           buildFlags = [
