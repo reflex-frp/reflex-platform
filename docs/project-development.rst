@@ -87,6 +87,7 @@ Finally, Nix will fail to build ``common`` if it exports no modules.
    ...
    # common/common.cabal
    library
+     hs-source-dirs: src
      build-depends: base
      exposed-modules: Common
    ...
