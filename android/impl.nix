@@ -48,11 +48,12 @@ in {
               myNixpkgs = nixpkgsCross.android.aarch64;
               myHaskellPackages = ghcAndroidAarch64;
             };
+          } // (if ghcAndroidAarch32.ghc.version != "8.6.5" then { } else {
             "armeabi-v7a" = {
               myNixpkgs = nixpkgsCross.android.aarch32;
               myHaskellPackages = ghcAndroidAarch32;
             };
-          };
+          });
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
