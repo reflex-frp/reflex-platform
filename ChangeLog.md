@@ -9,6 +9,7 @@ This project's release branch is `master`. This log is written from the perspect
   * Android: Use gradle v7 and build-tools 30.0.2 by default
 
 * Android: Automatically set build tool version in gradle.properties based on the configured `buildToolsVersions`
+* Android: Disable aarch32/armv7/armeabi due to upstream ghc bugs ([!17973](https://gitlab.haskell.org/ghc/ghc/-/issues/17973))
 
 ## Unreleased
 
