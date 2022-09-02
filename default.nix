@@ -1,6 +1,8 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? builtins.currentSystem
-, config ? {}
+, config ? {
+android_sdk.accept_license = true;
+}
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? true
 , enableTraceReflexEvents ? false
@@ -124,6 +126,11 @@ let iosSupport = system == "x86_64-darwin";
         splicesEval
         mobileGhcOverlay
         allCabalHashesOverlay
+        (self: super: {
+          binutils-unwrapped = super.binutils-unwrapped.override {
+            autoreconfHook = lib.optional super.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
+          };
+        })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
       config = config // {
