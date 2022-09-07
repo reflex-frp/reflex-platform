@@ -128,6 +128,20 @@ let iosSupport = system == "x86_64-darwin";
           binutils-unwrapped = super.binutils-unwrapped.override {
             autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
           };
+          # Bump ios-deploy
+          # - for faster deployments
+          # - fixes debug deploy with iOS 16/macos 12.3/ xcode 13.4.1
+          darwin = super.darwin // {
+            ios-deploy = super.darwin.ios-deploy.overrideAttrs (_: {
+              version = "HEAD";
+              src = self.fetchFromGitHub {
+                owner = "ios-control";
+                repo = "ios-deploy";
+                rev = "b3254438719b6bc82ceab1f630e7d642a9acfac5"; # unreleased
+                sha256 = "W45Qjr3xqvDWieLBgt4//nthxxcc3hgrJNrpSk7vWj8=";
+              };
+            });
+          };
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
