@@ -36,7 +36,7 @@ This project's release branch is `master`. This log is written from the perspect
 
   Intentional bumps:
 
-  * all-cabal-hashes "Update from Hackage at 2022-01-20T19:38:07Z"
+  * all-cabal-hashes "Update from Hackage at 2022-06-29T01:24:32Z"
   * dependent-sum-template to 0.1.1.0
   * some to 1.0.2
   * monoidal-containers to 0.6.2.0
@@ -44,6 +44,9 @@ This project's release branch is `master`. This log is written from the perspect
   * patch to 0.0.7.0
   * reflex-vty to 0.2.0.1
   * reflex-ghci to 0.1.5.3
+  * patch to 0.0.7.0
+  * reflex to 0.8.2.1
+  * reflex-dom-core to 0.7.0.2
 
   Prerequisite bumps:
 
@@ -52,6 +55,7 @@ This project's release branch is `master`. This log is written from the perspect
   * aeson 1.5.4.1
   * base-orphans 0.8.6
   * bifunctors 5.5.11
+  * commutative-semigroups (newly added at 0.1.0.0)
   * comonad 5.0.8
   * generic-deriving 1.14.1
   * hashable 1.3.5.0

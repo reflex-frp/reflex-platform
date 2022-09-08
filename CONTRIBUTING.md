@@ -52,7 +52,7 @@ Make sure the project builds and that the tests pass! This will generally also b
 To test your changes:
 1. Fork, then clone the repo:
     ```bash
-    git clone git@github.com:your-username/reflex.git
+    git clone git@github.com:your-username/reflex-platform.git
     ```
 
 2. Make sure the tests pass:
