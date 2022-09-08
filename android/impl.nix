@@ -43,7 +43,7 @@ in {
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
             sharedLibs = runtimeSharedLibs myNixpkgs ++ [ "${myNixpkgs.libffi}/lib/libffi.so" ];
-          }) {
+          }) ({
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
               myHaskellPackages = ghcAndroidAarch64;
@@ -53,7 +53,7 @@ in {
               myNixpkgs = nixpkgsCross.android.aarch32;
               myHaskellPackages = ghcAndroidAarch32;
             };
-          });
+          }));
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
