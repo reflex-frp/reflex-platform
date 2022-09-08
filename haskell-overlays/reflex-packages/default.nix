@@ -99,11 +99,10 @@ in
       useTemplateHaskellFlag
     ])) {})
     (drv: {
-      # Hack until https://github.com/NixOS/cabal2nix/pull/432 lands
+      # Hack until Cabal, cabal2nix, and friends support
+      # conditionals for wasm
       libraryHaskellDepends = (drv.libraryHaskellDepends or [])
-        ++ stdenv.lib.optionals (with stdenv.hostPlatform; isAndroid && is32bit) [
-        self.android-activity
-      ] ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
+        ++ stdenv.lib.optionals (with stdenv.hostPlatform; isWasm && is32bit) [
         self.jsaddle-wasm
       ];
     });
