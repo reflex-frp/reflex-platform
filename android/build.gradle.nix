@@ -47,6 +47,11 @@ android {
     compileSdkVersion 30
     buildToolsVersion '30.0.2'
 
+    lintOptions {
+      checkReleaseBuilds false
+      abortOnError false
+    }
+
     sourceSets {
       main {
         manifest.srcFile 'AndroidManifest.xml'
