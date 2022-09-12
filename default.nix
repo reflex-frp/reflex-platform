@@ -541,7 +541,7 @@ in let this = rec {
 
   reflexEnv = platform:
     let haskellPackages = builtins.getAttr platform this;
-        ghcWithStuff = if platform == "ghc" || platform == "ghcjs"
+        ghcWithStuff = if platform == "ghc"
                        then haskellPackages.ghcWithHoogle
                        else haskellPackages.ghcWithPackages;
     in ghcWithStuff (p: import ./packages.nix {
@@ -554,11 +554,11 @@ in let this = rec {
 
   cachePackages =
     let otherPlatforms = lib.optionals androidSupport [
-          "ghcAndroidAarch64"
-          "ghcAndroidAarch32"
+          (if __useNewerCompiler then "ghcAndroidAarch64-8_10" else "ghcAndroidAarch64")
+          (if __useNewerCompiler then "ghcAndroidAarch32-8_10" else "ghcAndroidAarch32")
         ] ++ lib.optionals iosSupport [
-          "ghcIosAarch64"
-          "ghcIosSimulator64"
+          (if __useNewerCompiler then "ghcIosAarch64-8_10" else "ghcIosAarch64")
+          (if __useNewerCompiler then "ghcIosSimulator64-8_10" else "ghcIosSimulator64")
         ];
     in tryReflexPackages
       ++ builtins.map reflexEnv otherPlatforms
