@@ -71,7 +71,9 @@ self: super: {
   patch = dontHaddock super.patch;
 
   # When we don't use text-jsstring, we hit cabal version too new issue.
-  ghcjs-base = if useTextJSString
+  /*ghcjs-base = if useTextJSString
     then super.ghcjs-base
     else appendPatch super.ghcjs-base ./ghcjs-base-cabal-version.patch;
+  */
+  ghcjs-base = super.ghcjs-base;
 }
