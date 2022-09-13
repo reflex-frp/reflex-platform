@@ -16,6 +16,7 @@ self: super: {
   distribution-nixpkgs-8_6 = super.distribution-nixpkgs_1_6_0.override {
     Cabal = super.Cabal_3_2_1_0;                                                            
   };
+  reflex-dom-core = haskellLib.dontCheck (super.reflex-dom-core);
   cabal-install = (self.callHackage "cabal-install" "2.4.1.0" {}).override {
     Cabal = self.Cabal_2_4_1_0;
     base16-bytestring = self.base16-bytestring_0_1_1_7;
