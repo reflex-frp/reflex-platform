@@ -213,7 +213,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     tmpdir=$(mktemp -d)
     # Find the signer given the OU
-    signer=$(security find-certificate -c "iPhone Distribution" -a \
+    signer=$({ security find-certificate -c 'iPhone Distribution' -a; security find-certificate -c 'Apple Distribution' -a; } \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
