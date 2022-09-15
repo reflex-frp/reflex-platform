@@ -7,12 +7,15 @@ self: super: {
       rev = "126174753ea8e5f45df8fcbba609e3f1c453bf27";
       sha256 = "0l7nbln2w77s12fm4ybhi0jsfnxkyiwskfx3b682pfisa6n32rgm";
     };
-    ghcjsBaseTextJSStringSrc = super.ghcjs-base.src.overrideAttrs (drv: {
-      outputHash = "1pdxlb67f94bl2b6k0m4flpjbf07g7fgqbyjnki4y57a5r0iympd";
-      postFetch = (drv.postFetch or "") + ''
-        ( cd $out
-          patch -p1 < ${./ghcjs-base-text-jsstring.patch}
-        )
+    ghcjsBaseTextJSStringSrc = (fetchgit {
+      url = "https://github.com/ghcjs/ghcjs-base.git";
+      rev = "85e31beab9beffc3ea91b954b61a5d04e708b8f2";
+      sha256 = "sha256-7VYfQS7qFE/itNIv/Nx5B7glL3WkgmmWoIskd8yivd0=";
+    }).overrideAttrs (old: {
+      outputHash = "sha256-7VYfQS7qFE/itNIv/Nx5B7glL3WkgmmWoIskd8yivd0=";
+      postFetch = (old.postFetch or "") + ''
+        cd $out
+        patch -p1 < ${./ghcjs-base-text-jsstring.patch}
       '';
     });
   };
