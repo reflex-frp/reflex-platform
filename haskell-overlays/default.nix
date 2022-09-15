@@ -41,6 +41,11 @@ rec {
     profiling
     untriaged
 
+    # Careful when you touch this, anything modifying ghcjs-base is incredibly fragile
+    (optionalExtension (super.ghc.version == "8.10.7") (self: super: rec {
+      ghcjs-base = self.callHackage "ghcjs-base" "0.2.1.0" { };
+    }))
+
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
 
     combined-any
