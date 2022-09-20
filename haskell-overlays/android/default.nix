@@ -46,4 +46,6 @@ self: super: {
   jsaddle-webkitgtk = null;
   jsaddle-webkit2gtk = null;
 
+  # Tests take a long time
+  vector = haskellLib.dontCheck super.vector;
 }

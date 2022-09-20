@@ -69,9 +69,8 @@ self: super: {
 
   # Haddock internal error
   patch = dontHaddock super.patch;
-
   # When we don't use text-jsstring, we hit cabal version too new issue.
-  ghcjs-base = if useTextJSString
-    then super.ghcjs-base
-    else appendPatch super.ghcjs-base ./ghcjs-base-cabal-version.patch;
+  # NOTE(Dylan Green): We need to have an "updated" version of ghcjs-base, although the patch is still needed
+  _ghcjsbase = self.callHackage "ghcjs-base" "0.2.0.3" {};
+  ghcjs-base = if useTextJSString then self._ghcjsbase else appendPatch (self._ghcjsbase) ./ghcjs-base-cabal-version.patch;
 }

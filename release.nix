@@ -41,6 +41,7 @@ let
       '';
     });
 
+    # These don't work anymore, so they're pretty much disabled
     benchmark = import ./nix-utils/benchmark { inherit reflex-platform; };
     demoVM = import ./nix-utils/demo-vm { inherit reflex-platform; };
 
@@ -49,8 +50,8 @@ let
     # attributes in the overlays.
 
     dep = {}
-      // reflex-platform.ghcjs8_6._dep
       // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
+      // reflex-platform.ghcjs8_6._dep
       // benchmark.dep
       ;
 
@@ -123,7 +124,7 @@ let
       };
     } // lib.optionalAttrs (system == "x86_64-linux") {
       inherit
-        benchmark
+        #benchmark
         # demoVM # Skip for new due to rotted has in `breeze-icons`
         ;
     } # TODO  move back to `perOptDebugVariant`
