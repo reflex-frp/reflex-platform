@@ -125,9 +125,10 @@ let iosSupport = system == "x86_64-darwin";
         mobileGhcOverlay
         allCabalHashesOverlay
         (self: super: {
-          binutils-unwrapped = super.binutils-unwrapped.override {
+          /*binutils-unwrapped = super.binutils-unwrapped.override {
             autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
-          };
+            };
+          */
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
