@@ -94,7 +94,7 @@ let
     BuildMachineOSBuild = "19G73"; # Catalina
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
-    MinimumOSVersion = "10.2";
+    MinimumOSVersion = "15.0";
     DTPlatformVersion = "15.0";
     DTPlatformBuild = "19A339"; # iOS 15.0
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
