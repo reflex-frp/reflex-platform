@@ -153,13 +153,16 @@ let iosSupport = system == "x86_64-darwin";
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
           crossSystem = lib.systems.examples.aarch64-android-prebuilt //
-          { isStatic = true; };
+          { 
+            isStatic = true; 
+            sdkVer = "28";
+          };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
             isStatic = true;
             # Choose an old version so it's easier to find phones to test on
-            sdkVer = "23";
+            sdkVer = "28";
           };
         };
       };

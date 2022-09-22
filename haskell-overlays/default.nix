@@ -63,7 +63,7 @@ rec {
     # arm* needs the same linker options, x86* -> arm* does not
 
     (optionalExtension (super.ghc.stdenv.targetPlatform.isAndroid or false) (self: super:
-      {
+    {
         mkDerivation = drv: super.mkDerivation (drv // {
           buildFlags = [
             "--ghc-option=-optl-fuse-ld=gold"

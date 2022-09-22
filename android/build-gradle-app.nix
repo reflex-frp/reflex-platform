@@ -1,4 +1,4 @@
-{ stdenv, lib, androidenv, jdk, gnumake, gawk, file
+{ stdenv, lib, androidenv, openjdk17_headless, gnumake, gawk, file
 , which, gradle, fetchurl, buildEnv, runCommand }:
 
 args@{ name, src, platformVersions ? [ "8" ]
@@ -60,7 +60,7 @@ stdenv.mkDerivation ({
   ANDROID_HOME = "${androidsdkComposition.androidsdk}/libexec";
   ANDROID_NDK_HOME = "${androidsdkComposition.ndk-bundle}/libexec/android-sdk/ndk-bundle";
 
-  buildInputs = [ jdk gradle ] ++ buildInputs ++ lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
+  buildInputs = [ openjdk17_headless gradle ] ++ buildInputs ++ lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
 
   DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
                             paths = map m2install mavenDeps;
