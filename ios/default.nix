@@ -42,6 +42,8 @@
 # For example: (super: super // { AnotherKey: "value"; })
 , overrideInfoPlist ? (super: super)
 
+, isRelease ? false
+
 # REMOVED
 , extraInfoPlistContent ? null
 }:
@@ -109,6 +111,23 @@ let
     else abort ''
       `extraInfoPlistContent` has been removed. Instead use `overrideInfoPlist` to provide an override function that modifies the default info.plist data as a nix attrset. For example: `(x: x // {NSCameraUsageDescription = "We need your camera.";})`
     '';
+
+  # Entitlements used for development like in deploy/run-in-sim scripts.
+  devEntitlementsPlist = {
+    application-identifier = "<team-id/>.${bundleIdentifier}";
+    "com.apple.developer.team-identifier" = "<team-id/>";
+    get-task-allow = false;
+    keychain-access-groups = [ "<team-id/>.${bundleIdentifier}" ];
+    aps-environment = apsEnv;
+    "com.apple.developer.associated-domains" =
+      if hosts == [] then null else map (host: "applinks:${host}") hosts;
+  };
+
+  # Entitlements that account for release scripts like package.
+  packageEntitlementsPlist = devEntitlementsPlist // {
+    get-task-allow = !isRelease;
+  };
+
   exePath = package ghc;
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
@@ -121,15 +140,9 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       </body>
     </html>
   '';
-  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} {
-    application-identifier = "<team-id/>.${bundleIdentifier}";
-    "com.apple.developer.team-identifier" = "<team-id/>";
-    get-task-allow = true;
-    keychain-access-groups = [ "<team-id/>.${bundleIdentifier}" ];
-    aps-environment = apsEnv;
-    "com.apple.developer.associated-domains" =
-      if hosts == [] then null else map (host: "applinks:${host}") hosts;
-  });
+  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} devEntitlementsPlist);
+  packageXcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} packageEntitlementsPlist);
+
   deployScript = nixpkgs.writeText "deploy" ''
     #!/usr/bin/env bash
     set -eo pipefail
@@ -241,7 +254,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     # Fix CoreFoundation path
     install_name_tool -change /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation "$tmpdir/${executableName}.app/${executableName}"
 
-    sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
+    sed "s|<team-id/>|$TEAM_ID|" < "${packageXcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
     /usr/bin/xcrun -sdk iphoneos ${./PackageApplication} -v "$tmpdir/${executableName}.app" -o "$IPA_DESTINATION" --sign "$signer" --embed "$EMBEDDED_PROVISIONING_PROFILE"
