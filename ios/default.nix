@@ -21,6 +21,9 @@
 , #TODO
   staticSrc ? ./static
 
+, # Path to the application icons
+  iconPath ? staticSrc + "/assets"
+
 , # Information for push notifications. Is either `"production"` or
   # `"development"`, if not null.
   #
@@ -359,10 +362,10 @@ EOF
   chmod +x "$out/bin/make-portable-deploy"
   cp "${exePath}/bin/${executableName}" "$out/${executableName}.app/"
   cp -RL '${staticSrc}'/* "$out/${executableName}.app/"
-  for icon in '${staticSrc}'/assets/Icon*.png '${staticSrc}'/assets/AppIcon*.png; do
+  for icon in '${iconPath}'/Icon*.png '${iconPath}'/AppIcon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
   done
-  for splash in '${staticSrc}'/assets/Default*.png; do
+  for splash in '${iconPath}'/Default*.png; do
     cp -RL "$splash" "$out/${executableName}.app/"
   done
   set +x
