@@ -13,6 +13,7 @@ This project's release branch is `master`. This log is written from the perspect
     * This means 32-bit android devices are no longer supported on 8.10.7 and up
 * iOS: Make it possible to specify the path to the app's icons and splash images. See `iconPath` in `ios/default.nix`
 * iOS: Make it possible to build a TestFlight/App Store ready ipa. See `isRelease` in `ios/default.nix`
+* iOS: Include Assets Archive if present at `iconPath`
 
 ## Unreleased
 

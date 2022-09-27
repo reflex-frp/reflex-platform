@@ -385,5 +385,8 @@ EOF
   for splash in '${iconPath}'/Default*.png; do
     cp -RL "$splash" "$out/${executableName}.app/"
   done
+  for assets in '${iconPath}'/Assets*.car; do
+    cp -RL "$assets" "$out/${executableName}.app/"
+  done
   set +x
 '')
