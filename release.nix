@@ -41,6 +41,7 @@ let
       '';
     });
 
+    # These don't work anymore, so they're pretty much disabled
     benchmark = import ./nix-utils/benchmark { inherit reflex-platform; };
     demoVM = import ./nix-utils/demo-vm { inherit reflex-platform; };
 
@@ -123,7 +124,7 @@ let
       };
     } // lib.optionalAttrs (system == "x86_64-linux") {
       inherit
-        benchmark
+        #benchmark
         # demoVM # Skip for new due to rotted has in `breeze-icons`
         ;
     } # TODO  move back to `perOptDebugVariant`

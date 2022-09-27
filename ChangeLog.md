@@ -4,10 +4,9 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
-* Bump
-  * Nixpkgs to 21.05
-  * Android: Use gradle v7 and build-tools 30.0.2 by default
-
+* Nix
+  * Update pinned nixpkgs to nixpkgs-21.05
+* Android: Use gradle v7 and build-tools 30.0.2 by default
 * Android: Automatically set build tool version in gradle.properties based on the configured `buildToolsVersions`
 * Android: Drop aarch32/armv7/armeabi support for 8.10.7 due to upstream ghc bugs ([!17973](https://gitlab.haskell.org/ghc/ghc/-/issues/17973))
     * We will continue to support GHC 8.6.5 Android 32-bit
@@ -25,56 +24,52 @@ This project's release branch is `master`. This log is written from the perspect
   a function that takes the default sources as arguments instead of a list that
   is always appended to the default sources. It is now possible to override the
   default java sources. See the documentation [here](android/default.nix).
+* Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10. Previously we were using mixed GHC 8.10 versions to avoid issues.
+* GHC 8.10 support is complete, with the remaining profiling builds that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
 
 * GHCJS 8.6 no longer uses older versions of some libraries with "text JS-string"
-
   * `dlist`
   * `ghcjs-base`
   * `ghcjs-base`
   * `primitive`
   * `vector`
   * hashable
-
   Instead it uses the same versions as everything else.
 
-* Bump
-
-  Intentional bumps:
-
-  * all-cabal-hashes "Update from Hackage at 2022-06-29T01:24:32Z"
-  * dependent-sum-template to 0.1.1.0
-  * some to 1.0.2
-  * monoidal-containers to 0.6.2.0
-  * witherable to 0.4.2
-  * patch to 0.0.7.0
-  * reflex-vty to 0.2.0.1
-  * reflex-ghci to 0.1.5.3
-  * patch to 0.0.7.0
-  * reflex to 0.8.2.1
-  * reflex-dom-core to 0.7.0.2
-
-  Prerequisite bumps:
-
-  * OneTuple 0.3.1
-  * QuickCheck 2.14.1
-  * aeson 1.5.4.1
-  * base-orphans 0.8.6
-  * bifunctors 5.5.11
-  * commutative-semigroups (newly added at 0.1.0.0)
-  * comonad 5.0.8
-  * generic-deriving 1.14.1
-  * hashable 1.3.5.0
-  * index-traversable 0.1.2
-  * invariant 0.5.5
-  * lens 4.19.2
-  * microlens-th 0.4.3.10
-  * quickcheck-instances 0.3.27
-  * splitmix 0.1.0.4
-  * strict 0.4.0.1
-  * tagged 0.8.6.1
-  * th-abstraction 0.4.3.0
-  * th-lift 0.8.2
-  * time-compat 1.9.4
+* Haskell Library Updates
+  * Intentional bumps:
+    * all-cabal-hashes "Update from Hackage at 2022-06-29T01:24:32Z"
+    * dependent-sum-template to 0.1.1.0
+    * some to 1.0.2
+    * monoidal-containers to 0.6.2.0
+    * witherable to 0.4.2
+    * patch to 0.0.7.0
+    * reflex-vty to 0.2.0.1
+    * reflex-ghci to 0.1.5.3
+    * patch to 0.0.7.0
+    * reflex to 0.8.2.1
+    * reflex-dom-core to 0.7.0.2
+  * Prerequisite bumps:
+    * OneTuple 0.3.1
+    * QuickCheck 2.14.1
+    * aeson 1.5.4.1
+    * base-orphans 0.8.6
+    * bifunctors 5.5.11
+    * commutative-semigroups (newly added at 0.1.0.0)
+    * comonad 5.0.8
+    * generic-deriving 1.14.1
+    * hashable 1.3.5.0
+    * index-traversable 0.1.2
+    * invariant 0.5.5
+    * lens 4.19.2
+    * microlens-th 0.4.3.10
+    * quickcheck-instances 0.3.27
+    * splitmix 0.1.0.4
+    * strict 0.4.0.1
+    * tagged 0.8.6.1
+    * th-abstraction 0.4.3.0
+    * th-lift 0.8.2
+    * time-compat 1.9.4
 
 ## v0.9.2.0
 
