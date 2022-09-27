@@ -42,6 +42,8 @@
 # For example: (super: super // { AnotherKey: "value"; })
 , overrideInfoPlist ? (super: super)
 
+, overrideEntitlementsPlist ? (super: super)
+
 , isRelease ? false
 
 # REMOVED
@@ -140,8 +142,8 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       </body>
     </html>
   '';
-  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} devEntitlementsPlist);
-  packageXcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} packageEntitlementsPlist);
+  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} (overrideEntitlementsPlist devEntitlementsPlist));
+  packageXcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} (overrideEntitlementsPlist packageEntitlementsPlist));
 
   deployScript = nixpkgs.writeText "deploy" ''
     #!/usr/bin/env bash
