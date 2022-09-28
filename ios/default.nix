@@ -116,7 +116,7 @@ let
   devEntitlementsPlist = {
     application-identifier = "<team-id/>.${bundleIdentifier}";
     "com.apple.developer.team-identifier" = "<team-id/>";
-    get-task-allow = false;
+    get-task-allow = true;
     keychain-access-groups = [ "<team-id/>.${bundleIdentifier}" ];
     aps-environment = apsEnv;
     "com.apple.developer.associated-domains" =
