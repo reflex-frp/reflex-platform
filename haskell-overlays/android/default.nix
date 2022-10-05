@@ -28,52 +28,12 @@ self: super: {
     enableSharedLibraries = true;
     enableStaticLibraries = false;
     buildTools = (drv.buildTools or []) ++ [ nixpkgs.pkg-config ];
-    /*preConfigure = ''
-      export NIX_CFLAGS_LINK="-Wl,--unresolved-symbols=ignore-in-object-files"
-      export NIX_CFLAGS_COMPILE="-no-pie"
-      '';
-    */
     configureFlags = (drv.configureFlags or []) ++ [
       "--enable-shared"
       #"-v3"
     ];
   });
-
-  /*
-  splitmix = haskellLib.overrideCabal super.splitmix (drv: {
-    enableStaticLibraries = false;
-    configureFlags = (drv.configureFlags or []) ++ [
-      "--disable-static"
-    ];
-  });
-  */
-/*
-  android-activity = (self.callPackage self._dep.android-activity {
-    jdk = (nixpkgs.buildPackages.jdk17.overrideAttrs (old: { })).override {
-      headless = true;
-      enableGnome2 = false;
-      enableJavaFX = false;
-      openjdk17-bootstrap = nixpkgs.buildPackages.openjdk17-bootstrap.override {
-        gtkSupport = false;
-      };
-    };
-  }).overrideAttrs (old: {
-    preConfigure = ''
-      export LDFLAGS="-v"
-      export NIX_CFLAGS_LINK="-L${nixpkgs.pkgsCross.aarch64-android-prebuilt.buildPackages.androidndkPkgs_24.libraries}/lib $NIX_CFLAGS_LINK"
-      export NIX_CFLAGS_COMPILE="-isystem${nixpkgs.pkgsCross.aarch64-android-prebuilt.buildPackages.androidndkPkgs_24.libraries}/include $NIX_CFLAGS_COMPILE"
-      export NIX_LDFLAGS="-v -L${nixpkgs.pkgsCross.aarch64-android-prebuilt.buildPackages.androidndkPkgs_24.libraries}/lib $NIX_LDFLAGS"
-    '';
-    configureFlags = nixpkgs.lib.remove "--enable-static" ((old.configureFlags or []) ++ [
-      "--extra-lib-dirs=${nixpkgs.pkgsCross.aarch64-android-prebuilt.buildPackages.androidndkPkgs_24.libraries}/lib"
-      "--extra-include-dirs=${nixpkgs.pkgsCross.aarch64-android-prebuilt.buildPackages.androidndkPkgs_24.libraries}/include"
-      "-v3"
-      "--ld-option=-v"
-    ]);
-    enableSharedExecutables = true;
-    enableSharedLibraries = true;
-  });
-*/
+ 
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
   cabal-doctest = null;
 

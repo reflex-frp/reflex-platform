@@ -105,7 +105,7 @@ let iosSupport = system == "x86_64-darwin";
         libiconv = super.darwin.libiconv.overrideAttrs (_:
           lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
             postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
-            configureFlags = ["--enable-shared" "--enable-static"];
+            configureFlags = ["--disable-shared" "--enable-static"];
           });
         };
       zlib = super.zlib.override (lib.optionalAttrs
@@ -127,28 +127,16 @@ let iosSupport = system == "x86_64-darwin";
         mobileGhcOverlay
         allCabalHashesOverlay
         (self: super: {
-          /*binutils-unwrapped = super.binutils-unwrapped.override {
-            autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
-            };
-            */
-
-            polkit = super.polkit.override {
-              gobject-introspection = super.gobject-introspection-unwrapped;
-            };
-            /*
-            openjdk17_headless = super.openjdk17_headless.override {
-              openjdk17-bootstrap = super.openjdk17-bootstrap.override {
-                gtkSupport = false;
-              };
-              };
-            */
-            openjdk16-bootstrap = super.openjdk16-bootstrap.override {
-              gtkSupport = false;
-            };
-            adoptopenjdk-hotspot-bin-16 = super.adoptopenjdk-hotspot-bin-16.override {
-              gtkSupport = false;
-            };
-            sqlite = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.sqlite.overrideAttrs (old: {
+          polkit = super.polkit.override {
+            gobject-introspection = super.gobject-introspection-unwrapped;
+          };
+          openjdk16-bootstrap = super.openjdk16-bootstrap.override {
+            gtkSupport = false;
+          };
+          adoptopenjdk-hotspot-bin-16 = super.adoptopenjdk-hotspot-bin-16.override {
+            gtkSupport = false;
+          };
+          sqlite = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.sqlite.overrideAttrs (old: {
             postBuild = ''
               mkdir -p $debug
             '';
@@ -158,9 +146,7 @@ let iosSupport = system == "x86_64-darwin";
             configureFlags = [ "--disable-shared" "--enable-static" ];
           }) else super.libiconv;
 
-          libffi = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.libffi_3_3.overrideAttrs (old: {
-          
-          }) else super.libffi;
+          libffi = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.libffi_3_3 else super.libffi;
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
@@ -189,6 +175,14 @@ let iosSupport = system == "x86_64-darwin";
       # Look for "new libc functions in R (API Level 30):", memfd_create will be one of the functions /
       # symbols we need to build newer libffi
       # This means we'll drop all SDKs pre-30
+
+      # NOTE(Dylan Green):
+      # We don't want to use "isStatic" here as we still rely on shared-objects
+      # adding "isStatic" completely disables generating most SOs, and we still need them
+      # for libffi (at the very least)
+
+      # TODO(Dylan Green):
+      # Look into making this a proper static build up into "reflex-todomvc"
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
           crossSystem = lib.systems.examples.aarch64-android-prebuilt //
