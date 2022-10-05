@@ -66,16 +66,18 @@ rec {
     {
         mkDerivation = drv: super.mkDerivation (drv // {
           buildFlags = [
-            "--ghc-option=-optl-fuse-ld=gold"
-            "--ld-option=-fuse-ld=gold"
+            #"--ghc-option=-optl-fuse-ld=gold"
+            #"--ld-option=-fuse-ld=gold"
             "--ld-option=-fPIE"
             "--ld-option=-pie"
+            #"--ld-option=-L${nixpkgs.pkgsCross.aarch64-android-prebuilt.buildPackages.androidndkPkgs_24.binaries}/lib"
             "--ghc-option=-fPIC"
             "--ghc-option=-fPIE"
           ] ++ (drv.buildFlags or [ ]);
 
           configureFlags = [
-            "--with-ld=${super.ghc.stdenv.targetPlatform.config}-ld.gold"
+            #"--with-ld=${super.ghc.stdenv.targetPlatform.config}-ld.gold"
+            #"--ld-option=-v"
           ] ++ (drv.configureFlags or [ ]);
         });
       }))

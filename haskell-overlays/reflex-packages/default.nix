@@ -46,7 +46,7 @@ in
     (lib.optional useFastWeak "-ffast-weak")
   ])) {};
 
-  reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
+  reflex-todomvc = haskellLib.doJailbreak (self.callPackage self._dep.reflex-todomvc {});
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
 
   # The tests for reflex-dom-core are not deterministic, disable them, and run them manually
@@ -96,11 +96,20 @@ in
       '' + (drv.preCheck or "");
     });
 
-  reflex-dom =
-    self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
+    reflex-dom = haskellLib.doJailbreak (haskellLib.overrideCabal (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
-    ])) {};
+    ])) { }) (drv: {
+      preConfigure = ''
+        sed -i 's|aeson >=1.4 && <1.6|aeson -any|g' *.cabal
+      '';
+      libraryHaskellDepends = [ 
+        self.reflex self.reflex-dom-core 
+        self.jsaddle-webkit2gtk 
+        super.aeson
+        self.android-activity
+      ];
+    }));
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
 
@@ -139,7 +148,7 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
 
-  jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
+  jsaddle-dom = doJailbreak (self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {});
   jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + "/jsaddle-wasm")) {};
   ghcjs-dom = self.callCabal2nix "ghcjs-dom" (self._dep.ghcjs-dom + "/ghcjs-dom") {};
   ghcjs-dom-jsaddle = self.callCabal2nix "ghcjs-dom-jsaddle" (self._dep.ghcjs-dom + "/ghcjs-dom-jsaddle") {};

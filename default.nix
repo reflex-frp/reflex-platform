@@ -51,6 +51,8 @@ let iosSupport = system == "x86_64-darwin";
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
+            #enableShared = self.stdenv.hostPlatform == self.stdenv.targetPlatform;
+            #enableShared = false;
             bootPkgs = super.haskell.packages.ghc865Binary // {
               happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
             };
@@ -103,9 +105,9 @@ let iosSupport = system == "x86_64-darwin";
         libiconv = super.darwin.libiconv.overrideAttrs (_:
           lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
             postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
-            configureFlags = ["--disable-shared" "--enable-static"];
+            configureFlags = ["--enable-shared" "--enable-static"];
           });
-      };
+        };
       zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
         { static = true; shared = false; });
@@ -128,7 +130,37 @@ let iosSupport = system == "x86_64-darwin";
           /*binutils-unwrapped = super.binutils-unwrapped.override {
             autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
             };
-          */
+            */
+
+            polkit = super.polkit.override {
+              gobject-introspection = super.gobject-introspection-unwrapped;
+            };
+            /*
+            openjdk17_headless = super.openjdk17_headless.override {
+              openjdk17-bootstrap = super.openjdk17-bootstrap.override {
+                gtkSupport = false;
+              };
+              };
+            */
+            openjdk16-bootstrap = super.openjdk16-bootstrap.override {
+              gtkSupport = false;
+            };
+            adoptopenjdk-hotspot-bin-16 = super.adoptopenjdk-hotspot-bin-16.override {
+              gtkSupport = false;
+            };
+            sqlite = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.sqlite.overrideAttrs (old: {
+            postBuild = ''
+              mkdir -p $debug
+            '';
+          }) else super.sqlite;
+
+          libiconv = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.libiconv.overrideAttrs (_: {
+            configureFlags = [ "--disable-shared" "--enable-static" ];
+          }) else super.libiconv;
+
+          libffi = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.libffi_3_3.overrideAttrs (old: {
+          
+          }) else super.libffi;
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
@@ -150,19 +182,25 @@ let iosSupport = system == "x86_64-darwin";
     wasmCross = nixpkgs.hackGet ./wasm-cross;
     webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc8107SplicesSrc;
     nixpkgsCross = {
+      # NOTE(Dylan Green):
+      # sdkVer 30 is the minimum for android, else we have to use libffi 3.3
+      # bionic doesn't support/expose memfd_create before sdk30
+      # https://android.googlesource.com/platform/bionic/+/refs/heads/master/docs/status.md
+      # Look for "new libc functions in R (API Level 30):", memfd_create will be one of the functions /
+      # symbols we need to build newer libffi
+      # This means we'll drop all SDKs pre-30
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
           crossSystem = lib.systems.examples.aarch64-android-prebuilt //
           { 
-            isStatic = true; 
-            sdkVer = "28";
+            #isStatic = true; 
+            sdkVer = "30";
           };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
-            isStatic = true;
-            # Choose an old version so it's easier to find phones to test on
-            sdkVer = "28";
+            #isStatic = true;
+            sdkVer = "30";
           };
         };
       };

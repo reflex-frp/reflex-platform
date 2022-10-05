@@ -1,9 +1,23 @@
 env: with env;
 let overrideAndroidCabal = package: overrideCabal package (drv: {
-      preConfigure = (drv.preConfigure or "") + ''
-        sed -i 's%^executable *\(.*\)$%executable lib\1.so\n  cc-options: -shared -fPIC\n  ld-options: -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n  ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lffi -lm -llog%i' *.cabal
+  # -Wl,--unresolved-symbols=ignore-in-object-files
+  preConfigure = (drv.preConfigure or "") + ''
+        export NIX_CFLAGS_LINK="-no-pie -v"
+        sed -i 's%^executable *\(.*\)$%executable lib\1.so\n    cc-options: -no-pie -shared -fPIC\n    ld-options: -no-pie -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n    ghc-options: -fPIC -shared -no-pie -threaded -no-hs-main -lHSrts_thr -lffi -lm -llog%i' *.cabal
       '';
-    });
+      # -no-hs-main
+      configureFlags = (drv.configureFlags or []) ++ [
+        "--enable-shared"
+      ];
+      });
+    /*  
+    overrideAndroidCabal = package: overrideCabal package (drv: {
+      preConfigure = ''
+        export NIX_CFLAGS_COMPILE=""
+        export NIX_CFLAGS_LINK="-v -no-pie"
+      '';    
+      });
+    */
     androidenv = nixpkgs.androidenv;
     #TODO: Keep the signing key for dev mode more consistent, e.g. in ~/.config/reflex-platform, so that the app can be reinstalled in-place
     addDeployScript = src: nixpkgs.runCommand "android-app" {
@@ -21,9 +35,13 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
     } "";
     buildGradleApp = import ./build-gradle-app.nix {
-      inherit (nixpkgs) stdenv lib gnumake openjdk17_headless gawk file runCommand
-                     which gradle fetchurl buildEnv;
-                     inherit androidenv;
+      inherit (nixpkgs) stdenv lib gnumake gawk file runCommand
+      which fetchurl buildEnv;
+      inherit androidenv;
+      gradle = nixpkgs.gradle.override {
+        java = nixpkgs.buildPackages.openjdk11_headless;
+      };
+      jdk = nixpkgs.buildPackages.openjdk17_headless;
     };
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {
