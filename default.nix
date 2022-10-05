@@ -136,15 +136,22 @@ let iosSupport = system == "x86_64-darwin";
           adoptopenjdk-hotspot-bin-16 = super.adoptopenjdk-hotspot-bin-16.override {
             gtkSupport = false;
           };
-          sqlite = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.sqlite.overrideAttrs (old: {
+
+          pkg-config-unwrapped = super.pkg-config-unwrapped.overrideAttrs (old: lib.optionalAttrs (self.stdenv.targetPlatform.isAarch32 or false) {
+            configureFlags = (old.configureFlags or []) ++ [
+              "CFLAGS=-Wno-implicit-function-declaration"
+            ];
+          });
+
+          sqlite = super.sqlite.overrideAttrs (old: lib.optionalAttrs (self.stdenv.hostPlatform.useAndroidPrebuilt or false) {
             postBuild = ''
               mkdir -p $debug
             '';
-          }) else super.sqlite;
-
-          libiconv = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.libiconv.overrideAttrs (_: {
+          });
+          
+          libiconv = super.libiconv.overrideAttrs (old: lib.optionalAttrs (self.stdenv.hostPlatform.useAndroidPrebuilt or false) {
             configureFlags = [ "--disable-shared" "--enable-static" ];
-          }) else super.libiconv;
+          });
 
           libffi = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.libffi_3_3 else super.libffi;
         })
