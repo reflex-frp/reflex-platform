@@ -1,8 +1,8 @@
 {
   "owner": "reflex-frp",
   "repo": "reflex-vty",
-  "branch": "enhance/text-input2",
+  "branch": "release/0.3.0.0",
   "private": false,
-  "rev": "74f0a4528628e048d952150c03cd57cbed0bf6c9",
-  "sha256": "13z5j9ivd6af73s6w2gd4qys8s84qy5ycxff6y2i5k5z397cj97n"
+  "rev": "bf12e274d233ddb823d6bea0928dfdd4d38de44e",
+  "sha256": "1z3ji3nhviyrd55dz562kh809cbxjc6vdbhdaavn1h3wcsqf4f7l"
 }
