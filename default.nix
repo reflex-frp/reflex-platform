@@ -47,6 +47,9 @@ let iosSupport = system == "x86_64-darwin";
             bootPkgs = super.haskell.packages.ghc865Binary // {
               happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
             };
+            useLdGold = !(self.stdenv.targetPlatform.isAarch32) && self.stdenv.hostPlatform.useAndroidPrebuilt;
+            enableDocs = false;
+            enableHaddockProgram = false;
           };
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
@@ -111,7 +114,7 @@ let iosSupport = system == "x86_64-darwin";
       zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
         { static = true; shared = false; });
-    };
+      };
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
@@ -136,12 +139,6 @@ let iosSupport = system == "x86_64-darwin";
           adoptopenjdk-hotspot-bin-16 = super.adoptopenjdk-hotspot-bin-16.override {
             gtkSupport = false;
           };
-
-          pkg-config-unwrapped = super.pkg-config-unwrapped.overrideAttrs (old: lib.optionalAttrs (self.stdenv.targetPlatform.isAarch32 or false) {
-            configureFlags = (old.configureFlags or []) ++ [
-              "CFLAGS=-Wno-implicit-function-declaration"
-            ];
-          });
 
           sqlite = super.sqlite.overrideAttrs (old: lib.optionalAttrs (self.stdenv.hostPlatform.useAndroidPrebuilt or false) {
             postBuild = ''
@@ -186,15 +183,16 @@ let iosSupport = system == "x86_64-darwin";
       # NOTE(Dylan Green):
       # We don't want to use "isStatic" here as we still rely on shared-objects
       # adding "isStatic" completely disables generating most SOs, and we still need them
-      # for libffi (at the very least)
+      # for libffi (at the very least). Currently the big issues are caused by the linker attempting (and failing)
+      # to link against a dynamic crtbegin.o (crtbegin.c) bionic does provide a static crtbegin, although the linker
+      # defaults to a dynamic version
 
       # TODO(Dylan Green):
       # Look into making this a proper static build up into "reflex-todomvc"
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
-          crossSystem = lib.systems.examples.aarch64-android-prebuilt //
-          { 
-            #isStatic = true; 
+          crossSystem = lib.systems.examples.aarch64-android-prebuilt // {
+            #isStatic = true;
             sdkVer = "30";
           };
         };

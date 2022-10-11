@@ -10,9 +10,10 @@ let
 in
 self: super: {
   _dep = super._dep or {} // thunkSet ./dep;
+  nonhspkgs = self.callPackage ({ pkgs }: pkgs) {};
 
   android-activity = haskellLib.overrideCabal (self.callCabal2nix "android-activity" (self._dep.android-activity + "/") {
-    log = nixpkgs.pkgsCross.aarch64-android-prebuilt.buildPackages.androidndkPkgs_24.libraries;
+    log = self.nonhspkgs.androidndkPkgs_24.libraries; 
   }) (drv: let
     jdk-fixed = (nixpkgs.buildPackages.jdk17.override {
       headless = true;
@@ -27,7 +28,7 @@ self: super: {
     enableSharedExecutables = true;
     enableSharedLibraries = true;
     enableStaticLibraries = false;
-    buildTools = (drv.buildTools or []) ++ [ nixpkgs.pkg-config ];
+    buildTools = (drv.buildTools or []) ++ [ ];
     configureFlags = (drv.configureFlags or []) ++ [
       "--enable-shared"
       #"-v3"
@@ -41,9 +42,15 @@ self: super: {
   lifted-async = haskellLib.doJailbreak super.lifted-async;
   safe-exceptions = haskellLib.doJailbreak super.safe-exceptions;
 
+
   blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
   cryptonite = haskellLib.disableCabalFlag super.cryptonite "integer-gmp";
-
+  
+  OneTuple = haskellLib.overrideCabal super.OneTuple (drv: {
+    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+      self.hashable
+    ];
+  });
   hashable = enableFPic super.hashable;
   primitive = enableFPic super.primitive;
 

@@ -104,11 +104,11 @@ in
         sed -i 's|aeson >=1.4 && <1.6|aeson -any|g' *.cabal
       '';
       libraryHaskellDepends = [ 
-        self.reflex self.reflex-dom-core 
+        self.reflex 
+        self.reflex-dom-core 
         self.jsaddle-webkit2gtk 
-        super.aeson
-        self.android-activity
-      ];
+        self.aeson
+      ] ++ lib.optional (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) self.android-activity;
     }));
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};

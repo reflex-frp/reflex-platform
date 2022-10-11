@@ -16,8 +16,8 @@ self: super: {
   });
 
   ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-    inherit (self) ghc llvmPackages;
-    packages = selectFrom self;
+    haskellPackages = selectFrom self;
+    hoogleWithPackages = self.hoogleWithPackages;
   } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
     ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
