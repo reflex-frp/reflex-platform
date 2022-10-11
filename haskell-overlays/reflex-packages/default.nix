@@ -182,7 +182,7 @@ in
   commutative-semigroups = self.callCabal2nix "commutative-semigroups" self._dep.commutative-semigroups {};
   witherable = self.callHackage "witherable" "0.4.2" {};
 
-  webdriver = self.callHackage "webdriver" "0.9.0.1" {};
+  webdriver = markUnbroken (self.callHackage "webdriver" "0.9.0.1" {});
 
   # Not on Hackage yet
   # Version 1.2.1 not on Hackage yet
