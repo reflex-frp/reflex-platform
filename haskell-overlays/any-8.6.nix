@@ -50,7 +50,8 @@ self: super: {
   cabal2nix = super.cabal2nix.override {
     distribution-nixpkgs = self.distribution-nixpkgs-8_6;
   };
-  distribution-nixpkgs-8_6 = super.distribution-nixpkgs_1_6_0.override {
+  distribution-nixpkgs_1_6_0 = self.callHackage "distribution-nixpkgs" "1.6.0" {};
+  distribution-nixpkgs-8_6 = self.distribution-nixpkgs_1_6_0.override {
     Cabal = super.Cabal_3_2_1_0;
   };
   reflex-dom-core = haskellLib.dontCheck (super.reflex-dom-core);
