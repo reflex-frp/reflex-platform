@@ -15,11 +15,8 @@ self: super: {
     broken = drv.broken or false || enableLibraryProfiling;
   });
 
-  ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-    haskellPackages = selectFrom self;
-    hoogleWithPackages = self.hoogleWithPackages;
-  } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
-    ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
+  ghcWithPackages = super.ghcWithPackages.override {
+    ghcLibdir = lib.optionalString useReflexOptimizer "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
 
   ghc = if !(lib.versionAtLeast super.ghc.ghcVersion "8.2") then super.ghc else super.ghc.overrideAttrs (_: {
