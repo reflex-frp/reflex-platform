@@ -130,6 +130,10 @@ let iosSupport = system == "x86_64-darwin";
         mobileGhcOverlay
         allCabalHashesOverlay
         (self: super: {
+
+          #NOTE(Dylan): If you ever hit this "null" you've done something terribly wrong :^)
+          runtimeShellPackage = if self.stdenv.hostPlatform.isGhcjs then null else super.runtimeShellPackage;
+
           polkit = super.polkit.override {
             gobject-introspection = super.gobject-introspection-unwrapped;
           };
@@ -150,7 +154,7 @@ let iosSupport = system == "x86_64-darwin";
             configureFlags = [ "--disable-shared" "--enable-static" ];
           });
 
-          libffi = if self.stdenv.hostPlatform.useAndroidPrebuilt or false then super.libffi_3_3 else super.libffi;
+          libffi = if (self.stdenv.hostPlatform.useAndroidPrebuilt or false) then super.libffi_3_3 else super.libffi;
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
@@ -291,8 +295,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs = if __useNewerCompiler then ghcjs8_10 else ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = with nixpkgsCross.ghcjs.buildPackages.haskell.packages;
-        ghc865 // { happy = ghc865.callHackage "happy" "1.19.9" {}; };
+      bootPkgs = old.ghc.bootPkgs // { happy = old.ghc.bootPkgs.happy_1_19_9; };
       cabal-install = import ./haskell-overlays/ghcjs-8.6/cabal-install.nix { inherit nixpkgs; };
       ghcjsSrc = import ./haskell-overlays/ghcjs-8.6/src.nix {
         inherit (nixpkgs.stdenvNoCC) mkDerivation;

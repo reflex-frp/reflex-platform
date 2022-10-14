@@ -10,10 +10,9 @@ let
 in
 self: super: {
   _dep = super._dep or {} // thunkSet ./dep;
-  nonhspkgs = self.callPackage ({ pkgs }: pkgs) {};
 
   android-activity = haskellLib.overrideCabal (self.callCabal2nix "android-activity" (self._dep.android-activity + "/") {
-    log = self.nonhspkgs.androidndkPkgs_24.libraries; 
+    log = nixpkgs.androidndkPkgs_24.libraries; 
   }) (drv: let
     jdk-fixed = (nixpkgs.buildPackages.jdk17.override {
       headless = true;
