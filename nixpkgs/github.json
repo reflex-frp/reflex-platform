@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "nixpkgs",
-  "branch": "ll/reflex-platform-21.05",
+  "branch": "dg/reflex-platform-21.05",
   "private": false,
-  "rev": "f660ab64d4aeffa6299d56d0736749876457a89a",
-  "sha256": "1hfq665r2n9417pz2wax2ifhd04p026cl5xvsv3irw9c7ivwkjd2"
+  "rev": "35c9ed0b522be86bc5413112e4e86e6300c4a428",
+  "sha256": "sha256:168bf9k1n8swbw80y94c6jafj08dblxvsrkwg612hfgg484rc8gl"
 }
