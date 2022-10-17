@@ -140,6 +140,17 @@ rec {
     (optionalExtension useTextJSString textJSString-8_10)
     (optionalExtension useTextJSString ghcjs-textJSString-8_10)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_10)
+    (self: super: rec {
+      mkDerivation = drv: super.mkDerivation (drv // {
+        setupHaskellDepends = (drv.setupHaskellDepends or []) ++ [
+          nixpkgs.buildPackages.stdenv.cc
+        ];
+        # This is ugly
+        preConfigure = (drv.preConfigure or "") + ''
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${nixpkgs.buildPackages.gmp}/lib:${nixpkgs.buildPackages.libffi}/lib
+        '';
+      });
+    })
   ]
     self
     super;

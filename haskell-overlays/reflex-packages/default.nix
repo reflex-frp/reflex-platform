@@ -100,7 +100,7 @@ in
       reflexOptimizerFlag
       useTemplateHaskellFlag
     ])) { }) (drv: {
-      preConfigure = ''
+      preConfigure = (drv.preConfigure or "") + ''
         sed -i 's|aeson >=1.4 && <1.6|aeson -any|g' *.cabal
       '';
       libraryHaskellDepends = [ 

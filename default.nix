@@ -295,7 +295,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs = if __useNewerCompiler then ghcjs8_10 else ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = old.ghc.bootPkgs // { happy = old.ghc.bootPkgs.happy_1_19_9; };
+      bootPkgs = old.ghc.bootPkgs // { happy = old.ghc.bootPkgs.happy_1_19_12; };
       cabal-install = import ./haskell-overlays/ghcjs-8.6/cabal-install.nix { inherit nixpkgs; };
       ghcjsSrc = import ./haskell-overlays/ghcjs-8.6/src.nix {
         inherit (nixpkgs.stdenvNoCC) mkDerivation;
