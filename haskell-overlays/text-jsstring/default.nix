@@ -15,7 +15,7 @@ self: super: {
   });
 
   aeson = dontCheck (self.callCabal2nix "aeson" self._dep.aeson {});
-  # attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
   hashable = overrideCabal (self.callCabal2nix "hashable" self._dep.hashable {}) (drv: {
     revision = null;
     editedCabalFile = null;

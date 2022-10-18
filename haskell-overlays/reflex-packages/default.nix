@@ -117,7 +117,7 @@ in
   ## Terminal / Conventional OS
   ##
 
-  reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
+  reflex-vty = haskellLib.doJailbreak (self.callCabal2nix "reflex-vty" self._dep.reflex-vty {});
   reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
   reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.2" {};
 

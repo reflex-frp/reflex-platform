@@ -113,7 +113,7 @@ in
   #
   #     tools = ghc: with ghc; [ hpack pkgs.chromium ];
 
-, withHoogle ? true
+, withHoogle ? false
   # Set to false to disable building the hoogle database when entering
   # the nix-shell.
 
