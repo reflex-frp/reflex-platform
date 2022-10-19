@@ -18,7 +18,8 @@ let
       mv ./dist-newstyle $out
     '';
   });
-in {
+in
+{
   project = skeleton;
   ghc = mkCabalProject {
     shellDrv = skeleton.shells.ghc;

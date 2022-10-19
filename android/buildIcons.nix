@@ -1,6 +1,7 @@
 { runCommand, imagemagick }:
 { src }:
-runCommand "android-icons" {
+runCommand "android-icons"
+{
   inherit src;
   buildCommand = ''
     mkdir "$out"

@@ -31,8 +31,8 @@ self: super: {
 
   aeson = super.aeson_1_4_0_0;
 
-  tagged = self.callHackage "tagged" "0.8.6" {};
-  contravariant = self.callHackage "contravariant" "1.5" {};
+  tagged = self.callHackage "tagged" "0.8.6" { };
+  contravariant = self.callHackage "contravariant" "1.5" { };
 
   stm = haskellLib.overrideCabal super.stm (drv: {
     src = fetchFromGitHub {
@@ -43,6 +43,6 @@ self: super: {
     };
   });
 
-  entropy = self.callHackage "entropy" "0.4.1.4" {};
+  entropy = self.callHackage "entropy" "0.4.1.4" { };
 
 }

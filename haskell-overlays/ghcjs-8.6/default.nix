@@ -1,4 +1,8 @@
-{ lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub
+{ lib
+, haskellLib
+, nixpkgs
+, fetchgit
+, fetchFromGitHub
 , useReflexOptimizer
 , useTextJSString
 , enableLibraryProfiling
@@ -15,17 +19,19 @@ self: super: rec {
     broken = drv.broken or false || enableLibraryProfiling;
   });
 
-  ghcWithPackages = nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-    haskellPackages = self;
-    hoogleWithPackages = super.hoogleWithPackages;
-  } // lib.optionalAttrs (useReflexOptimizer) {
+  ghcWithPackages = nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix")
+    {
+      haskellPackages = self;
+      hoogleWithPackages = super.hoogleWithPackages;
+    } // lib.optionalAttrs (useReflexOptimizer) {
     ghcLibdir = lib.optionalString useReflexOptimizer "${self.ghc.bootPkgs.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPkgs.ghc.name}";
   };
 
-  ghc = if !(lib.versionAtLeast super.ghc.ghcVersion "8.2") then super.ghc else super.ghc.overrideAttrs (_: {
-    # TODO: I don't think this is needed except for maybe the fast-weak patch, but doing this to preserve hashes.
-    phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
-  }) // {
+  ghc = if !(lib.versionAtLeast super.ghc.ghcVersion "8.2") then super.ghc else super.ghc.overrideAttrs
+    (_: {
+      # TODO: I don't think this is needed except for maybe the fast-weak patch, but doing this to preserve hashes.
+      phases = [ "unpackPhase" "patchPhase" "buildPhase" ];
+    }) // {
     withPackages = self.ghcWithPackages;
   };
 
@@ -35,10 +41,10 @@ self: super: rec {
   network = haskellLib.overrideCabal super.network (drv: {
     revision = null;
     editedCabalFile = null;
-    patches = (drv.patches or []) ++ [ ./ghcjs-network.patch ];
+    patches = (drv.patches or [ ]) ++ [ ./ghcjs-network.patch ];
   });
 
-  attoparsec = self.callHackage "attoparsec" "0.13.2.2" {};
+  attoparsec = self.callHackage "attoparsec" "0.13.2.2" { };
 
   # These packages require doctest
   comonad = dontCheck super.comonad;
@@ -50,7 +56,7 @@ self: super: rec {
   these = dontCheck super.these;
   email-validate = dontCheck super.email-validate;
   OneTuple = overrideCabal super.OneTuple (drv: {
-    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+    libraryHaskellDepends = (drv.libraryHaskellDepends or [ ]) ++ [
       self.hashable
     ];
   });
@@ -78,6 +84,6 @@ self: super: rec {
   patch = dontHaddock super.patch;
   # When we don't use text-jsstring, we hit cabal version too new issue.
   # NOTE(Dylan Green): We need to have an "updated" version of ghcjs-base, although the patch is still needed
-  _ghcjsbase = self.callHackage "ghcjs-base" "0.2.0.3" {};
+  _ghcjsbase = self.callHackage "ghcjs-base" "0.2.0.3" { };
   ghcjs-base = if useTextJSString then self._ghcjsbase else appendPatch (self._ghcjsbase) ./ghcjs-base-cabal-version.patch;
 }

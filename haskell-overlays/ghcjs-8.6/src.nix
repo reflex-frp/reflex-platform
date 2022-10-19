@@ -19,4 +19,5 @@ let
     '';
     dontInstall = true;
   };
-in patchedSrc
+in
+patchedSrc
