@@ -143,4 +143,11 @@ let
     (map (a: a.cache) (builtins.attrValues perPlatform));
 
 in
-perPlatform // { inherit metaCache; }
+perPlatform // { inherit metaCache; } // {
+  fmt-nix = local-self.nixpkgs.runCommand "fmt-nix"
+    {
+      buildInputs = [ local-self.nixpkgs.nixpkgs-fmt ];
+    } ''
+    nixpkgs-fmt --check ${./.} 2>&1 | tee $out
+  '';
+}
