@@ -28,20 +28,12 @@ self: super: {
       }
       { })
     (drv: {
-      preConfigure = ''
-        sed -i 's/if os(darwin) || os(freebsd)/if os(linux)/g' *.cabal
-      '';
-      configureFlags = (drv.configureFlags or [ ]) ++ [
-        #"-v3"
-      ];
       libraryPkgconfigDepends = [ pkgs.webkitgtk ];
     });
   resolv = haskellLib.doJailbreak (super.resolv.override {
     base16-bytestring = super.base16-bytestring_0_1_1_7;
   });
-  cabal2nix = super.cabal2nix.override {
-    #distribution-nixpkgs = self.distribution-nixpkgs-8_6;
-  };
+  cabal2nix = super.cabal2nix.override { };
   distribution-nixpkgs_1_6_0 = self.callHackage "distribution-nixpkgs" "1.6.0" { };
   distribution-nixpkgs-8_6 = self.distribution-nixpkgs_1_6_0.override {
     Cabal = super.Cabal_3_2_1_0;
