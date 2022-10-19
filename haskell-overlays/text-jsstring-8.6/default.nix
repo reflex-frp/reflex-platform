@@ -4,10 +4,9 @@ with lib;
 with haskellLib;
 
 self: super: {
-  _dep = super._dep or {} // thunkSet ./dep // {
-  };
+  _dep = super._dep or { } // thunkSet ./dep // { };
 
-  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec {});
+  attoparsec = dontCheck (self.callCabal2nix "attoparsec" self._dep.attoparsec { });
   buffer-builder = overrideCabal super.buffer-builder (drv: {
     doCheck = false;
     src = fetchFromGitHub {

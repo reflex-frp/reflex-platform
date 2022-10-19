@@ -6,10 +6,12 @@
 
 rec {
   attrsToList = s: map (name: { inherit name; value = builtins.getAttr name s; }) (builtins.attrNames s);
-  mapSet = f: s: builtins.listToAttrs (map ({name, value}: {
-    inherit name;
-    value = f value;
-  }) (attrsToList s));
+  mapSet = f: s: builtins.listToAttrs (map
+    ({ name, value }: {
+      inherit name;
+      value = f value;
+    })
+    (attrsToList s));
   mkSdist = pkg: pkg.override (oldArgs: {
     mkDerivation = drv: oldArgs.mkDerivation (drv // {
       pname = drv.pname + "-sdist";

@@ -1,7 +1,7 @@
 { lib, fetchgit }:
 
 self: super: {
-  _dep = super._dep or {} // {
+  _dep = super._dep or { } // {
     textSrc = fetchgit {
       url = "https://github.com/obsidiansystems/text.git";
       rev = "50076be0262203f0d2afdd0b190a341878a08e21";

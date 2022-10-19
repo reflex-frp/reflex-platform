@@ -67,7 +67,7 @@ rec {
     # arm* needs the same linker options, x86* -> arm* does not
 
     (optionalExtension (super.ghc.stdenv.targetPlatform.isAndroid or false) (self: super:
-    {
+      {
         mkDerivation = drv: super.mkDerivation (drv // {
           buildFlags = [
             "--ld-option=-fPIE"
@@ -142,7 +142,7 @@ rec {
     (optionalExtension useFastWeak ghcjs-fast-weak_8_10)
     (self: super: rec {
       mkDerivation = drv: super.mkDerivation (drv // {
-        setupHaskellDepends = (drv.setupHaskellDepends or []) ++ [
+        setupHaskellDepends = (drv.setupHaskellDepends or [ ]) ++ [
           nixpkgs.buildPackages.stdenv.cc
         ];
         # This is ugly
