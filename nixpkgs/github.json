@@ -3,7 +3,7 @@
   "repo": "nixpkgs",
   "branch": "ghc-8.10.7-use-iconv-release",
   "private": false,
-  "rev": "903576ebce446410ed60d42b103b97ad1578f055",
-  "sha256": "1bhhpj7x04qysqx4h2alfcdbjrc6fpqjhbfw9kzk9kqlgzg653as"
+  "rev": "810a1b612973396637926adf2f6de8ec6e8458cd",
+  "sha256": "108jjdl4m1kys1liqz0ndv5cwdxxbg9hrg1y6r1z6rhjzl7j8hy3"
 }
 
