@@ -54,7 +54,7 @@ in
     noGcTest = stdenv.hostPlatform.system != "x86_64-linux"
             || stdenv.hostPlatform != stdenv.buildPlatform
             || (ghc.isGhcjs or false);
-  in haskellLib.overrideCabal
+  in dontCheck(haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
@@ -91,7 +91,7 @@ in
       preCheck = ''
         export FONTCONFIG_PATH=${nixpkgs.fontconfig.out}/etc/fonts
       '' + (drv.preCheck or "");
-    });
+    }));
 
   reflex-dom = haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [

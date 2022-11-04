@@ -1,8 +1,8 @@
 {
-  "owner": "ghcjs",
+  "owner": "obsidiansystems",
   "repo": "jsaddle",
-  "branch": "master",
+  "branch": "experimental-core2-merge-master-2",
   "private": false,
-  "rev": "9cb3534b6b2dc948c6fa88fce281e59e904b43e4",
-  "sha256": "1drgrgjnxamq8vh6mrqg62xcj7vb9makpy89bls485d6ckigv3ha"
+  "rev": "c40647a5fae47a5781a42bb10d2acf06cc00880d",
+  "sha256": "1fs7vnksj2s9nbff8blxc5dsjxawg96x0198rq555ifyyzi1lz82"
 }
