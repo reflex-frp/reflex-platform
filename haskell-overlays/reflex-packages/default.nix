@@ -184,14 +184,14 @@ in
     sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
   }) {};
 
-  constraints-extras = self.callHackage "constraints-extras" "0.3.2.1" {};
+  constraints-extras = self.callCabal2nix "constraints-extras" (hackGet ./dep/constraints-extras) {};
   some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
-  dependent-map = self.callHackage "dependent-map" "0.4.0.0" {};
+  dependent-map = self.callCabal2nix "dependent-map" (hackGet ./dep/dependent-map) {};
   dependent-monoidal-map = self.callCabal2nix "dependent-monoidal-map" self._dep.dependent-monoidal-map {};
-  dependent-sum = self.callHackage "dependent-sum" "0.7.1.0" {};
-  dependent-sum-template = self.callHackage "dependent-sum-template" "0.1.1.0" {};
+  dependent-sum = self.callCabal2nix "dependent-sum" (hackGet ./dep/dependent-sum + "/dependent-sum") {};
+  dependent-sum-template = self.callCabal2nix "dependent-sum-template" (hackGet ./dep/dependent-sum + "/dependent-sum-template") {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
   dependent-sum-aeson-orphans = self.callHackage "dependent-sum-aeson-orphans" "0.3.0.0" {};
 
