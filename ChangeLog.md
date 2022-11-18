@@ -37,6 +37,8 @@ This project's release branch is `master`. This log is written from the perspect
     * patch to 0.0.7.0
     * reflex to 0.8.2.1
     * reflex-dom-core to 0.7.0.2
+    * reflex-process to 0.3.1.2
+    * reflex-ghci to 0.1.5.4
   * Prerequisite bumps:
     * OneTuple 0.3.1
     * QuickCheck 2.14.1
