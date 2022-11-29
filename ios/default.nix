@@ -21,6 +21,9 @@
 , #TODO
   staticSrc ? ./static
 
+, # Path to the application icons
+  iconPath ? staticSrc + "/assets"
+
 , # Information for push notifications. Is either `"production"` or
   # `"development"`, if not null.
   #
@@ -38,6 +41,8 @@
 #
 # For example: (super: super // { AnotherKey: "value"; })
 , overrideInfoPlist ? (super: super)
+
+, isRelease ? false
 
 # REMOVED
 , extraInfoPlistContent ? null
@@ -87,16 +92,16 @@ let
       };
     };
 
-    DTSDKName = "iphoneos13.2";
-    DTXcode = "1130"; # XCode 11.3.1
-    DTXcodeBuild = "11C505";
-    DTSDKBuild = "17B102"; # iOS 13.2
+    DTSDKName = "iphoneos15.0";
+    DTXcode = "130"; # XCode 13.0
+    DTXcodeBuild = "13A233";
+    DTSDKBuild = "19A339"; # iOS 15.0
     BuildMachineOSBuild = "19G73"; # Catalina
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
-    MinimumOSVersion = "10.2";
-    DTPlatformVersion = "13.2";
-    DTPlatformBuild = "17B102"; # iOS 13.2
+    MinimumOSVersion = "15.0";
+    DTPlatformVersion = "15.0";
+    DTPlatformBuild = "19A339"; # iOS 15.0
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
   };
@@ -106,6 +111,23 @@ let
     else abort ''
       `extraInfoPlistContent` has been removed. Instead use `overrideInfoPlist` to provide an override function that modifies the default info.plist data as a nix attrset. For example: `(x: x // {NSCameraUsageDescription = "We need your camera.";})`
     '';
+
+  # Entitlements used for development like in deploy/run-in-sim scripts.
+  devEntitlementsPlist = {
+    application-identifier = "<team-id/>.${bundleIdentifier}";
+    "com.apple.developer.team-identifier" = "<team-id/>";
+    get-task-allow = true;
+    keychain-access-groups = [ "<team-id/>.${bundleIdentifier}" ];
+    aps-environment = apsEnv;
+    "com.apple.developer.associated-domains" =
+      if hosts == [] then null else map (host: "applinks:${host}") hosts;
+  };
+
+  # Entitlements that account for release scripts like package.
+  packageEntitlementsPlist = devEntitlementsPlist // {
+    get-task-allow = !isRelease;
+  };
+
   exePath = package ghc;
 in
 nixpkgs.runCommand "${executableName}-app" (rec {
@@ -118,20 +140,14 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       </body>
     </html>
   '';
-  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} {
-    application-identifier = "<team-id/>.${bundleIdentifier}";
-    "com.apple.developer.team-identifier" = "<team-id/>";
-    get-task-allow = true;
-    keychain-access-groups = [ "<team-id/>.${bundleIdentifier}" ];
-    aps-environment = apsEnv;
-    "com.apple.developer.associated-domains" =
-      if hosts == [] then null else map (host: "applinks:${host}") hosts;
-  });
+  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} devEntitlementsPlist);
+  packageXcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} packageEntitlementsPlist);
+
   deployScript = nixpkgs.writeText "deploy" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
-    if [ "$#" -ne 1 ]; then
+    if [ "$#" -lt 1 ]; then
       echo "Usage: $0 [TEAM_ID]" >&2
       exit 1
     fi
@@ -173,6 +189,10 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     cp -LR "$(dirname $0)/../${executableName}.app" $tmpdir
     chmod -R +w "$tmpdir/${executableName}.app"
     mkdir -p "$tmpdir/${executableName}.app/config"
+
+    # Fix CoreFoundation path
+    install_name_tool -change /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation "$tmpdir/${executableName}.app/${executableName}"
+
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
@@ -209,7 +229,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
 
     tmpdir=$(mktemp -d)
     # Find the signer given the OU
-    signer=$(security find-certificate -c "iPhone Distribution" -a \
+    signer=$({ security find-certificate -c 'iPhone Distribution' -a; security find-certificate -c 'Apple Distribution' -a; } \
       | grep '^    "alis"<blob>="' \
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
@@ -230,7 +250,11 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     chmod -R +w "$tmpdir/${executableName}.app"
     strip "$tmpdir/${executableName}.app/${executableName}"
     mkdir -p "$tmpdir/${executableName}.app/config"
-    sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
+
+    # Fix CoreFoundation path
+    install_name_tool -change /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation "$tmpdir/${executableName}.app/${executableName}"
+
+    sed "s|<team-id/>|$TEAM_ID|" < "${packageXcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
     /usr/bin/xcrun -sdk iphoneos ${./PackageApplication} -v "$tmpdir/${executableName}.app" -o "$IPA_DESTINATION" --sign "$signer" --embed "$EMBEDDED_PROVISIONING_PROFILE"
@@ -355,11 +379,14 @@ EOF
   chmod +x "$out/bin/make-portable-deploy"
   cp "${exePath}/bin/${executableName}" "$out/${executableName}.app/"
   cp -RL '${staticSrc}'/* "$out/${executableName}.app/"
-  for icon in '${staticSrc}'/assets/Icon*.png '${staticSrc}'/assets/AppIcon*.png; do
+  for icon in '${iconPath}'/Icon*.png '${iconPath}'/AppIcon*.png; do
     cp -RL "$icon" "$out/${executableName}.app/"
   done
-  for splash in '${staticSrc}'/assets/Default*.png; do
+  for splash in '${iconPath}'/Default*.png; do
     cp -RL "$splash" "$out/${executableName}.app/"
+  done
+  for assets in '${iconPath}'/Assets*.car; do
+    cp -RL "$assets" "$out/${executableName}.app/"
   done
   set +x
 '')

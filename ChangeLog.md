@@ -11,7 +11,21 @@ This project's release branch is `master`. This log is written from the perspect
 * Android: Drop aarch32/armv7/armeabi support for 8.10.7 due to upstream ghc bugs ([!17973](https://gitlab.haskell.org/ghc/ghc/-/issues/17973))
     * We will continue to support GHC 8.6.5 Android 32-bit
     * This means 32-bit android devices are no longer supported on 8.10.7 and up
-* Android: Fix SIGBUS crashes on armv7a due unaligned writes ([!774](https://github.com/reflex-frp/reflex-platform/pull/774))
+* iOS: Make it possible to specify the path to the app's icons and splash images. See `iconPath` in `ios/default.nix`
+* iOS: Make it possible to build a TestFlight/App Store ready ipa. See `isRelease` in `ios/default.nix`
+* iOS: Include Assets Archive if present at `iconPath`
+
+## Unreleased
+
+* Fix SIGBUS crashes on armv7a due unaligned writes ([!774](https://github.com/reflex-frp/reflex-platform/pull/774))
+* Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10.
+  Previously we were using mixed GHC 8.10 versions to avoid issues.
+* GHC 8.10 support is complete, with the remaining profiling builds
+  that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
+* *Breaking Change*: The `javaSources` argument of `android/default.nix` is now
+  a function that takes the default sources as arguments instead of a list that
+  is always appended to the default sources. It is now possible to override the
+  default java sources. See the documentation [here](android/default.nix).
 * Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10. Previously we were using mixed GHC 8.10 versions to avoid issues.
 * GHC 8.10 support is complete, with the remaining profiling builds that worked for 8.6 (everything but GHCJS's) now also working for 8.10.
 

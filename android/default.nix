@@ -109,8 +109,14 @@ in rec {
       # You need to patch soname in make files of libraries to link against
       # unversioned libraries.
 
-    , javaSources ? []
-      # A list of additional Java source directories to include in the APK build
+    , javaSources ? (androidActivitySrc: mainWidgetSrc: [ androidActivitySrc mainWidgetSrc ])
+      # A function that is used to build the list of android source files. The
+      # arguments to this function are:
+      #   * The default android-activity java source tree (from the [android-activity package](https://hackage.haskell.org/package/android-activity))
+      #   * The default "main widget" java source tree (from [reflex-dom](https://github.com/reflex-frp/reflex-dom/blob/develop/reflex-dom/java/org/reflexfrp/reflexdom/MainWidget.java))
+      # Those arguments can be selectively ignored and replaced with alternate
+      # implementations. Additional Java source directories can also be added
+      # to the list for inclusion in the APK build
 
     , universalApk ? true
       # Set this to false to build one APK per target platform.  This will

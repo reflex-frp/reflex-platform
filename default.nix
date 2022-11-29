@@ -9,7 +9,7 @@
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
 , __useNewerCompiler ? false
-, iosSdkVersion ? "13.2"
+, iosSdkVersion ? "15.0"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
 , haskellOverlaysPre ? []
@@ -21,7 +21,7 @@ let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
     xcodeVer = {
-      "13.2" = "11.3.1";
+      "15.0" = "13";
     }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
     # Overlay for GHC which supports the external splices plugin
@@ -127,6 +127,20 @@ let iosSupport = system == "x86_64-darwin";
         (self: super: {
           binutils-unwrapped = super.binutils-unwrapped.override {
             autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
+          };
+          # Bump ios-deploy
+          # - for faster deployments
+          # - fixes debug deploy with iOS 16/macos 12.3/ xcode 13.4.1
+          darwin = super.darwin // {
+            ios-deploy = super.darwin.ios-deploy.overrideAttrs (_: {
+              version = "HEAD";
+              src = self.fetchFromGitHub {
+                owner = "ios-control";
+                repo = "ios-deploy";
+                rev = "b3254438719b6bc82ceab1f630e7d642a9acfac5"; # unreleased
+                sha256 = "W45Qjr3xqvDWieLBgt4//nthxxcc3hgrJNrpSk7vWj8=";
+              };
+            });
           };
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })

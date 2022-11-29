@@ -61,6 +61,12 @@ android {
         jniLibs.srcDir 'lib'
       }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
