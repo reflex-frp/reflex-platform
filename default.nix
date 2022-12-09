@@ -128,6 +128,18 @@ let iosSupport = system == "x86_64-darwin";
           binutils-unwrapped = super.binutils-unwrapped.override {
             autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
           };
+
+          haskell = super.haskell // {
+            compiler = super.haskell.compiler // super.lib.optionalAttrs (super.stdenv.isDarwin) {
+              ghc865 = super.haskell.compiler.ghc865.overrideAttrs (old: {
+                patches = (old.patches or []) ++ [ ./haskell-overlays/patches/ghc865/fix-big-sur.patch ];
+              });
+
+              ghcSplices-8_6 = super.haskell.compiler.ghcSplices-8_6 (old: {
+                patches = (old.patches or []) ++ [ ./haskell-overlays/patches/ghc865/fix-big-sur.patch ];
+              });
+            };
+          };
           # Bump ios-deploy
           # - for faster deployments
           # - fixes debug deploy with iOS 16/macos 12.3/ xcode 13.4.1
