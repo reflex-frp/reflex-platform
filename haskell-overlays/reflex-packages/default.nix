@@ -206,6 +206,7 @@ in
   th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
 
   vessel = self.callCabal2nix "vessel" self._dep.vessel {};
+  base-orphans = self.callHackage "base-orphans" "0.8.6" {};
 
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
