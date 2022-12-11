@@ -20,15 +20,9 @@ self: super: {
   cryptonite = dontCheck super.cryptonite;
   scientific = dontCheck super.scientific;
 
-  # pandoc 2.16 and dependencies
-  pandoc = self.callHackage "pandoc" "2.16.2" {};
-  citeproc = self.callHackage "citeproc" "0.6" {};
-  hslua-marshalling = self.callHackage "hslua-marshalling" "2.0.1" {};
-  hslua-module-path  = self.callHackage "hslua-module-path" "1.0.0" {};
-  hslua-module-version  = self.callHackage "hslua-module-version" "1.0.0" {};
-  lpeg = self.callHackage "lpeg" "1.0.1" {};
-  tasty-bench = self.callHackage "tasty-bench" "0.3.1" {};
-  unicode-collation = self.callHackage "unicode-collation" "0.1.3.1" {};
+  # pandoc 2.10.1 and dependencies
+  pandoc = self.callHackage "pandoc" "2.10.1" {};
+  hslua = self.callHackage "hslua" "1.1.2" {};
 
   # beam packages
   beam-core = self.callHackage "beam-core" "0.9.1.0" {};
