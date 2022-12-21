@@ -45,7 +45,6 @@ This project's release branch is `master`. This log is written from the perspect
     * patch to 0.0.8.0
     * reflex to 0.8.2.2
     * reflex-dom-core to 0.7.0.2
-    * reflex-ghci to 0.1.5.3
     * reflex-ghci to 0.1.5.4
     * reflex-process to 0.3.1.2
     * reflex-vty to 0.3.0.0
