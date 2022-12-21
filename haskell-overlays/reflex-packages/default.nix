@@ -116,7 +116,7 @@ in
   ## Tooling
   ##
 
-  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
+  reflex-ghci = dontCheck (self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {});
 
   ##
   ## GHCJS and JSaddle
