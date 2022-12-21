@@ -21,7 +21,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
     } "";
     buildGradleApp = import ./build-gradle-app.nix {
-      inherit (nixpkgs) stdenv jdk gnumake gawk file runCommand
+      inherit (nixpkgs) stdenv lib jdk gnumake gawk file runCommand
                      which gradle fetchurl buildEnv;
       inherit androidenv;
     };
@@ -36,23 +36,24 @@ in {
     keyStore = releaseKey.storeFile or null;
     keyStorePassword = releaseKey.storePassword or null;
     name = applicationId;
-    platformVersions = [ "29" ];
+    platformVersions = [ "30" ];
     release = false;
     src =
       let splitApplicationId = splitString "." applicationId;
           appSOs = mapAttrs (abiVersion: { myNixpkgs, myHaskellPackages }: {
             hsApp = overrideAndroidCabal (package myHaskellPackages);
             sharedLibs = runtimeSharedLibs myNixpkgs ++ [ "${myNixpkgs.libffi}/lib/libffi.so" ];
-          }) {
+          }) ({
             "arm64-v8a" = {
               myNixpkgs = nixpkgsCross.android.aarch64;
               myHaskellPackages = ghcAndroidAarch64;
             };
+          } // (if ghcAndroidAarch32.ghc.version != "8.6.5" then { } else {
             "armeabi-v7a" = {
               myNixpkgs = nixpkgsCross.android.aarch32;
               myHaskellPackages = ghcAndroidAarch32;
             };
-          };
+          }));
           abiVersions = attrNames appSOs;
       in nixpkgs.runCommand "android-app" {
         buildGradle = builtins.toFile "build.gradle" (import ./build.gradle.nix {
@@ -73,10 +74,11 @@ in {
         });
         javaSrc = nixpkgs.buildEnv {
           name = applicationId + "-java";
-          paths = javaSources ++ [
+          paths = javaSources
+            # Sets up the main Activity using [android-activity](https://hackage.haskell.org/package/android-activity)
             (ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
-            (ghcAndroidAarch64.reflex-dom.src + "/java")
-          ];
+            # Sets up the main webview using [reflex-dom](https://github.com/reflex-frp/reflex-dom/blob/develop/reflex-dom/java/org/reflexfrp/reflexdom/MainWidget.java)
+            (ghcAndroidAarch64.reflex-dom.src + "/java");
         };
         src = ./src;
         nativeBuildInputs = [ nixpkgs.rsync ];

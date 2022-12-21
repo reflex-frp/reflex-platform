@@ -31,9 +31,9 @@ Many different platform are provided for you. A partial list of
 possible platforms include:
 
 - ghc
-- ghc8_6
+- ghc8_10
 - ghcjs
-- ghcjs8_6
+- ghcjs8_10
 
 In addition, instead of specifying the name of the platform, you can
 specify a path to a Nix expression file representing a Haskell
@@ -105,7 +105,7 @@ When you are completely done with a sub-repository, you can remove it
 using `hack-off`:
 
 ```
-~/reflex-platform/scripts/hack-add haskell-overlays/reflex-packages/dep/reflex
+~/reflex-platform/scripts/hack-off haskell-overlays/reflex-packages/dep/reflex
 ```
 
 This will remove the repository and replace the `default.nix` and
