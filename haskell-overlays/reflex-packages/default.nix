@@ -116,7 +116,7 @@ in
   ## Tooling
   ##
 
-  reflex-ghci = self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {};
+  reflex-ghci = dontCheck (self.callCabal2nix "reflex-ghci" self._dep.reflex-ghci {});
 
   ##
   ## GHCJS and JSaddle
@@ -187,13 +187,13 @@ in
   constraints-extras = self.callCabal2nix "constraints-extras" (hackGet ./dep/constraints-extras) {};
   some = self.callHackage "some" "1.0.2" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
-  aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.4" {};
+  aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.5.1" {};
   dependent-map = self.callCabal2nix "dependent-map" (hackGet ./dep/dependent-map) {};
   dependent-monoidal-map = self.callCabal2nix "dependent-monoidal-map" self._dep.dependent-monoidal-map {};
   dependent-sum = self.callCabal2nix "dependent-sum" (hackGet ./dep/dependent-sum + "/dependent-sum") {};
   dependent-sum-template = self.callCabal2nix "dependent-sum-template" (hackGet ./dep/dependent-sum + "/dependent-sum-template") {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
-  dependent-sum-aeson-orphans = self.callHackage "dependent-sum-aeson-orphans" "0.3.0.0" {};
+  dependent-sum-aeson-orphans = self.callCabal2nix "dependent-sum-aeson-orphans" self._dep.dependent-sum-aeson-orphans {};
 
   # Need to use `--subpath` because LICENSE in each dir is a symlink to the repo root.
   universe = self.callCabal2nixWithOptions "universe" universeRepo "--subpath universe" {};
@@ -204,6 +204,8 @@ in
   universe-instances-base = self.callCabal2nixWithOptions "universe" universeRepo "--subpath deprecated/universe-instances-base" {};
 
   th-abstraction = self.callHackage "th-abstraction" "0.4.3.0" {};
+
+  vessel = self.callCabal2nix "vessel" self._dep.vessel {};
 
   # Slightly newer version to fix
   # https://github.com/danfran/cabal-macosx/issues/13
