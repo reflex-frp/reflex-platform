@@ -14,9 +14,6 @@ This project's release branch is `master`. This log is written from the perspect
 * iOS: Make it possible to specify the path to the app's icons and splash images. See `iconPath` in `ios/default.nix`
 * iOS: Make it possible to build a TestFlight/App Store ready ipa. See `isRelease` in `ios/default.nix`
 * iOS: Include Assets Archive if present at `iconPath`
-
-## Unreleased
-
 * Fix SIGBUS crashes on armv7a due unaligned writes ([!774](https://github.com/reflex-frp/reflex-platform/pull/774))
 * Always use GHC 8.10.7, not GHC 8.10.4, for GHC 8.10.
   Previously we were using mixed GHC 8.10 versions to avoid issues.
@@ -41,18 +38,19 @@ This project's release branch is `master`. This log is written from the perspect
 * Haskell Library Updates
   * Intentional bumps:
     * all-cabal-hashes "Update from Hackage at 2022-06-29T01:24:32Z"
+    * dependent-monoidal-map to 0.1.1.3
+    * dependent-sum-aeson-orphans to 0.3.1.1
     * dependent-sum-template to 0.1.1.0
-    * some to 1.0.2
     * monoidal-containers to 0.6.2.0
-    * witherable to 0.4.2
-    * patch to 0.0.7.0
-    * reflex-vty to 0.3.0.0
-    * reflex-ghci to 0.1.5.3
-    * patch to 0.0.7.0
-    * reflex to 0.8.2.1
+    * patch to 0.0.8.0
+    * reflex to 0.8.2.2
     * reflex-dom-core to 0.7.0.2
-    * reflex-process to 0.3.1.2
     * reflex-ghci to 0.1.5.4
+    * reflex-process to 0.3.1.2
+    * reflex-vty to 0.3.0.0
+    * some to 1.0.2
+    * vessel to 0.3.0.0
+    * witherable to 0.4.2
   * Prerequisite bumps:
     * OneTuple 0.3.1
     * QuickCheck 2.14.1
