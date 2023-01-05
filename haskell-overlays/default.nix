@@ -12,6 +12,7 @@
 , ghcSavedSplices-8_10
 , haskellOverlaysPre
 , haskellOverlaysPost
+, splices-func
 }:
 
 let
@@ -84,8 +85,8 @@ rec {
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)
 
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices-8_6)
-    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && !(super.ghc.isGhcjs or false) && hostPlatform != buildPlatform) loadSplices-8_10)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 6 ] super.ghc.version && hostPlatform != buildPlatform) loadSplices-8_6)
+    (optionalExtension (with nixpkgs.stdenv; versionWildcard [ 8 10 ] super.ghc.version && hostPlatform != buildPlatform) loadSplices-8_10)
 
     (optionalExtension (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) android)
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isiOS or false) ios)
@@ -143,6 +144,13 @@ rec {
   ]
     self
     super;
+
+  lsplices8_10 = splicepkgs: splices-func.loadSplices8_10 splicepkgs;
+  ghcjs-splices = self: super: foldExtensions [
+    (lsplices8_10 ghcSavedSplices-8_10)
+  ] self super;
+
+
 
   ##
   ## Constituent
