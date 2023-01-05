@@ -19,6 +19,13 @@
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
 
+    splices-load-save-nix = import (nixpkgs.fetchFromGitHub {
+      owner = "obsidiansystems";
+      repo = "splices-load-save-nix";
+      rev = "8b437239873c4f054cf5d03e61047a294bba5e4a";
+      sha256 = "sha256-cWbF23Dqnpc9+UUnK7TxcPzVEE4rj2Ld+1gwiw027ls=";
+    }) { pkgs = nixpkgs; };
+
     xcodeVer = {
       "13.2" = "11.3.1";
     }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
@@ -59,6 +66,7 @@ let iosSupport = system == "x86_64-darwin";
               ./nixpkgs-overlays/android-8.10-splices.patch
             ];
           });
+          ghcjsSplices-8_10 = splices-load-save-nix.patchGHCJS (super.haskell.compiler.ghcjs810);
         };
         packages = super.haskell.packages // {
           ghcSplices-8_6 = super.haskell.packages.ghc865.override {
@@ -68,6 +76,10 @@ let iosSupport = system == "x86_64-darwin";
           ghcSplices-8_10 = super.haskell.packages.ghc8104.override {
             buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_10;
             ghc = self.buildPackages.haskell.compiler.ghcSplices-8_10;
+          };
+          ghcjsSplices-8_10 = super.haskell.packages.ghcjs810.override {
+            buildHaskellPackages = self.buildPackages.haskell.packages.ghcjsSplices-8_10;
+            ghc = self.buildPackages.haskell.compiler.ghcjsSplices-8_10;
           };
         };
       };
@@ -79,6 +91,7 @@ let iosSupport = system == "x86_64-darwin";
     bindHaskellOverlays = self: super: {
       haskell = super.haskell // {
         overlays = super.haskell.overlays or {} // import ./haskell-overlays {
+          splices-func = splices-load-save-nix;
           nixpkgs = self;
           inherit (self) lib;
           haskellLib = self.haskell.lib;
@@ -218,6 +231,12 @@ let iosSupport = system == "x86_64-darwin";
       })
     ]);
   };
+  ghcjsSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcjsSplices-8_10).override {
+    overrides = lib.foldr lib.composeExtensions (_: _: {}) ([
+      nixpkgs.haskell.overlays.combined
+      nixpkgs.haskell.overlays.ghcjs-splices
+    ]);
+  };
   ghcSavedSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
       haskellOverlays = nixpkgs.haskell.overlays;
@@ -232,7 +251,7 @@ let iosSupport = system == "x86_64-darwin";
       })
     ]);
   };
-  ghcjs = ghcjs8_6;
+  ghcjs = ghcjsSplices-8_10;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
       bootPkgs = nixpkgsCross.ghcjs.buildPackages.haskell.packages.ghc865;
@@ -380,6 +399,7 @@ in let this = rec {
           ghcjs
           ghcjs8_6
           ghcjs8_10
+          ghcjsSplices-8_10
           ghcSavedSplices
           ghcSavedSplices-8_6
           ghcSavedSplices-8_10
