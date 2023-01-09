@@ -1,4 +1,4 @@
-import ./project.nix {
+import ./project.nix rec {
   name = "reflex-todomvc";
   src = ../reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
@@ -8,6 +8,7 @@ import ./project.nix {
   };
   overrides = [
     { packages.reflex.configureFlags = [ "-f-use-template-haskell" ]; }
+    { packages.reflex-todomvc.src = src; }
     ({ config, lib, ... }: { packages.bitvec.patches = lib.mkForce [ ]; })
   ];
 }
