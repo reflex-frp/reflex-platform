@@ -92,16 +92,17 @@ let
       };
     };
 
-    DTSDKName = "iphoneos15.0";
-    DTXcode = "130"; # XCode 13.0
-    DTXcodeBuild = "13A233";
-    DTSDKBuild = "19A339"; # iOS 15.0
-    BuildMachineOSBuild = "19G73"; # Catalina
+    DTSDKName = "iphoneos16.1";
+    DTXcode = "1410"; # Xcode 14.1
+    DTXcodeBuild = "14B47b";
+    DTXcodeBuildDistribution = "14B47b";
+    DTSDKBuild = "20B71"; # iOS 16.1
+    BuildMachineOSBuild = "21G320"; # macOS Monterey 12.6.2
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
-    MinimumOSVersion = "15.0";
-    DTPlatformVersion = "15.0";
-    DTPlatformBuild = "19A339"; # iOS 15.0
+    MinimumOSVersion = "16.1";
+    DTPlatformVersion = "16.1";
+    DTPlatformBuild = "20B71";
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
   };
