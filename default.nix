@@ -7,7 +7,7 @@ import ./project.nix rec {
     exes.reflex-todomvc.extraSrcFiles = [ "style.css" ];
   };
   overrides = [
-    { packages.reflex.configureFlags = [ "-f-use-template-haskell" ]; }
+    #{ packages.reflex.configureFlags = [ "-f-use-template-haskell" ]; }
     { packages.reflex-todomvc.src = src; }
     ({ config, lib, ... }: { packages.bitvec.patches = lib.mkForce [ ]; })
   ];
