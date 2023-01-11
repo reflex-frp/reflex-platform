@@ -3,7 +3,7 @@
 # We currently use a "splice-driver" to do all of the dirty work regarding setting-up "preBuild"
 # to load splices
 
-{ pkgsCross, plan-pkgs, splice-driver, compiler-nix-name, overrides ? [ ], pkg-set, spliced-packages ? pkg-set, crossSystem, ... }: pkgsCross.aarch64-multiplatform.haskell-nix.mkCabalProjectPkgSet {
+{ projectName, flags ? [ ], crossPkgs, plan-pkgs, splice-driver, compiler-nix-name, overrides ? [ ], pkg-set, spliced-packages ? pkg-set, ... }: crossPkgs.haskell-nix.mkCabalProjectPkgSet {
     inherit plan-pkgs;
     pkg-def-extras = [ ];
     inherit compiler-nix-name;
@@ -13,6 +13,7 @@
       ({ config, lib, ... }: {
         config.compiler.nix-name = lib.mkForce (compiler-nix-name);
       })
+      { packages.${projectName}.components.library.ghcOptions = flags; }
     ] ++ overrides ++ (splice-driver {
       attrs = pkg-set.config.packages;
       string = (aname: cname: subname: if cname == "library" then ''
