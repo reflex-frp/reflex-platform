@@ -10,7 +10,23 @@ let
   # - Remove this let box properly
   # - Allow for pkgs to be overriden
   haskell-nix = import ../haskell.nix { };
-  pkgs = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs);
+  pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs);
+
+  remotePatches = [
+   {
+     url = "https://github.com/obsidiansystems/nixpkgs/commit/d39ee6b7c45deb224d95f717bd1e6e2144e09dd9.diff";
+     sha256 = "sha256-stn4C43O5M0Qk80gj7YK/87qCDflnm/AwYcOXv5fErI=";
+   }
+  ];
+
+  patchedNixpkgs = pkgs-pre.applyPatches {
+    name = "patched-nixpkgs";
+    src = pkgs-pre.path;
+    patches = map pkgs-pre.fetchpatch remotePatches;
+  };
+ 
+  pkgs = import patchedNixpkgs (haskell-nix.nixpkgsArgs);
+ 
 
   androidCabal = pkgsrc: pkgs.runCommandNoCC "modify-src" {  } ''
     set -eux
