@@ -7,10 +7,11 @@
 let
   rasterInput =
     if (src == null) && (adaptiveIcon == null)
-      then abort "Either src or adaptiveIcon must be specified!"
-      else src;
+    then abort "Either src or adaptiveIcon must be specified!"
+    else src;
 in
-runCommand "android-icons" {
+runCommand "android-icons"
+{
   buildCommand = lib.optionalString (src != null) ''
     mkdir "$out"
 

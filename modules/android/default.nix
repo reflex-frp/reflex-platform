@@ -1,16 +1,16 @@
-env@{
-  pkgs
+env@{ pkgs
 , buildPackages
 , acceptAndroidSdkLicenses
 , pkg-set
 }:
 with pkgs.lib.strings;
-let 
+let
   impl = import ./android.nix env;
-in rec {
+in
+rec {
   # URI information that becomes AndroidManifest.xml content for additional intent filters.
-  intentFilterXml = {
-      scheme
+  intentFilterXml =
+    { scheme
       # URL scheme
       # E.g.: "https"
 
@@ -23,19 +23,19 @@ in rec {
     , pathPrefix ? ""
     }: impl.intentFilterXml {
       inherit scheme
-              host
-              port
-              pathPrefix;
+        host
+        port
+        pathPrefix;
     };
 
   defaultResources = ./res;
   defaultAssets = ./assets;
   defaultIconPath = "@drawable/ic_launcher";
 
-  buildIcons = pkgs.callPackage ./buildIcons.nix {};
+  buildIcons = pkgs.callPackage ./buildIcons.nix { };
 
-  buildApp = {
-      package
+  buildApp =
+    { package
       # A function from haskellPackages to the package we'd like to turn into
       # an APK
       # E.g.: (p: p.hello)
@@ -97,7 +97,7 @@ in rec {
 
     , additionalDependencies ? ""
 
-    , runtimeSharedLibs ? (_: [])
+    , runtimeSharedLibs ? (_: [ ])
       # Allows to copy native .so libraries into APK. Example:
       # runtimeSharedLibs = nixpkgs: [
       #   "${nixpkgs.libsodium}/lib/libsodium.so"
@@ -124,32 +124,32 @@ in rec {
 
     , usesCleartextTraffic ? false
 
-    # Can be "assembleRelease", "assembleDebug", or "bundleRelease"
+      # Can be "assembleRelease", "assembleDebug", or "bundleRelease"
     , gradleTask ? (if isRelease then "assembleRelease" else "assembleDebug")
     }:
-    assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
-    pkgs.lib.makeOverridable impl.buildApp {
-      inherit package
-              acceptAndroidSdkLicenses
-              executableName
-              applicationId
-              displayName
-              version
-              releaseKey
-              resources
-              assets
-              iconPath
-              activityAttributes
-              permissions
-              services
-              intentFilters
-              googleServicesJson
-              additionalDependencies
-              runtimeSharedLibs
-              javaSources
-              universalApk
-              mavenDeps
-              usesCleartextTraffic
-              gradleTask;
-    };
+      assert builtins.match "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*$" applicationId != null;
+      pkgs.lib.makeOverridable impl.buildApp {
+        inherit package
+          acceptAndroidSdkLicenses
+          executableName
+          applicationId
+          displayName
+          version
+          releaseKey
+          resources
+          assets
+          iconPath
+          activityAttributes
+          permissions
+          services
+          intentFilters
+          googleServicesJson
+          additionalDependencies
+          runtimeSharedLibs
+          javaSources
+          universalApk
+          mavenDeps
+          usesCleartextTraffic
+          gradleTask;
+      };
 }

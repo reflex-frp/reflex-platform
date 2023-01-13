@@ -2,5 +2,5 @@
 , abiVersions
 }:
 ''
-APP_ABI := ${pkgs.lib.concatStringsSep " " abiVersions}
+  APP_ABI := ${pkgs.lib.concatStringsSep " " abiVersions}
 ''

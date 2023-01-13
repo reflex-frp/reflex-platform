@@ -5,20 +5,27 @@
 # which gets semi-automatically resolved by haskell.nix
 
 
-{ dontSplice ? [] }@top: { attrs, string }: let
+{ dontSplice ? [ ] }@top: { attrs, string }:
+let
   removeFromList = { toRemove, baseList }: builtins.attrNames (removeAttrs (builtins.listToAttrs (builtins.concatMap (a: [{ name = a; value = a; }]) baseList)) toRemove);
-in builtins.concatMap (aname: let
+in
+builtins.concatMap
+  (aname:
+  let
     componentnames = removeFromList {
       toRemove = [ "setup" "library" ];
       baseList = (builtins.attrNames attrs.${aname}.components);
-    }; 
-    split = builtins.concatMap (cname: builtins.concatMap (subname: 
-        if cname == "library" then 
-          [{ packages.${aname}.components.${cname}.preBuild = string aname cname cname; }] 
-        else  
-          [{ packages.${aname}.components.${cname}.${subname}.preBuild = string aname cname subname; }]
-      ) 
-      (builtins.attrNames attrs.${aname}.components.${cname})) componentnames;
+    };
+    split = builtins.concatMap
+      (cname: builtins.concatMap
+        (subname:
+          if cname == "library" then
+            [{ packages.${aname}.components.${cname}.preBuild = string aname cname cname; }]
+          else
+            [{ packages.${aname}.components.${cname}.${subname}.preBuild = string aname cname subname; }]
+        )
+        (builtins.attrNames attrs.${aname}.components.${cname}))
+      componentnames;
   in
   [
     {
@@ -26,9 +33,9 @@ in builtins.concatMap (aname: let
         library.preBuild = string aname "library" "library";
       };
     }
-  ] ++ split) 
+  ] ++ split)
   (removeFromList {
-    toRemove = top.dontSplice or [];
+    toRemove = top.dontSplice or [ ];
     baseList = (builtins.attrNames attrs);
   })
 

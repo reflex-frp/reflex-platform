@@ -1,13 +1,35 @@
-{ stdenv, lib, androidenv, jdk, gnumake, gawk, file
-, which, gradle, fetchurl, buildEnv, runCommand }:
+{ stdenv
+, lib
+, androidenv
+, jdk
+, gnumake
+, gawk
+, file
+, which
+, gradle
+, fetchurl
+, buildEnv
+, runCommand
+}:
 
-args@{ name, src, platformVersions ? [ "8" ]
-     , buildToolsVersions ? [ "30.0.2" ]
-     , useGoogleAPIs ? false, useGooglePlayServices ? false
-     , release ? false, keyStore ? null, keyAlias ? null
-     , keyStorePassword ? null, keyAliasPassword ? null
-     , useNDK ? false, buildInputs ? [], mavenDeps, gradleTask
-     , buildDirectory ? "./.", acceptAndroidSdkLicenses ? false }:
+args@{ name
+, src
+, platformVersions ? [ "8" ]
+, buildToolsVersions ? [ "30.0.2" ]
+, useGoogleAPIs ? false
+, useGooglePlayServices ? false
+, release ? false
+, keyStore ? null
+, keyAlias ? null
+, keyStorePassword ? null
+, keyAliasPassword ? null
+, useNDK ? false
+, buildInputs ? [ ]
+, mavenDeps
+, gradleTask
+, buildDirectory ? "./."
+, acceptAndroidSdkLicenses ? false
+}:
 
 assert release -> keyStore != null;
 assert release -> keyAlias != null;
@@ -18,34 +40,45 @@ assert acceptAndroidSdkLicenses;
 let
   inherit (lib) optionalString optional;
 
-  m2install = { repo, version, artifactId, groupId
-              , jarSha256, pomSha256, aarSha256, suffix ? ""
-              , customJarUrl ? null, customJarSuffix ? null }:
-    let m2Name = "${artifactId}-${version}";
-        m2Path = "${builtins.replaceStrings ["."] ["/"] groupId}/${artifactId}/${version}";
-        jarFile = fetchurl {
-          url = if customJarUrl != null then customJarUrl else "${repo}${m2Path}/${m2Name}${suffix}.jar";
-          sha256 = jarSha256;
-        };
-    in runCommand m2Name {} (''
-         installPath="$out"/m2/'${m2Path}'
-         mkdir -p "$installPath"
-       '' + optionalString (jarSha256 != null) ''
-         install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}.jar'
-         ${optionalString (customJarSuffix != null) ''
-           install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}${customJarSuffix}.jar'
-         ''}
-       '' + optionalString (pomSha256 != null) ''
-         install -D ${fetchurl {
-                        url = "${repo}${m2Path}/${m2Name}${suffix}.pom";
-                        sha256 = pomSha256;
-                      }} "$installPath/${m2Name}${suffix}.pom"
-       '' + optionalString (aarSha256 != null) ''
-         install -D ${fetchurl {
-                        url = "${repo}${m2Path}/${m2Name}${suffix}.aar";
-                        sha256 = aarSha256;
-                      }} "$installPath/${m2Name}${suffix}.aar"
-       '');
+  m2install =
+    { repo
+    , version
+    , artifactId
+    , groupId
+    , jarSha256
+    , pomSha256
+    , aarSha256
+    , suffix ? ""
+    , customJarUrl ? null
+    , customJarSuffix ? null
+    }:
+    let
+      m2Name = "${artifactId}-${version}";
+      m2Path = "${builtins.replaceStrings ["."] ["/"] groupId}/${artifactId}/${version}";
+      jarFile = fetchurl {
+        url = if customJarUrl != null then customJarUrl else "${repo}${m2Path}/${m2Name}${suffix}.jar";
+        sha256 = jarSha256;
+      };
+    in
+    runCommand m2Name { } (''
+      installPath="$out"/m2/'${m2Path}'
+      mkdir -p "$installPath"
+    '' + optionalString (jarSha256 != null) ''
+      install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}.jar'
+      ${optionalString (customJarSuffix != null) ''
+        install -D '${jarFile}' "$installPath"/'${m2Name}${suffix}${customJarSuffix}.jar'
+      ''}
+    '' + optionalString (pomSha256 != null) ''
+      install -D ${fetchurl {
+                     url = "${repo}${m2Path}/${m2Name}${suffix}.pom";
+                     sha256 = pomSha256;
+                   }} "$installPath/${m2Name}${suffix}.pom"
+    '' + optionalString (aarSha256 != null) ''
+      install -D ${fetchurl {
+                     url = "${repo}${m2Path}/${m2Name}${suffix}.aar";
+                     sha256 = aarSha256;
+                   }} "$installPath/${m2Name}${suffix}.aar"
+    '');
   androidsdkComposition = androidenv.composeAndroidPackages {
     inherit platformVersions useGoogleAPIs buildToolsVersions;
     includeNDK = true;
@@ -55,16 +88,17 @@ let
 in
 stdenv.mkDerivation ({
   inherit src;
-  name = builtins.replaceStrings [" "] [""] args.name;
+  name = builtins.replaceStrings [ " " ] [ "" ] args.name;
 
   ANDROID_HOME = "${androidsdkComposition.androidsdk}/libexec";
   ANDROID_NDK_HOME = "${androidsdkComposition.ndk-bundle}/libexec/android-sdk/ndk-bundle";
 
   buildInputs = [ jdk gradle ] ++ buildInputs ++ lib.optional useNDK [ androidsdkComposition.ndk-bundle gnumake gawk file which ];
 
-  DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
-                            paths = map m2install mavenDeps;
-                          };
+  DEPENDENCIES = buildEnv {
+    name = "${name}-maven-deps";
+    paths = map m2install mavenDeps;
+  };
 
   buildPhase = ''
     ${optionalString release ''
@@ -112,4 +146,4 @@ stdenv.mkDerivation ({
   meta = {
     license = lib.licenses.unfree;
   };
-} // builtins.removeAttrs args ["name" "mavenDeps"])
+} // builtins.removeAttrs args [ "name" "mavenDeps" ])
