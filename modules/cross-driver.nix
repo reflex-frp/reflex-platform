@@ -3,7 +3,9 @@
 # We currently use a "splice-driver" to do all of the dirty work regarding setting-up "preBuild"
 # to load splices
 
-{ name, src, flags ? [ ], crossPkgs, splice-driver, compiler-nix-name, overrides ? [ ], pkg-set, spliced-packages ? pkg-set, ... }@args: crossPkgs.haskell-nix.project' {
+{ name, src, flags ? [ ], crossPkgs, splice-driver, compiler-nix-name, overrides ? [ ], pkg-set, spliced-packages ? pkg-set, ... }@args: let
+  filterStdenv = attrs: builtins.listToAttrs (builtins.concatMap (a: if crossPkgs.lib.hasPrefix "is" a then [{ name = a; value = attrs.${a}; }] else []) (builtins.attrNames attrs));
+in crossPkgs.haskell-nix.project' {
   inherit name;
   src = crossPkgs.haskell-nix.haskellLib.cleanGit {
     inherit name src;
@@ -17,6 +19,7 @@
     ({ config, lib, ... }: {
       config.compiler.nix-name = lib.mkForce (compiler-nix-name);
     })
+    { cabal.system = filterStdenv crossPkgs.stdenv.hostPlatform; }
     { packages.${name}.components.library.ghcOptions = flags; }
   ] ++ overrides ++ (splice-driver {
     attrs = pkg-set.config.packages;

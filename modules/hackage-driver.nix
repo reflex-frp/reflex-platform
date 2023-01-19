@@ -1,6 +1,8 @@
 # NOTE(dgreen):
 # Haskell.nix doesn't currently have a way to overlay packages on the hackage index
 # so this is what this does
+# We generate a dummy hackage for the cabal solver to use, which if our constraints match up they will
+# pull from our local "overlay" hackage
 
 # Based off of
 # https://github.com/ilyakooo0/haskell-nix-extra-hackage/blob/master/default.nix
@@ -51,6 +53,7 @@
   hackageOverlay = defs: rec {
     buildCommands = genBuildCommands (defs pkgs);
     generatedHackage = genHackageForNix extra-hackage-tarballs.overlay;
+    package-overlays = map (a: { packages.${a.name}.src = a.src; }) (defs pkgs);
     extra-hackage-tarballs = {
       overlay = (writePackageDefs buildCommands).out;
     };
