@@ -4,3 +4,6 @@
 [submodule "submodules/reflex-todomvc"]
 	path = submodules/reflex-todomvc
 	url = https://github.com/reflex-frp/reflex-todomvc.git
+[submodule "submodules/haskell.nix"]
+	path = submodules/haskell.nix
+	url = https://github.com/obsidiansystems/haskell.nix.git
