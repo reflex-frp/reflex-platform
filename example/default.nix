@@ -1,7 +1,7 @@
 # Example usage of this project
-import ./project.nix rec {
+import ../project.nix rec {
   name = "reflex-todomvc";
-  src = ./submodules/reflex-todomvc;
+  src = ../submodules/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
   android_sdk_accept_license = true;
   allowUnfree = true;
