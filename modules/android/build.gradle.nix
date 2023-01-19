@@ -69,7 +69,7 @@
 
       defaultConfig {
           applicationId "${applicationId}"
-          minSdkVersion 21
+          minSdkVersion 23
           targetSdkVersion 30
           versionCode ${version.code}
           versionName "${version.name}"

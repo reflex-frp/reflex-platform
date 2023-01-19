@@ -112,6 +112,7 @@ stdenv.mkDerivation ({
     ${optionalString (builtins.length buildToolsVersions > 0) ''
       echo "android.aapt2FromMavenOverride=local_sdk/android-sdk/build-tools/${builtins.head buildToolsVersions}/aapt2" >> gradle.properties
     ''}
+    echo "org.gradle.jvmargs=--add-opens java.base/java.io=ALL-UNNAMED" >> gradle.properties
     buildDir=`pwd`
     cp -rL $ANDROID_HOME $buildDir/local_sdk
     chmod -R 755 local_sdk
@@ -133,7 +134,7 @@ stdenv.mkDerivation ({
     chmod -R 755 .m2
     mkdir -p .m2/repository/com/android/support
     cp -RL local_sdk/android-sdk/extras/android/m2repository/com/android/support/* .m2/repository/com/android/support/
-    gradle ${gradleTask} --offline --no-daemon -g ./tmp -Dmaven.repo.local=$(pwd)/.m2/repository
+    gradle ${gradleTask} --offline --no-daemon -g ./tmp -Dmaven.repo.local=$(pwd)/.m2/repository --stacktrace --info
   '';
 
   installPhase = ''

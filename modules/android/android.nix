@@ -1,16 +1,20 @@
 env: with env; let
   androidenv = pkgs.androidenv;
   buildGradleApp = import ./build-gradle-app.nix {
-    inherit (pkgs) stdenv lib jdk gnumake gawk file runCommand
+    inherit (pkgs) stdenv lib gnumake gawk file runCommand
       which gradle fetchurl buildEnv;
     inherit androidenv;
+    jdk = pkgs.jdk;
   };
 
-  unpackTars = tar: pkgs.runCommandNoCC "unpack-tar" { inherit tar; } ''
+  unpackTars = name: pkgs.runCommandNoCC "unpack-tar" { } ''
     mkdir -p $out
-    tar -zxf $tar --directory $out
+    tar -zxf ${pkg-set.config.packages.${name}.src} --directory $out
+    mv $out/${pkg-set.config.packages.${name}.name}/* $out
+    rm -r $out/${pkg-set.config.packages.${name}.name}
   '';
 in
+with pkgs.lib;
 {
   buildApp = args: with args; buildGradleApp {
     inherit acceptAndroidSdkLicenses mavenDeps;
@@ -28,11 +32,11 @@ in
         # splitApplicationId = splitString "." applicationId;
         appSOs = {
           "arm64-v8a" = {
-            hsApp = pkg-set.config.hsPkgs.reflex-todomvc.library;
-            sharedLibs = runtimeSharedLibs ++ [ "${buildPackages.pkgsCross.libffi}" ];
+            hsApp = pkg-set.config.hsPkgs.${executableName}.components.exes."lib${executableName}.so";
+            sharedLibs = (runtimeSharedLibs pkgs) ++ [ "${pkgs.pkgsCross.aarch64-android-prebuilt.gmp}/lib/libgmp.so"  "${pkgs.pkgsCross.aarch64-android-prebuilt.libffi}/lib/libffi.so" ];
           };
         };
-        abiVersions = attrNames appSOs;
+        abiVersions = builtins.attrNames appSOs;
       in
       pkgs.runCommand "android-app"
         {
@@ -55,14 +59,8 @@ in
           javaSrc = pkgs.buildEnv {
             name = applicationId + "-java";
             paths = javaSources
-              ((unpackTars pkg-set.config.hsPkgs.reflex-dom.src) + "/java")
-              ((pkgs.fetchFromGitHub {
-                owner = "obsidian.systems";
-                repo = "android-activity";
-                rev = "a51bf130b04af92645c040df065c54161e99a335";
-                sha256 = "";
-              }) + "/java");
-
+              ((unpackTars "reflex-dom") + "/java")
+	          ((pkg-set.config.hsPkgs.android-activity.src) + "/java");
             # Sets up the main Activity using [android-activity](https://hackage.haskell.org/package/android-activity)
             #(ghcAndroidAarch64.android-activity.src + "/java") #TODO: Use output, not src
             # Sets up the main webview using [reflex-dom](https://github.com/reflex-frp/reflex-dom/blob/develop/reflex-dom/java/org/reflexfrp/reflexdom/MainWidget.java)
@@ -70,9 +68,11 @@ in
           };
           src = ./src;
           nativeBuildInputs = [ pkgs.rsync ];
-          unpackPhase = "";
+          unpackPhase = "
+          ";
         }
         (''
+          set -eux
           cp -r --no-preserve=mode "$src" "$out"
           mkdir -p "$out/src/main"
           cp -r --no-preserve=mode "$javaSrc" "$out/src/main/java"
@@ -94,7 +94,7 @@ in
                     >&2 echo 'Error: library $lib not found'
                     exit 1
                   fi
-                  cp --no-preserve=mode "$lib" "$ARCH_LIB"
+                  cp -r -L -H --no-preserve=mode "$lib" "$ARCH_LIB"
                 '')
                 sharedLibs);
             in
