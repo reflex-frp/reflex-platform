@@ -16,7 +16,7 @@ let
   # - Allow for pkgs to be overriden
 
   # Logic to bootstrap packages that isn't our local checkout
-  haskell-nix = import ../haskell.nix { };
+  haskell-nix = import ./submodules/haskell.nix { };
   pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs);
 
   # Patch the packages with some commits external to our specific checkout
@@ -45,7 +45,7 @@ let
   # Actually patch our nixpkgs
   patchedNixpkgs = pkgs-pre.applyPatches {
     name = "patched-nixpkgs";
-    src = ./nixpkgs;
+    src = ./submodules/nixpkgs;
     patches = map pkgs-pre.fetchpatch remotePatches;
   };
 
