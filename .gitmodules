@@ -1,3 +1,6 @@
 [submodule "nixpkgs"]
-	path = nixpkgs
+	path = submodules/nixpkgs
 	url = https://github.com/cidkidnix/nixpkgs.git
+[submodule "submodules/reflex-todomvc"]
+	path = submodules/reflex-todomvc
+	url = https://github.com/reflex-frp/reflex-todomvc.git
