@@ -15,8 +15,9 @@ import ./project.nix rec {
       src = pkgs.fetchFromGitHub {
         owner = "obsidiansystems";
         repo = "android-activity";
-        rev = "a51bf130b04af92645c040df065c54161e99a335";
-        sha256 = "sha256-CveWAOQDOjhX8hmRzCLImOkaabTytgftM6I7Sya68bM=";
+        rev = "2bc40f6f907b27c66428284ee435b86cad38cff8";
+        sha256 = "sha256-AIpbe0JZX68lsQB9mpvR7xAIct/vwQAARVHAK0iChV4=";
+	#sha256 = "sha256-CveWAOQDOjhX8hmRzCLImOkaabTytgftM6I7Sya68bM=";
       };
       #src = (builtins.fetchGit { url = "https://github.com/obsidiansystems/android-activity.git"; rev = "a51bf130b04af92645c040df065c54161e99a335"; 
     }
@@ -24,7 +25,7 @@ import ./project.nix rec {
   overrides = [
     #{ packages.reflex.configureFlags = [ "-f-use-template-haskell" ]; }
     ({ config, lib, pkgs, ... }: {
-      packages.${name}.components = {
+ /*     packages.${name}.components = pkgs.lib.optionalAttrs (pkgs.stdenv.targetPlatform.isiOS) {
         library = {
           depends = [
             config.hsPkgs.jsaddle-wkwebview
@@ -44,8 +45,27 @@ import ./project.nix rec {
           #pkgs.darwin.apple_sdk.frameworks.Cocoa
         ];
       };
+  */
     })
     ({ config, pkgs, lib, ... }: {
+      packages.android-activity.components.library = lib.optionalAttrs (pkgs.stdenv.targetPlatform.isAndroid) {
+        depends = [
+	  pkgs.buildPackages.buildPackages.jdk
+	  pkgs.androidndkPkgs_23b.libraries.headers
+        ];
+        cSources = [
+          pkgs.androidndkPkgs_23b.libraries.headers
+        ];
+	configureFlags = [ 
+	  "--extra-lib-dirs=${pkgs.androidndkPkgs_23b.libraries.headers}"
+	  "--extra-include-dirs=${pkgs.androidndkPkgs_23b.libraries.headers}"
+	];
+      };
+      packages.reflex-dom = {
+	flags = {
+	  webkit2gtk = lib.mkForce false;
+	};
+      };
       packages.jsaddle-wkwebview.components.library = {
         configureFlags = pkgs.lib.optionals (pkgs.stdenv.targetPlatform.isiOS) [ "-f-include-app-delegate" ];
         frameworks =
@@ -54,7 +74,7 @@ import ./project.nix rec {
           else [ ];
       };
     })
-    { packages.reflex-todomvc.src = src; }
+    #({ config, lib, ... }: { packages.reflex-todomvc.src = lib.mkForce src; })
     ({ config, lib, ... }: { packages.bitvec.patches = lib.mkForce [ ]; })
   ];
 }
