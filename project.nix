@@ -9,6 +9,9 @@
 , allowUnfree ? false # Allow Unfree
 , android_sdk_accept_license ? false # Accept android sdk license terms
 , nixpkgsArgs ? { } # Extra nixpkgs arguments
+, dontSplice ? [ ] # Packages to not splice
+, dontHarden ? [ ] # Packages to not harden
+, hardeningOpts ? [ "-fPIC" "-pie" ]
 }:
 let
   # TODO:
@@ -116,7 +119,8 @@ in
       inherit (hackage-driver) extra-hackage-tarballs extra-hackages;
       inherit (final) pkg-set;
       crossPkgs = v;
-      splice-driver = import ./modules/splice-driver.nix { dontSplice = [ "fgl" "Cabal" "android-activity" ]; };
+      splice-driver = import ./modules/splice-driver.nix { dontSplice = [ "fgl" "Cabal" "android-activity" ] ++ dontSplice; };
+      hardening-driver = import ./modules/hardening-driver.nix { dontHarden = [ "happy" "binary" "${name}" ] ++ dontHarden; hardeningOpts = hardeningOpts; };
       overrides = [
         # Move this later, not hacky but should be in android configs specifically
         ({ config, lib, pkgs, ... }: {
