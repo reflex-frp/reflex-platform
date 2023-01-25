@@ -101,7 +101,20 @@ in
     pkg-set = crossSystems.aarch64-android-prebuilt.pkg-set;
   });
 
+  android-x86 = (import ./modules/android/default.nix {
+    inherit (pkgs) pkgs buildPackages;
+    acceptAndroidSdkLicenses = true;
+    pkg-set = crossSystems.x86_64-linux-android-prebuilt.pkg-set;
+  });
+
   app = android.buildApp {
+    package = p: p.reflex-todomvc.components.reflex-todomvc;
+    executableName = "reflex-todomvc";
+    applicationId = "org.reflexfrp.todomvc";
+    displayName = "Reflex TodoMVC";
+  };
+
+  x86-app = android-x86.buildApp {
     package = p: p.reflex-todomvc.components.reflex-todomvc;
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
@@ -114,7 +127,9 @@ in
     (a: v: import ./modules/cross-driver.nix {
       haskell-nix = ../haskell.nix;
       plan-pkgs = import (final.plan-nix);
-      inherit name compiler-nix-name;
+      inherit name;
+      #compiler-nix-name;
+      compiler-nix-name = if a == "ghcjs" then "ghc8107" else compiler-nix-name;
       src = mklibcabal src;
       inherit (hackage-driver) extra-hackage-tarballs extra-hackages;
       inherit (final) pkg-set;
@@ -127,7 +142,7 @@ in
           packages.${name} = {
             components.exes = lib.optionalAttrs (pkgs.stdenv.targetPlatform.isAndroid) {
               "lib${name}.so" = {
-                hardeningDisable = [ "pie" ];
+                #hardeningDisable = [ "pie" ];
                 ghcOptions = [
                   "-shared"
                   "-fPIC"
@@ -149,7 +164,6 @@ in
           };
         })
       ] ++ overrides ++ final.hackage-driver.package-overlays;
-      flags = [ ];
     })
     pkgs.pkgsCross;
 })
