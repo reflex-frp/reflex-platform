@@ -7,6 +7,21 @@ env: with env; let
     jdk = pkgs.jdk;
   };
 
+  addDeployScript = src: pkgs.runCommand "android-app" {
+      inherit src;
+      buildCommand = ''
+        mkdir -p "$out/bin"
+        cp -r "$src"/* "$out"
+        substitute ${./deploy.sh} $out/bin/deploy \
+          --subst-var-by coreutils ${pkgs.coreutils} \
+          --subst-var-by adb ${androidenv.androidPkgs_9_0.platform-tools} \
+          --subst-var-by java ${pkgs.openjdk11} \
+          --subst-var-by out $out
+        chmod +x "$out/bin/deploy"
+      '';
+      buildInputs = [ androidenv.androidPkgs_9_0.androidsdk ];
+    } "";
+
   unpackTars = name: pkgs.runCommandNoCC "unpack-tar" { } ''
     mkdir -p $out
     tar -zxf ${pkg-set.config.packages.${name}.src} --directory $out
@@ -16,7 +31,7 @@ env: with env; let
 in
 with pkgs.lib;
 {
-  buildApp = args: with args; buildGradleApp {
+  buildApp = args: with args; addDeployScript (buildGradleApp {
     inherit acceptAndroidSdkLicenses mavenDeps;
     buildDirectory = "./.";
     inherit gradleTask;
@@ -124,6 +139,6 @@ with pkgs.lib;
 
     # We use the NDK build process
     useNDK = true;
-  };
+  });
   inherit fixupCabal;
 }
