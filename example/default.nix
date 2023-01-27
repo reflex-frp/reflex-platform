@@ -10,16 +10,16 @@ import ../project.nix rec {
     exes.reflex-todomvc.extraSrcFiles = [ "style.css" ];
   };
   hackageOverlays = pkgs: [
-    { 
-      name = "android-activity"; 
-      version = "0.1.1"; 
-      src = pkgs.fetchFromGitHub {
-        owner = "obsidiansystems";
-        repo = "android-activity";
-        rev = "2bc40f6f907b27c66428284ee435b86cad38cff8";
-        sha256 = "sha256-AIpbe0JZX68lsQB9mpvR7xAIct/vwQAARVHAK0iChV4=";
-      };
-    }
+    #{
+    #  name = "android-activity";
+    #  version = "0.1.1";
+    #  src = pkgs.fetchFromGitHub {
+    #    owner = "obsidiansystems";
+    #    repo = "android-activity";
+    #    rev = "2bc40f6f907b27c66428284ee435b86cad38cff8";
+    #    sha256 = "sha256-AIpbe0JZX68lsQB9mpvR7xAIct/vwQAARVHAK0iChV4=";
+    #  };
+    #}
   ];
   overrides = [
     ({ config, pkgs, lib, ... }: {
@@ -31,7 +31,7 @@ import ../project.nix rec {
         cSources = [
           pkgs.androidndkPkgs_23b.libraries.headers
         ];
-	    configureFlags = [ 
+	    configureFlags = [
 	      "--extra-lib-dirs=${pkgs.androidndkPkgs_23b.libraries.headers}"
 	      "--extra-include-dirs=${pkgs.androidndkPkgs_23b.libraries.headers}"
 	    ];
