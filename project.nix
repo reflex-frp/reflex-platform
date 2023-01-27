@@ -12,48 +12,30 @@
 , dontSplice ? [ ] # Packages to not splice
 , dontHarden ? [ ] # Packages to not harden
 , hardeningOpts ? [ "-fPIC" "-pie" ]
+, patchNixpkgs ? false
+, remotePatches ? [ ]
+, nixpkgsOverlays ? (_: _: {})
 }:
 let
   # TODO:
   # - Remove this let box properly
   # - Allow for pkgs to be overriden
-
   # Logic to bootstrap packages that isn't our local checkout
   haskell-nix = import ./submodules/haskell.nix { };
-  pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs);
+  overlays = [ nixpkgsOverlays ] ++ haskell-nix.nixpkgsArgs.overlays;
+  pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs // { inherit overlays; });
 
   # Patch the packages with some commits external to our specific checkout
-  remotePatches = [
-    {
-      url = "https://github.com/obsidiansystems/nixpkgs/commit/d39ee6b7c45deb224d95f717bd1e6e2144e09dd9.diff";
-      sha256 = "sha256-stn4C43O5M0Qk80gj7YK/87qCDflnm/AwYcOXv5fErI=";
-    }
-    {
-      url = "https://github.com/obsidiansystems/nixpkgs/commit/4516c1a5bb5d11209324bd00239448528bd5fb6d.diff";
-      sha256 = "sha256-6GyCvZbuquVS++xR68e+jb4IiFPlIbbJb/kmc9uTers=";
-    }
-  ];
-
-  overlay = (self: super: super.lib.optionalAttrs (super.stdenv.targetPlatform.isAndroid) {
-    log = super.runCommandNoCC "log-fake" { } ''
-      mkdir -p $out
-      touch $out/dummy-log
-    '';
-
-    mkDerivation = drv: super.mkDerivation (drv // {
-      enableHardening = [ "pie" ];
-    });
-  });
-
-  # Actually patch our nixpkgs
-  patchedNixpkgs = pkgs-pre.applyPatches {
+  # this is optional, if people feel the need to use their own nixpkgs
+  patchedNixpkgs = (pkgs-pre.applyPatches {
     name = "patched-nixpkgs";
     src = ./submodules/nixpkgs;
     patches = map pkgs-pre.fetchpatch remotePatches;
-  };
+  });
+  patched-pkgs = import patchedNixpkgs (haskell-nix.nixpkgsArgs // { inherit overlays; config.android_sdk.accept_license = true; config.allowUnfree = true; } // nixpkgsArgs);
 
+  pkgs = if patchNixpkgs then patched-pkgs else pkgs-pre;
   # Our final packages with the patched commits
-  pkgs = import patchedNixpkgs (haskell-nix.nixpkgsArgs // { config.overlays = [ overlay ]; config.android_sdk.accept_license = true; config.allowUnfree = true; } // nixpkgsArgs);
 
   checkHackageOverlays = c: v: if (hackageOverlays pkgs) == [ ] then c else v;
 
