@@ -55,6 +55,10 @@ let
   # Our final packages with the patched commits
   pkgs = import patchedNixpkgs (haskell-nix.nixpkgsArgs // { config.overlays = [ overlay ]; config.android_sdk.accept_license = true; config.allowUnfree = true; } // nixpkgsArgs);
 
+  checkHackageOverlays = c: v: if (hackageOverlays pkgs) == [ ] then c else v;
+
+  # Modify ${pkg-name} to lib${pkg-name}.so
+  # ex (reflex-todomvc -> libreflex-todomvc.so)
   mklibcabal = pkgsrc: pkgs.runCommandNoCC "modify-src" { } ''
     set -eux
     mkdir -p $out
@@ -65,13 +69,15 @@ let
 in
 (pkgs.haskell-nix.project' ({
   inherit name compiler-nix-name;
-  crossPlatforms = p: [ p.aarch64-android ];
+  # cleanGit not needed too much, since we strip the git in
+  # mklibcabal
   src = pkgs.haskell-nix.haskellLib.cleanGit {
     inherit name;
     src = mklibcabal src;
   };
   modules = [
     { packages."${name}".components = extraSrcFiles; }
+    # Setup the saving part of splices unconditionally
     ({ config, lib, ... }: {
       config.preBuild = ''
         echo "!!! Save Splices $out/lib/haskell.nix/$pname"
@@ -81,8 +87,12 @@ in
   ] ++ overrides;
 })).extend (final: prev: rec {
 
+  # Null out haskell.nix's default cross setup, since it doesn't work
+  # properly
+  projectCross = builtins.abort "Haskell.nix projectCross isn't supported!";
+
   # This constructs a "fake" hackage to pull different packages from
-  # this is used in case that something on proper hackage doesn't have 
+  # this is used in case that something on proper hackage doesn't have
   # the version bounds for packages that we need to properly solve
   # the current project
 
@@ -93,7 +103,7 @@ in
   #  extra-hackage-tarballs - generated tarballs to be passed to the cabal solver
   #  extra-hackages - alias to (import generatedHackage) - use this in the project'
   hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs-pre; modules = hackageOverlays; };
- 
+
   android = (import ./modules/android/default.nix {
     inherit (pkgs) pkgs buildPackages;
     acceptAndroidSdkLicenses = true;
@@ -107,8 +117,16 @@ in
     pkg-set = crossSystems.x86_64-linux-android-prebuilt.pkg-set;
   });
 
+  shells = {
+    ghc = prev.shell;
+    ghcjs = crossSystems.ghcjs.shell;
+  };
+
+  # The android app builder currently assumes you just pass the base name of the package
+  # to the builder, and we convert it to "lib${name}.so" in there
   app = android.buildApp {
-    package = p: p.reflex-todomvc.components.reflex-todomvc;
+    # Package is currently just filler
+    package = p: p.${name}.components.${name};
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
@@ -121,28 +139,60 @@ in
     displayName = "Reflex TodoMVC";
   };
 
+  # Easy way to get to the ghcjs app
+  ghcjs-app = crossSystems.ghcjs.pkg-set.config.hsPkgs."${name}".components.exes."${name}";
+
   # Usage of cross-driver sets up all of the various splices cruft to
   # make an easy way to setup cross-compiling with splices
   crossSystems = builtins.mapAttrs
-    (a: v: import ./modules/cross-driver.nix {
-      haskell-nix = ../haskell.nix;
-      plan-pkgs = import (final.plan-nix);
+  (a: v: let
+    isGhcjs = v.targetPlatform.isGhcjs;
+    isMobile = v.targetPlatform.isAndroid || v.targetPlatform.isiOS;
+  in import ./modules/cross-driver.nix {
+      # Project name
       inherit name;
-      #compiler-nix-name;
-      compiler-nix-name = if a == "ghcjs" then "ghc8107" else compiler-nix-name;
-      src = mklibcabal src;
-      inherit (hackage-driver) extra-hackage-tarballs extra-hackages;
+
+      # Haskell.nix derives is ghcjs off of the compiler-nix-name
+      # so ghc8107Splices won't cut it here
+      compiler-nix-name = if isGhcjs then "ghc8107" else compiler-nix-name;
+
+      # We don't want to rename our packages on ghcjs since we currently don't use
+      # the GHCJS splices patch
+      # also user-defined project src
+      src = if !isMobile then src else mklibcabal src;
+
+      # Make sure to inherit the proper overrides from the hackage-driver
+      # Reference ./modules/hackage-driver.nix for more details
+
+      extra-hackage-tarballs = checkHackageOverlays { } hackage-driver.extra-hackage-tarballs;
+      extra-hackages = checkHackageOverlays [ ] hackage-driver.extra-hackages;
       inherit (final) pkg-set;
+
+      # CrossPkgs is the attrset of the current crossSystem in the mapAttrs
       crossPkgs = v;
-      splice-driver = import ./modules/splice-driver.nix { dontSplice = [ "fgl" "Cabal" "android-activity" ] ++ dontSplice; };
-      hardening-driver = import ./modules/hardening-driver.nix { dontHarden = [ "happy" "binary" "${name}" ] ++ dontHarden; hardeningOpts = hardeningOpts; };
+
+      # Driver to automatically setup splices
+      # Reference ./modules/splice-driver.nix for more details
+      splice-driver = import ./modules/splice-driver.nix {
+        dontSplice = [ "fgl" "Cabal" "android-activity" ] ++ dontSplice;
+      };
+
+      # Driver to auto-apply hardening options
+      # Reference ./modules/hardening-driver.nix for more details
+      hardening-driver = import ./modules/hardening-driver.nix {
+        dontHarden = [ "happy" "binary" "${name}" ] ++ dontHarden;
+        hardeningOpts = hardeningOpts;
+      };
       overrides = [
-        # Move this later, not hacky but should be in android configs specifically
+        # Easier override for users to set extra files from the package src to be included in build
+        { packages.${name}.components = extraSrcFiles; }
+
+        # Move this later, not hacky but should be in android configs specifically, due to some linker args
+        # and how we combine this with gradle
         ({ config, lib, pkgs, ... }: {
           packages.${name} = {
             components.exes = lib.optionalAttrs (pkgs.stdenv.targetPlatform.isAndroid) {
               "lib${name}.so" = {
-                #hardeningDisable = [ "pie" ];
                 ghcOptions = [
                   "-shared"
                   "-fPIC"
