@@ -34,22 +34,9 @@ import ../project.nix rec {
   ];
   overrides = [
     ({ config, pkgs, lib, ... }: {
-      packages.android-activity.components.library = lib.optionalAttrs (pkgs.stdenv.targetPlatform.isAndroid) {
-        depends = [
-	      pkgs.buildPackages.buildPackages.jdk
-	      pkgs.androidndkPkgs_23b.libraries.headers
-        ];
-        cSources = [
-          pkgs.androidndkPkgs_23b.libraries.headers
-        ];
-	    configureFlags = [
-	      "--extra-lib-dirs=${pkgs.androidndkPkgs_23b.libraries.headers}"
-	      "--extra-include-dirs=${pkgs.androidndkPkgs_23b.libraries.headers}"
-	    ];
-      };
       packages.reflex-dom = {
 	    flags = {
-	      webkit2gtk = lib.mkForce false;
+	      webkit2gtk = if (pkgs.stdenv.targetPlatform.isAndroid) then lib.mkForce false else true;
 	    };
       };
       packages.jsaddle-wkwebview.components.library = {

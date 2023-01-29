@@ -20,6 +20,8 @@ builtins.concatMap
       (cname: builtins.concatMap
         (subname:
           if cname == "library" then
+            # We check for library here, and pass aname cname cname instead of
+            # aname cname subname because library doesn't have any sub-components
             [{ packages.${aname}.components.${cname}.preBuild = string aname cname cname; }]
           else
             [{ packages.${aname}.components.${cname}.${subname}.preBuild = string aname cname subname; }]

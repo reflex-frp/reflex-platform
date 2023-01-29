@@ -21,8 +21,14 @@ let
   # - Remove this let box properly
   # - Allow for pkgs to be overriden
   # Logic to bootstrap packages that isn't our local checkout
+  android-overlay = self: super: (super.lib.optionalAttrs super.stdenv.targetPlatform.isAndroid) {
+    log = self.runCommandNoCC "log-headers" { } ''
+      mkdir -p $out/include/android
+      cp ${self.androidndkPkgs_23b.libraries.headers}/android/log.h $out/include/android/log.h
+    ''; # Stub for the android "log.h" library
+  };
   haskell-nix = import ./submodules/haskell.nix { };
-  overlays = [ nixpkgsOverlays ] ++ haskell-nix.nixpkgsArgs.overlays;
+  overlays = [ nixpkgsOverlays android-overlay ] ++ haskell-nix.nixpkgsArgs.overlays;
   pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs // { inherit overlays; });
 
   # Patch the packages with some commits external to our specific checkout
@@ -156,13 +162,13 @@ in
       # Driver to automatically setup splices
       # Reference ./modules/splice-driver.nix for more details
       splice-driver = import ./modules/splice-driver.nix {
-        dontSplice = [ "fgl" "Cabal" "android-activity" ] ++ dontSplice;
+        dontSplice = [ "fgl" "Cabal" "android-activity" ] ++ dontSplice; # Packages to not load splices for
       };
 
       # Driver to auto-apply hardening options
       # Reference ./modules/hardening-driver.nix for more details
       hardening-driver = import ./modules/hardening-driver.nix {
-        dontHarden = [ "happy" "binary" "${name}" ] ++ dontHarden;
+        dontHarden = [ "happy" "binary" "${name}" ] ++ dontHarden; # Packages to not apply hardening to
         hardeningOpts = hardeningOpts;
       };
       overrides = [
@@ -186,7 +192,6 @@ in
                   "-llog"
                 ];
                 configureFlags = [
-                  "--extra-lib-dirs=${pkgs.androidndkPkgs_23b.libraries}"
                   "--ld-options=-shared"
                   "--ld-options=-no-pie"
                   "--ld-options=-Wl,--gc-sections,--version-script=${./exts/android/haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main"
