@@ -44,24 +44,13 @@ let
   # Our final packages with the patched commits
 
   checkHackageOverlays = c: v: if (hackageOverlays pkgs) == [ ] then c else v;
-
-  # Modify ${pkg-name} to lib${pkg-name}.so
-  # ex (reflex-todomvc -> libreflex-todomvc.so)
-  mklibcabal = pkgsrc: pkgs.runCommandNoCC "modify-src" { } ''
-    set -eux
-    mkdir -p $out
-    cp -r ${pkgsrc}/* $out
-    ls -la $out
-    sed -i 's%^executable *\(.*\)$%executable lib\1.so%i' $out/*.cabal
-  '';
 in
 (pkgs.haskell-nix.project' ({
   inherit name compiler-nix-name;
   # cleanGit not needed too much, since we strip the git in
   # mklibcabal
   src = pkgs.haskell-nix.haskellLib.cleanGit {
-    inherit name;
-    src = mklibcabal src;
+    inherit name src;
   };
   modules = [
     { packages."${name}".components = extraSrcFiles; }
@@ -135,19 +124,13 @@ in
   crossSystems = builtins.mapAttrs
   (a: v: let
     isGhcjs = v.targetPlatform.isGhcjs;
-    isMobile = v.targetPlatform.isAndroid || v.targetPlatform.isiOS;
   in import ./modules/cross-driver.nix {
-      # Project name
-      inherit name;
+      # Project name and source
+      inherit name src;
 
       # Haskell.nix derives is ghcjs off of the compiler-nix-name
       # so ghc8107Splices won't cut it here
       compiler-nix-name = if isGhcjs then "ghc8107" else compiler-nix-name;
-
-      # We don't want to rename our packages on ghcjs since we currently don't use
-      # the GHCJS splices patch
-      # also user-defined project src
-      src = if !isMobile then src else mklibcabal src;
 
       # Make sure to inherit the proper overrides from the hackage-driver
       # Reference ./modules/hackage-driver.nix for more details
@@ -180,7 +163,7 @@ in
         ({ config, lib, pkgs, ... }: {
           packages.${name} = {
             components.exes = lib.optionalAttrs (pkgs.stdenv.targetPlatform.isAndroid) {
-              "lib${name}.so" = {
+              "${name}" = {
                 ghcOptions = [
                   "-shared"
                   "-fPIC"

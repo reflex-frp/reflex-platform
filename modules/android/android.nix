@@ -47,7 +47,7 @@ with pkgs.lib;
         # splitApplicationId = splitString "." applicationId;
         appSOs = {
           "arm64-v8a" = {
-            hsApp = pkg-set.config.hsPkgs.${executableName}.components.exes."lib${executableName}.so";
+            hsApp = pkg-set.config.hsPkgs.${executableName}.components.exes."${executableName}";
             sharedLibs = (runtimeSharedLibs pkgs) ++ [ "${pkgs.pkgsCross.aarch64-android-prebuilt.gmp}/lib/libgmp.so"  "${pkgs.pkgsCross.aarch64-android-prebuilt.libffi}/lib/libffi.so" ];
           };
         };
@@ -118,7 +118,7 @@ with pkgs.lib;
                 ARCH_LIB=$out/lib/${arch}
                 mkdir -p $ARCH_LIB
 
-                local exe="${hsApp}/bin/lib${executableName}.so"
+                local exe="${hsApp}/bin/${executableName}"
                 if [ ! -f "$exe" ] ; then
                   >&2 echo 'Error: executable "${executableName}" not found'
                   exit 1
