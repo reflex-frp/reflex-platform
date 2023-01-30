@@ -6,6 +6,8 @@
 , extraSrcFiles ? [ ] # ExtraSrcFiles to include in the project builds
 , setupCross ? true # Setup cross-compiling
 , hackageOverlays ? [ ] # Overlays for hackage, to pass to the cabal solver
+, hackage-extra-tarballs ? { }
+, extra-hackages ? [ ]
 , allowUnfree ? false # Allow Unfree
 , android_sdk_accept_license ? false # Accept android sdk license terms
 , nixpkgsArgs ? { } # Extra nixpkgs arguments
@@ -15,6 +17,7 @@
 , patchNixpkgs ? false
 , remotePatches ? [ ]
 , nixpkgsOverlays ? (_: _: {})
+, inputMap ? { }
 }:
 let
   # TODO:
@@ -31,6 +34,8 @@ let
   overlays = [ nixpkgsOverlays android-overlay ] ++ haskell-nix.nixpkgsArgs.overlays;
   pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs // { inherit overlays; });
 
+  obelisk = import ./modules/obelisk.nix { inherit pkgs-pre; };
+
   # Patch the packages with some commits external to our specific checkout
   # this is optional, if people feel the need to use their own nixpkgs
   patchedNixpkgs = (pkgs-pre.applyPatches {
@@ -43,12 +48,18 @@ let
   pkgs = if patchNixpkgs then patched-pkgs else pkgs-pre;
   # Our final packages with the patched commits
 
+  hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs-pre; modules = (hackageOverlays ++ obelisk); };
+
   checkHackageOverlays = c: v: if (hackageOverlays pkgs) == [ ] then c else v;
 in
 (pkgs.haskell-nix.project' ({
   inherit name compiler-nix-name;
   # cleanGit not needed too much, since we strip the git in
   # mklibcabal
+  inherit inputMap;
+  extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
+  extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
+
   src = pkgs.haskell-nix.haskellLib.cleanGit {
     inherit name src;
   };
