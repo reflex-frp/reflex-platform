@@ -6,4 +6,4 @@
 	url = https://github.com/reflex-frp/reflex-todomvc.git
 [submodule "submodules/haskell.nix"]
 	path = submodules/haskell.nix
-	url = https://github.com/obsidiansystems/haskell.nix.git
+	url = git@github.com:obsidiansystems/haskell.nix.git
