@@ -24,15 +24,13 @@ let
   # - Remove this let box properly
   # - Allow for pkgs to be overriden
   # Logic to bootstrap packages that isn't our local checkout
-  android-overlay = self: super: (super.lib.optionalAttrs super.stdenv.targetPlatform.isAndroid) {
-    log = self.runCommandNoCC "log-headers" { } ''
-      mkdir -p $out/include/android
-      cp ${self.androidndkPkgs_23b.libraries.headers}/android/log.h $out/include/android/log.h
-    ''; # Stub for the android "log.h" library
+  nix-thunk = import ./dep/nix-thunk { };
+  our-overlays = import ./modules/overlays/default.nix {
+    inherit nix-thunk;
   };
   haskell-nix = import ./dep/haskell.nix { };
-  overlays = [ nixpkgsOverlays android-overlay ] ++ haskell-nix.nixpkgsArgs.overlays;
-  pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs // { inherit overlays; });
+  overlays = (haskell-nix.nixpkgsArgs.overlays ++ [ our-overlays.combined nixpkgsOverlays ]);
+  pkgs-pre = import haskell-nix.sources.nixpkgs-unstable ({ inherit (haskell-nix.nixpkgsArgs) config; inherit overlays; });
 
   obelisk = import ./modules/obelisk.nix;
 
@@ -74,7 +72,6 @@ in
     })
   ] ++ overrides;
 })).extend (final: prev: rec {
-
   # Null out haskell.nix's default cross setup, since it doesn't work
   # properly
   projectCross = builtins.abort "Haskell.nix projectCross isn't supported!";
@@ -133,15 +130,13 @@ in
   # Usage of cross-driver sets up all of the various splices cruft to
   # make an easy way to setup cross-compiling with splices
   crossSystems = builtins.mapAttrs
-  (a: v: let
-    isGhcjs = v.targetPlatform.isGhcjs;
-  in import ./modules/cross-driver.nix {
+  (a: v: import ./modules/cross-driver.nix {
       # Project name and source
       inherit name src;
 
       # Haskell.nix derives is ghcjs off of the compiler-nix-name
       # so ghc8107Splices won't cut it here
-      compiler-nix-name = if isGhcjs then "ghc8107" else compiler-nix-name;
+      inherit compiler-nix-name;
 
       # Make sure to inherit the proper overrides from the hackage-driver
       # Reference ./modules/hackage-driver.nix for more details
