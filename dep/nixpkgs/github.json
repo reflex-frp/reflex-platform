@@ -1,6 +1,7 @@
 {
   "owner": "cidkidnix",
   "repo": "nixpkgs",
+  "branch": "android-fixes",
   "private": false,
   "rev": "6e62fbf4d2a1354bd2e5d74daa3bebd9988ebcdd",
   "sha256": "1c6p0vlfszxjgc2pwl4p0fz6vxf12pgk8psggpz2frcfb27km99d"
