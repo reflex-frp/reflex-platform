@@ -1,6 +1,6 @@
 # Example usage of this project
 let
-  nix-thunk = import ../submodules/nix-thunk { };
+  nix-thunk = import ../dep/nix-thunk { };
 in
 import ../project.nix rec {
   name = "reflex-todomvc";
@@ -15,7 +15,7 @@ import ../project.nix rec {
       sha256 = "sha256-6GyCvZbuquVS++xR68e+jb4IiFPlIbbJb/kmc9uTers=";
     }
   ];
-  src = nix-thunk.thunkSource ../submodules/reflex-todomvc;
+  src = nix-thunk.thunkSource ../dep/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
   android_sdk_accept_license = true;
   allowUnfree = true;

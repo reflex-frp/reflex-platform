@@ -30,7 +30,7 @@ let
       cp ${self.androidndkPkgs_23b.libraries.headers}/android/log.h $out/include/android/log.h
     ''; # Stub for the android "log.h" library
   };
-  haskell-nix = import ./submodules/haskell.nix { };
+  haskell-nix = import ./dep/haskell.nix { };
   overlays = [ nixpkgsOverlays android-overlay ] ++ haskell-nix.nixpkgsArgs.overlays;
   pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs // { inherit overlays; });
 
@@ -40,7 +40,7 @@ let
   # this is optional, if people feel the need to use their own nixpkgs
   patchedNixpkgs = (pkgs-pre.applyPatches {
     name = "patched-nixpkgs";
-    src = (import ./submodules/nixpkgs {}).path;
+    src = (import ./dep/nixpkgs {}).path;
     patches = map pkgs-pre.fetchpatch remotePatches;
   });
   patched-pkgs = import patchedNixpkgs (haskell-nix.nixpkgsArgs // { inherit overlays; config.android_sdk.accept_license = true; config.allowUnfree = true; } // nixpkgsArgs);
