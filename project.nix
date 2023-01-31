@@ -34,13 +34,13 @@ let
   overlays = [ nixpkgsOverlays android-overlay ] ++ haskell-nix.nixpkgsArgs.overlays;
   pkgs-pre = import haskell-nix.sources.nixpkgs-unstable (haskell-nix.nixpkgsArgs // { inherit overlays; });
 
-  obelisk = import ./modules/obelisk.nix { inherit pkgs-pre; };
+  obelisk = import ./modules/obelisk.nix;
 
   # Patch the packages with some commits external to our specific checkout
   # this is optional, if people feel the need to use their own nixpkgs
   patchedNixpkgs = (pkgs-pre.applyPatches {
     name = "patched-nixpkgs";
-    src = ./submodules/nixpkgs;
+    src = (import ./submodules/nixpkgs {}).path;
     patches = map pkgs-pre.fetchpatch remotePatches;
   });
   patched-pkgs = import patchedNixpkgs (haskell-nix.nixpkgsArgs // { inherit overlays; config.android_sdk.accept_license = true; config.allowUnfree = true; } // nixpkgsArgs);
@@ -48,7 +48,7 @@ let
   pkgs = if patchNixpkgs then patched-pkgs else pkgs-pre;
   # Our final packages with the patched commits
 
-  hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs-pre; modules = (hackageOverlays ++ obelisk); };
+  hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs-pre; modules = pkgs: ((hackageOverlays pkgs) ++ (obelisk pkgs)); };
 
   checkHackageOverlays = c: v: if (hackageOverlays pkgs) == [ ] then c else v;
 in

@@ -11,7 +11,7 @@
 { pkgs, compiler-nix-name ? "ghc925",  modules ? [ ]  }: let
   packageDef = { name, version, src, signatures ? [ ], type ? "Targets", expires ? null }: {
     inherit signatures;
-    signed = { 
+    signed = {
       "_type" = type;
       inherit expires;
       targets = {
@@ -38,18 +38,18 @@
 
   writePackageDefs = defs: pkgs.runCommand "index.tar.gz" {
     outputs = [ "packagedef" "out" ];
-  } '' 
+  } ''
     ${builtins.concatStringsSep "\n" defs}
     cd $packagedef
     tar --sort=name --owner=root:0 --group=root:0 --mtime='UTC 2009-01-01' -hczvf $out */*/*
   '';
-  
+
   genHackageForNix = hackagetar: pkgs.runCommand "hackage-for-nix" { } ''
     cp ${hackagetar} 01-index.tar.gz
     ${pkgs.gzip}/bin/gunzip 01-index.tar.gz
     ${pkgs.haskell-nix.nix-tools.${compiler-nix-name}}/bin/hackage-to-nix $out 01-index.tar "https://hackagefornix/"
   '';
-  
+
   hackageOverlay = defs: rec {
     buildCommands = genBuildCommands (defs pkgs);
     generatedHackage = genHackageForNix extra-hackage-tarballs.overlay;
