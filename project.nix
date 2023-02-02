@@ -1,6 +1,7 @@
 # NOTE: Define the interface
 { name # Name of the current project
 , compiler-nix-name ? "ghc8107" # What compiler we should be using
+, ghcjs-compiler-nix-name ? "ghcjs8107"
 , src # Source of the current project
 , overrides ? [ ] # Overrides to packages
 , extraSrcFiles ? [ ] # ExtraSrcFiles to include in the project builds
@@ -41,7 +42,7 @@ let
     src = (import ./dep/nixpkgs {}).path;
     patches = map pkgs-pre.fetchpatch remotePatches;
   });
-  patched-pkgs = import patchedNixpkgs (haskell-nix.nixpkgsArgs // { inherit overlays; config.android_sdk.accept_license = true; config.allowUnfree = true; } // nixpkgsArgs);
+  patched-pkgs = import patchedNixpkgs ({ inherit (haskell-nix.nixpkgsArgs) config; inherit overlays; });
 
   pkgs = if patchNixpkgs then patched-pkgs else pkgs-pre;
   # Our final packages with the patched commits
@@ -136,7 +137,7 @@ in
 
       # Haskell.nix derives is ghcjs off of the compiler-nix-name
       # so ghc8107Splices won't cut it here
-      inherit compiler-nix-name;
+      compiler-nix-name = if a == "ghcjs" then ghcjs-compiler-nix-name else compiler-nix-name;
 
       # Make sure to inherit the proper overrides from the hackage-driver
       # Reference ./modules/hackage-driver.nix for more details

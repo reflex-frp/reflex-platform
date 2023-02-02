@@ -55,7 +55,7 @@ in crossPkgs.haskell-nix.project' {
     ]
     ++ lib.optionals (!stdenv.targetPlatform.isGhcjs) ([
         ({ config, lib, ... }: { packages.Cabal.patches = lib.mkForce [ ]; })
-      ]
+      ])
     # NOTE: Use the splice driver to setup the loading side of splices
     # refer to ./splice-driver.nix
     ++ (splice-driver {
@@ -70,5 +70,5 @@ in crossPkgs.haskell-nix.project' {
       '');
     }) ++ (hardening-driver {
       attrs = pkg-set.config.packages;
-    }));
+    });
 }

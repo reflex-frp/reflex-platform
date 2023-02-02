@@ -17,6 +17,7 @@ import ../project.nix rec {
   ];
   src = nix-thunk.thunkSource ../dep/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
+  ghcjs-compiler-nix-name = "ghcjs8107";
   android_sdk_accept_license = true;
   allowUnfree = true;
   extraSrcFiles = {

@@ -46,14 +46,14 @@
 in {
   obsidianCompilers = {
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
-      ghc8107Splices = let
-        buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107;
+      ghcjs8107 = let
+        buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107;
       in let booted-ghcjs = final.callPackage (haskell-nix + "/compiler/ghcjs/ghcjs.nix") {
           ghcjsSrcJson = (haskell-nix + "/compiler/ghcjs/ghcjs810-src.json");
           ghcjsVersion =  "8.10.7"; # Must match the version in the ghcjs.cabal file
           ghc = buildGHC;
           ghcVersion = "8.10.7";
-          compiler-nix-name = "ghc8107";
+          compiler-nix-name = "ghcjs8107";
       }; in let targetPrefix = "js-unknown-ghcjs-"; in final.runCommand "${targetPrefix}ghc-8.10.7" {
           nativeBuildInputs = [ final.xorg.lndir ];
             passthru = {
@@ -83,6 +83,7 @@ in {
             '' + installDeps targetPrefix);
     };
     ghc = {
+      ghcjs8107 = prev.haskell-nix.compiler.ghc8107;
       ghc8107Splices = final.callPackage (haskell-nix + "/compiler/ghc") {
         extra-passthru = {
           buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107;
@@ -102,6 +103,7 @@ in {
           sha256 = "179ws2q0dinl1a39wm9j37xzwm84zfz3c5543vz8v479khigdvp3";
         };
         ghc-patches = [
+          ((final.nix-thunk.thunkSource haskell-nix) + "/overlays/patches/ghc/Cabal-unbreak-GHCJS.patch")
           (final.fetchurl {
             url = "https://raw.githubusercontent.com/obsidiansystems/splices-load-save.nix/master/patches/ghc-8.10.7/splices.patch";
             sha256 = "sha256-pIMPDpBwL3tYPEbIgTfE1oNgL2KMLp7ovcp6E2KOIVY=";

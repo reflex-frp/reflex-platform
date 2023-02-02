@@ -8,6 +8,7 @@ in rec {
   overlays = {
     thunk = (final: prev: {
       inherit nix-thunk;
+      deps = nix-thunk.mapSubdirectories nix-thunk.thunkSource ../../dep;
     });
     compilers = import ./compilers.nix { inherit useFastWeak useTextJSString; };
     haskell-nix = import ./haskell.nix;
