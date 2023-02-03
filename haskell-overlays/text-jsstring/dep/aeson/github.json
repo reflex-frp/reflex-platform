@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "aeson",
-  "branch": "v1541-text-jsstring",
+  "branch": "v2.1.1.0-text-jsstring",
   "private": false,
-  "rev": "afa2d0b8a3c5bb9ea533929e4c77dd01e8f1fc27",
-  "sha256": "0nsmnc5npkig9mhpj0j7yqydp0nkqq370f2lqskgj5z16d4vc0vm"
+  "rev": "c718cd1150eb9de38a07ad64145be915bfb57e54",
+  "sha256": "13ccw0pqim9zmhsi26ka2a9421r42yba1ray4yds15xwsx5crv5k"
 }

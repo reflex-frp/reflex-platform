@@ -39,12 +39,12 @@ in
   ## Reflex family
   ##
 
-  reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
+  reflex = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
     (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
     reflexOptimizerFlag
     useTemplateHaskellFlag
     (lib.optional useFastWeak "-ffast-weak")
-  ])) {};
+  ])) {});
 
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
@@ -122,9 +122,11 @@ in
   ## GHCJS and JSaddle
   ##
 
-  jsaddle = self.callCabal2nix "jsaddle" (jsaddleSrc + "/jsaddle") {};
+  jsaddle = doJailbreak (self.callCabal2nix "jsaddle" (jsaddleSrc + "/jsaddle") {});
   jsaddle-clib = self.callCabal2nix "jsaddle-clib" (jsaddleSrc + "/jsaddle-clib") {};
-  jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + "/jsaddle-webkit2gtk") {};
+  jsaddle-webkit2gtk = overrideCabal (self.callCabal2nix "jsaddle-webkit2gtk" (jsaddleSrc + "/jsaddle-webkit2gtk") {}) (drv: {
+    preConfigure = "substituteInPlace jsaddle-webkit2gtk.cabal --replace 'aeson >=0.8.0.2 && <2.1' aeson";
+  });
   jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + "/jsaddle-webkitgtk") {};
   jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
     libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
@@ -137,7 +139,9 @@ in
   # another broken test
   # phantomjs has issues with finding the right port
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
-  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {});
+  jsaddle-warp = overrideCabal (dontCheck (self.callCabal2nix "jsaddle-warp" (jsaddleSrc + "/jsaddle-warp") {})) (derv: {
+    preConfigure = "substituteInPlace jsaddle-warp.cabal --replace 'aeson >=0.8.0.2 && <2.1' aeson";
+  });
 
   jsaddle-dom = self.callCabal2nix "jsaddle-dom" self._dep.jsaddle-dom {};
   jsaddle-wasm = self.callCabal2nix "jsaddle-wasm" (hackGet (wasmCross + "/jsaddle-wasm")) {};
@@ -168,7 +172,7 @@ in
   ##
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-  monoidal-containers = self.callHackage "monoidal-containers" "0.6.2.0" {};
+  monoidal-containers = doJailbreak (self.callHackage "monoidal-containers" "0.6.2.0" {});
   patch = self.callCabal2nix "patch" self._dep.patch {};
   commutative-semigroups = self.callCabal2nix "commutative-semigroups" self._dep.commutative-semigroups {};
   witherable = self.callHackage "witherable" "0.4.2" {};
