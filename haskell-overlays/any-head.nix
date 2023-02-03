@@ -29,8 +29,6 @@ self: super: {
   exceptions = haskellLib.doJailbreak super.exceptions;
   keycode = haskellLib.doJailbreak super.keycode;
 
-  aeson = super.aeson_1_4_0_0;
-
   tagged = self.callHackage "tagged" "0.8.6" {};
   contravariant = self.callHackage "contravariant" "1.5" {};
 
