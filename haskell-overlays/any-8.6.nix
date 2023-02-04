@@ -5,7 +5,6 @@ self: super: {
   haddock-library-ghcjs = dontCheck super.haddock-library-ghcjs;
   haddock-api-ghcjs = dontCheck super.haddock-api-ghcjs;
   ghc-lib-parser = self.callHackage "ghc-lib-parser" "8.10.2.20200808" {};
-  hlint = self.callHackage "hlint" "3.2.8" {};
   http-date = dontCheck super.http-date;
   resolv = haskellLib.doJailbreak (super.resolv.override {
     base16-bytestring = super.base16-bytestring_0_1_1_7;
