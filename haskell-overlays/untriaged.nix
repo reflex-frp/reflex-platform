@@ -85,5 +85,6 @@ self: super: {
   yaml = self.callHackage "yaml" "0.11.7.0" {};
   websockets = self.callHackage "websockets" "0.12.7.3" {};
   http2 = self.callHackage "http2" "3.0.3" {};
+  HsYAML-aeson = self.callHackage "HsYAML-aeson" "0.2.0.1" {};
 
 }
