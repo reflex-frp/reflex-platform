@@ -57,6 +57,9 @@ self: super: {
 
   utf8-string = self.callHackage "utf8-string" "1.0.1.1" {};
 
+  ghcjs-base = doJailbreak (self.callHackage "ghcjs-base" "0.2.1.0" {});
+  hlint = self.callHackage "hlint" "3.2.8" {};
+
   # aeson 2 support
   # jailbreak to allow older primitive version
   aeson = doJailbreak (self.callHackage "aeson" "2.1.1.0" {});
