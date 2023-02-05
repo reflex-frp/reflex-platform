@@ -129,6 +129,7 @@ in
   });
   jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" (jsaddleSrc + "/jsaddle-webkitgtk") {};
   jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" (jsaddleSrc + "/jsaddle-wkwebview") {}) (drv: {
+    preConfigure = "substituteInPlace jsaddle-webkit2gtk.cabal --replace 'aeson >=0.8.0.2 && <2.1' aeson";
     libraryFrameworkDepends = (drv.libraryFrameworkDepends or []) ++
       (if nixpkgs.stdenv.hostPlatform.useiOSPrebuilt then [
          "${nixpkgs.buildPackages.darwin.xcode}/Contents/Developer/Platforms/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.platform/Developer/SDKs/${nixpkgs.stdenv.hostPlatform.xcodePlatform}.sdk/System"
