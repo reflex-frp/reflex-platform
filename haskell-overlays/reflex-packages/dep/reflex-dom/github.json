@@ -1,8 +1,8 @@
 {
-  "owner": "reflex-frp",
+  "owner": "luigy",
   "repo": "reflex-dom",
-  "branch": "aa/version-bounds",
+  "branch": "ll/relax-bounds",
   "private": false,
-  "rev": "567015558bbe9538890a3655e23b57e5759f12a3",
-  "sha256": "0wxd9k46zggn3hpxcvk65pila8yhslj5r7ahgxr7smf6lrrr5pz6"
+  "rev": "8d7ac07c0dee6de3e8be1faae983cd657ccb04e7",
+  "sha256": "1hwsgp9iggh1qaw69i4q0pv7xbnh6i1jg3gjhd5gsncd69hn8lda"
 }

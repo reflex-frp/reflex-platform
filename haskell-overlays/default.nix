@@ -48,11 +48,6 @@ rec {
     profiling
     untriaged
 
-    # Careful when you touch this, anything modifying ghcjs-base is incredibly fragile
-    (optionalExtension (super.ghc.version == "8.10.7") (self: super: rec {
-      ghcjs-base = self.callHackage "ghcjs-base" "0.2.1.0" { };
-    }))
-
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
 
     # Force "gold" on Android due to a linker bug on bfd
@@ -112,6 +107,10 @@ rec {
     super;
 
   combined-ghc = self: super: foldExtensions [
+    (self: super: {
+      hoogle = self.callHackage "hoogle" "5.0.18.3" {};
+      hpack = self.callHackage "hpack" "0.34.5" {};
+    })
     (optionalExtension (versionWildcard [ 8 6 ] super.ghc.version) ghc-8_6)
     (optionalExtension (lib.versionOlder "8.11" super.ghc.version) ghc-head)
   ]
