@@ -18,7 +18,7 @@ self: super: {
 
   # These take over an hour to run, each
   cryptonite = dontCheck super.cryptonite;
-  scientific = haskellLib.dontCheck (self.callHackage "scientific" "0.3.7.0" {});
+  scientific = dontCheck (self.callHackage "scientific" "0.3.7.0" {});
 
   # pandoc 2.16 and dependencies
   pandoc = self.callHackage "pandoc" "2.16.2" {};

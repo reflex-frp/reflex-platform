@@ -39,12 +39,12 @@ in
   ## Reflex family
   ##
 
-  reflex = nixpkgs.haskell.lib.doJailbreak (self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
+  reflex = self.callCabal2nixWithOptions "reflex" self._dep.reflex (lib.concatStringsSep " " (lib.concatLists [
     (lib.optional enableTraceReflexEvents "-fdebug-trace-events")
     reflexOptimizerFlag
     useTemplateHaskellFlag
     (lib.optional useFastWeak "-ffast-weak")
-  ])) {});
+  ])) {};
 
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
@@ -173,7 +173,7 @@ in
   ##
 
   haskell-gi-overloading = dontHaddock (self.callHackage "haskell-gi-overloading" "0.0" {});
-  monoidal-containers = doJailbreak (self.callHackage "monoidal-containers" "0.6.2.0" {});
+  monoidal-containers = self.callHackage "monoidal-containers" "0.6.3.0" {};
   patch = self.callCabal2nix "patch" self._dep.patch {};
   commutative-semigroups = self.callCabal2nix "commutative-semigroups" self._dep.commutative-semigroups {};
   witherable = self.callHackage "witherable" "0.4.2" {};
