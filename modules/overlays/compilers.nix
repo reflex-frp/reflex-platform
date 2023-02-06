@@ -70,7 +70,26 @@ in {
   obsidianCompilers = {
     jsstring-overrides = [
       { packages.jsaddle.src = (final.nix-thunk.thunkSource ../../dep/jsaddle) + "/jsaddle"; }
-      { packages.attoparsec.src = final.nix-thunk.thunkSource ../../dep/attoparsec; }
+      ({ pkgs, config, lib, ... }: {
+        packages.hashable.patches = [ ../patches/hashable/hashable.patch ];
+        packages.aeson = {
+          src = final.nix-thunk.thunkSource ../../dep/aeson;
+          components.library.ghcOptions = [
+            "-package ghcjs-base"
+            "-package transformers"
+          ];
+        };
+      })
+      ({ pkgs, config, lib, ... }: {
+        packages.attoparsec = {
+          src = final.nix-thunk.thunkSource ../../dep/attoparsec;
+          components.sublibs.attoparsec-internal = {
+            ghcOptions = [
+              "-package ghcjs-base-0.2.0.3"
+            ];
+          };
+        };
+      })
     ];
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
       ghcjs8107 = let
@@ -114,6 +133,7 @@ in {
               url = "https://github.com/reflex-frp/reflex-platform/raw/develop/haskell-overlays/ghcjs-8.10-fast-weak/fast-weak.patch";
               sha256 = "sha256-ldHC96D/bJxlXmfar/apPj3QZ4P1tnSVNY5ELFvXH/I=";
             })
+            ../patches/ghcjs/revert.patch
           ];
         });
       in let targetPrefix = "js-unknown-ghcjs-"; in final.runCommand "${targetPrefix}ghc-8.10.7" {
