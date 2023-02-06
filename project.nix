@@ -52,16 +52,14 @@ let
   checkHackageOverlays = c: v: if (hackageOverlays pkgs) == [ ] then c else v;
 in
 (pkgs.haskell-nix.project' ({
-  inherit name compiler-nix-name;
-  # cleanGit not needed too much, since we strip the git in
-  # mklibcabal
-  inherit inputMap;
+  inherit name compiler-nix-name inputMap;
   extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
   extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
 
   src = pkgs.haskell-nix.haskellLib.cleanGit {
     inherit name src;
   };
+
   modules = [
     { packages."${name}".components = extraSrcFiles; }
     # Setup the saving part of splices unconditionally
@@ -130,8 +128,7 @@ in
 
   # Usage of cross-driver sets up all of the various splices cruft to
   # make an easy way to setup cross-compiling with splices
-  crossSystems = builtins.mapAttrs
-  (a: v: import ./modules/cross-driver.nix {
+  crossSystems = builtins.mapAttrs (a: v: import ./modules/cross-driver.nix {
       # Project name and source
       inherit name src;
 
@@ -141,7 +138,6 @@ in
 
       # Make sure to inherit the proper overrides from the hackage-driver
       # Reference ./modules/hackage-driver.nix for more details
-
       extra-hackage-tarballs = checkHackageOverlays { } hackage-driver.extra-hackage-tarballs;
       extra-hackages = checkHackageOverlays [ ] hackage-driver.extra-hackages;
       inherit (final) pkg-set;
