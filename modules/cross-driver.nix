@@ -47,15 +47,27 @@ in crossPkgs.haskell-nix.project' {
 
     # Disable some stuff to make ghcjs properly function
     # since haskell.nix enables too strict of rules by default
-    ++ lib.optionals (stdenv.targetPlatform.isGhcjs) [
+    ++ lib.optionals (stdenv.targetPlatform.isGhcjs) ([
       {
         config.doExactConfig = lib.mkForce false;
         config.reinstallableLibGhc = lib.mkForce false;
+        # We add modified packages to the compiler so we have to add them here
+        config.nonReinstallablePkgs = lib.mkForce [
+          "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base" "deepseq"
+          "array" "ghc-boot-th" "pretty" "template-haskell" "ghcjs-prim" "ghcjs-th" "ghc-boot"
+          "ghc" "Win32" "array" "binary" "bytestring" "containers" "directory" "filepath" "ghc-boot"
+          "ghc-compact" "ghc-prim" "hpc" "mtl" "parsec" "process" "text" "time" "transformers"
+          "unix" "xhtml" "terminfo"
+          # Our stuff
+          "ghcjs-base" "primitive" "dlist" "vector"
+        ];
       }
-    ]
+    ] ++ crossPkgs.obsidianCompilers.jsstring-overrides)
+
+    # Do this if were not on ghcjs
     ++ lib.optionals (!stdenv.targetPlatform.isGhcjs) ([
         ({ config, lib, ... }: { packages.Cabal.patches = lib.mkForce [ ]; })
-      ])
+      ]
     # NOTE: Use the splice driver to setup the loading side of splices
     # refer to ./splice-driver.nix
     ++ (splice-driver {
@@ -70,5 +82,5 @@ in crossPkgs.haskell-nix.project' {
       '');
     }) ++ (hardening-driver {
       attrs = pkg-set.config.packages;
-    });
+    }));
 }

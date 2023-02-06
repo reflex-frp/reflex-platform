@@ -68,6 +68,10 @@ in {
   };
 
   obsidianCompilers = {
+    jsstring-overrides = [
+      { packages.jsaddle.src = (final.nix-thunk.thunkSource ../../dep/jsaddle) + "/jsaddle"; }
+      { packages.attoparsec.src = final.nix-thunk.thunkSource ../../dep/attoparsec; }
+    ];
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
       ghcjs8107 = let
         buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107;
@@ -104,7 +108,7 @@ in {
               sed -i 's/    - mtl/    - mtl\n    - dlist\n    - primitive\n    - vector\n    - ghcjs-base/' lib/boot/boot.yaml
               cat lib/boot/boot.yaml
             )
-          '';
+            '';
           patches = [
             (final.fetchurl {
               url = "https://github.com/reflex-frp/reflex-platform/raw/develop/haskell-overlays/ghcjs-8.10-fast-weak/fast-weak.patch";
