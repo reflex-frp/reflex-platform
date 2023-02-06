@@ -19,6 +19,12 @@
   # Should probably be an inherit list with a mapping from (isiOS -> isIos)
   filterStdenv = attrs: builtins.listToAttrs (builtins.concatMap (a: if crossPkgs.lib.hasPrefix "is" a then [{ name = if a == "isiOS" then "isIos" else a; value = attrs.${a}; }] else []) (builtins.attrNames attrs));
   inherit (crossPkgs) lib stdenv;
+
+  # NOTE: We Double Eval here (base-pkg-set -> cross-pkg-set)
+  # this is due to some weird interactions with the cabal solver depending on the
+  # cross target that you're targeting
+  # TODO: Take a close look into this and figure out what is getting jumbled between
+  # the transition
 in crossPkgs.haskell-nix.project' {
   inherit name compiler-nix-name;
   # NOTE: The way that haskell.nix resolves the ghcjs compiler is super weird, so default to ghc(js)8107 on any platform
