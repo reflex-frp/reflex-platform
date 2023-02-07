@@ -53,7 +53,7 @@
   hackageOverlay = defs: rec {
     buildCommands = genBuildCommands (defs pkgs);
     generatedHackage = genHackageForNix extra-hackage-tarballs.overlay;
-    package-overlays = map (a: { packages.${a.name}.src = a.src; }) (defs pkgs);
+    package-overlays = map (a: { packages.${a.name}.src = a.src; }) (defs);
     extra-hackage-tarballs = {
       overlay = (writePackageDefs buildCommands).out;
     };

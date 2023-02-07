@@ -1,5 +1,4 @@
 { useTextJSString ? false, useFastWeak ? true }: final: prev: let
- haskell-nix = final.nix-thunk.thunkSource ../../dep/haskell.nix;
  installDeps = targetPrefix:
       ''
       $out/bin/${targetPrefix}ghc-pkg --version
@@ -44,7 +43,7 @@
     };
     sphinx = with final.buildPackages; (python3Packages.sphinx_1_7_9 or python3Packages.sphinx);
 in {
-  _dep = prev._dep or {} // rec {
+  _dep = (prev._dep or {}) // rec {
     textSrc = final.fetchgit {
       url = "https://github.com/dfordivam/text.git";
       rev = "126174753ea8e5f45df8fcbba609e3f1c453bf27";
@@ -69,11 +68,11 @@ in {
 
   obsidianCompilers = {
     jsstring-overrides = [
-      { packages.jsaddle.src = (final.nix-thunk.thunkSource ../../dep/jsaddle) + "/jsaddle"; }
+      { packages.jsaddle.src = (final._dep.source.jsaddle) + "/jsaddle"; }
       ({ pkgs, config, lib, ... }: {
         packages.hashable.patches = [ ../patches/hashable/hashable.patch ];
         packages.aeson = {
-          src = final.nix-thunk.thunkSource ../../dep/aeson;
+          src = final._dep.source.aeson;
           components.library.ghcOptions = [
             "-package ghcjs-base"
             "-package transformers"
@@ -82,7 +81,7 @@ in {
       })
       ({ pkgs, config, lib, ... }: {
         packages.attoparsec = {
-          src = final.nix-thunk.thunkSource ../../dep/attoparsec;
+          src = final._dep.source.aeson;
           components.sublibs.attoparsec-internal = {
             ghcOptions = [
               "-package ghcjs-base-0.2.0.3"
@@ -94,8 +93,8 @@ in {
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
       ghcjs8107 = let
         buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107;
-      in let booted-ghcjs = (final.callPackage (haskell-nix + "/compiler/ghcjs/ghcjs.nix") {
-          ghcjsSrcJson = (haskell-nix + "/compiler/ghcjs/ghcjs810-src.json");
+      in let booted-ghcjs = (final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs.nix") {
+          ghcjsSrcJson = (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs810-src.json");
           ghcjsVersion =  "8.10.7"; # Must match the version in the ghcjs.cabal file
           ghc = buildGHC;
           ghcVersion = "8.10.7";
@@ -166,7 +165,7 @@ in {
     };
     ghc = {
       ghcjs8107 = prev.haskell-nix.compiler.ghc8107;
-      ghc8107Splices = final.callPackage (haskell-nix + "/compiler/ghc") {
+      ghc8107Splices = final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghc") {
         extra-passthru = {
           buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107;
         };
@@ -185,7 +184,7 @@ in {
           sha256 = "179ws2q0dinl1a39wm9j37xzwm84zfz3c5543vz8v479khigdvp3";
         };
         ghc-patches = [
-          ((final.nix-thunk.thunkSource haskell-nix) + "/overlays/patches/ghc/Cabal-unbreak-GHCJS.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/Cabal-unbreak-GHCJS.patch")
           (final.fetchurl {
             url = "https://raw.githubusercontent.com/obsidiansystems/splices-load-save.nix/master/patches/ghc-8.10.7/splices.patch";
             sha256 = "sha256-pIMPDpBwL3tYPEbIgTfE1oNgL2KMLp7ovcp6E2KOIVY=";

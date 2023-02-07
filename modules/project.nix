@@ -1,76 +1,57 @@
-# NOTE: Define the interface
-{ name # Name of the current project
-, compiler-nix-name ? "ghc8107" # What compiler we should be using
-, ghcjs-compiler-nix-name ? "ghcjs8107"
-, src # Source of the current project
-, overrides ? [ ] # Overrides to packages
-, extraSrcFiles ? [ ] # ExtraSrcFiles to include in the project builds
-, setupCross ? true # Setup cross-compiling
-, hackageOverlays ? [ ] # Overlays for hackage, to pass to the cabal solver
-, hackage-extra-tarballs ? { }
-, extra-hackages ? [ ]
-, allowUnfree ? false # Allow Unfree
-, android_sdk_accept_license ? false # Accept android sdk license terms
-, nixpkgsArgs ? { } # Extra nixpkgs arguments
-, dontSplice ? [ ] # Packages to not splice
-, dontHarden ? [ ] # Packages to not harden
-, hardeningOpts ? [ "-fPIC" "-pie" ]
-, patchNixpkgs ? false
-, remotePatches ? [ ]
-, nixpkgsOverlays ? (_: _: {})
-, inputMap ? { }
-}:
+{ pkgs, obelisk, deps, obsidian }: { name # Name of the current project
+                                             , compiler-nix-name ? "ghc8107" # What compiler we should be using
+                                             , ghcjs-compiler-nix-name ? "ghcjs8107"
+                                             , src # Source of the current project
+                                             , overrides ? [ ] # Overrides to packages
+                                             , extraSrcFiles ? [ ] # ExtraSrcFiles to include in the project builds
+                                             , setupCross ? true # Setup cross-compiling
+                                             , hackageOverlays ? [ ] # Overlays for hackage, to pass to the cabal solver
+                                             , hackage-extra-tarballs ? { }
+                                             , extra-hackages ? [ ]
+                                             , dontSplice ? [ ] # Packages to not splice
+                                             , dontHarden ? [ ] # Packages to not harden
+                                             , hardeningOpts ? [ "-fPIC" "-pie" ]
+                                             , inputMap ? { }
+                                             }@args:
+
 let
-  # TODO:
-  # - Remove this let box properly
-  # - Allow for pkgs to be overriden
-  # Logic to bootstrap packages that isn't our local checkout
-  nix-thunk = import ./dep/nix-thunk { };
-  our-overlays = import ./modules/overlays/default.nix {
-    inherit nix-thunk;
+  # Driver to generate a fake hackage
+  hackage-driver = import ./hackage-driver.nix {
+    pkgs = pkgs;
+    modules = (hackageOverlays ++ (obelisk pkgs));
   };
-  haskell-nix = import ./dep/haskell.nix { };
-  overlays = (haskell-nix.nixpkgsArgs.overlays ++ [ our-overlays.combined nixpkgsOverlays ]);
-  pkgs-pre = import haskell-nix.sources.nixpkgs-unstable ({ inherit (haskell-nix.nixpkgsArgs) config; inherit overlays; });
+  checkHackageOverlays = c: v: if (hackageOverlays) == [ ] then c else v;
 
-  obelisk = import ./modules/obelisk.nix;
+  # Base project without any extensions added
+  baseProject = pkgs.haskell-nix.project' {
+    inherit name compiler-nix-name inputMap;
+    extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
+    extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
 
-  # Patch the packages with some commits external to our specific checkout
-  # this is optional, if people feel the need to use their own nixpkgs
-  patchedNixpkgs = (pkgs-pre.applyPatches {
-    name = "patched-nixpkgs";
-    src = (import ./dep/nixpkgs {}).path;
-    patches = map pkgs-pre.fetchpatch remotePatches;
-  });
-  patched-pkgs = import patchedNixpkgs ({ inherit (haskell-nix.nixpkgsArgs) config; inherit overlays; });
+    src = pkgs.haskell-nix.haskellLib.cleanGit {
+      inherit name src;
+    };
 
-  pkgs = if patchNixpkgs then patched-pkgs else pkgs-pre;
-  # Our final packages with the patched commits
-
-  hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs-pre; modules = pkgs: ((hackageOverlays pkgs) ++ (obelisk pkgs)); };
-
-  checkHackageOverlays = c: v: if (hackageOverlays pkgs) == [ ] then c else v;
+    modules = [
+      { packages."${name}".components = extraSrcFiles; }
+      # Setup the saving part of splices unconditionally
+      ({ config, lib, ... }: {
+        config.preBuild = ''
+          echo "!!! Save Splices $out/lib/haskell.nix/$pname"
+          export EXTERNAL_SPLICES_SAVE="$out/lib/haskell.nix/$pname"
+        '';
+      })
+    ] ++ overrides;
+  };
 in
-(pkgs.haskell-nix.project' ({
-  inherit name compiler-nix-name inputMap;
-  extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
-  extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
-
-  src = pkgs.haskell-nix.haskellLib.cleanGit {
-    inherit name src;
+baseProject.extend (final: prev: rec {
+  # Self includes everything used in the baseProject
+  self = {
+    inherit args;
+    inherit obsidian pkgs checkHackageOverlays hackage-driver;
+    inherit deps;
+    inherit baseProject;
   };
-
-  modules = [
-    { packages."${name}".components = extraSrcFiles; }
-    # Setup the saving part of splices unconditionally
-    ({ config, lib, ... }: {
-      config.preBuild = ''
-        echo "!!! Save Splices $out/lib/haskell.nix/$pname"
-        export EXTERNAL_SPLICES_SAVE="$out/lib/haskell.nix/$pname"
-      '';
-    })
-  ] ++ overrides;
-})).extend (final: prev: rec {
   # Null out haskell.nix's default cross setup, since it doesn't work
   # properly
   projectCross = builtins.abort "Haskell.nix projectCross isn't supported!";
@@ -86,16 +67,17 @@ in
   #  package-overlays - overlays to setup src properly after the solver has succeeded
   #  extra-hackage-tarballs - generated tarballs to be passed to the cabal solver
   #  extra-hackages - alias to (import generatedHackage) - use this in the project'
-  hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs-pre; modules = hackageOverlays; };
+  inherit hackage-driver;
+ # hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs; modules = hackageOverlays; };
 
-  android = (import ./modules/android/default.nix {
+  android = (import ./android/default.nix {
     inherit (pkgs) pkgs buildPackages;
     acceptAndroidSdkLicenses = true;
     # Pass the crossPkgs android-prebuilt package set
     pkg-set = crossSystems.aarch64-android-prebuilt.pkg-set;
   });
 
-  android-x86 = (import ./modules/android/default.nix {
+  android-x86 = (import ./android/default.nix {
     inherit (pkgs) pkgs buildPackages;
     acceptAndroidSdkLicenses = true;
     pkg-set = crossSystems.x86_64-linux-android-prebuilt.pkg-set;
@@ -128,7 +110,8 @@ in
 
   # Usage of cross-driver sets up all of the various splices cruft to
   # make an easy way to setup cross-compiling with splices
-  crossSystems = builtins.mapAttrs (a: v: import ./modules/cross-driver.nix {
+  crossSystems = builtins.mapAttrs
+    (a: v: import ./cross-driver.nix {
       # Project name and source
       inherit name src;
 
@@ -147,13 +130,13 @@ in
 
       # Driver to automatically setup splices
       # Reference ./modules/splice-driver.nix for more details
-      splice-driver = import ./modules/splice-driver.nix {
+      splice-driver = import ./splice-driver.nix {
         dontSplice = [ "fgl" "Cabal" "android-activity" ] ++ dontSplice; # Packages to not load splices for
       };
 
       # Driver to auto-apply hardening options
       # Reference ./modules/hardening-driver.nix for more details
-      hardening-driver = import ./modules/hardening-driver.nix {
+      hardening-driver = import ./hardening-driver.nix {
         dontHarden = [ "happy" "binary" "${name}" ] ++ dontHarden; # Packages to not apply hardening to
         hardeningOpts = hardeningOpts;
       };
@@ -180,7 +163,7 @@ in
                 configureFlags = [
                   "--ld-options=-shared"
                   "--ld-options=-no-pie"
-                  "--ld-options=-Wl,--gc-sections,--version-script=${./exts/android/haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main"
+                  "--ld-options=-Wl,--gc-sections,--version-script=${../exts/android/haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main"
                 ];
               };
             };

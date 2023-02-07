@@ -1,26 +1,20 @@
-{ nix-thunk, useTextJSString ? false, useFastWeak ? false }: let
-  composeExtensions =
-    f: g: final: prev:
-      let fApplied = f final prev;
-          prev' = prev // fApplied;
-      in fApplied // g final prev';
-in rec {
+{ deps, composeExtensions, useTextJSString ? false, useFastWeak ? false }: rec {
   overlays = {
-    thunk = (final: prev: {
-      inherit nix-thunk;
-      deps = nix-thunk.mapSubdirectories nix-thunk.thunkSource ../../dep;
-    });
     compilers = import ./compilers.nix { inherit useFastWeak useTextJSString; };
     haskell-nix = import ./haskell.nix;
     android = import ./android.nix;
+    add-deps = (final: prev: {
+      _dep = deps;
+      nix-thunk = final._dep.imported.nix-thunk;
+    });
   };
 
-  ordered = with overlays; [
+  ordered = deps.imported.haskell-nix.nixpkgsArgs.overlays ++ (with overlays; [
     compilers
     haskell-nix
-    thunk
+    add-deps
     android
-  ];
+  ]);
 
   combined = builtins.foldl' composeExtensions (_: _: { }) ordered;
 }
