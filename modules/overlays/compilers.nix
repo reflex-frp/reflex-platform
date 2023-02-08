@@ -81,7 +81,7 @@ in {
       })
       ({ pkgs, config, lib, ... }: {
         packages.attoparsec = {
-          src = final._dep.source.aeson;
+          src = final._dep.source.attoparsec;
           components.sublibs.attoparsec-internal = {
             ghcOptions = [
               "-package ghcjs-base-0.2.0.3"

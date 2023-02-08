@@ -10,9 +10,9 @@
   };
 
   ordered = deps.imported.haskell-nix.nixpkgsArgs.overlays ++ (with overlays; [
+    add-deps
     compilers
     haskell-nix
-    add-deps
     android
   ]);
 

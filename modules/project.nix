@@ -1,18 +1,20 @@
-{ pkgs, obelisk, deps, obsidian }: { name # Name of the current project
-                                             , compiler-nix-name ? "ghc8107" # What compiler we should be using
-                                             , ghcjs-compiler-nix-name ? "ghcjs8107"
-                                             , src # Source of the current project
-                                             , overrides ? [ ] # Overrides to packages
-                                             , extraSrcFiles ? [ ] # ExtraSrcFiles to include in the project builds
-                                             , setupCross ? true # Setup cross-compiling
-                                             , hackageOverlays ? [ ] # Overlays for hackage, to pass to the cabal solver
-                                             , hackage-extra-tarballs ? { }
-                                             , extra-hackages ? [ ]
-                                             , dontSplice ? [ ] # Packages to not splice
-                                             , dontHarden ? [ ] # Packages to not harden
-                                             , hardeningOpts ? [ "-fPIC" "-pie" ]
-                                             , inputMap ? { }
-                                             }@args:
+{ pkgs, obelisk, deps, obsidian }:
+
+{ name # Name of the current project
+, compiler-nix-name ? "ghc8107" # What compiler we should be using
+, ghcjs-compiler-nix-name ? "ghcjs8107"
+, src # Source of the current project
+, overrides ? [ ] # Overrides to packages
+, extraSrcFiles ? [ ] # ExtraSrcFiles to include in the project builds
+, setupCross ? true # Setup cross-compiling
+, hackageOverlays ? [ ] # Overlays for hackage, to pass to the cabal solver
+, hackage-extra-tarballs ? { }
+, extra-hackages ? [ ]
+, dontSplice ? [ ] # Packages to not splice
+, dontHarden ? [ ] # Packages to not harden
+, hardeningOpts ? [ "-fPIC" "-pie" ]
+, inputMap ? { }
+}@args:
 
 let
   # Driver to generate a fake hackage
@@ -49,8 +51,7 @@ baseProject.extend (final: prev: rec {
   self = {
     inherit args;
     inherit obsidian pkgs checkHackageOverlays hackage-driver;
-    inherit deps;
-    inherit baseProject;
+    inherit deps baseProject;
   };
   # Null out haskell.nix's default cross setup, since it doesn't work
   # properly

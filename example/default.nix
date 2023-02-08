@@ -9,7 +9,7 @@ project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
   src = thunkSource ../dep/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
-  ghcjs-compiler-nix-name = pkgs;
+  ghcjs-compiler-nix-name = "ghcjs8107";
   extraSrcFiles = {
     library.extraSrcFiles = [ "style.css" ];
     exes.reflex-todomvc.extraSrcFiles = [ "style.css" ];
