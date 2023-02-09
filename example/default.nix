@@ -7,6 +7,17 @@
 }:
 project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
+  plugins = [
+    (self: super: {
+      __passthru = null;
+      test-plugin = {
+        inherit (self) pkgs hsPkgs;
+      };
+    })
+    (self: super: {
+      multiple-plugin-test = "hello";
+    })
+  ];
   src = thunkSource ../dep/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
   ghcjs-compiler-nix-name = "ghcjs8107";
