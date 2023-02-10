@@ -54,6 +54,7 @@ baseProject.extend (foldExtensions ([
     # Self includes everything used in the baseProject
     self = {
       inherit args;
+      inherit plugins;
       inherit obsidian pkgs checkHackageOverlays hackage-driver;
       inherit deps baseProject;
     };
