@@ -14,22 +14,26 @@
         sha256 = "sha256-6GyCvZbuquVS++xR68e+jb4IiFPlIbbJb/kmc9uTers=";
       }
     ];
-  }
+  },
+
+  nix-thunk ? import ../dep/nix-thunk { }
+
+  #obelisk ? import (nix-thunk.thunkSource ../../obelisk) { }
 }:
 project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
   plugins = [
-    (self: super: {
-      __passthru = null;
-      test-plugin = {
-        inherit (self) pkgs hsPkgs;
-      };
-    })
-    (self: super: {
-      multiple-plugin-test = "hello";
-    })
+    #obelisk.mars-plugin
   ];
   src = thunkSource ../dep/reflex-todomvc;
+  android = {
+    executableName = "reflex-todomvc";
+    applicationId = "org.reflexfrp.todomvc";
+    displayName = "Reflex TodoMVC";
+  };
+  shells = ps: with ps; [
+    reflex-todomvc
+  ];
   compiler-nix-name = "ghc8107Splices";
   ghcjs-compiler-nix-name = "ghcjs8107";
   extraSrcFiles = {

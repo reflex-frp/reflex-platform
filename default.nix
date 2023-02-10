@@ -49,7 +49,6 @@ let
     inherit (obsidian) overlays config;
   };
 
-  obelisk = import ./modules/obelisk.nix;
 
   # Patch the packages with some commits external to our specific checkout
   # this is optional, if people feel the need to use their own nixpkgs
@@ -72,6 +71,6 @@ let
     inherit pkgs;
     inherit (deps.imported.nix-thunk) thunkSource mapSubdirectories;
   };
-  proj = import ./modules/project.nix { inherit pkgs obelisk deps obsidian; };
+  proj = import ./modules/project.nix { inherit pkgs deps obsidian; };
 in
 proj (def toplevel)

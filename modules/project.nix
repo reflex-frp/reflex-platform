@@ -1,4 +1,4 @@
-{ pkgs, obelisk, deps, obsidian }:
+{ pkgs, deps, obsidian }:
 
 { name # Name of the current project
 , compiler-nix-name ? "ghc8107" # What compiler we should be using
@@ -14,14 +14,18 @@
 , dontHarden ? [ ] # Packages to not harden
 , hardeningOpts ? [ "-fPIC" "-pie" ]
 , inputMap ? { }
+# Plugins to extend mars
 , plugins ? [ (_: _: { }) ]
+# Packages to be made available to the ghc shell
+, shells ? [ ]
+, android ? { }
 }@args:
 
 let
   # Driver to generate a fake hackage
   hackage-driver = import ./hackage-driver.nix {
     pkgs = pkgs;
-    modules = (hackageOverlays ++ (obelisk pkgs));
+    modules = (hackageOverlays);
   };
   checkHackageOverlays = c: v: if (hackageOverlays) == [ ] then c else v;
 
@@ -74,42 +78,76 @@ baseProject.extend (foldExtensions ([
     #  extra-hackage-tarballs - generated tarballs to be passed to the cabal solver
     #  extra-hackages - alias to (import generatedHackage) - use this in the project'
     inherit hackage-driver;
+
+    # Package overlays generated via the hackage driver
+    packageOverlays = {
+      packages = builtins.listToAttrs (builtins.concatMap (a: [{
+        name = toString (builtins.attrNames a.packages);
+        value = a.packages.${toString (builtins.attrNames a.packages)};
+      }]) final.hackage-driver.package-overlays);
+    };
     # hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs; modules = hackageOverlays; };
 
-    android = (import ./android/default.nix {
-      inherit (pkgs) pkgs buildPackages;
-      acceptAndroidSdkLicenses = true;
-      # Pass the crossPkgs android-prebuilt package set
-      pkg-set = crossSystems.aarch64-android-prebuilt.pkg-set;
-    });
-
-    android-x86 = (import ./android/default.nix {
-      inherit (pkgs) pkgs buildPackages;
-      acceptAndroidSdkLicenses = true;
-      pkg-set = crossSystems.x86_64-linux-android-prebuilt.pkg-set;
-    });
-
     shells = {
-      ghc = prev.shell;
-      ghcjs = crossSystems.ghcjs.shell;
+      ghc = final.shellFor {
+        packages = ps: args.shells ps;
+        withHoogle = false;
+        tools = {
+          cabal = "3.2.0.0";
+          #hlint = "latest";
+          #haskell-language-server = "latest";
+        };
+        buildInputs = [ pkgs.git ];
+      };
+      ghcjs = crossSystems.ghcjs.shellFor {
+        packages = ps: args.shells ps;
+        withHoogle = false;
+      };
+      android = crossSystems.aarch64-android-prebuilt.shell;
     };
 
+    android = rec {
+      impl = {
+        android = (import ./android/default.nix {
+          inherit (pkgs) pkgs buildPackages;
+          acceptAndroidSdkLicenses = true;
+          # Pass the crossPkgs android-prebuilt package set
+          pkg-set = crossSystems.aarch64-android-prebuilt.pkg-set;
+        });
+
+        android-x86 = (import ./android/default.nix {
+          inherit (pkgs) pkgs buildPackages;
+          acceptAndroidSdkLicenses = true;
+          pkg-set = crossSystems.x86_64-linux-android-prebuilt.pkg-set;
+        });
+      };
+
+      app = {
+        aarch64 = impl.android.buildApp {
+          # Package is currently just filler
+          package = p: p.${name}.components.${name};
+          executableName = args.android.name or "${name}";
+          applicationId = if !args.android ? applicationId
+            then builtins.abort "Need android appID"
+            else args.android.applicationId;
+          displayName = if !args.android ? displayName
+            then builtins.abort "Need Android displayName"
+            else args.android.displayName;
+        };
+        x86_64 = impl.android-x86.buildApp {
+          package = p: p.reflex-todomvc.components.reflex-todomvc;
+          executableName = args.android.name or "${name}";
+          applicationId = if !args.android ? applicationId
+            then builtins.abort "Need android appID"
+            else args.android.applicationId;
+          displayName = if !args.android ? displayName
+            then builtins.abort "Need Android displayName"
+            else args.android.displayName;
+        };
+    };
+    };
     # The android app builder currently assumes you just pass the base name of the package
     # to the builder, and we convert it to "lib${name}.so" in there
-    app = android.buildApp {
-      # Package is currently just filler
-      package = p: p.${name}.components.${name};
-      executableName = "reflex-todomvc";
-      applicationId = "org.reflexfrp.todomvc";
-      displayName = "Reflex TodoMVC";
-    };
-
-    x86-app = android-x86.buildApp {
-      package = p: p.reflex-todomvc.components.reflex-todomvc;
-      executableName = "reflex-todomvc";
-      applicationId = "org.reflexfrp.todomvc";
-      displayName = "Reflex TodoMVC";
-    };
 
     # Easy way to get to the ghcjs app
     ghcjs-app = crossSystems.ghcjs.pkg-set.config.hsPkgs."${name}".components.exes."${name}";
@@ -127,8 +165,8 @@ baseProject.extend (foldExtensions ([
 
         # Make sure to inherit the proper overrides from the hackage-driver
         # Reference ./modules/hackage-driver.nix for more details
-        extra-hackage-tarballs = checkHackageOverlays { } hackage-driver.extra-hackage-tarballs;
-        extra-hackages = checkHackageOverlays [ ] hackage-driver.extra-hackages;
+        extra-hackage-tarballs = checkHackageOverlays { } final.hackage-driver.extra-hackage-tarballs;
+        extra-hackages = checkHackageOverlays [ ] final.hackage-driver.extra-hackages;
         inherit (final) pkg-set;
 
         # CrossPkgs is the attrset of the current crossSystem in the mapAttrs
