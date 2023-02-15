@@ -42,6 +42,8 @@ let iosSupport = system == "x86_64-darwin";
               # nixpkgs-21.05 ships with a version of autoreconf that is incompatible with ghc 8.6.5,
               # Cf. https://gitlab.haskell.org/ghc/ghc/-/commit/ad2ef3a13f1eb000eab8e3d64592373b91a52806
               ./haskell-overlays/splices-load-save/ghc-8.6-autoreconf.patch
+            ] ++ super.lib.optionals (super.stdenv.targetPlatform.isDarwin) [
+              ./haskell-overlays/patches/ghc865/fix-big-sur.patch
             ];
           })).override {
             bootPkgs = super.haskell.packages.ghc865Binary // {
@@ -128,6 +130,7 @@ let iosSupport = system == "x86_64-darwin";
           binutils-unwrapped = super.binutils-unwrapped.override {
             autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
           };
+
           # Bump ios-deploy
           # - for faster deployments
           # - fixes debug deploy with iOS 16/macos 12.3/ xcode 13.4.1
