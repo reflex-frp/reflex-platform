@@ -134,17 +134,17 @@ let iosSupport = system == "x86_64-darwin";
           # Bump ios-deploy
           # - for faster deployments
           # - fixes debug deploy with iOS 16/macos 12.3/ xcode 13.4.1
-          darwin = super.darwin // {
-            ios-deploy = super.darwin.ios-deploy.overrideAttrs (_: {
-              version = "HEAD";
-              src = self.fetchFromGitHub {
-                owner = "ios-control";
-                repo = "ios-deploy";
-                rev = "b3254438719b6bc82ceab1f630e7d642a9acfac5"; # unreleased
-                sha256 = "W45Qjr3xqvDWieLBgt4//nthxxcc3hgrJNrpSk7vWj8=";
+          darwin = super.darwin.overrideScope (p: v: {
+            ios-deploy = v.ios-deploy.overrideAttrs (_: rec {
+              version = "1.12.1";
+               src = self.fetchFromGitHub {
+                 owner = "ios-control";
+                 repo = "ios-deploy";
+                 rev = "${version}";
+                 sha256 = "sha256-eTMwuEML3T5QScr8cdoOO42cqZIcppgLfTr7w7vx3n0=";
               };
             });
-          };
+          });
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
