@@ -33,6 +33,11 @@ let
   obsidian = {
     overlays = deps.imported.haskell-nix.nixpkgsArgs.overlays ++ [
       nixpkgsOverlays
+      (self: super: {
+        binutils-unwrapped = super.binutils-unwrapped.override {
+          autoreconfHook = super.lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
+        };
+      })
       (import ./modules/overlays/default.nix {
         inherit deps;
         inherit composeExtensions;

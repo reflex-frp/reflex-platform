@@ -25,6 +25,10 @@ project ({ pkgs, thunkSource, ... }: {
   plugins = [
     #obelisk.mars-plugin
   ];
+
+  extraCabalProject = [
+    "allow-newer: ghcjs-base:aeson, ghcjs-base:attoparsec, ghcjs-base:hashable, ghcjs-base:time, aeson:ghcjs-base, primitive, attoparsec, aeson"
+  ];
   src = thunkSource ../dep/reflex-todomvc;
   android = {
     executableName = "reflex-todomvc";
@@ -41,6 +45,27 @@ project ({ pkgs, thunkSource, ... }: {
     exes.reflex-todomvc.extraSrcFiles = [ "style.css" ];
   };
   hackageOverlays = [
+    {
+      type = "git";
+      repo = "https://github.com/obsidiansystems/aeson.git";
+      tag = "dylang/v2.0.3.0-jsstring";
+      sha256 = "";
+    }
+    #{
+    #  name = "ghcjs-base";
+    #  version = "0.2.1.0";
+    #  src = {
+    #    type = "git";
+    #    repo = "https://github.com/ghcjs/ghcjs-base.git";
+    #    tag = "master";
+    #  };
+    #}
+    {
+      type = "git";
+      repo = "https://github.com/cidkidnix/attoparsec.git";
+      tag = "dylang/haskell.nix";
+      sha256 = "";
+    }
     #{
     #  name = "android-activity";
     #  version = "0.1.1";

@@ -19,6 +19,7 @@
 # Packages to be made available to the ghc shell
 , shells ? [ ]
 , android ? { }
+, extraCabalProject ? [ ]
 }@args:
 
 let
@@ -27,16 +28,24 @@ let
     pkgs = pkgs;
     modules = (hackageOverlays);
   };
+
+  src-driver = import ./src-driver.nix {
+    inherit pkgs src;
+    hackage = hackageOverlays;
+    inherit extraCabalProject;
+  };
+
   checkHackageOverlays = c: v: if (hackageOverlays) == [ ] then c else v;
 
   # Base project without any extensions added
   baseProject = pkgs.haskell-nix.project' {
     inherit name compiler-nix-name inputMap;
-    extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
-    extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
+    #extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
+    #extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
 
     src = pkgs.haskell-nix.haskellLib.cleanGit {
-      inherit name src;
+      inherit name;
+      src = src-driver;
     };
 
     modules = [
@@ -157,7 +166,8 @@ baseProject.extend (foldExtensions ([
     crossSystems = builtins.mapAttrs
       (a: v: import ./cross-driver.nix {
         # Project name and source
-        inherit name src;
+        inherit name;
+        src = src-driver;
 
         # Haskell.nix derives is ghcjs off of the compiler-nix-name
         # so ghc8107Splices won't cut it here
@@ -165,8 +175,8 @@ baseProject.extend (foldExtensions ([
 
         # Make sure to inherit the proper overrides from the hackage-driver
         # Reference ./modules/hackage-driver.nix for more details
-        extra-hackage-tarballs = checkHackageOverlays { } final.hackage-driver.extra-hackage-tarballs;
-        extra-hackages = checkHackageOverlays [ ] final.hackage-driver.extra-hackages;
+        #extra-hackage-tarballs = checkHackageOverlays { } final.hackage-driver.extra-hackage-tarballs;
+        #extra-hackages = checkHackageOverlays [ ] final.hackage-driver.extra-hackages;
         inherit (final) pkg-set;
 
         # CrossPkgs is the attrset of the current crossSystem in the mapAttrs
@@ -213,7 +223,7 @@ baseProject.extend (foldExtensions ([
               };
             };
           })
-        ] ++ overrides ++ final.hackage-driver.package-overlays;
+        ] ++ overrides;
       })
       pkgs.pkgsCross;
   })
