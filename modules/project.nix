@@ -5,7 +5,7 @@
 , ghcjs-compiler-nix-name ? "ghcjs8107"
 , src # Source of the current project
 , overrides ? [ ] # Overrides to packages
-, extraSrcFiles ? [ ] # ExtraSrcFiles to include in the project builds
+, extraSrcFiles ? { } # ExtraSrcFiles to include in the project builds
 , setupCross ? true # Setup cross-compiling
 , hackageOverlays ? [ ] # Overlays for hackage, to pass to the cabal solver
 , hackage-extra-tarballs ? { }
@@ -43,10 +43,7 @@ let
     #extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
     #extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
 
-    src = pkgs.haskell-nix.haskellLib.cleanGit {
-      inherit name;
-      src = src-driver;
-    };
+    src = src-driver;
 
     modules = [
       { packages."${name}".components = extraSrcFiles; }
@@ -144,7 +141,7 @@ baseProject.extend (foldExtensions ([
             else args.android.displayName;
         };
         x86_64 = impl.android-x86.buildApp {
-          package = p: p.reflex-todomvc.components.reflex-todomvc;
+          package = p: p."${name}".components."${name}";
           executableName = args.android.name or "${name}";
           applicationId = if !args.android ? applicationId
             then builtins.abort "Need android appID"
@@ -175,8 +172,8 @@ baseProject.extend (foldExtensions ([
 
         # Make sure to inherit the proper overrides from the hackage-driver
         # Reference ./modules/hackage-driver.nix for more details
-        #extra-hackage-tarballs = checkHackageOverlays { } final.hackage-driver.extra-hackage-tarballs;
-        #extra-hackages = checkHackageOverlays [ ] final.hackage-driver.extra-hackages;
+        extra-hackage-tarballs = checkHackageOverlays { } final.hackage-driver.extra-hackage-tarballs;
+        extra-hackages = checkHackageOverlays [ ] final.hackage-driver.extra-hackages;
         inherit (final) pkg-set;
 
         # CrossPkgs is the attrset of the current crossSystem in the mapAttrs

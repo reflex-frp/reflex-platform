@@ -49,6 +49,16 @@ in crossPkgs.haskell-nix.project' {
     # currently haskell.nix doesn't do this properly and it ends up in
     # weird cases where some things aren't properly included to be built
     { cabal.system = filterStdenv stdenv.hostPlatform; }
+    {
+      config.reinstallableLibGhc = lib.mkForce false;
+      config.nonReinstallablePkgs = lib.mkForce [
+          "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base" "deepseq"
+          "array" "ghc-boot-th" "pretty" "template-haskell" "ghcjs-prim" "ghcjs-th" "ghc-boot"
+          "ghc" "Win32" "array" "binary" "bytestring" "containers" "directory" "filepath" "ghc-boot"
+          "ghc-compact" "ghc-prim" "hpc" "mtl" "parsec" "process" "text" "time" "transformers"
+          "unix" "xhtml" "terminfo"
+      ];
+    }
   ] ++ overrides
 
     # Disable some stuff to make ghcjs properly function
@@ -76,7 +86,7 @@ in crossPkgs.haskell-nix.project' {
       ]
     # NOTE: Use the splice driver to setup the loading side of splices
     # refer to ./splice-driver.nix
-    ++ (splice-driver {
+    ++ (crossPkgs.stdenv.hostPlatform != crossPkgs.stdenv.buildPlatform) (splice-driver {
     attrs = pkg-set.config.packages;
     string = (aname: cname: subname:
       if cname == "library" then ''
