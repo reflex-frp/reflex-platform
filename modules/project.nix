@@ -20,8 +20,13 @@
 , shells ? [ ]
 , android ? { }
 , extraCabalProject ? [ ]
+# Alternative for adding --sha256 to cabal
+# for source-repository-package use location.tag as the key for the hash
+# for repository use the url as the key for the hash
+# This is NECESSARY for all source-repository-package/repository entries in the cabal.project file
+# The error you would get is "null found expected string"
+, sha256map ? null
 }@args:
-
 let
   # Driver to generate a fake hackage
   hackage-driver = import ./hackage-driver.nix {
@@ -39,11 +44,9 @@ let
 
   # Base project without any extensions added
   baseProject = pkgs.haskell-nix.project' {
-    inherit name compiler-nix-name inputMap;
+    inherit name compiler-nix-name inputMap src sha256map;
     #extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
     #extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
-
-    src = src-driver;
 
     modules = [
       { packages."${name}".components = extraSrcFiles; }
