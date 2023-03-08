@@ -2,9 +2,8 @@ env: with env; let
   androidenv = pkgs.androidenv;
   buildGradleApp = import ./build-gradle-app.nix {
     inherit (pkgs) stdenv lib gnumake gawk file runCommand
-      which gradle fetchurl buildEnv;
+      which gradle fetchurl buildEnv jdk;
     inherit androidenv;
-    jdk = pkgs.jdk;
   };
 
   addDeployScript = src: pkgs.runCommand "android-app" {
@@ -15,7 +14,7 @@ env: with env; let
         substitute ${./deploy.sh} $out/bin/deploy \
           --subst-var-by coreutils ${pkgs.coreutils} \
           --subst-var-by adb ${androidenv.androidPkgs_9_0.platform-tools} \
-          --subst-var-by java ${pkgs.openjdk11} \
+          --subst-var-by java ${pkgs.openjdk} \
           --subst-var-by out $out
         chmod +x "$out/bin/deploy"
       '';

@@ -37,6 +37,25 @@ let
         binutils-unwrapped = super.binutils-unwrapped.override {
           autoreconfHook = super.lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
         };
+        darwin = super.darwin // {
+          libiconv = super.darwin.libiconv.overrideAttrs (_:
+            super.lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
+              postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
+              configureFlags = ["--disable-shared" "--enable-static"];
+            });
+          };
+
+        zlib = super.zlib.override (super.lib.optionalAttrs
+          (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
+          { static = true; shared = false; });
+
+        pkgsCross = super.pkgsCross // {
+          ios64 = super.lib.systems.examples.iphone64 // {
+            isStatic = true;
+            sdkVer = "15.0";
+            xcodeVer = "13";
+          };
+        };
       })
       (import ./modules/overlays/default.nix {
         inherit deps;
@@ -54,12 +73,11 @@ let
     inherit (obsidian) overlays config;
   };
 
-
   # Patch the packages with some commits external to our specific checkout
   # this is optional, if people feel the need to use their own nixpkgs
   patchedNixpkgs = (pkgs-pre.applyPatches {
     name = "patched-nixpkgs";
-    src = (import nixpkgs { }).path;
+    src = (import nixpkgs {}).path;
     patches = map pkgs-pre.fetchpatch patches;
   });
 

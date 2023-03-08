@@ -49,6 +49,7 @@ in crossPkgs.haskell-nix.project' {
     # currently haskell.nix doesn't do this properly and it ends up in
     # weird cases where some things aren't properly included to be built
     { cabal.system = filterStdenv stdenv.hostPlatform; }
+    { config.ghcOptions = [ "-fexpose-all-unfoldings" ]; }
     {
       config.reinstallableLibGhc = lib.mkForce false;
       config.nonReinstallablePkgs = lib.mkForce [
@@ -86,7 +87,7 @@ in crossPkgs.haskell-nix.project' {
       ]
     # NOTE: Use the splice driver to setup the loading side of splices
     # refer to ./splice-driver.nix
-    ++ (crossPkgs.stdenv.hostPlatform != crossPkgs.stdenv.buildPlatform) (splice-driver {
+    ++ lib.optionals (crossPkgs.stdenv.hostPlatform != crossPkgs.stdenv.buildPlatform) (splice-driver {
     attrs = pkg-set.config.packages;
     string = (aname: cname: subname:
       if cname == "library" then ''

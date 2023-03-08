@@ -5,20 +5,18 @@
     allowUnfree = true;
     doPatch = true;
     patches = [
-      {
-        url = "https://github.com/obsidiansystems/nixpkgs/commit/d39ee6b7c45deb224d95f717bd1e6e2144e09dd9.diff";
-        sha256 = "sha256-stn4C43O5M0Qk80gj7YK/87qCDflnm/AwYcOXv5fErI=";
-      }
-      {
-        url = "https://github.com/obsidiansystems/nixpkgs/commit/4516c1a5bb5d11209324bd00239448528bd5fb6d.diff";
-        sha256 = "sha256-6GyCvZbuquVS++xR68e+jb4IiFPlIbbJb/kmc9uTers=";
-      }
+      #{
+      #  url = "https://github.com/obsidiansystems/nixpkgs/commit/d39ee6b7c45deb224d95f717bd1e6e2144e09dd9.diff";
+      #  sha256 = "sha256-stn4C43O5M0Qk80gj7YK/87qCDflnm/AwYcOXv5fErI=";
+      #}
+      #{
+      #  url = "https://github.com/obsidiansystems/nixpkgs/commit/4516c1a5bb5d11209324bd00239448528bd5fb6d.diff";
+      #  sha256 = "sha256-6GyCvZbuquVS++xR68e+jb4IiFPlIbbJb/kmc9uTers=";
+      #}
     ];
   },
 
   nix-thunk ? import ../dep/nix-thunk { }
-
-  #obelisk ? import (nix-thunk.thunkSource ../../obelisk) { }
 }:
 project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
@@ -26,14 +24,20 @@ project ({ pkgs, thunkSource, ... }: {
     #obelisk.mars-plugin
   ];
 
-  extraCabalProject = [
+  /*extraCabalProject = [
     "allow-newer: ghcjs-base:aeson, ghcjs-base:attoparsec, ghcjs-base:hashable, ghcjs-base:time, aeson:ghcjs-base, primitive, attoparsec, aeson"
-  ];
+    ];
+    */
   src = thunkSource ../dep/reflex-todomvc;
   android = {
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
     displayName = "Reflex TodoMVC";
+  };
+  ios = {
+    executableName = "reflex-todomvc";
+    bundleIdentifier = "org.reflexfrp.todomvc";
+    bundleName = "Reflex TodoMVC";
   };
   shells = ps: with ps; [
     reflex-todomvc
@@ -41,11 +45,15 @@ project ({ pkgs, thunkSource, ... }: {
   compiler-nix-name = "ghc8107Splices";
   ghcjs-compiler-nix-name = "ghcjs8107";
   extraSrcFiles = {
-    library.extraSrcFiles = [ "style.css" ];
-    exes.reflex-todomvc.extraSrcFiles = [ "style.css" ];
+    library.extraSrcFiles = [ "style.css" "reflex-todomvc.app" ];
+    exes.reflex-todomvc.extraSrcFiles = [
+      "style.css"
+      "reflex-todomvc.app"
+      "reflex-todomvc.app/Info.plist"
+    ];
   };
   hackageOverlays = [
-    {
+    /*{
       type = "git";
       repo = "https://github.com/obsidiansystems/aeson.git";
       tag = "dylang/v2.0.3.0-jsstring";
@@ -76,22 +84,43 @@ project ({ pkgs, thunkSource, ... }: {
     #    sha256 = "sha256-AIpbe0JZX68lsQB9mpvR7xAIct/vwQAARVHAK0iChV4=";
     #  };
     #}
+  */
   ];
   overrides = [
+    ({ config, pkgs, lib, ... }: {
+      config.enableShared = if pkgs.stdenv.targetPlatform.isiOS then lib.mkForce false else true;
+      config.enableStatic = lib.mkForce true;
+    })
     ({ config, pkgs, lib, ... }: {
       packages.reflex-dom = {
 	    flags = {
 	      webkit2gtk = if (pkgs.stdenv.targetPlatform.isAndroid) then lib.mkForce false else true;
 	    };
       };
+      packages.reflex-todomvc.components.exes.reflex-todomvc-wkwebview.configureFlags = [
+        "--ld-option=-v"
+      ];
+      packages.reflex-todomvc.components.exes.reflex-todomvc = {
+        frameworks = if (!pkgs.stdenv.targetPlatform.isiOS && pkgs.stdenv.targetPlatform.isDarwin) then [ pkgs.darwin.apple_sdk.frameworks.CoreFoundation ] else [ ];
+        configureFlags = [
+          "--ld-option=-v"
+        ];
+        ghcOptions = [
+          "-fwhole-archive-hs-libs"
+        ];
+        postInstall = ''
+          mkdir -p $out/reflex-todomvc.app
+          cp -r reflex-todomvc.app $out
+          cp $out/bin/reflex-todomvc $out/reflex-todomvc.app
+        '';
+      };
+      packages.jsaddle-wkwebview.src = (thunkSource ../dep/jsaddle) + "/jsaddle-wkwebview";
       packages.jsaddle-wkwebview.components.library = {
-        configureFlags = pkgs.lib.optionals (pkgs.stdenv.targetPlatform.isiOS) [ "-f-include-app-delegate" ];
         frameworks =
-          if (pkgs.stdenv.targetPlatform.isiOS) then lib.mkForce [ pkgs.darwin.iosSdkPkgs.sdk ]
-          else [ ];
+          if (pkgs.stdenv.targetPlatform.isiOS) then lib.mkForce [ pkgs.darwin.iosSdkPkgs.sdk pkgs.darwin.apple_sdk.frameworks.CoreFoundation ]
+          else [ pkgs.darwin.apple_sdk.frameworks.CoreFoundation ];
       };
     })
-    #({ config, lib, ... }: { packages.reflex-todomvc.src = lib.mkForce src; })
     ({ config, lib, ... }: { packages.bitvec.patches = lib.mkForce [ ]; })
   ];
 })

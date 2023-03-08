@@ -19,6 +19,7 @@
 # Packages to be made available to the ghc shell
 , shells ? [ ]
 , android ? { }
+, ios ? { }
 , extraCabalProject ? [ ]
 # Alternative for adding --sha256 to cabal
 # for source-repository-package use location.tag as the key for the hash
@@ -116,13 +117,34 @@ baseProject.extend (foldExtensions ([
       android = crossSystems.aarch64-android-prebuilt.shell;
     };
 
+    ios = rec {
+      impl = {
+        iOSaarch64 = (import ./ios/default.nix {
+          inherit pkgs;
+          packageset = crossSystems.iphone64;
+        });
+      };
+
+      app = {
+        aarch64 = impl.iOSaarch64 {
+          package = p: p.${name}.components.exes.${name};
+          executableName = args.ios.name or "${name}";
+          bundleIdentifier = if !args.ios ? bundleIdentifier
+          then builtins.abort "Need iOS bundleIdentifier"
+            else args.ios.bundleIdentifier;
+          bundleName = if !args.ios ? bundleName
+            then builtins.abort "Need iOS bundleName"
+            else args.ios.bundleName;
+        };
+      };
+    };
     android = rec {
       impl = {
         android = (import ./android/default.nix {
           inherit (pkgs) pkgs buildPackages;
           acceptAndroidSdkLicenses = true;
           # Pass the crossPkgs android-prebuilt package set
-          pkg-set = crossSystems.aarch64-android-prebuilt.pkg-set;
+          packageset = crossSystems.aarch64-android-prebuilt.pkg-set;
         });
 
         android-x86 = (import ./android/default.nix {
@@ -191,10 +213,10 @@ baseProject.extend (foldExtensions ([
 
         # Driver to auto-apply hardening options
         # Reference ./modules/hardening-driver.nix for more details
-        hardening-driver = import ./hardening-driver.nix {
+        hardening-driver = (import ./hardening-driver.nix {
           dontHarden = [ "happy" "binary" "${name}" ] ++ dontHarden; # Packages to not apply hardening to
-          hardeningOpts = hardeningOpts;
-        };
+          hardeningOpts = if v.targetPlatform.isiOS then [] else hardeningOpts;
+        });
         overrides = [
           # Easier override for users to set extra files from the package src to be included in build
           { packages.${name}.components = extraSrcFiles; }
