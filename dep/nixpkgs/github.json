@@ -3,6 +3,6 @@
   "repo": "nixpkgs",
   "branch": "android-fixes",
   "private": false,
-  "rev": "3ebbb0ad37a92ac6b6ba51b33f04cb7923d18649",
-  "sha256": "10ks070lp7zmqgsml2hrph3xcxdys7lbd5bd8czk6xzb4cx12hzm"
+  "rev": "b1f13104a9735cf0535f7ad200e6f1e7bda07f24",
+  "sha256": "0yrn8hz49cpl2img5p7rq34lpx3rrbgjlayhipcsh5r43gsviix7"
 }
