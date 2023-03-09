@@ -72,6 +72,7 @@ in {
       ({ pkgs, config, lib, ... }: {
         packages.hashable.patches = [ ../patches/hashable/hashable.patch ];
         packages.aeson = {
+          src = final._dep.source.aeson;
           components.library.ghcOptions = [
             "-package ghcjs-base"
             "-package transformers"
@@ -80,6 +81,7 @@ in {
       })
       ({ pkgs, config, lib, ... }: {
         packages.attoparsec = {
+          src = final._dep.source.attoparsec;
           components.sublibs.attoparsec-internal = {
             ghcOptions = [
               "-package ghcjs-base"

@@ -108,7 +108,7 @@ project ({ pkgs, thunkSource, ... }: {
         ghcOptions = [
           "-fwhole-archive-hs-libs"
         ];
-        postInstall = ''
+        postInstall = lib.optionalString (pkgs.stdenv.hostPlatform.isDarwin) ''
           mkdir -p $out/reflex-todomvc.app
           cp -r reflex-todomvc.app $out
           cp $out/bin/reflex-todomvc $out/reflex-todomvc.app
