@@ -1,8 +1,8 @@
 {
   "owner": "cidkidnix",
   "repo": "nixpkgs",
-  "branch": "new-sdk",
+  "branch": "android-fixes",
   "private": false,
-  "rev": "f00e4d1c1dc76c3ec07634b20c810a8d55cec417",
-  "sha256": "0mgqybq2lvxn940wsjrfyv24blygay0kjpw0pzlw1gczibyfp7zw"
+  "rev": "b1f13104a9735cf0535f7ad200e6f1e7bda07f24",
+  "sha256": "0yrn8hz49cpl2img5p7rq34lpx3rrbgjlayhipcsh5r43gsviix7"
 }

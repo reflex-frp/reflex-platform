@@ -50,7 +50,7 @@ in crossPkgs.haskell-nix.project' {
     # weird cases where some things aren't properly included to be built
     { cabal.system = filterStdenv stdenv.hostPlatform; }
     { config.ghcOptions = [ "-fexpose-all-unfoldings" ]; }
-    {
+    /*{
       config.reinstallableLibGhc = lib.mkForce false;
       config.nonReinstallablePkgs = lib.mkForce [
           "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base" "deepseq"
@@ -59,7 +59,8 @@ in crossPkgs.haskell-nix.project' {
           "ghc-compact" "ghc-prim" "hpc" "mtl" "parsec" "process" "text" "time" "transformers"
           "unix" "xhtml" "terminfo"
       ];
-    }
+      }
+      */
   ] ++ overrides
 
     # Disable some stuff to make ghcjs properly function

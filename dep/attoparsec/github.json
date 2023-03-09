@@ -3,6 +3,6 @@
   "repo": "attoparsec",
   "branch": "dylang/haskell.nix",
   "private": false,
-  "rev": "798f84c87b9a723d5e8e16164d4759761084529f",
-  "sha256": "18dgyk56icnixc9frbw2ch17linlgvx6008a2407x9793vr5p591"
+  "rev": "4dddf2d3160722ae088cba1ac3953353c4dfb785",
+  "sha256": "09qs91pclcm8f000fh3knl3kp6fqm8dbymxs8pg28qfb96h3p9n8"
 }
