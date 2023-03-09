@@ -48,14 +48,6 @@ let
         zlib = super.zlib.override (super.lib.optionalAttrs
           (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
           { static = true; shared = false; });
-
-        pkgsCross = super.pkgsCross // {
-          ios64 = super.lib.systems.examples.iphone64 // {
-            isStatic = true;
-            sdkVer = "15.0";
-            xcodeVer = "13";
-          };
-        };
       })
       (import ./modules/overlays/default.nix {
         inherit deps;
