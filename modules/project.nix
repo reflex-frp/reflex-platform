@@ -18,6 +18,7 @@
 , plugins ? [ (_: _: { }) ]
 # Packages to be made available to the ghc shell
 , shells ? [ ]
+, shellBuildInputs ? (v: [ ])
 , android ? { }
 , ios ? { }
 , extraCabalProject ? [ ]
