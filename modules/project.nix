@@ -27,6 +27,7 @@
 # This is NECESSARY for all source-repository-package/repository entries in the cabal.project file
 # The error you would get is "null found expected string"
 , sha256map ? null
+, pkg-def-extras ? []
 }@args:
 let
   # Driver to generate a fake hackage
@@ -45,7 +46,7 @@ let
 
   # Base project without any extensions added
   baseProject = pkgs.haskell-nix.project' {
-    inherit name compiler-nix-name inputMap sha256map;
+    inherit name compiler-nix-name inputMap sha256map pkg-def-extras;
     src = src-driver;
     #extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
     #extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
