@@ -5,6 +5,7 @@
 , nixpkgsOverlays ? (_: _: { })
 , android_sdk_accept_license ? false
 , allowUnfree ? false
+, haskellNixArgs ? { }
 }:
 let
   composeExtensions =
@@ -23,7 +24,7 @@ let
   deps = rec {
     imported = {
       nix-thunk = import ./dep/nix-thunk { };
-      haskell-nix = import ./dep/haskell.nix { };
+      haskell-nix = import ./dep/haskell.nix haskellNixArgs;
     };
 
     source = imported.nix-thunk.mapSubdirectories imported.nix-thunk.thunkSource ./dep;
