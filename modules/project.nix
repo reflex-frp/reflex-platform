@@ -36,7 +36,10 @@ let
   };
 
   src-driver = import ./src-driver.nix {
-    inherit pkgs src;
+    inherit pkgs;
+    src = pkgs.haskell-nix.haskellLib.cleanGit {
+      inherit name src;
+    };
     hackage = hackageOverlays;
     inherit extraCabalProject;
   };
