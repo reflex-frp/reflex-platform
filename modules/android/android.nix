@@ -47,7 +47,7 @@ with pkgs.lib;
         appSOs = {
           "arm64-v8a" = {
             hsApp = package pkg-set.config.hsPkgs;
-            sharedLibs = (runtimeSharedLibs pkgs) ++ [ "${pkgs.pkgsCross.aarch64-android-prebuilt.gmp}/lib/libgmp.so"  "${pkgs.pkgsCross.aarch64-android-prebuilt.libffi}/lib/libffi.so" ];
+            sharedLibs = (runtimeSharedLibs pkgs) ++ [ ];
           };
         };
         abiVersions = builtins.attrNames appSOs;
