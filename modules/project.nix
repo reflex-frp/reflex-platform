@@ -37,7 +37,10 @@ let
   };
 
   src-driver = import ./src-driver.nix {
-    inherit pkgs src;
+    inherit pkgs;
+    src = pkgs.haskell-nix.haskellLib.cleanGit {
+      inherit name src;
+    };
     hackage = hackageOverlays;
     inherit extraCabalProject;
   };
@@ -145,7 +148,7 @@ baseProject.extend (foldExtensions ([
           inherit (pkgs) pkgs buildPackages;
           acceptAndroidSdkLicenses = true;
           # Pass the crossPkgs android-prebuilt package set
-          packageset = crossSystems.aarch64-android-prebuilt.pkg-set;
+          pkg-set = crossSystems.aarch64-android-prebuilt.pkg-set;
         });
 
         android-x86 = (import ./android/default.nix {
@@ -158,7 +161,7 @@ baseProject.extend (foldExtensions ([
       app = {
         aarch64 = impl.android.buildApp {
           # Package is currently just filler
-          package = p: p.${name}.components.${name};
+          package = p: p."${name}".components.exes."${name}";
           executableName = args.android.name or "${name}";
           applicationId = if !args.android ? applicationId
             then builtins.abort "Need android appID"
