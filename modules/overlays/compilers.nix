@@ -189,6 +189,17 @@ in {
             url = "https://raw.githubusercontent.com/obsidiansystems/splices-load-save.nix/master/patches/ghc-8.10.7/splices.patch";
             sha256 = "sha256-pIMPDpBwL3tYPEbIgTfE1oNgL2KMLp7ovcp6E2KOIVY=";
           })
+        ] ++ final.lib.optionals (final.stdenv.targetPlatform.isAndroid && final.stdenv.targetPlatform.isAarch32) [
+           #Aarch32 android
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-make-stage-1-lib-ghc.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10-3434-armv7a.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/libraries-prim-os-android-armv7a.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10.7-linker-weak-and-common-armv7a.patch")
+          #((final._dep.source."haskell.nix") + "/overlays/patches/ghc/libc-memory-symbols-armv7a.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10-android.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10.7-android-bionic-symbols.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10.7-bionic-libc.patch")
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10.7-cross-dont-build-stage2-tools.patch")
         ];
       };
     };

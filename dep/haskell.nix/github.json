@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "haskell.nix",
-  "branch": "dylang/splices",
+  "branch": "dylang/splices-aarch32",
   "private": false,
-  "rev": "294c0bccdffe17d9b3cf2e6c8b3bc9e613b4dc46",
-  "sha256": "07y88899bwjm5l9xffm23vwgpq5db352f4dzhrmpz23qa9rinzs4"
+  "rev": "94daab492824663eb4981e9e2728f7ee9d12fd8d",
+  "sha256": "0c0c635zvh891brzlrff9zmqr7m5s4fi81qz7cg188lrl2ac8pfk"
 }

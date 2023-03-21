@@ -1,4 +1,19 @@
-{ src, pkgs, hackage, extraCabalProject }: pkgs.runCommand "inject-repos" { } (''
+{ src,
+  pkgs,
+  hackage,
+  constraints ? [  ],
+  extraCabalProject
+}: let
+  constraint = if constraints == [  ] then
+    ""
+               else ''
+                echo -e "\nconstraints" >> $out/cabal.project
+               '' + builtins.concatStringsSep "\n" (map (x: ''
+                echo -e "\n,${x}"
+               ''));
+
+in
+pkgs.runCommand "inject-repos" { } (''
   set -eux
   cp -r ${src} $out
   chmod +w $out/cabal.project

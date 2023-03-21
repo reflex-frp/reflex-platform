@@ -112,7 +112,7 @@ stdenv.mkDerivation ({
     ${optionalString (builtins.length buildToolsVersions > 0) ''
       echo "android.aapt2FromMavenOverride=local_sdk/android-sdk/build-tools/${builtins.head buildToolsVersions}/aapt2" >> gradle.properties
     ''}
-    #echo "org.gradle.jvmargs=--add-opens java.base/java.io=ALL-UNNAMED" >> gradle.properties
+    echo "org.gradle.jvmargs=--add-opens java.base/java.io=ALL-UNNAMED" >> gradle.properties
     buildDir=`pwd`
     cp -rL $ANDROID_HOME $buildDir/local_sdk
     chmod -R 755 local_sdk
