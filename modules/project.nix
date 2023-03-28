@@ -1,4 +1,4 @@
-{ pkgs, deps, obsidian }:
+{ pkgs, deps, obsidian, internal ? { } }:
 
 { name # Name of the current project
 , compiler-nix-name ? "ghc8107" # What compiler we should be using
@@ -28,31 +28,44 @@
 # The error you would get is "null found expected string"
 , sha256map ? null
 , pkg-def-extras ? []
-}@args:
-let
-  # Driver to generate a fake hackage
+, extraArgs ? { }
+, shellTools ? {          
+    cabal = "3.2.0.0";
+    #hlint = "latest";
+    #haskell-language-server = "latest";
+  }
+}@mars_args: pkgs.lib.makeExtensible (self: let
+  foldExtensions = a: builtins.foldl' pkgs.lib.composeExtensions (_: _: { }) a;
+  pkgdef-extras = (mars_args.pkg-def-extras or [])
+  ++ pkgs.lib.optionals (builtins.hasAttr "extraPkgDef" self) self.extraPkgDef;
+
+  combinedOverlays = pkgs.lib.optionals (hackageOverlays != []) hackageOverlays
+  ++ pkgs.lib.optionals (builtins.hasAttr "extraOverlays" self) self.extraOverlays;
+
   hackage-driver = import ./hackage-driver.nix {
     pkgs = pkgs;
-    modules = (hackageOverlays);
+    modules = combinedOverlays;
   };
-
+  # Driver to generate a fake hackage
   src-driver = import ./src-driver.nix {
     inherit pkgs;
     src = pkgs.haskell-nix.haskellLib.cleanGit {
       inherit name src;
     };
-    hackage = hackageOverlays;
+    hackage = [ ];
+    #hackage = hackageOverlays;
     inherit extraCabalProject;
   };
 
-  checkHackageOverlays = c: v: if (hackageOverlays) == [ ] then c else v;
+  checkHackageOverlays = c: v: if combinedOverlays == [ ] then builtins.trace c c else builtins.trace v v;
 
   # Base project without any extensions added
-  baseProject = pkgs.haskell-nix.project' {
-    inherit name compiler-nix-name inputMap sha256map pkg-def-extras;
+  baseProject = (pkgs.haskell-nix.project' {
+    inherit name compiler-nix-name inputMap sha256map;
+    pkg-def-extras = pkgdef-extras;
     src = src-driver;
-    #extra-hackage-tarballs = (checkHackageOverlays { } hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
-    #extra-hackages = (checkHackageOverlays [ ] hackage-driver.extra-hackages) ++ extra-hackages;
+    extra-hackage-tarballs = (checkHackageOverlays {} hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
+    extra-hackages = (checkHackageOverlays [] hackage-driver.extra-hackages) ++ extra-hackages;
 
     modules = [
       { packages."${name}".components = extraSrcFiles; }
@@ -63,18 +76,19 @@ let
           export EXTERNAL_SPLICES_SAVE="$out/lib/haskell.nix/$pname"
         '';
       })
-    ] ++ overrides;
-  };
-
-  foldExtensions = a: builtins.foldl' pkgs.lib.composeExtensions (_: _: { }) a;
-in
-baseProject.extend (foldExtensions ([
+    ] ++ overrides ++ hackage-driver.package-overlays;
+  });
+in baseProject.extend (foldExtensions ([
   (final: prev: rec {
+    inherit self;
+    #inherit self;
+    inherit hackage-driver;
+    #inherit (self) hackageOverlays;
     # Self includes everything used in the baseProject
-    self = {
-      inherit args;
+    helpers = {
+      inherit mars_args;
       inherit plugins;
-      inherit obsidian pkgs checkHackageOverlays hackage-driver;
+      inherit obsidian pkgs hackage-driver;
       inherit deps baseProject;
     };
     # Null out haskell.nix's default cross setup, since it doesn't work
@@ -92,30 +106,26 @@ baseProject.extend (foldExtensions ([
     #  package-overlays - overlays to setup src properly after the solver has succeeded
     #  extra-hackage-tarballs - generated tarballs to be passed to the cabal solver
     #  extra-hackages - alias to (import generatedHackage) - use this in the project'
-    inherit hackage-driver;
+   # inherit hackage-driver;
 
     # Package overlays generated via the hackage driver
     packageOverlays = {
       packages = builtins.listToAttrs (builtins.concatMap (a: [{
         name = toString (builtins.attrNames a.packages);
         value = a.packages.${toString (builtins.attrNames a.packages)};
-      }]) final.hackage-driver.package-overlays);
+      }]) hackage-driver.package-overlays);
     };
     # hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs; modules = hackageOverlays; };
 
     shells = {
       ghc = final.shellFor {
-        packages = ps: args.shells ps;
+        packages = ps: mars_args.shells ps;
         withHoogle = false;
-        tools = {
-          cabal = "3.2.0.0";
-          #hlint = "latest";
-          #haskell-language-server = "latest";
-        };
+        tools = shellTools;
         buildInputs = [ pkgs.git ];
       };
       ghcjs = crossSystems.ghcjs.shellFor {
-        packages = ps: args.shells ps;
+        packages = ps: mars_args.shells ps;
         withHoogle = false;
       };
       android = crossSystems.aarch64-android-prebuilt.shell;
@@ -132,13 +142,13 @@ baseProject.extend (foldExtensions ([
       app = {
         aarch64 = impl.iOSaarch64 {
           package = p: p.${name}.components.exes.${name};
-          executableName = args.ios.name or "${name}";
-          bundleIdentifier = if !args.ios ? bundleIdentifier
+          executableName = mars_args.ios.name or "${name}";
+          bundleIdentifier = if !mars_args.ios ? bundleIdentifier
           then builtins.abort "Need iOS bundleIdentifier"
-            else args.ios.bundleIdentifier;
-          bundleName = if !args.ios ? bundleName
+            else mars_args.ios.bundleIdentifier;
+          bundleName = if !mars_args.ios ? bundleName
             then builtins.abort "Need iOS bundleName"
-            else args.ios.bundleName;
+            else mars_args.ios.bundleName;
         };
       };
     };
@@ -162,23 +172,23 @@ baseProject.extend (foldExtensions ([
         aarch64 = impl.android.buildApp {
           # Package is currently just filler
           package = p: p."${name}".components.exes."${name}";
-          executableName = args.android.name or "${name}";
-          applicationId = if !args.android ? applicationId
+          executableName = mars_args.android.name or "${name}";
+          applicationId = if !mars_args.android ? applicationId
             then builtins.abort "Need android appID"
-            else args.android.applicationId;
-          displayName = if !args.android ? displayName
+            else mars_args.android.applicationId;
+          displayName = if !mars_args.android ? displayName
             then builtins.abort "Need Android displayName"
-            else args.android.displayName;
+            else mars_args.android.displayName;
         };
         x86_64 = impl.android-x86.buildApp {
           package = p: p."${name}".components."${name}";
-          executableName = args.android.name or "${name}";
-          applicationId = if !args.android ? applicationId
+          executableName = mars_args.android.name or "${name}";
+          applicationId = if !mars_args.android ? applicationId
             then builtins.abort "Need android appID"
-            else args.android.applicationId;
-          displayName = if !args.android ? displayName
+            else mars_args.android.applicationId;
+          displayName = if !mars_args.android ? displayName
             then builtins.abort "Need Android displayName"
-            else args.android.displayName;
+            else mars_args.android.displayName;
         };
     };
     };
@@ -202,8 +212,8 @@ baseProject.extend (foldExtensions ([
 
         # Make sure to inherit the proper overrides from the hackage-driver
         # Reference ./modules/hackage-driver.nix for more details
-        extra-hackage-tarballs = checkHackageOverlays { } final.hackage-driver.extra-hackage-tarballs;
-        extra-hackages = checkHackageOverlays [ ] final.hackage-driver.extra-hackages;
+        extra-hackage-tarballs = checkHackageOverlays { } hackage-driver.extra-hackage-tarballs;
+        extra-hackages = checkHackageOverlays [ ] hackage-driver.extra-hackages;
         inherit (final) pkg-set;
 
         # CrossPkgs is the attrset of the current crossSystem in the mapAttrs
@@ -250,8 +260,8 @@ baseProject.extend (foldExtensions ([
               };
             };
           })
-        ] ++ overrides;
+        ] ++ overrides ++ hackage-driver.package-overlays;
       })
       pkgs.pkgsCross;
   })
-] ++ plugins))
+] ++ plugins)))

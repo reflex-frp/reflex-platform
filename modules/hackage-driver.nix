@@ -39,7 +39,9 @@
   writePackageDefs = defs: pkgs.runCommand "index.tar.gz" {
     outputs = [ "packagedef" "out" ];
   } ''
+    set -eux
     ${builtins.concatStringsSep "\n" defs}
+    mkdir -p $packagedef
     cd $packagedef
     tar --sort=name --owner=root:0 --group=root:0 --mtime='UTC 2009-01-01' -hczvf $out */*/*
   '';
@@ -51,6 +53,7 @@
   '';
 
   hackageOverlay = defs: rec {
+    inherit modules;
     buildCommands = genBuildCommands defs;
     generatedHackage = genHackageForNix extra-hackage-tarballs.overlay;
     package-overlays = map (a: { packages.${a.name}.src = a.src; }) (defs);
