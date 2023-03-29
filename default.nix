@@ -28,6 +28,11 @@ let iosSupport = system == "x86_64-darwin";
     splicesEval = self: super: {
       haskell = super.haskell // {
         compiler = super.haskell.compiler // {
+          ghc865 = super.haskell.compiler.ghc865.overrideAttrs (drv: super.lib.optionalAttrs (super.stdenv.targetPlatform.isDarwin) {
+            patches = (drv.patches or []) ++ [
+              ./haskell-overlays/patches/ghc865/fix-big-sur.patch
+            ];
+          });
           ghcSplices-8_6 = (super.haskell.compiler.ghc865.overrideAttrs (drv: {
             enableParallelBuilding = false;
             src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.6;
