@@ -1,6 +1,8 @@
 # Example usage of this project
 {
+  system ? builtins.currentSystem,
   project ? import ../default.nix {
+    inherit system;
     android_sdk_accept_license = true;
     allowUnfree = true;
     doPatch = true;
