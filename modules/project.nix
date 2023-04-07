@@ -29,7 +29,7 @@
 , sha256map ? null
 , pkg-def-extras ? []
 , extraArgs ? { }
-, shellTools ? {          
+, shellTools ? {
     cabal = "3.2.0.0";
     #hlint = "latest";
     #haskell-language-server = "latest";
@@ -205,6 +205,8 @@ in baseProject.extend (foldExtensions ([
         # Project name and source
         inherit name;
         src = src-driver;
+
+        inherit sha256map inputMap;
 
         # Haskell.nix derives is ghcjs off of the compiler-nix-name
         # so ghc8107Splices won't cut it here
