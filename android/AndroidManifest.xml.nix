@@ -1,5 +1,6 @@
 { applicationId
 , activityAttributes
+, applicationAttributes
 , version
 , iconPath
 , intentFilters
@@ -22,7 +23,8 @@ in ''
                  android:allowBackup="${boolStr allowBackup}"
                  android:fullBackupContent="${boolStr fullBackupContent}"
                  android:hardwareAccelerated="true"
-                 android:usesCleartextTraffic="${boolStr usesCleartextTraffic}">
+                 android:usesCleartextTraffic="${boolStr usesCleartextTraffic}"
+                 ${applicationAttributes}>
         <activity android:name="systems.obsidian.HaskellActivity"
                   android:label="@string/app_name"
                   android:configChanges="orientation|screenSize"

@@ -82,6 +82,9 @@ in rec {
 
     , activityAttributes ? ""
       # Additional activity attributes like: android:launchMode="singleInstance"
+      
+    , applicationAttributes ? ""
+      # Additional activity attributes like: android:launchMode="singleInstance"
 
     , permissions ? ""
       # Manifest XML for additional permissions
@@ -141,6 +144,7 @@ in rec {
               assets
               iconPath
               activityAttributes
+              applicationAttributes
               permissions
               services
               intentFilters
