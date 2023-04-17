@@ -22,6 +22,7 @@
 , android ? { }
 , ios ? { }
 , extraCabalProject ? [ ]
+, withHoogle ? false
 # Alternative for adding --sha256 to cabal
 # for source-repository-package use location.tag as the key for the hash
 # for repository use the url as the key for the hash
@@ -121,13 +122,13 @@ in baseProject.extend (foldExtensions ([
     shells = {
       ghc = final.shellFor {
         packages = ps: mars_args.shells ps;
-        withHoogle = false;
+        withHoogle = mars_args.withHoogle;
         tools = shellTools;
         buildInputs = [ pkgs.git ];
       };
       ghcjs = crossSystems.ghcjs.shellFor {
         packages = ps: mars_args.shells ps;
-        withHoogle = false;
+        withHoogle = mars_args.withHoogle;
       };
       android = crossSystems.aarch64-android-prebuilt.shell;
     };
