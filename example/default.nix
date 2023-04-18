@@ -24,7 +24,7 @@ project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
   src = thunkSource ../dep/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
-  ghcjs-compiler-nix-name = "ghcjs8107";
+  ghcjs-compiler-nix-name = "ghcjs8107JSString";
   android = {
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";

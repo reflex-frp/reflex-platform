@@ -92,7 +92,7 @@ in crossPkgs.haskell-nix.project' {
           "ghcjs-base" "primitive" "dlist" "vector"
         ];
       }
-    ] ++ crossPkgs.obsidianCompilers.jsstring-overrides)
+    ] ++ lib.optionals (compiler-nix-name == "ghcjs8107JSString") crossPkgs.obsidianCompilers.jsstring-overrides)
 
     # Do this if were not on ghcjs
     ++ lib.optionals (!stdenv.targetPlatform.isGhcjs) ([
