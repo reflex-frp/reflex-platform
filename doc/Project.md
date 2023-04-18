@@ -12,6 +12,31 @@ Please refer to [Haskell.nix documentation](https://input-output-hk.github.io/ha
 
 The project interface is completely extensible (you have self,super available).  A good example of this usage is in [obelisk](https://github.com/obsidiansystems/obelisk/blob/dylang/ob_mars_com/default.nix#L392)
 
+## Required config
+
+You must define both `name` and `src` to get the project to succesfully attempt to solve an example of this would be
+
+```nix
+project ({ pkgs, thunkSource, ... }: {
+  name = "my_project";
+  src = ./.;
+})
+```
+
+Mars will automatically filter the git repo via .gitignore!
+
+`thunkSource` is provided by nix-thunk
+
+## Compilers
+
+We provide our own compiler for splices under the `compiler-nix-name` of `ghc8107Splices`
+
+The default compiler is `ghc8107` instead of `ghc8107Splices`
+
+`ghcjs` also has `ghcjs8107JSString` which is GHCJS with our JSSTring patches
+
+The default ghcjs compiler is `ghcjs8107`
+
 ## inputMap & sha256Map
 
 Haskell.nix doesn't really document this super well. So here's an example on how to use them
@@ -27,7 +52,7 @@ source-repository-package
           common/
 ```
 
-The relevant mapping for haskell.nix/mars + thunks is
+The relevant mapping for haskell.nix/mars + nix-thunks is
 
 ```nix
 inputMap = {
@@ -73,10 +98,17 @@ We link these together in project.nix which provides the attributes in the top l
 
 ### Mobile Available configuration
 
-```nix
-android: { executableName ? "", applicationId ? "", displayName ? "" }
-ios: { executableName ? "", bundlieIdentifier ? "", bundleName ? "" }
-```
+### Android
+
+- `executableName`
+- `applicationId`
+- `displayName`
+
+### iOS
+
+- `executableName`
+- `bundleIdentifier`
+- `bundleName`
 
 ### Example configuration
 

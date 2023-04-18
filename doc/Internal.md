@@ -25,3 +25,8 @@ We have custom configuration for our fork/modification to GHCJS so we have to ma
 We have a hackage-driver that spits out a "fake" hackage that the cabal-solver can use and solve with. This is not recommended to use for anything that can be shoved into a cabal.project.
 
 We write a "dummy" json that cabal can understand. Then we pack that up into a tarball that we eventually pass to haskell.nix `tools` which helpfully generates the nix bindings for the repo for us!
+
+
+## Compilers
+
+We provide our own versions of our compilers, please take a look into `./modules/overlays/compilers.nix`
