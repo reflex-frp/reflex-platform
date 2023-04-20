@@ -6,6 +6,7 @@
 , android_sdk_accept_license ? false
 , allowUnfree ? false
 , haskellNixArgs ? { }
+, system ? builtins.currentSystem
 }:
 let
   composeExtensions =
@@ -24,7 +25,7 @@ let
   deps = rec {
     imported = {
       nix-thunk = import ./dep/nix-thunk { };
-      haskell-nix = import ./dep/haskell.nix haskellNixArgs;
+      haskell-nix = import ./dep/haskell.nix (haskellNixArgs // { pkgs = bootPkgs; });
     };
 
     source = imported.nix-thunk.mapSubdirectories imported.nix-thunk.thunkSource ./dep;
@@ -61,9 +62,13 @@ let
     };
   };
 
+  bootPkgs = import nixpkgs {
+    inherit system;
+  };
   # Setup bootstrap pkgs, or alternatively the main packages
   pkgs-pre = import nixpkgs {
     inherit (obsidian) overlays config;
+    inherit system;
   };
 
   # Patch the packages with some commits external to our specific checkout
@@ -76,6 +81,7 @@ let
 
   patched-pkgs = import patchedNixpkgs ({
     inherit (obsidian) overlays config;
+    inherit system;
   });
 
   # Our final packages with the patched commits

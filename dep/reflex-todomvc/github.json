@@ -3,6 +3,6 @@
   "repo": "reflex-todomvc",
   "branch": "dylang/haskell.nix",
   "private": false,
-  "rev": "adc27d19e5f429f9306b5c9967e09f55b0bbfbe9",
-  "sha256": "1kz75dyaa52krfvkmgwj6lblxvkmzrc42a6rcbks4703im6gsdcx"
+  "rev": "e307f8fa94dedeaba4ebbfbf629687b37c810482",
+  "sha256": "14nziph5rxbz8hg9pjciwi705lj2yv4an198c8hlvlmksdm4gd48"
 }

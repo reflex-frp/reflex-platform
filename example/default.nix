@@ -1,6 +1,8 @@
 # Example usage of this project
 {
+  system ? builtins.currentSystem,
   project ? import ../default.nix {
+    inherit system;
     android_sdk_accept_license = true;
     allowUnfree = true;
     doPatch = true;
@@ -20,15 +22,9 @@
 }:
 project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
-  plugins = [
-    #obelisk.mars-plugin
-  ];
-
-  /*extraCabalProject = [
-    "allow-newer: ghcjs-base:aeson, ghcjs-base:attoparsec, ghcjs-base:hashable, ghcjs-base:time, aeson:ghcjs-base, primitive, attoparsec, aeson"
-    ];
-    */
   src = thunkSource ../dep/reflex-todomvc;
+  compiler-nix-name = "ghc8107Splices";
+  ghcjs-compiler-nix-name = "ghcjs8107JSString";
   android = {
     executableName = "reflex-todomvc";
     applicationId = "org.reflexfrp.todomvc";
@@ -39,11 +35,12 @@ project ({ pkgs, thunkSource, ... }: {
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
+  sha256map = {
+    "https://github.com/obsidiansystems/android-activity.git"."ff27970dca5fb5f4979af23dbf1264c6cc50e2e3" = "sha256-SitB9E4c2mJu9kU66JU9e7uuyFjEAIgVbcAZbZOGMRk=";
+  };
   shells = ps: with ps; [
     reflex-todomvc
   ];
-  compiler-nix-name = "ghc8107Splices";
-  ghcjs-compiler-nix-name = "ghcjs8107";
   extraSrcFiles = {
     library.extraSrcFiles = [ "style.css" "reflex-todomvc.app" ];
     exes.reflex-todomvc.extraSrcFiles = [
@@ -52,40 +49,6 @@ project ({ pkgs, thunkSource, ... }: {
       "reflex-todomvc.app/Info.plist"
     ];
   };
-  hackageOverlays = [
-    /*{
-      type = "git";
-      repo = "https://github.com/obsidiansystems/aeson.git";
-      tag = "dylang/v2.0.3.0-jsstring";
-      sha256 = "";
-    }
-    #{
-    #  name = "ghcjs-base";
-    #  version = "0.2.1.0";
-    #  src = {
-    #    type = "git";
-    #    repo = "https://github.com/ghcjs/ghcjs-base.git";
-    #    tag = "master";
-    #  };
-    #}
-    {
-      type = "git";
-      repo = "https://github.com/cidkidnix/attoparsec.git";
-      tag = "dylang/haskell.nix";
-      sha256 = "";
-    }
-    #{
-    #  name = "android-activity";
-    #  version = "0.1.1";
-    #  src = pkgs.fetchFromGitHub {
-    #    owner = "obsidiansystems";
-    #    repo = "android-activity";
-    #    rev = "2bc40f6f907b27c66428284ee435b86cad38cff8";
-    #    sha256 = "sha256-AIpbe0JZX68lsQB9mpvR7xAIct/vwQAARVHAK0iChV4=";
-    #  };
-    #}
-  */
-  ];
   overrides = [
     ({ config, pkgs, lib, ... }: {
       config.enableShared = if pkgs.stdenv.targetPlatform.isiOS then lib.mkForce false else true;

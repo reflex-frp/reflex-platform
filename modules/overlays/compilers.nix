@@ -91,14 +91,14 @@ in {
       })
     ];
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
-      ghcjs8107 = let
-        buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107;
+      ghcjs8107JSString = let
+        buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107JSString;
       in let booted-ghcjs = (final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs.nix") {
           ghcjsSrcJson = (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs810-src.json");
           ghcjsVersion =  "8.10.7"; # Must match the version in the ghcjs.cabal file
           ghc = buildGHC;
           ghcVersion = "8.10.7";
-          compiler-nix-name = "ghcjs8107";
+          compiler-nix-name = "ghcjs8107JSString";
         }).overrideAttrs (drv: {
           phases = (drv.phases or []) ++ [ "unpackPhase" "patchPhase" "buildPhase" ];
           postUnpack = ''
@@ -164,7 +164,7 @@ in {
             '' + installDeps targetPrefix);
     };
     ghc = {
-      ghcjs8107 = prev.haskell-nix.compiler.ghc8107;
+      ghcjs8107JSString = prev.haskell-nix.compiler.ghc8107;
       ghc8107Splices = final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghc") {
         extra-passthru = {
           buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107;
