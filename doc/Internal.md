@@ -29,4 +29,4 @@ We write a "dummy" json that cabal can understand. Then we pack that up into a t
 
 ## Compilers
 
-We provide our own versions of our compilers, please take a look into `./modules/overlays/compilers.nix`
+We provide our own versions of our compilers, please take a look into `./modules/overlays/compilers.nix`, also take a look at `./modules/overlays/haskell.nix`
