@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "WARN: Deprecated in this version of reflex-platform"
+exit 1
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+DIR2="$DIR/nix-utils/work-on-multi"
+
+. "$DIR/scripts/common-setup.sh"
+
+PLATFORM="$1"
+shift
+
+if echo "$PLATFORM" | grep -q '^(.*)$' ; then
+    EFFECTIVE_PLATFORM="_: $PLATFORM"
+elif echo "$PLATFORM" | grep -q / ; then
+    PLATFORM_PATH="$(cleanup_nix_path "$PLATFORM")"
+    EFFECTIVE_PLATFORM="reflex-platform: (import $PLATFORM { inherit reflex-platform; try-reflex = builtins.trace \"WARNING: the try-reflex parameter is deprecated; please update your script to refer to reflex-platform instead\" reflex-platform; })"
+else
+    EFFECTIVE_PLATFORM="reflex-platform: reflex-platform.$PLATFORM"
+fi
+
+packages_quoted=$( (( "$#" == 0 )) || printf '"%q" ' "$@")
+
+terminate_logging
+
+nix-shell $NIXOPTS -E "import $DIR2/. {} { envFunc = $EFFECTIVE_PLATFORM; packageNames = [ $packages_quoted ]; }" --show-trace

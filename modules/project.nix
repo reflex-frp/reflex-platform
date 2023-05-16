@@ -122,7 +122,7 @@ in baseProject.extend (foldExtensions ([
     shells = {
       ghc = final.shellFor {
         packages = ps: mars_args.shells ps;
-        withHoogle = mars_args.withHoogle;
+        inherit withHoogle;
         tools = shellTools;
         buildInputs = [ pkgs.git ];
       };

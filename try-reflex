@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "WARN: try-reflex is no longer supported with haskell.nix, please refer to ../doc/Project.md"
+echo "The current alternative to try-reflex is running nix-shell -A shells.ghc in the example directory"
+echo "Running nix-shell ./example -A shells.ghc"
+nix-shell ./example -A shells.ghc
