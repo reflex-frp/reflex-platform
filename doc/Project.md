@@ -52,7 +52,7 @@ source-repository-package
           common/
 ```
 
-The relevant mapping for haskell.nix/mars + nix-thunks is
+The relevant mapping for haskell.nix/reflex-platform + nix-thunks is
 
 ```nix
 inputMap = {
@@ -172,7 +172,7 @@ To add custom attributes to your project you can do something similar to
 
 ```nix
 {
-  project ? import ../mars/dir;
+  project ? import ../reflex-platform/dir;
 }: let
 proj = project <project definition>;
 in
@@ -185,7 +185,7 @@ proj.extend (self: super: rec {
 
 ```nix
 {
-  project ? import ../mars/dir;
+  project ? import ../reflex-platform/dir;
 }: let
 proj = project <project definition>;
 in

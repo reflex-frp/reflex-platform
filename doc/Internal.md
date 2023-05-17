@@ -1,6 +1,6 @@
 # Internal Documentation
 
-This is for people that are familiar with nix, and are willing to hack on mars.
+This is for people that are familiar with nix, and are willing to hack on reflex-platform.
 
 ## Cross Compilation
 
