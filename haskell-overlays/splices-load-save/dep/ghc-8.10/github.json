@@ -1,7 +1,9 @@
 {
-  "owner": "tomsmalley",
+  "owner": "obsidiansystems",
   "repo": "ghc",
-  "rev": "93063be3b9e3bcd973f2bd78fadb17f19888320e",
-  "sha256": "1xpdv3sxlppnfwzwkc18fp13srpbnca0qi8a6206ccpq3h48zv6n",
+  "branch": "ghc-8.10.7-android",
+  "private": false,
+  "rev": "1a776b76e96fad89e6c1ca9cd4dafc7257d8bb2c",
+  "sha256": "sha256-zRF9kCi8LkmkchmKIeB/AA29MAHes3s2K++/bM08m3s=",
   "fetchSubmodules": true
 }

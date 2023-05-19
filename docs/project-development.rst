@@ -55,12 +55,12 @@ see a better way to get the ``cabal`` command later.
 .. code:: bash
 
    $ mkdir common backend frontend
-   $ (cd common && cabal init)
-   $ (cd backend && cabal init)
-   $ (cd frontend && cabal init)
+   $ (cd common && cabal init --lib)
+   $ (cd backend && cabal init --exe)
+   $ (cd frontend && cabal init --exe)
 
-This will prompt for various bits of metadata. ``common`` should be a
-library, and ``frontend`` and ``backend`` should be executables. These
+This will create ``common`` as a
+library, and ``frontend`` and ``backend`` as executables. These
 cabal files are where the dependencies and build targets of each Haskell
 component can be described.
 
@@ -87,6 +87,7 @@ Finally, Nix will fail to build ``common`` if it exports no modules.
    ...
    # common/common.cabal
    library
+     hs-source-dirs: src
      build-depends: base
      exposed-modules: Common
    ...

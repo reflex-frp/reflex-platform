@@ -6,15 +6,16 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 . "$DIR/scripts/common-setup.sh"
 
 REPO="$(echo "$1" | sed 's_/$__')"
+BASE="$(basename $REPO)"
 
 if [ ! -d "$REPO" ] ; then
     echo "Error: no such directory: $REPO"
     exit 1
 fi
 
-DIFF="$(git -C "$REPO/.." diff HEAD -- "$REPO")"
+DIFF="$(git -C "$REPO/.." diff HEAD -- "$BASE")"
 DIFF_ERR=$?
-STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$REPO")"
+STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$BASE")"
 STATUS_ERR=$?
 
 if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
@@ -35,7 +36,7 @@ elif [ -e "$REPO/github.json" ] ; then
     JSON_FILE="$REPO/github.json"
     GITHUB_OWNER="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).owner")")"
     GITHUB_REPO="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).repo")")"
-    URL="git://github.com/$GITHUB_OWNER/$GITHUB_REPO"
+    URL="https://github.com/$GITHUB_OWNER/$GITHUB_REPO"
     REV="$(eval "echo $(nix-instantiate $NIXOPTS --eval -E "(builtins.fromJSON (builtins.readFile $REPO/github.json)).rev")")"
 fi
 
@@ -48,7 +49,11 @@ if [ -f "$REPO/thunk.nix" ] ; then
     rm "$REPO/thunk.nix"
 fi
 rm "$JSON_FILE"
+
+trap "echo 'Attempted to replace $REPO but encountered unexpected file(s). Please remove.'" ERR
 rmdir "$REPO"
+
+trap "echo 'Could not clone $REPO. This thunk may be in a bad state.'" ERR
 
 git clone -n "$URL" "$REPO"
 REMOTE_URL="$(git -C "$REPO" config --get remote.origin.url)"

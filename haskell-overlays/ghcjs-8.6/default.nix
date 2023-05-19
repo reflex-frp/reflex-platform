@@ -1,19 +1,12 @@
 { lib, haskellLib, nixpkgs, fetchgit, fetchFromGitHub
 , useReflexOptimizer
+, useTextJSString
 , enableLibraryProfiling
 }:
 
 with haskellLib;
 
 self: super: {
-  _dep = super._dep or {} // {
-    ghcjsBaseSrc = fetchgit {
-      url = "https://github.com/ghcjs/ghcjs-base.git";
-      rev = "6be0e992e292db84ab42691cfb172ab7cd0e709e";
-      sha256 = "0nk7a01lprf40zsiph3ikwcqcdb1lghlj17c8zzhiwfmfgcc678g";
-    };
-  };
-
   # Profiling failures seee https://github.com/ghcjs/ghcjs/issues/759
   optparse-applicative = haskellLib.overrideCabal super.optparse-applicative (drv: {
     broken = drv.broken or false || enableLibraryProfiling;
@@ -28,10 +21,6 @@ self: super: {
   } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
     ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
   };
-
-  ghcjs-base = doJailbreak (dontCheck (self.callCabal2nix "ghcjs-base" self._dep.ghcjsBaseSrc {}));
-  # ghcjs-base needs an older version than nixpkgs provides.
-  primitive = self.callHackage "primitive" "0.6.4.0" {};
 
   ghc = if !(lib.versionAtLeast super.ghc.ghcVersion "8.2") then super.ghc else super.ghc.overrideAttrs (_: {
     # TODO: I don't think this is needed except for maybe the fast-weak patch, but doing this to preserve hashes.
@@ -77,4 +66,11 @@ self: super: {
 
   # Cross fix is working for iOS but not JS for some reason
   cabal-macosx = null;
+
+  # Haddock internal error
+  patch = dontHaddock super.patch;
+  # When we don't use text-jsstring, we hit cabal version too new issue.
+  # NOTE(Dylan Green): We need to have an "updated" version of ghcjs-base, although the patch is still needed
+  _ghcjsbase = self.callHackage "ghcjs-base" "0.2.0.3" {};
+  ghcjs-base = if useTextJSString then self._ghcjsbase else appendPatch (self._ghcjsbase) ./ghcjs-base-cabal-version.patch;
 }

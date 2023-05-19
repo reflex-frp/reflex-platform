@@ -1,8 +1,13 @@
 { lib
 , haskellLib
 , nixpkgs
-, useFastWeak, useReflexOptimizer, enableLibraryProfiling, enableTraceReflexEvents
-, useTextJSString, enableExposeAllUnfoldings, __useTemplateHaskell
+, useFastWeak
+, useReflexOptimizer
+, enableLibraryProfiling
+, enableTraceReflexEvents
+, useTextJSString
+, enableExposeAllUnfoldings
+, __useTemplateHaskell
 , ghcSavedSplices-8_6
 , ghcSavedSplices-8_10
 , haskellOverlaysPre
@@ -15,15 +20,17 @@ let
 in
 
 rec {
-  optionalExtension = cond: overlay: if cond then overlay else _: _: {};
+  optionalExtension = cond: overlay: if cond then overlay else _: _: { };
 
-  versionWildcard = versionList: let
-    versionListInc = lib.init versionList ++ [ (lib.last versionList + 1) ];
-    bottom = lib.concatStringsSep "." (map toString versionList);
-    top = lib.concatStringsSep "." (map toString versionListInc);
-  in version: lib.versionOlder version top && lib.versionAtLeast version bottom;
+  versionWildcard = versionList:
+    let
+      versionListInc = lib.init versionList ++ [ (lib.last versionList + 1) ];
+      bottom = lib.concatStringsSep "." (map toString versionList);
+      top = lib.concatStringsSep "." (map toString versionListInc);
+    in
+    version: lib.versionOlder version top && lib.versionAtLeast version bottom;
 
-  foldExtensions = lib.foldr lib.composeExtensions (_: _: {});
+  foldExtensions = lib.foldr lib.composeExtensions (_: _: { });
 
   getGhcVersion = ghc: ghc.version;
 
@@ -41,7 +48,37 @@ rec {
     profiling
     untriaged
 
+    # Careful when you touch this, anything modifying ghcjs-base is incredibly fragile
+    (optionalExtension (super.ghc.version == "8.10.7") (self: super: rec {
+      ghcjs-base = self.callHackage "ghcjs-base" "0.2.1.0" { };
+    }))
+
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
+
+    # Force "gold" on Android due to a linker bug on bfd
+    # Also force -fPIC on for Android, we need it either way
+
+    # NOTE(Dylan Green): Please do not only enable based on CPU arch, this will cause
+    # more problems then it's worth
+    # arm* needs the same linker options, x86* -> arm* does not
+
+    (optionalExtension (super.ghc.stdenv.targetPlatform.isAndroid or false) (self: super:
+      {
+        mkDerivation = drv: super.mkDerivation (drv // {
+          buildFlags = [
+            "--ghc-option=-optl-fuse-ld=gold"
+            "--ld-option=-fuse-ld=gold"
+            "--ld-option=-fPIE"
+            "--ld-option=-pie"
+            "--ghc-option=-fPIC"
+            "--ghc-option=-fPIE"
+          ] ++ (drv.buildFlags or [ ]);
+
+          configureFlags = [
+            "--with-ld=${super.ghc.stdenv.targetPlatform.config}-ld.gold"
+          ] ++ (drv.configureFlags or [ ]);
+        });
+      }))
 
     combined-any
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
@@ -55,43 +92,57 @@ rec {
     (optionalExtension (nixpkgs.stdenv.hostPlatform.isWasm or false) wasm)
 
     user-custom-post
-  ] self super;
+  ]
+    self
+    super;
 
   combined-any = self: super: foldExtensions [
     any
     (optionalExtension (versionWildcard [ 8 ] (getGhcVersion super.ghc)) combined-any-8)
-  ] self super;
+  ]
+    self
+    super;
 
   combined-any-8 = self: super: foldExtensions [
     any-8
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) any-8_6)
-    (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) haskell-gi-8_6)
-    (optionalExtension (versionWildcard [ 8 10 ] (getGhcVersion super.ghc)) haskell-gi-8_10)
-    (optionalExtension (lib.versionOlder "8.11"  (getGhcVersion super.ghc)) any-head)
-  ] self super;
+    (optionalExtension (lib.versionOlder "8.11" (getGhcVersion super.ghc)) any-head)
+  ]
+    self
+    super;
 
   combined-ghc = self: super: foldExtensions [
     (optionalExtension (versionWildcard [ 8 6 ] super.ghc.version) ghc-8_6)
-    (optionalExtension (lib.versionOlder "8.11"  super.ghc.version) ghc-head)
-  ] self super;
+    (optionalExtension (lib.versionOlder "8.11" super.ghc.version) ghc-head)
+  ]
+    self
+    super;
 
   combined-ghcjs = self: super: foldExtensions [
     (optionalExtension (versionWildcard [ 8 6 ] (getGhcVersion super.ghc)) combined-ghcjs-8_6)
     (optionalExtension (versionWildcard [ 8 10 ] (getGhcVersion super.ghc)) combined-ghcjs-8_10)
-  ] self super;
+  ]
+    self
+    super;
 
   combined-ghcjs-8_6 = self: super: foldExtensions [
-    ghcjs
+    ghcjs_8_6
+    (optionalExtension useTextJSString textJSString)
     (optionalExtension useTextJSString textJSString-8_6)
-    (optionalExtension useTextJSString ghcjs-8_6-textJSString)
+    (optionalExtension useTextJSString ghcjs-textJSString-8_6)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_6)
-  ] self super;
+  ]
+    self
+    super;
 
   combined-ghcjs-8_10 = self: super: foldExtensions [
+    (optionalExtension useTextJSString textJSString)
     (optionalExtension useTextJSString textJSString-8_10)
-    (optionalExtension useTextJSString ghcjs-8_10-textJSString)
+    (optionalExtension useTextJSString ghcjs-textJSString-8_10)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_10)
-  ] self super;
+  ]
+    self
+    super;
 
   ##
   ## Constituent
@@ -106,14 +157,14 @@ rec {
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
 
   # For GHC and GHCJS
-  any = _: _: {};
+  any = _: _: { };
   any-8 = import ./any-8.nix { inherit haskellLib lib getGhcVersion; };
   any-8_6 = import ./any-8.6.nix { inherit haskellLib fetchFromGitHub; inherit (nixpkgs) pkgs; };
   any-head = import ./any-head.nix { inherit haskellLib fetchFromGitHub; };
 
   # Just for GHC, usually to sync with GHCJS
-  ghc-8_6 = _: _: {};
-  ghc-head = _: _: {};
+  ghc-8_6 = _: _: { };
+  ghc-head = _: _: { };
 
   profiling = import ./profiling.nix {
     inherit haskellLib;
@@ -137,20 +188,26 @@ rec {
   };
 
   # Just for GHCJS
-  ghcjs = import ./ghcjs.nix {
+  ghcjs_8_6 = import ./ghcjs-8.6 {
     inherit
       lib haskellLib nixpkgs fetchgit fetchFromGitHub
       useReflexOptimizer
+      useTextJSString
       enableLibraryProfiling
       ;
   };
 
-  ghcjs-8_6-textJSString = import ./ghcjs-8.6-text-jsstring.nix {
+  ghcjs-textJSString-8_6 = import ./ghcjs-text-jsstring-8.6 {
     inherit lib fetchgit;
   };
 
-  ghcjs-8_10-textJSString = import ./ghcjs-8.10-text-jsstring.nix {
+  ghcjs-textJSString-8_10 = import ./ghcjs-text-jsstring-8.10 {
     inherit lib fetchgit;
+  };
+
+  textJSString = import ./text-jsstring {
+    inherit lib haskellLib fetchFromGitHub versionWildcard;
+    inherit (nixpkgs) fetchpatch thunkSet;
   };
 
   textJSString-8_6 = import ./text-jsstring-8.6 {
@@ -179,17 +236,6 @@ rec {
   ios = import ./ios.nix {
     inherit haskellLib;
     inherit (nixpkgs) lib;
-  };
-
-  haskell-gi-8_6 = import ./haskell-gi-8.6 {
-    inherit haskellLib;
-    inherit fetchFromGitHub;
-    inherit nixpkgs;
-  };
-  haskell-gi-8_10 = import ./haskell-gi-8.10 {
-    inherit haskellLib;
-    inherit fetchFromGitHub;
-    inherit nixpkgs;
   };
 
   untriaged = import ./untriaged.nix {

@@ -375,30 +375,32 @@ index 4a64694..acf8806 100644
                     JavaScript.TypedArray.Internal.Types
                     JavaScript.TypedArray.ArrayBuffer.Internal
                     JavaScript.TypedArray.DataView.Internal
-@@ -128,48 +128,48 @@ library
+@@ -144,15 +144,15 @@ library
                     integer-gmp,
                     binary               >= 0.8  && < 0.11,
                     bytestring           >= 0.10 && < 0.11,
 -                   text                 >= 1.1  && < 1.3,
--                   aeson                >= 0.8  && < 1.5,
+-                   aeson                >= 0.8  && < 1.6,
 -                   scientific           >= 0.3  && < 0.4,
 +                   -- text                 >= 1.1  && < 1.3,
-+                   -- aeson                >= 0.8  && < 1.5,
++                   -- aeson                >= 0.8  && < 1.6,
 +                   -- scientific           >= 0.3  && < 0.4,
                     vector               >= 0.10 && < 0.13,
                     containers           >= 0.5  && < 0.7,
-                    time                 >= 1.5  && < 1.9,
--                   hashable             >= 1.2  && < 1.3,
+                    time                 >= 1.5  && < 1.10,
+-                   hashable             >= 1.2  && < 1.4,
 -                   unordered-containers >= 0.2  && < 0.3,
--                   attoparsec           >= 0.11 && < 0.14,
-+                   -- hashable             >= 1.2  && < 1.3,
+-                   attoparsec           >= 0.11 && < 0.15,
++                   -- hashable             >= 1.2  && < 1.4,
 +                   -- unordered-containers >= 0.2  && < 0.3,
-+                   -- attoparsec           >= 0.11 && < 0.14,
++                   -- attoparsec           >= 0.11 && < 0.15,
                     transformers         >= 0.3  && < 0.6,
-                    primitive            >= 0.5  && < 0.7,
+                    primitive            >= 0.5  && < 0.8,
                     deepseq              >= 1.3  && < 1.5,
-                    dlist                >= 0.7  && < 0.9
- 
+@@ -161,37 +161,37 @@ library
+   if !impl(ghcjs) && !os(ghcjs)
+     buildable: False
+
 -test-suite tests
 -  type:           exitcode-stdio-1.0
 -  hs-source-dirs: test
@@ -430,6 +432,9 @@ index 4a64694..acf8806 100644
 -    test-framework >= 0.4,
 -    test-framework-hunit >= 0.2,
 -    test-framework-quickcheck2 >= 0.2
+-  default-language: Haskell2010
+-  if !impl(ghcjs) && !os(ghcjs)
+-    buildable: False
 +-- test-suite tests
 +--   type:           exitcode-stdio-1.0
 +--   hs-source-dirs: test
@@ -461,3 +466,6 @@ index 4a64694..acf8806 100644
 +--     test-framework >= 0.4,
 +--     test-framework-hunit >= 0.2,
 +--     test-framework-quickcheck2 >= 0.2
++--   default-language: Haskell2010
++--   if !impl(ghcjs) && !os(ghcjs)
++--     buildable: False

@@ -1,0 +1,106 @@
+diff --git a/hashable.cabal b/hashable.cabal
+index 4197060..1d3cd53 100644
+--- a/hashable.cabal
++++ b/hashable.cabal
+@@ -84,6 +84,9 @@ library
+     , ghc-prim
+     , text        >=0.12 && <1.3
+ 
++  if impl(ghcjs)
++    Build-depends:   ghcjs-base
++
+   if impl(ghc >=9)
+     build-depends: ghc-bignum ==1.0.* || ==1.2.*
+ 
+diff --git a/src/Data/Hashable/Class.hs b/src/Data/Hashable/Class.hs
+index c7dd8c5..036f450 100644
+--- a/src/Data/Hashable/Class.hs
++++ b/src/Data/Hashable/Class.hs
+@@ -5,6 +5,10 @@
+ 
+ {-# LANGUAGE Trustworthy #-}
+ 
++#ifdef __GHCJS__
++{-# LANGUAGE JavaScriptFFI, UnboxedTuples, GHCForeignImportPrim #-}
++#endif
++
+ #if __GLASGOW_HASKELL__ >= 801
+ {-# LANGUAGE PolyKinds #-} -- For TypeRep instances
+ #endif
+@@ -72,7 +76,9 @@ import Data.Int (Int8, Int16, Int32, Int64)
+ import Data.List (foldl')
+ import Data.Ratio (Ratio, denominator, numerator)
+ import qualified Data.Text as T
++#ifndef __GHCJS__
+ import qualified Data.Text.Array as TA
++#endif
+ import qualified Data.Text.Internal as T
+ import qualified Data.Text.Lazy as TL
+ import Data.Version (Version(..))
+@@ -92,6 +98,9 @@ import qualified Data.Map as Map
+ import qualified Data.Sequence as Seq
+ import qualified Data.Set as Set
+ import qualified Data.Tree as Tree
++#ifdef __GHCJS__
++import Data.JSString (JSString)
++#endif
+ 
+ -- As we use qualified F.Foldable, we don't get warnings with newer base
+ import qualified Data.Foldable as F
+@@ -152,7 +161,11 @@ import GHC.Exts (Int (..), sizeofByteArray#)
+ #  define MIN_VERSION_integer_gmp_1_0_0
+ # endif
+ 
++#ifndef __GHCJS__
+ import GHC.Exts (Int(..))
++#else
++import GHC.Exts (Int(..), Int#)
++#endif
+ import GHC.Integer.GMP.Internals (Integer(..))
+ # if defined(MIN_VERSION_integer_gmp_1_0_0)
+ import GHC.Exts (sizeofByteArray#)
+@@ -676,17 +689,31 @@ instance Hashable BSI.ShortByteString where
+ #endif
+ 
+ instance Hashable T.Text where
++#ifndef __GHCJS__
+     hashWithSalt salt (T.Text arr off len) =
+         hashByteArrayWithSalt (TA.aBA arr) (off `shiftL` 1) (len `shiftL` 1)
+         (hashWithSalt salt len)
++#else
++    hashWithSalt salt (T.Text txt) =
++        hashByteArrayWithSalt ba (0 `shiftL` 1) (I# len `shiftL` 1)
++        (hashWithSalt salt (I# len))
++        where (# ba, len #) = js_textFromJSString txt
++#endif
+ 
+ instance Hashable TL.Text where
+     hashWithSalt salt = finalise . TL.foldlChunks step (SP salt 0)
+       where
+         finalise (SP s l) = hashWithSalt s l
++#ifndef __GHCJS__
+         step (SP s l) (T.Text arr off len) = SP
+             (hashByteArrayWithSalt (TA.aBA arr) (off `shiftL` 1) (len `shiftL` 1) s)
+             (l + len)
++#else
++        step (SP s l) (T.Text txt) = SP
++            (hashByteArrayWithSalt ba (0 `shiftL` 1) (I# len `shiftL` 1) s)
++            (l + I# len)
++            where (# ba, len #) = js_textFromJSString txt
++#endif
+ 
+ -- | Compute the hash of a ThreadId.
+ hashThreadId :: ThreadId -> Int
+@@ -880,6 +907,12 @@ instance Hashable1 Option where liftHashWithSalt h salt (Option a) = liftHashWit
+ #endif
+ #endif
+ 
++#ifdef __GHCJS__
++foreign import javascript unsafe
++  "h$textFromString"
++  js_textFromJSString :: JSString -> (# ByteArray#, Int# #)
++#endif
++
+ -- instances for @Data.Functor.{Product,Sum,Compose}@, present
+ -- in base-4.9 and onward.
+ #if MIN_VERSION_base(4,9,0)
