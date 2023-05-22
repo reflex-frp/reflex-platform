@@ -4,6 +4,12 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## Unreleased
 
+* Haskell Library Updates
+  * reflex-dom-core to 0.7.0.3
+  * aeson to 2.1.1.0
+
+## v1.0.0.0
+
 * Nix
   * Update pinned nixpkgs to nixpkgs-21.05
 * Android: Use gradle v7 and build-tools 30.0.2 by default
