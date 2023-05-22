@@ -1,8 +1,8 @@
 {
-  "owner": "dfordivam",
+  "owner": "obsidiansystems",
   "repo": "attoparsec",
-  "branch": "text-jsstring",
+  "branch": "v0.14.4-text-jsstring",
   "private": false,
-  "rev": "cbfb944aeff61144059a28ada93c579e93ccf7d2",
-  "sha256": "0bbr4943439sy3grwpwbna4mk7iv87ijaiv3jjfhxhp7y67z51h8"
+  "rev": "4dddf2d3160722ae088cba1ac3953353c4dfb785",
+  "sha256": "09qs91pclcm8f000fh3knl3kp6fqm8dbymxs8pg28qfb96h3p9n8"
 }

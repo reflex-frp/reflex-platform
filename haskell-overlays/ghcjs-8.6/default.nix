@@ -70,7 +70,14 @@ self: super: {
   # Haddock internal error
   patch = dontHaddock super.patch;
   # When we don't use text-jsstring, we hit cabal version too new issue.
-  # NOTE(Dylan Green): We need to have an "updated" version of ghcjs-base, although the patch is still needed
-  _ghcjsbase = self.callHackage "ghcjs-base" "0.2.0.3" {};
-  ghcjs-base = if useTextJSString then self._ghcjsbase else appendPatch (self._ghcjsbase) ./ghcjs-base-cabal-version.patch;
+  ghcjs-base = if useTextJSString
+    then super.ghcjs-base
+    else appendPatch super.ghcjs-base ./ghcjs-base-cabal-version.patch;
+  # ghcjs 8.6 has trouble with internal libs usage.
+  attoparsec = overrideCabal (appendPatch super.attoparsec ./attoparsec-rm-internal-lib.patch) {
+    editedCabalFile = null;
+    revision = null;
+    prePatch = "${nixpkgs.buildPackages.dos2unix}/bin/dos2unix attoparsec.cabal";
+  };
+
 }
