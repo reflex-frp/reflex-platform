@@ -1,6 +1,8 @@
 #!/usr/bin/env nix-shell
 #!nix-shell -i bash -p jq
 
+echo "IOS Simulator not supported on current version of reflex-platform"
+exit 1
 # NB: Running the "xcrun simctl" command below may result in the error:
 #
 #    xcrun: error: unable to find utility "simctl", not a developer tool or in PATH

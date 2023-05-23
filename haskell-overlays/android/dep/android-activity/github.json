@@ -1,8 +1,0 @@
-{
-  "owner": "obsidiansystems",
-  "repo": "android-activity",
-  "branch": "rune/fix-ghc810-linker-error",
-  "private": false,
-  "rev": "c5bcac51b05a4dfb85c29aec5a1c0704ec25e63a",
-  "sha256": "1617kwgpw8sh36hmi6yf4ypy6b36h6fdlbmv6npx7jk3nnkk3s5c"
-}

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "Not currently supported in this version of reflex-platform"
+exit 1
+
 function cleanup {
   # alternative to [ -v ] for bash prior to 4.2
   if [ -n "${uuid-}" ]; then

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "Currently not changed to support haskell.nix"
+exit 1
+
 function cleanup {
   if [ -n "$tmpdir" -a -d "$tmpdir" ]; then
     echo "Cleaning up tmpdir" >&2

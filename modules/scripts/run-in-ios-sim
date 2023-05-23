@@ -1,0 +1,44 @@
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash -p jq
+
+# NB: Running the "xcrun simctl" command below may result in the error:
+#
+#    xcrun: error: unable to find utility "simctl", not a developer tool or in PATH
+#
+# The fix is to open up Xcode Preferences, go to Locations, and set the "Command Line Tools" option.
+
+set -euo pipefail
+
+name="${1##*/}"
+name="${name%.app}"
+
+bundleIdentifier="$name"
+if [ "$#" = 2 ]; then
+  bundleIdentifier="$2"
+fi
+
+# Choose the first runtime which allows simulation of an iPhone 8
+runtime="$(xcrun simctl list devices -j | jq -r '.devices | to_entries[] | (.key as $k | .value[] | if .isAvailable and .name == "iPhone 8" then $k else empty end)' | sort | head -n1)"
+echo "Using runtime $runtime"
+echo "Creating device $name"
+uuid="$(xcrun simctl create "$name" com.apple.CoreSimulator.SimDeviceType.iPhone-8 "$runtime")"
+echo "Device UUID $uuid"
+
+function cleanup {
+  if [ -n "$uuid" ]; then
+    echo "Cleaning up simulator" >&2
+    xcrun simctl shutdown "$uuid" 2>/dev/null
+    xcrun simctl delete "$uuid"
+  fi
+}
+trap cleanup EXIT
+
+echo Opening Simulator... >&2
+open -a Simulator --args -CurrentDeviceUDID "$uuid"
+sleep 20
+
+echo Installing "$name".app >&2
+xcrun simctl install "$uuid" "$1"
+
+echo Launching "$name" >&2
+xcrun simctl launch --console "$uuid" "$bundleIdentifier"

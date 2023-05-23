@@ -6,16 +6,15 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 . "$DIR/scripts/common-setup.sh"
 
 REPO="$(echo "$1" | sed 's_/$__')"
-BASE="$(basename $REPO)"
 
 if [ ! -d "$REPO" ] ; then
     echo "Error: no such directory: $REPO"
     exit 1
 fi
 
-DIFF="$(git -C "$REPO/.." diff HEAD -- "$BASE")"
+DIFF="$(git -C "$REPO/.." diff HEAD -- "$REPO")"
 DIFF_ERR=$?
-STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$BASE")"
+STATUS="$(git -C "$REPO/.." status --porcelain --ignored "$REPO")"
 STATUS_ERR=$?
 
 if [ "$DIFF_ERR" -ne 0 -o "$STATUS_ERR" -ne 0 ] ; then
