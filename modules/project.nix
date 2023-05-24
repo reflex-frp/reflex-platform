@@ -123,13 +123,17 @@ in baseProject.extend (foldExtensions ([
       ghc = final.shellFor {
         packages = ps: mars_args.shells ps;
         inherit withHoogle;
-        tools = shellTools;
+        #tools = shellTools;
         buildInputs = [ pkgs.git ];
+        #crossPlatforms = ps: with ps; [
+        #  ghcjs
+        #];
       };
       ghcjs = crossSystems.ghcjs.shellFor {
         packages = ps: mars_args.shells ps;
-        withHoogle = mars_args.withHoogle;
+        inherit withHoogle;
       };
+      #allShell = 
       android = crossSystems.aarch64-android-prebuilt.shell;
     };
 
