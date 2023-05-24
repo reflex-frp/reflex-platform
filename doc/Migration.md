@@ -5,9 +5,11 @@ Reflex-platform has been moved over to haskell.nix this changes a few things whi
 ## Getting all of your current package versions
 
 Drop into a shell to provide you access to your cabal command and run:
+
 ```bash
 cabal v2-freeze
 ```
+
 This will spit out a <name>.cabal.freeze that will pin all of your package versions. Move this to somewhere safe because we'll need it later!
 
 
@@ -16,6 +18,7 @@ This will spit out a <name>.cabal.freeze that will pin all of your package versi
 *NOTE**: cabal.project documentation is available at https://cabal.readthedocs.io/en/3.4/cabal-project.html
 
 Create a cabal.project boiler-plate with
+
 ```cabal
 packages: .
 ```
@@ -32,6 +35,7 @@ constraints: <everything from cabal freeze>
 Overrides are no longer available via nixpkgs overlays, the new interface for overrides is the nixos module system. This is described in the [haskell.nix documentation](https://input-output-hk.github.io/haskell.nix/reference/library.html?highlight=modules#modules)
 
 an example override is:
+
 ```nix
 [ 
  # Turn on verbose linker logging on when building the executable of "reflex-todomvc"
@@ -76,11 +80,10 @@ project ({pkgs, thunkSource}{
 ```
 
 We also provide an attribute to set the ghcjs compiler version (`ghcjs-compiler-nix-name`), you can do this via:
+
 ```nix
 project ({ pkgs, thunkSource }: {
     compiler-nix-name = "ghc8107Splices";
     ghcjs-compiler-nix-name = "ghcjs8107JSString";
 })
 ```
-
-
