@@ -1,8 +1,8 @@
 { pkgs, deps, obsidian, internal ? { } }:
 
 { name # Name of the current project
-, compiler-nix-name ? "ghc8107" # What compiler we should be using
-, ghcjs-compiler-nix-name ? "ghcjs8107"
+, compiler-nix-name ? "ghc8107Splices" # What compiler we should be using
+, ghcjs-compiler-nix-name ? "ghcjs8107JSString"
 , src # Source of the current project
 , overrides ? [ ] # Overrides to packages
 , extraSrcFiles ? { } # ExtraSrcFiles to include in the project builds
@@ -123,17 +123,15 @@ in baseProject.extend (foldExtensions ([
       ghc = final.shellFor {
         packages = ps: mars_args.shells ps;
         inherit withHoogle;
-        #tools = shellTools;
+        tools = shellTools;
         buildInputs = [ pkgs.git ];
-        #crossPlatforms = ps: with ps; [
-        #  ghcjs
-        #];
       };
       ghcjs = crossSystems.ghcjs.shellFor {
         packages = ps: mars_args.shells ps;
+        tools = shellTools;
         inherit withHoogle;
       };
-      #allShell = 
+      #allShell =
       android = crossSystems.aarch64-android-prebuilt.shell;
     };
 
