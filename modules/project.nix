@@ -13,7 +13,8 @@
 , dontSplice ? [ ] # Packages to not splice
 , dontHarden ? [ ] # Packages to not harden
 , hardeningOpts ? [ "-fPIC" "-pie" ]
-, inputMap ? [ ]
+, inputThunks ? [ ]
+, inputMap ? {}
 # Plugins to extend functionality
 , plugins ? [ (_: _: { }) ]
 # Packages to be made available to the ghc shell
@@ -50,7 +51,8 @@
   };
 
   inputMapDriver = import ./thunk-driver.nix {
-    inherit inputMap thunkSource pkgs;
+    inherit thunkSource pkgs;
+    inputMap = inputThunks;
   };
 
   # Driver to generate a fake hackage
@@ -61,7 +63,7 @@
     };
     hackage = [ ];
     #hackage = hackageOverlays;
-    extraCabalProject = bot_args.extraCabalProject or [] ++ inputMapDriver.cabalProject;
+    extraCabalProject = bot_args.extraCabalProject or [] ++ inputMapDriver.cabalProject or [];
   };
 
   checkHackageOverlays = c: v: if combinedOverlays == [ ] then builtins.trace c c else builtins.trace v v;
@@ -69,7 +71,7 @@
   # Base project without any extensions added
   baseProject = (pkgs.haskell-nix.project' {
     inherit name compiler-nix-name sha256map;
-    inputMap = inputMapDriver.inputMap;
+    inputMap = inputMapDriver.inputMap // inputMap;
     pkg-def-extras = pkgdef-extras;
     src = src-driver;
     extra-hackage-tarballs = (checkHackageOverlays {} hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
@@ -126,20 +128,16 @@ in baseProject.extend (foldExtensions ([
     };
     # hackage-driver = import ./modules/hackage-driver.nix { pkgs = pkgs; modules = hackageOverlays; };
 
-    shells = {
-      ghc = final.shellFor {
-        packages = ps: bot_args.shells ps;
-        inherit withHoogle;
-        tools = shellTools;
-        buildInputs = [ pkgs.git ];
+    shell-driver = import ./shell-driver.nix {
+      inherit crossSystems withHoogle shellTools;
+      inherit (bot_args) shells;
+      exactDeps = true;
+      project = final;
+    };
+    shells = rec {
+      default = shell-driver {
+        crossBuilds = [ "ghcjs" ];
       };
-      ghcjs = crossSystems.ghcjs.shellFor {
-        packages = ps: bot_args.shells ps;
-        tools = shellTools;
-        inherit withHoogle;
-      };
-      #allShell =
-      android = crossSystems.aarch64-android-prebuilt.shell;
     };
 
     ios = rec {
@@ -218,7 +216,7 @@ in baseProject.extend (foldExtensions ([
         src = src-driver;
 
         inherit sha256map;
-        inputMap = inputMapDriver.inputMap;
+        inputMap = inputMapDriver.inputMap // inputMap;
 
         # Haskell.nix derives is ghcjs off of the compiler-nix-name
         # so ghc8107Splices won't cut it here

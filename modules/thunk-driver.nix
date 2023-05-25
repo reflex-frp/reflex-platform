@@ -32,7 +32,7 @@
   unpackedParser = v: json: {
     name = "${json.url}/${json.rev}";
     value = {
-      srcPath =(thunkSource v).outPath;
+      srcPath = (thunkSource v).outPath;
       url = json.url;
       rev = json.rev;
     };

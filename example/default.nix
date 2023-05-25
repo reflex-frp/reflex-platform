@@ -33,7 +33,7 @@ reflex-platform.project ({ pkgs, thunkSource, ... }: {
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
-  inputMap = [
+  inputThunks = [
     ../dep/android-activity
   ];
   shells = ps: with ps; [
