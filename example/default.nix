@@ -1,7 +1,7 @@
 # Example usage of this project
 {
   system ? builtins.currentSystem,
-  project ? import ../default.nix {
+  reflex-platform ? import ../default.nix {
     inherit system;
     android_sdk_accept_license = true;
     allowUnfree = true;
@@ -20,7 +20,7 @@
 
   nix-thunk ? import ../dep/nix-thunk { }
 }:
-project ({ pkgs, thunkSource, ... }: {
+reflex-platform.project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
   src = thunkSource ../dep/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";

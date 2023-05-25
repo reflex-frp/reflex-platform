@@ -87,12 +87,14 @@ let
   # Our final packages with the patched commits
   pkgs = if doPatch then patched-pkgs else pkgs-pre;
 in
-def:
-let
+{
+ project = def: let
   toplevel = {
     inherit pkgs;
     inherit (deps.imported.nix-thunk) thunkSource mapSubdirectories;
   };
   proj = import ./modules/project.nix { inherit pkgs deps obsidian; inherit (deps.imported.nix-thunk) thunkSource; };
-in
-proj (def toplevel)
+ in proj (def toplevel);
+
+ inherit bootPkgs pkgs;
+}
