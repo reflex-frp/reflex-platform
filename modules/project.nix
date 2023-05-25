@@ -136,12 +136,12 @@ in baseProject.extend (foldExtensions ([
     };
     shells = rec {
       default = shell-driver {
-        targetSystem = "default";
         crossBuilds = [ "ghcjs" ];
       };
 
       ghcjs = shell-driver {
         targetSystem = "ghcjs";
+        justCross = true;
       };
     };
 

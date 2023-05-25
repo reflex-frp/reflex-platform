@@ -8,6 +8,7 @@
 }: shellArgs:
 let
   shellDef = {
+    justCross ? false,
     targetSystem ? "",
     crossBuilds ? [  ],
     ...
@@ -21,7 +22,6 @@ let
       alias ${config}-ghc=${crossSystems."${config}".pkgs.stdenv.targetPlatform.config}-ghc
       alias ${config}-cabal=${crossSystems."${config}".pkgs.stdenv.targetPlatform.config}-cabal
     '') crossBuilds;
-  in {
     default = project.shellFor {
       packages = ps: shells ps;
       inherit withHoogle exactDeps;
@@ -29,12 +29,12 @@ let
       inputsFrom = crossProjects;
       shellHook = builtins.concatStringsSep "\n" shellSetup;
     };
-    "${targetSystem}" = crossSystems."${targetSystem}".shellFor {
+    cross = crossSystems."${targetSystem}".shellFor {
       packages = ps: shells ps;
       inherit withHoogle exactDeps;
       tools = shellTools;
-      shellHook = builtins.concatStringSep "\n" shellSetup;
+      shellHook = builtins.concatStringsSep "\n" shellSetup;
     };
-  }."${targetSystem}";
+  in if !(justCross) then default else cross;
 
 in shellDef shellArgs
