@@ -61,7 +61,7 @@
     };
     hackage = [ ];
     #hackage = hackageOverlays;
-    inherit extraCabalProject;
+    extraCabalProject = bot_args.extraCabalProject or [] ++ inputMapDriver.cabalProject;
   };
 
   checkHackageOverlays = c: v: if combinedOverlays == [ ] then builtins.trace c c else builtins.trace v v;
@@ -69,7 +69,7 @@
   # Base project without any extensions added
   baseProject = (pkgs.haskell-nix.project' {
     inherit name compiler-nix-name sha256map;
-    inputMap = inputMapDriver;
+    inputMap = inputMapDriver.inputMap;
     pkg-def-extras = pkgdef-extras;
     src = src-driver;
     extra-hackage-tarballs = (checkHackageOverlays {} hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
@@ -218,7 +218,7 @@ in baseProject.extend (foldExtensions ([
         src = src-driver;
 
         inherit sha256map;
-        inputMap = inputMapDriver;
+        inputMap = inputMapDriver.inputMap;
 
         # Haskell.nix derives is ghcjs off of the compiler-nix-name
         # so ghc8107Splices won't cut it here

@@ -4,22 +4,38 @@
 
   githubParser = v: json: {
     name = "https://github.com/${json.owner}/${json.repo}/${json.rev}";
-    value = thunkSource v;
+    value = {
+      srcPath = thunkSource v;
+      url = "https://github.com/${json.owner}/${json.repo}";
+      rev = json.rev;
+    };
   };
 
   gitlabParser = v: json: {
     name = "https://gitlab.com/${json.owner}/${json.repo}/${json.rev}";
-    value = thunkSource v;
+    value = {
+      srcPath = thunkSource v;
+      url = "https://gitlab.com/${json.owner}/${json.repo}";
+      rev = json.rev;
+    };
   };
   
   gitParser = v: json: {
     name = "${json.url}/${json.rev}";
-    value = thunkSource v;
+    value = {
+      srcPath = thunkSource v;
+      url = json.url;
+      rev = json.rev;
+    };
   };
 
   unpackedParser = v: json: {
     name = "${json.url}/${json.rev}";
-    value = (thunkSource v).outPath;
+    value = {
+      srcPath =(thunkSource v).outPath;
+      url = json.url;
+      rev = json.rev;
+    };
   };
 
   getRev = v: pkgs.runCommandNoCC "getRev" {  } ''
@@ -73,7 +89,24 @@
   
   finalParse = v: let
     reader = jsonReader v;
-  in parseFor reader v;
+    parsed = parseFor reader v;
+  in {
+    inherit (parsed) name;
+    value = parsed.value.srcPath;
+  };
 
   parser = list: builtins.listToAttrs (builtins.map (a: finalParse a) list);
-in parser inputMap
+
+  cabalProjectGen = list: map (a: let
+    reader = jsonReader a;
+    parsed = parseFor reader a;
+  in ''
+    source-repository-package
+      type: git
+      location: ${parsed.value.url}
+      tag: ${parsed.value.rev}
+  '') list;
+in {
+  inputMap = parser inputMap;
+  cabalProject = cabalProjectGen inputMap;
+}
