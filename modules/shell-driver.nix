@@ -29,7 +29,7 @@ let
       inputsFrom = crossProjects;
       shellHook = builtins.concatStringsSep "\n" shellSetup;
     };
-    justCross = crossSystems."${targetSystem}".shellFor {
+    "${targetSystem}" = crossSystems."${targetSystem}".shellFor {
       packages = ps: shells ps;
       inherit withHoogle exactDeps;
       tools = shellTools;
