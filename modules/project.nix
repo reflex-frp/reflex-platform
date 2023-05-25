@@ -1,4 +1,4 @@
-{ pkgs, deps, obsidian, internal ? { } }:
+{ pkgs, deps, obsidian, thunkSource, internal ? { } }:
 
 { name # Name of the current project
 , compiler-nix-name ? "ghc8107Splices" # What compiler we should be using
@@ -13,8 +13,8 @@
 , dontSplice ? [ ] # Packages to not splice
 , dontHarden ? [ ] # Packages to not harden
 , hardeningOpts ? [ "-fPIC" "-pie" ]
-, inputMap ? { }
-# Plugins to extend mars
+, inputMap ? [ ]
+# Plugins to extend functionality
 , plugins ? [ (_: _: { }) ]
 # Packages to be made available to the ghc shell
 , shells ? [ ]
@@ -36,9 +36,9 @@
     #hlint = "latest";
     #haskell-language-server = "latest";
   }
-}@mars_args: pkgs.lib.makeExtensible (self: let
+}@bot_args: pkgs.lib.makeExtensible (self: let
   foldExtensions = a: builtins.foldl' pkgs.lib.composeExtensions (_: _: { }) a;
-  pkgdef-extras = (mars_args.pkg-def-extras or [])
+  pkgdef-extras = (bot_args.pkg-def-extras or [])
   ++ pkgs.lib.optionals (builtins.hasAttr "extraPkgDef" self) self.extraPkgDef;
 
   combinedOverlays = pkgs.lib.optionals (hackageOverlays != []) hackageOverlays
@@ -48,6 +48,11 @@
     pkgs = pkgs;
     modules = combinedOverlays;
   };
+
+  inputMapDriver = import ./thunk-driver.nix {
+    inherit inputMap thunkSource pkgs;
+  };
+
   # Driver to generate a fake hackage
   src-driver = import ./src-driver.nix {
     inherit pkgs;
@@ -63,7 +68,8 @@
 
   # Base project without any extensions added
   baseProject = (pkgs.haskell-nix.project' {
-    inherit name compiler-nix-name inputMap sha256map;
+    inherit name compiler-nix-name sha256map;
+    inputMap = inputMapDriver;
     pkg-def-extras = pkgdef-extras;
     src = src-driver;
     extra-hackage-tarballs = (checkHackageOverlays {} hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
@@ -88,7 +94,8 @@ in baseProject.extend (foldExtensions ([
     #inherit (self) hackageOverlays;
     # Self includes everything used in the baseProject
     helpers = {
-      inherit mars_args;
+      inputMap = inputMapDriver;
+      inherit bot_args;
       inherit plugins;
       inherit obsidian pkgs hackage-driver;
       inherit deps baseProject;
@@ -121,13 +128,13 @@ in baseProject.extend (foldExtensions ([
 
     shells = {
       ghc = final.shellFor {
-        packages = ps: mars_args.shells ps;
+        packages = ps: bot_args.shells ps;
         inherit withHoogle;
         tools = shellTools;
         buildInputs = [ pkgs.git ];
       };
       ghcjs = crossSystems.ghcjs.shellFor {
-        packages = ps: mars_args.shells ps;
+        packages = ps: bot_args.shells ps;
         tools = shellTools;
         inherit withHoogle;
       };
@@ -146,13 +153,13 @@ in baseProject.extend (foldExtensions ([
       app = {
         aarch64 = impl.iOSaarch64 {
           package = p: p.${name}.components.exes.${name};
-          executableName = mars_args.ios.name or "${name}";
-          bundleIdentifier = if !mars_args.ios ? bundleIdentifier
+          executableName = bot_args.ios.name or "${name}";
+          bundleIdentifier = if !bot_args.ios ? bundleIdentifier
           then builtins.abort "Need iOS bundleIdentifier"
-            else mars_args.ios.bundleIdentifier;
-          bundleName = if !mars_args.ios ? bundleName
+            else bot_args.ios.bundleIdentifier;
+          bundleName = if !bot_args.ios ? bundleName
             then builtins.abort "Need iOS bundleName"
-            else mars_args.ios.bundleName;
+            else bot_args.ios.bundleName;
         };
       };
     };
@@ -176,23 +183,23 @@ in baseProject.extend (foldExtensions ([
         aarch64 = impl.android.buildApp {
           # Package is currently just filler
           package = p: p."${name}".components.exes."${name}";
-          executableName = mars_args.android.name or "${name}";
-          applicationId = if !mars_args.android ? applicationId
+          executableName = bot_args.android.name or "${name}";
+          applicationId = if !bot_args.android ? applicationId
             then builtins.abort "Need android appID"
-            else mars_args.android.applicationId;
-          displayName = if !mars_args.android ? displayName
+            else bot_args.android.applicationId;
+          displayName = if !bot_args.android ? displayName
             then builtins.abort "Need Android displayName"
-            else mars_args.android.displayName;
+            else bot_args.android.displayName;
         };
         x86_64 = impl.android-x86.buildApp {
           package = p: p."${name}".components."${name}";
-          executableName = mars_args.android.name or "${name}";
-          applicationId = if !mars_args.android ? applicationId
+          executableName = bot_args.android.name or "${name}";
+          applicationId = if !bot_args.android ? applicationId
             then builtins.abort "Need android appID"
-            else mars_args.android.applicationId;
-          displayName = if !mars_args.android ? displayName
+            else bot_args.android.applicationId;
+          displayName = if !bot_args.android ? displayName
             then builtins.abort "Need Android displayName"
-            else mars_args.android.displayName;
+            else bot_args.android.displayName;
         };
     };
     };
@@ -210,7 +217,8 @@ in baseProject.extend (foldExtensions ([
         inherit name;
         src = src-driver;
 
-        inherit sha256map inputMap;
+        inherit sha256map;
+        inputMap = inputMapDriver;
 
         # Haskell.nix derives is ghcjs off of the compiler-nix-name
         # so ghc8107Splices won't cut it here

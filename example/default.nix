@@ -35,9 +35,9 @@ project ({ pkgs, thunkSource, ... }: {
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
-  sha256map = {
-    "https://github.com/obsidiansystems/android-activity.git"."ff27970dca5fb5f4979af23dbf1264c6cc50e2e3" = "sha256-SitB9E4c2mJu9kU66JU9e7uuyFjEAIgVbcAZbZOGMRk=";
-  };
+  inputMap = [
+    ../dep/android-activity
+  ];
   shells = ps: with ps; [
     reflex-todomvc
   ];

@@ -93,6 +93,6 @@ let
     inherit pkgs;
     inherit (deps.imported.nix-thunk) thunkSource mapSubdirectories;
   };
-  proj = import ./modules/project.nix { inherit pkgs deps obsidian; };
+  proj = import ./modules/project.nix { inherit pkgs deps obsidian; inherit (deps.imported.nix-thunk) thunkSource; };
 in
 proj (def toplevel)
