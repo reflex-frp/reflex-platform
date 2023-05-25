@@ -2,6 +2,15 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## v1.1.0.0
+
+* *Breaking change*: GHC 8.10.7 is now selected by default. Set `__useNewerCompiler` in default.nix to false if you'd like to keep using GHC 8.6.5.
+* Haskell Library Updates
+  * all-cabal-hashes "Update from Hackage at 2023-05-25T12:06:44Z" ([f297f1f3](https://github.com/commercialhaskell/all-cabal-hashes/commit/f297f1f3fc337e2f94783f254cb6db1ee2022adb))
+  * reflex 0.9.0.1
+  * reflex-dom-core 0.8.0.0
+  * reflex-vty 0.4.1.1
+
 ## v1.0.1.0
 
 * iOS: Bump SDK version from 15.0 -> 16.1

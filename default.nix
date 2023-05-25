@@ -8,7 +8,7 @@
 , useReflexOptimizer ? false
 , useTextJSString ? true # Use an implementation of "Data.Text" that uses the more performant "Data.JSString" from ghcjs-base under the hood.
 , __useTemplateHaskell ? true # Deprecated, just here until we remove feature from reflex and stop CIing it
-, __useNewerCompiler ? false
+, __useNewerCompiler ? true
 , iosSdkVersion ? "16.1"
 , nixpkgsOverlays ? []
 , haskellOverlays ? [] # TODO deprecate
@@ -330,14 +330,13 @@ let iosSupport = system == "x86_64-darwin";
   ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   });
-
-  ghcIosSimulator64 = if __useNewerCompiler then ghcIosSimulator64-8_10 else ghcIosSimulator64-8_6;
   ghcIosSimulator64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   });
   ghcIosSimulator64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_10).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   });
+  ghcIosSimulator64 = if __useNewerCompiler then ghcIosSimulator64-8_10 else ghcIosSimulator64-8_6;
   ghcIosAarch64 = if __useNewerCompiler then ghcIosAarch64-8_10 else ghcIosAarch64-8_6;
   ghcIosAarch64-8_6 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices-8_6).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
@@ -593,7 +592,7 @@ in let this = rec {
 };
 
 # Deprecated reexports. These were made for `./scripts/*`, but are reexported
-# here for backwards compatability.
+# here for backwards compatibility.
 legacy = {
   # Added 2019-12, will be removed 2020-06.
   inherit
