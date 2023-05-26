@@ -100,7 +100,7 @@
   cabalWithSubDirs = val: let
     reader = jsonReader val.thunk;
     parsed = parseFor reader val.thunk;
-    subdirs = builtins.concatStringsSep "\n" val.subdirs;
+    subdirs = builtins.concatStringsSep " " val.subdirs;
   in ''
     source-repository-package
       type: git
