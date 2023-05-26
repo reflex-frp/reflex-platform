@@ -88,4 +88,5 @@ self: super: {
   HsYAML-aeson = self.callHackage "HsYAML-aeson" "0.2.0.1" {};
   fsnotify = self.callHackage "fsnotify" "0.4.1.0" {};
   unliftio = self.callHackage "unliftio" "0.2.24.0" {};
+  sandwich = self.callHackage "sandwich" "0.1.0.6" {};
 }
