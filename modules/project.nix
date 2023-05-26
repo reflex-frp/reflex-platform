@@ -139,6 +139,10 @@ in baseProject.extend (foldExtensions ([
         crossBuilds = [ "ghcjs" ];
       };
 
+      ghc = shell-driver {
+        crossBuilds = [ ];
+      };
+
       ghcjs = shell-driver {
         targetSystem = "ghcjs";
         justCross = true;
