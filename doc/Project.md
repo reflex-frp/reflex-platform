@@ -70,9 +70,23 @@ sha256map = {
 
 Nix should spit out the proper hash for the downloaded repo, and you'll put that in place of `lib.fakeHash`
 
+
+### inputThunks
+We also provide inputThunks which is a nix-side way to import [thunks](put_link_here), and generate the inputMap AND the cabal.project
+
+Usage:
+
+```nix
+inputThunks = [
+  ./dep/<thunk>
+];
+```
+
 ### Available configuration
 
 ### sha256map
+
+Usage:
 
 ```nix
 sha256map = {
@@ -82,11 +96,22 @@ sha256map = {
 
 ### inputMap
 
+Usage:
+
 ```nix
 inputMap = {
    "${url}/${rev/ref}" = dep_src;
 };
 ```
+
+### inputThunks
+
+Usage:
+
+```nix
+inputThunks = [
+  ./dep/<thunk>
+];
 
 ## iOS/Android
 
@@ -132,7 +157,7 @@ Currently the executable is hardcoded to `hsPkgs.${projectName}.components.exes.
 Hackage overlays are defined via
 
 ```nix
-hackageOverlays = [ 
+hackageOverlays = [
   {
     name = "android-activity";
     version = "0.1.1";
