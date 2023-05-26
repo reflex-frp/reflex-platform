@@ -396,6 +396,8 @@ in let this = rec {
           ghc8_6
           ghc8_10
           ghcIosSimulator64
+          ghcIosSimulator64-8_6
+          ghcIosSimulator64-8_10
           ghcIosAarch64
           ghcIosAarch64-8_6
           ghcIosAarch64-8_10
