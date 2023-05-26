@@ -89,4 +89,6 @@ self: super: {
   fsnotify = self.callHackage "fsnotify" "0.4.1.0" {};
   unliftio = self.callHackage "unliftio" "0.2.24.0" {};
   sandwich = self.callHackage "sandwich" "0.1.0.6" {};
+  ghcid = self.callHackage "ghcid" "0.8.8" {};
+  postgresql-simple = self.callHackage "postgresql-simple" "0.6.5" {};
 }
