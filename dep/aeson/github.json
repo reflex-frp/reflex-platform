@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "aeson",
-  "branch": "v2.1.1.0-text-jsstring",
+  "branch": "dylang/v2.0.3.0-jsstring",
   "private": false,
-  "rev": "c718cd1150eb9de38a07ad64145be915bfb57e54",
-  "sha256": "13ccw0pqim9zmhsi26ka2a9421r42yba1ray4yds15xwsx5crv5k"
+  "rev": "c136ae855f2041dccf4deff962e7e4032a536469",
+  "sha256": "1hqwih37bcajc05qm2806k7kyay87xl1y8mi39mq60h4cjawrd03"
 }

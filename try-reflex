@@ -1,64 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-
-. "$DIR/scripts/common-setup.sh"
-
-ROOT_PERMISSION_FIX_SUGGESTION="please use your operating system's \"repair permissions\" feature, if it has one, or manually remove write permissions for your user from the '/' directory."
-
-if [ -e /homeless-shelter ] ; then
-  echo "It looks like your system has a directory or file at '/homeless-shelter'.  This will cause the try-reflex build to fail, because the Nix package manager assumes that /homeless-shelter does not exist and cannot be created."
-  echo
-  echo "If you intentionally created /homeless-shelter, please submit an issue at $REPO/issues, and we will try to find a workaround for this situation.  However, usually, this directory is created by accident when a Nix script is run by a user who has write permissions to the root directory."
-  echo
-  echo "If this is the case, please remove the /homeless-shelter directory, then ensure that your root directory is not writable by the current user.  To do this, $ROOT_PERMISSION_FIX_SUGGESTION"
-  exit 1
-elif mkdir /homeless-shelter 2>/dev/null ; then
-  rmdir /homeless-shelter
-  echo "It looks like your filesystem's root directory is writable by the current user.  This will cause nix to fail building try-reflex, and may also indicate a security vulnerability.  Note that you should not run try-reflex as root."
-  echo
-  echo "To fix this problem, $ROOT_PERMISSION_FIX_SUGGESTION"
-  exit 1
-fi
-
-echo "Entering the reflex sandbox..."
-
-# This must be built first, so that the ghcjs.reflex-todomvc built below is built in parallel with everything else
-prebuild_try_reflex_shell
-
-SUGGESTION_GHC=$(cat <<EOF
-To run a simple app:
-$ ghc -dynamic -XOverloadedStrings -e 'import Reflex.Dom' -e 'mainWidget $ text \"Hello, world!\"'
-
-Or to see a more complex native binary GUI example (based on the source at https://github.com/reflex-frp/reflex-todomvc/blob/master/src/Main.hs):
-$ reflex-todomvc
-EOF
-)
-
-SUGGESTION_GHCJS=$(cat <<EOF2
-To create a simple web GUI:
-$ cat >hello.hs <<EOF
-{-# LANGUAGE OverloadedStrings #-}
-import Reflex.Dom
-main = mainWidget $ text \"Hello, world!\"
-EOF
-$ ghcjs hello.hs
-Then navigate your browser to file://$(pwd)/hello.jsexe/index.html
-
-Or to see a more complex GUI example (based on the source at https://github.com/reflex-frp/reflex-todomvc/blob/master/src/Main.hs), navigate your browser to file://$(nix-build $NIXOPTS --no-out-link "$DIR" -A ghcjs.reflex-todomvc)/bin/reflex-todomvc.jsexe/index.html
-EOF2
-)
-
-INFO=$(cat <<EOF
-
-You are now in a shell with access to the Reflex functional reactive programming engine.
-
-$SUGGESTION_GHC
-
-$SUGGESTION_GHCJS
-EOF
-)
-
-terminate_logging
-try_reflex_shell --command "echo \"$INFO\" ; return" "$@"
+echo "WARN: try-reflex is no longer supported with haskell.nix, please refer to ../doc/Project.md"
+echo "The current alternative to try-reflex is running nix-shell -A shells.ghc in the example directory"
+echo "Running nix-shell ./example -A shells.ghc"
+nix-shell ./example -A shells.ghc

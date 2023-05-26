@@ -1,6 +1,6 @@
-{ nixpkgs
+{ pkgs
 , abiVersions
 }:
 ''
-APP_ABI := ${nixpkgs.lib.concatStringsSep " " abiVersions}
+  APP_ABI := ${pkgs.lib.concatStringsSep " " abiVersions}
 ''

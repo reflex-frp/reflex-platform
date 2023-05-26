@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "Not currently implemented in this version of reflex-platform"
+exit 1
+
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
 . "$DIR/scripts/common-setup.sh"

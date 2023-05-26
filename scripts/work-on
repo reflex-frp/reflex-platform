@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "WARN: Work-on is not supported/deprecated in this release of reflex-platform, expect failures!"
+exit 1
+
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
 if [ "$#" -lt 2 ] ; then
@@ -32,4 +35,8 @@ fi
 PACKAGE_INVOCATION="$(package_invocation "$EFFECTIVE_PLATFORM" "$PACKAGE")"
 
 terminate_logging
+<<<<<<< HEAD
 nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $EFFECTIVE_PLATFORM $PACKAGE_INVOCATION" "$@"
+=======
+#nix-shell $NIXOPTS -E "let this = import $DIR/. {}; in this.workOn $EFFECTIVE_PLATFORM $PACKAGE_INVOCATION" "$@"
+>>>>>>> origin/mars

@@ -1,8 +1,8 @@
 {
-  "owner": "obsidiansystems",
+  "owner": "cidkidnix",
   "repo": "nixpkgs",
-  "branch": "dg/reflex-platform-21.05",
+  "branch": "android-fixes",
   "private": false,
-  "rev": "40f8295215ed3d5fecdb000e26f988a4b43ec65a",
-  "sha256": "04kx305bypinl7wv81i4z7x0jlmrkf6sv9hwcv9ym3mi9zsyx970"
+  "rev": "b1f13104a9735cf0535f7ad200e6f1e7bda07f24",
+  "sha256": "0yrn8hz49cpl2img5p7rq34lpx3rrbgjlayhipcsh5r43gsviix7"
 }

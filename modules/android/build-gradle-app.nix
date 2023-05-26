@@ -1,13 +1,35 @@
-{ stdenv, lib, androidenv, jdk, gnumake, gawk, file
-, which, gradle, fetchurl, buildEnv, runCommand }:
+{ stdenv
+, lib
+, androidenv
+, jdk
+, gnumake
+, gawk
+, file
+, which
+, gradle
+, fetchurl
+, buildEnv
+, runCommand
+}:
 
-args@{ name, src, platformVersions ? [ "8" ]
-     , buildToolsVersions ? [ "30.0.2" ]
-     , useGoogleAPIs ? false, useGooglePlayServices ? false
-     , release ? false, keyStore ? null, keyAlias ? null
-     , keyStorePassword ? null, keyAliasPassword ? null
-     , useNDK ? false, buildInputs ? [], mavenDeps, gradleTask
-     , buildDirectory ? "./.", acceptAndroidSdkLicenses ? false }:
+args@{ name
+, src
+, platformVersions ? [ "8" ]
+, buildToolsVersions ? [ "30.0.2" ]
+, useGoogleAPIs ? false
+, useGooglePlayServices ? false
+, release ? false
+, keyStore ? null
+, keyAlias ? null
+, keyStorePassword ? null
+, keyAliasPassword ? null
+, useNDK ? false
+, buildInputs ? [ ]
+, mavenDeps
+, gradleTask
+, buildDirectory ? "./."
+, acceptAndroidSdkLicenses ? false
+}:
 
 assert release -> keyStore != null;
 assert release -> keyAlias != null;
@@ -17,7 +39,6 @@ assert acceptAndroidSdkLicenses;
 
 let
   inherit (lib) optionalString optional;
-
   m2install = { repo, version, artifactId, groupId
               , jarSha256, pomSha256, aarSha256, suffix ? ""
               , customJarUrl ? null, customJarSuffix ? null }:
@@ -65,7 +86,6 @@ stdenv.mkDerivation ({
   DEPENDENCIES = buildEnv { name = "${name}-maven-deps";
                             paths = map m2install mavenDeps;
                           };
-
   buildPhase = ''
     ${optionalString release ''
       # Provide key signing attributes
@@ -78,6 +98,7 @@ stdenv.mkDerivation ({
     ${optionalString (builtins.length buildToolsVersions > 0) ''
       echo "android.aapt2FromMavenOverride=local_sdk/android-sdk/build-tools/${builtins.head buildToolsVersions}/aapt2" >> gradle.properties
     ''}
+    echo "org.gradle.jvmargs=--add-opens java.base/java.io=ALL-UNNAMED" >> gradle.properties
     buildDir=`pwd`
     cp -rL $ANDROID_HOME $buildDir/local_sdk
     chmod -R 755 local_sdk

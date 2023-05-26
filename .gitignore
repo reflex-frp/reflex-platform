@@ -43,3 +43,4 @@ result
 # !reflex-todomvc/default.nix
 # !reflex-todomvc/github.json
 # /dist-newstyle/
+result*

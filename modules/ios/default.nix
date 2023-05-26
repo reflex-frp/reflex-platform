@@ -1,4 +1,4 @@
-{ nixpkgs, ghc, withSimulator ? false }:
+{ pkgs, packageset, withSimulator ? false }:
 
 { #TODO
   bundleName
@@ -92,17 +92,16 @@ let
       };
     };
 
-    DTSDKName = "iphoneos16.1";
-    DTXcode = "1410"; # Xcode 14.1
-    DTXcodeBuild = "14B47b";
-    DTXcodeBuildDistribution = "14B47b";
-    DTSDKBuild = "20B71"; # iOS 16.1
-    BuildMachineOSBuild = "21G320"; # macOS Monterey 12.6.2
+    DTSDKName = "iphoneos15.0";
+    DTXcode = "130"; # XCode 13.0
+    DTXcodeBuild = "13A233";
+    DTSDKBuild = "19A339"; # iOS 15.0
+    BuildMachineOSBuild = "19G73"; # Catalina
     DTPlatformName = "iphoneos";
     DTCompiler = "com.apple.compilers.llvm.clang.1_0";
-    MinimumOSVersion = "16.1";
-    DTPlatformVersion = "16.1";
-    DTPlatformBuild = "20B71";
+    MinimumOSVersion = "15.0";
+    DTPlatformVersion = "15.0";
+    DTPlatformBuild = "19A339"; # iOS 15.0
     NSPhotoLibraryUsageDescription = "Allow access to photo library.";
     NSCameraUsageDescription = "Allow access to camera.";
   };
@@ -129,10 +128,10 @@ let
     get-task-allow = !isRelease;
   };
 
-  exePath = package ghc;
+  exePath = package packageset.hsPkgs;
 in
-nixpkgs.runCommand "${executableName}-app" (rec {
-  infoPlist = builtins.toFile "Info.plist" (nixpkgs.lib.generators.toPlist {} infoPlistData);
+pkgs.runCommand "${executableName}-app" (rec {
+  infoPlist = builtins.toFile "Info.plist" (pkgs.lib.generators.toPlist {} infoPlistData);
   indexHtml = builtins.toFile "index.html" ''
     <html>
       <head>
@@ -141,10 +140,10 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       </body>
     </html>
   '';
-  xcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} devEntitlementsPlist);
-  packageXcent = builtins.toFile "xcent" (nixpkgs.lib.generators.toPlist {} packageEntitlementsPlist);
+  xcent = builtins.toFile "xcent" (pkgs.lib.generators.toPlist {} devEntitlementsPlist);
+  packageXcent = builtins.toFile "xcent" (pkgs.lib.generators.toPlist {} packageEntitlementsPlist);
 
-  deployScript = nixpkgs.writeText "deploy" ''
+  deployScript = pkgs.writeText "deploy" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
@@ -175,7 +174,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
           security find-certificate -c "$c" -p \
-            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
+            | ${pkgs.libressl}/bin/openssl x509 -subject -noout; \
         done \
       | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
@@ -197,10 +196,10 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     sed "s|<team-id/>|$TEAM_ID|" < "${xcent}" > $tmpdir/xcent
     /usr/bin/codesign --force --sign "$signer" --entitlements $tmpdir/xcent --timestamp=none "$tmpdir/${executableName}.app"
 
-    deploy="''${IOS_DEPLOY:-${nixpkgs.darwin.ios-deploy}/bin/ios-deploy}"
+    deploy="''${IOS_DEPLOY:-${pkgs.darwin.ios-deploy}/bin/ios-deploy}"
     $deploy -W -b "$tmpdir/${executableName}.app" "$@"
   '';
-  packageScript = nixpkgs.writeText "package" ''
+  packageScript = pkgs.writeText "package" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
@@ -235,7 +234,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
           security find-certificate -c "$c" -p \
-            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
+            | ${pkgs.libressl}/bin/openssl x509 -subject -noout; \
         done \
       | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
@@ -296,7 +295,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     mkdir -p "$tmpdir/${executableName}.app/config"
     ${../scripts/run-in-ios-sim} "$tmpdir/${executableName}.app" "${bundleIdentifier}"
   '';
-  portableDeployScript = nixpkgs.writeText "make-portable-deploy" ''
+  portableDeployScript = pkgs.writeText "make-portable-deploy" ''
     #!/usr/bin/env bash
     set -eo pipefail
 
@@ -327,7 +326,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
       | sed 's|    "alis"<blob>="\(.*\)"$|\1|' \
       | while read c; do \
           security find-certificate -c "$c" -p \
-            | ${nixpkgs.libressl}/bin/openssl x509 -subject -noout; \
+            | ${pkgs.libressl}/bin/openssl x509 -subject -noout; \
         done \
       | grep "OU[[:space:]]\?=[[:space:]]\?$TEAM_ID" \
       | sed 's|subject= /UID=[^/]*/CN=\([^/]*\).*|\1|' \
@@ -348,7 +347,7 @@ nixpkgs.runCommand "${executableName}-app" (rec {
     /usr/bin/codesign --force --sign "$signer" --entitlements $dir/xcent --timestamp=none "$dir/${executableName}.app"
 
     # unsure if we can sign with same key as for iOS app, may need special permissions
-    cp ${nixpkgs.darwin.ios-deploy}/bin/ios-deploy $dir/ios-deploy
+    cp ${pkgs.darwin.ios-deploy}/bin/ios-deploy $dir/ios-deploy
     /usr/bin/codesign --force --sign "$signer" --timestamp=none "$dir/ios-deploy"
 
     cat >$dir/deploy <<'EOF'
@@ -372,7 +371,7 @@ EOF
   chmod +x "$out/bin/deploy"
   cp --no-preserve=mode "$packageScript" "$out/bin/package"
   chmod +x "$out/bin/package"
-'' + nixpkgs.lib.optionalString withSimulator ''
+'' + pkgs.lib.optionalString withSimulator ''
   cp --no-preserve=mode "$runInSim" "$out/bin/run-in-sim"
   chmod +x "$out/bin/run-in-sim"
 '' + ''

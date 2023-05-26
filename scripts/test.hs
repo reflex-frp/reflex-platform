@@ -1,17 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 -- | This script provides basic tests for the try-reflex functionality; it should be run before committing code to important branches, such as 'develop'
 module Main where
 
-import Test.Hspec
-import Shelly
 import Control.Monad
 import Data.Monoid
 import Data.String
 import qualified Data.Text as T
+import Shelly
+import Test.Hspec
 
-repos    = pwd
-root     = pwd
-scripts  = fmap (</> ("scripts"  :: String)) pwd
+repos = pwd
+
+root = pwd
+
+scripts = fmap (</> ("scripts" :: String)) pwd
 
 main :: IO ()
 main = hspec $ parallel $ do
@@ -32,7 +35,7 @@ main = hspec $ parallel $ do
         return () :: IO ()
   describe "readme" $ do
     forM_ ["ghc", "ghcjs"] $ \platform -> do
-      forM_ [0..8] $ \i -> do
+      forM_ [0 .. 8] $ \i -> do
         it ("snippet_" <> show i <> " can be built by " <> platform) $ do
           shelly $ silently $ do
             os <- T.stripEnd <$> run "uname" ["-s"]
@@ -101,10 +104,12 @@ main = hspec $ parallel $ do
         it ("won't trample new files in " <> repo) $ writefileTest "test" -- test is a non-existing file
         it ("can checkout " <> repo) $ withSetup $ \d tmp -> do
           run (d </> ("hack-on" :: String)) [fromString repo]
-          False <- or <$> sequence
-            [ test_e $ tmp </> repo </> ("git.json" :: String)
-            , test_e $ tmp </> repo </> ("github.json" :: String)
-            ]
+          False <-
+            or
+              <$> sequence
+                [ test_e $ tmp </> repo </> ("git.json" :: String),
+                  test_e $ tmp </> repo </> ("github.json" :: String)
+                ]
           True <- test_d $ tmp </> repo </> (".git" :: String)
           return ()
   describe "hack-off" $ do

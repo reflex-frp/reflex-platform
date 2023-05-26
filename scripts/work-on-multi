@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "WARN: Deprecated in this version of reflex-platform"
+exit 1
+
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 DIR2="$DIR/nix-utils/work-on-multi"
 
