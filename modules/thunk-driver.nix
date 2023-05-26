@@ -19,7 +19,7 @@
       rev = json.rev;
     };
   };
-  
+
   gitParser = v: json: {
     name = "${json.url}/${json.rev}";
     value = {
@@ -56,7 +56,7 @@
   in {
     inherit url rev;
   };
-  
+
   checkFor = x: dir: {
     "gitlab" = builtins.readDir dir ? "gitlab.json";
     "github" = builtins.readDir dir ? "github.json";
@@ -86,7 +86,7 @@
   else if checkFor "git" v then
     "git"
   else "unpacked";
-  
+
   finalParse = v: let
     reader = jsonReader v;
     parsed = parseFor reader v;
@@ -95,18 +95,33 @@
     value = parsed.value.srcPath;
   };
 
-  parser = list: builtins.listToAttrs (builtins.map (a: finalParse a) list);
+  parser = list: builtins.listToAttrs (builtins.map (a: finalParse (a.thunk or a)) list);
 
-  cabalProjectGen = list: map (a: let
-    reader = jsonReader a;
-    parsed = parseFor reader a;
+  cabalWithSubDirs = val: let
+    reader = jsonReader val.thunk;
+    parsed = parseFor reader val.thunk;
+    subdirs = builtins.concatStringsSep "\n" val.subdirs;
   in ''
     source-repository-package
       type: git
       location: ${parsed.value.url}
       tag: ${parsed.value.rev}
-  '') list;
+      subdir: ${subdirs}
+  '';
+
+  cabalProjectGen = val: let
+    reader = jsonReader val;
+    parsed = parseFor reader val;
+  in ''
+    source-repository-package
+      type: git
+      location: ${parsed.value.url}
+      tag: ${parsed.value.rev}
+  '';
+
+
 in {
   inputMap = parser inputMap;
-  cabalProject = cabalProjectGen inputMap;
+  cabalProject = map (a: if a ? subdirs then cabalWithSubDirs a else cabalProjectGen a) inputMap;
+  #cabalProjectGen inputMap;
 }

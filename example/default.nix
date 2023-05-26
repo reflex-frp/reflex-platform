@@ -34,7 +34,8 @@ reflex-platform.project ({ pkgs, thunkSource, ... }: {
     bundleName = "Reflex TodoMVC";
   };
   inputThunks = [
-    ../dep/android-activity
+    { thunk = ../dep/android-activity; subdirs = [ "lmao" ]; }
+    ../dep/aeson
   ];
   shells = ps: with ps; [
     reflex-todomvc
