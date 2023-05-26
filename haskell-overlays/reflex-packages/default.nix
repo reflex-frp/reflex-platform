@@ -110,7 +110,7 @@ in
 
   reflex-vty = self.callCabal2nix "reflex-vty" self._dep.reflex-vty {};
   reflex-process = self.callCabal2nix "reflex-process" self._dep.reflex-process {};
-  reflex-fsnotify = self.callHackage "reflex-fsnotify" "0.2.1.2" {};
+  reflex-fsnotify = self.callCabal2nix "reflex-fsnotify" self._dep.reflex-fsnotify {};
 
   ##
   ## Tooling

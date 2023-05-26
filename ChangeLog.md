@@ -10,6 +10,8 @@ This project's release branch is `master`. This log is written from the perspect
   * reflex 0.9.0.1
   * reflex-dom-core 0.8.0.0
   * reflex-vty 0.4.1.1
+  * reflex-fsnotify 0.3.0.0
+  * reflex-process 0.3.1.2-r1
 
 ## v1.0.1.0
 
