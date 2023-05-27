@@ -86,7 +86,7 @@
           export EXTERNAL_SPLICES_SAVE="$out/lib/haskell.nix/$pname"
         '';
       })
-    ] ++ overrides ++ hackage-driver.package-overlays;
+    ] ++ overrides ++ hackage-driver.package-overlays ++ inputMapDriver.overrides;
   });
 in baseProject.extend (foldExtensions ([
   (final: prev: rec {

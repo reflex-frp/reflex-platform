@@ -119,9 +119,16 @@
       tag: ${parsed.value.rev}
   '';
 
+  genOverridesForSubdirs = val: let
+    reader = jsonReader val.thunk;
+    parsed = parseFor reader val.thunk;
+  in map (a:
+    {
+      packages."${a}".src = (parsed.value.srcPath + "/${a}");
+    }) val.subdirs;
 
 in {
   inputMap = parser inputMap;
   cabalProject = map (a: if a ? subdirs then cabalWithSubDirs a else cabalProjectGen a) inputMap;
-  #cabalProjectGen inputMap;
+  overrides = builtins.concatMap (a: if a ? subdirs then genOverridesForSubdirs a else []) inputMap;
 }
