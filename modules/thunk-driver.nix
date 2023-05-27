@@ -35,6 +35,7 @@
       srcPath = (thunkSource v).outPath;
       url = json.url;
       rev = json.rev;
+      thunk_unpacked = v;
     };
   };
 
@@ -91,8 +92,8 @@
     reader = jsonReader v.thunk;
     parsed = parseFor reader v.thunk;
   in {
-    name = parsed.name + "/${a}";
-    value = parsed.value.srcPath;
+    name = "${parsed.value.url}/${a}/${parsed.value.rev}";
+    value = (parsed.value.thunk_unpacked or parsed.value.srcPath) + "/${a}";
   }) v.subdirs)
   else (let
     reader = jsonReader v;
@@ -107,7 +108,7 @@
   cabalWithSubDirs = val: let
     reader = jsonReader val.thunk;
     parsed = parseFor reader val.thunk;
-  in builtins.concatMap (a: ''
+  in builtins.map (a: ''
     source-repository-package
       type: git
       location: ${parsed.value.url}/${a}
@@ -117,12 +118,12 @@
   cabalProjectGen = val: let
     reader = jsonReader val;
     parsed = parseFor reader val;
-  in ''
+  in [''
     source-repository-package
       type: git
       location: ${parsed.value.url}
       tag: ${parsed.value.rev}
-  '';
+  ''];
 
   genOverridesForSubdirs = val: let
     source = thunkSource val.thunk;
@@ -133,6 +134,7 @@
 
 in {
   inputMap = parser inputMap;
-  cabalProject = builtins.map (a: if a ? subdirs then cabalWithSubDirs a else cabalProjectGen a) inputMap;
-  overrides = builtins.concatMap (a: if a ? subdirs then genOverridesForSubdirs a else []) inputMap;
+  cabalProject = builtins.concatMap (a: if a ? subdirs then cabalWithSubDirs a else cabalProjectGen a) inputMap;
+  overrides = [];
+  #builtins.concatMap (a: if a ? subdirs then genOverridesForSubdirs a else []) inputMap;
 }
