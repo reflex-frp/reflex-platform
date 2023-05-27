@@ -120,12 +120,11 @@
   '';
 
   genOverridesForSubdirs = val: let
-    reader = jsonReader val.thunk;
-    parsed = parseFor reader val.thunk;
+    source = thunkSource val.thunk;
   in map (a:
-    {
-      packages."${a}".src = (parsed.value.srcPath + "/${a}");
-    }) val.subdirs;
+    ({config, pkgs, lib, ... }: {
+      packages."${a}".src = lib.mkForce source;
+    })) val.subdirs;
 
 in {
   inputMap = parser inputMap;
