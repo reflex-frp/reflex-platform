@@ -87,27 +87,32 @@
     "git"
   else "unpacked";
 
-  finalParse = v: let
+  finalParse = v: if (v ? subdirs) then (map (a: let
+    reader = jsonReader v.thunk;
+    parsed = parseFor reader v.thunk;
+  in {
+    name = parsed.name + "/${a}";
+    value = parsed.value.srcPath;
+  }) v.subdirs)
+  else (let
     reader = jsonReader v;
     parsed = parseFor reader v;
-  in {
+  in [{
     inherit (parsed) name;
     value = parsed.value.srcPath;
-  };
+  }]);
 
-  parser = list: builtins.listToAttrs (builtins.map (a: finalParse (a.thunk or a)) list);
+  parser = list: builtins.listToAttrs (builtins.concatMap (a: finalParse a) list);
 
   cabalWithSubDirs = val: let
     reader = jsonReader val.thunk;
     parsed = parseFor reader val.thunk;
-    subdirs = builtins.concatStringsSep " " val.subdirs;
-  in ''
+  in builtins.concatMap (a: ''
     source-repository-package
       type: git
-      location: ${parsed.value.url}
+      location: ${parsed.value.url}/${a}
       tag: ${parsed.value.rev}
-      subdir: ${subdirs}
-  '';
+  '') val.subdirs;
 
   cabalProjectGen = val: let
     reader = jsonReader val;
@@ -128,6 +133,6 @@
 
 in {
   inputMap = parser inputMap;
-  cabalProject = map (a: if a ? subdirs then cabalWithSubDirs a else cabalProjectGen a) inputMap;
+  cabalProject = builtins.map (a: if a ? subdirs then cabalWithSubDirs a else cabalProjectGen a) inputMap;
   overrides = builtins.concatMap (a: if a ? subdirs then genOverridesForSubdirs a else []) inputMap;
 }
