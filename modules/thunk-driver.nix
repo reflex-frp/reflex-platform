@@ -2,6 +2,16 @@
 
   readJSON = x: builtins.fromJSON (builtins.readFile x);
 
+  hashDir = val: let
+    dir = (builtins.readDir val);
+  in builtins.concatMap (a:
+    if dir.${a} == "directory" then
+      hashDir (val + "/${a}")
+    else if dir.${a} == "regular" then
+      [ (builtins.hashFile "sha256" (val + "/${a}")) ]
+    else [ "nohash" ]
+    ) (builtins.attrNames dir);
+
   githubParser = v: json: {
     name = "https://github.com/${json.owner}/${json.repo}/${json.rev}";
     value = {
@@ -58,6 +68,13 @@
     inherit url rev;
   };
 
+  hashContentsForAttrs = val: let
+    hashedDir = builtins.concatStringsSep "" (hashDir val);
+  in {
+    name = builtins.hashString "sha256" hashedDir;
+    rev = builtins.hashString "sha1" hashedDir;
+  };
+
   checkFor = x: dir: {
     "gitlab" = builtins.readDir dir ? "gitlab.json";
     "github" = builtins.readDir dir ? "github.json";
@@ -78,6 +95,13 @@
     "unpacked" = let
       json = readUnpacked v;
     in unpackedParser v json;
+    "nonthunk" = let
+      generated_attrs = hashContentsForAttrs v;
+      json = {
+        url = "https://fake.git/lib/${generated_attrs.name}";
+        rev = "${generated_attrs.rev}";
+      };
+    in unpackedParser v json;
   }."${x}";
 
   # jsonReader :: FilePath -> "Text"
@@ -89,7 +113,7 @@
     "git"
   else if checkFor "gitdir" v then
     "unpacked"
-  else builtins.error "Not a thunk!";
+  else "nonthunk";
 
   finalParse = v: if (v ? subdirs) then (map (a: let
     reader = jsonReader v.thunk;
