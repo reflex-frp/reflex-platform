@@ -66,7 +66,7 @@
     extraCabalProject = bot_args.extraCabalProject or [] ++ inputMapDriver.cabalProject or [];
   };
 
-  checkHackageOverlays = c: v: if combinedOverlays == [ ] then builtins.trace c c else builtins.trace v v;
+  checkHackageOverlays = c: v: if combinedOverlays == [ ] then c else v;
 
   # Base project without any extensions added
   baseProject = (pkgs.haskell-nix.project' {
