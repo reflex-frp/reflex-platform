@@ -62,6 +62,7 @@
     "gitlab" = builtins.readDir dir ? "gitlab.json";
     "github" = builtins.readDir dir ? "github.json";
     "git" = builtins.readDir dir ? "git.json";
+    "gitdir" = builtins.readDir dir ? ".git";
   }."${x}";
 
   parseFor = x: v: {
@@ -86,7 +87,9 @@
     "gitlab"
   else if checkFor "git" v then
     "git"
-  else "unpacked";
+  else if checkFor "gitdir" v then
+    "unpacked"
+  else builtins.error "Not a thunk!";
 
   finalParse = v: if (v ? subdirs) then (map (a: let
     reader = jsonReader v.thunk;
