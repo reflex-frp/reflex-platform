@@ -10,7 +10,6 @@
 in
 
 pkgs.runCommand "modify-project" {  } (''
- set -eux
  cp -r ${src} $out
  chmod +w $out/cabal.project
 '' + builtins.concatStringsSep "\n" extraCabal)
