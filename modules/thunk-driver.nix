@@ -2,13 +2,20 @@
 
   readJSON = x: builtins.fromJSON (builtins.readFile x);
 
-  hashDir = val: let
-    dir = (builtins.readDir val);
-  in builtins.concatMap (a:
+  # NOTE: Recursive hash function that produces reliable hashes of the directory
+  # This has been tested to be reliable
+
+  # hashDirRec :: [FilePath] -> [String] -> [String]
+  hashDirRec = { path, exclude ? [] }: let
+    dir = builtins.removeAttrs (builtins.readDir path) exclude;
+  in  builtins.concatMap (a:
     if dir.${a} == "directory" then
-      hashDir (val + "/${a}")
+      hashDirRec {
+        path = (path + "/${a}");
+        inherit exclude;
+      }
     else if dir.${a} == "regular" then
-      [ (builtins.hashFile "sha256" (val + "/${a}")) ]
+      [ (builtins.hashFile "sha256" (path + "/${a}")) ]
     else [ "nohash" ]
     ) (builtins.attrNames dir);
 
@@ -68,13 +75,18 @@
     inherit url rev;
   };
 
+  # hashContentsForAttrs :: FilePath -> AttrSet
   hashContentsForAttrs = val: let
-    hashedDir = builtins.concatStringsSep "" (hashDir val);
+    hashedDir = builtins.concatStringsSep "" (hashDirRec {
+      path = val;
+      exclude = [ ".git" ".gitignore" ];
+    });
   in {
     name = builtins.hashString "sha256" hashedDir;
     rev = builtins.hashString "sha1" hashedDir;
   };
 
+  # checkFor :: String -> FilePath -> Bool
   checkFor = x: dir: {
     "gitlab" = builtins.readDir dir ? "gitlab.json";
     "github" = builtins.readDir dir ? "github.json";
@@ -82,6 +94,7 @@
     "gitdir" = builtins.readDir dir ? ".git";
   }."${x}";
 
+  # parseFor :: String -> FilePath -> AttrSet
   parseFor = x: v: {
     "gitlab" = let
       json = readJSON (v + "/gitlab.json");
@@ -104,7 +117,7 @@
     in unpackedParser v json;
   }."${x}";
 
-  # jsonReader :: FilePath -> "Text"
+  # jsonReader :: FilePath -> String
   jsonReader = v: if checkFor "github" v then
     "github"
   else if checkFor "gitlab" v then
@@ -115,6 +128,7 @@
     "unpacked"
   else "nonthunk";
 
+  # finalParse :: Either AttrSet FilePath -> [AttrSet]
   finalParse = v: if (v ? subdirs) then (map (a: let
     reader = jsonReader v.thunk;
     parsed = parseFor reader v.thunk;
@@ -130,8 +144,10 @@
     value = parsed.value.srcPath;
   }]);
 
+  # parser :: [Either AttrSet FilePath] -> AttrSet
   parser = list: builtins.listToAttrs (builtins.concatMap (a: finalParse a) list);
 
+  # cabalWithSubDirs :: AttrSet -> [String]
   cabalWithSubDirs = val: let
     reader = jsonReader val.thunk;
     parsed = parseFor reader val.thunk;
@@ -142,6 +158,7 @@
       tag: ${parsed.value.rev}
   '') val.subdirs;
 
+  # cabalProjectGen :: FilePath -> [String]
   cabalProjectGen = val: let
     reader = jsonReader val;
     parsed = parseFor reader val;
@@ -151,13 +168,6 @@
       location: ${parsed.value.url}
       tag: ${parsed.value.rev}
   ''];
-
-  genOverridesForSubdirs = val: let
-    source = thunkSource val.thunk;
-  in map (a:
-    ({config, pkgs, lib, ... }: {
-      packages."${a}".src = lib.mkForce source;
-    })) val.subdirs;
 
 in {
   inputMap = parser inputMap;
