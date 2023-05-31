@@ -5,7 +5,12 @@
   example_linux ? import ./example/default.nix {
     system = "x86_64-linux";
   },
-  tests ? import ./tests/thunk_tests.nix
+  tests_linux ? import ./tests/thunk_tests.nix {
+    system = "x86_64-linux";
+  },
+  tests_macos ? import ./tests/thunk_tests.nix {
+    system = "x86_64-darwin";
+  }
 }: {
   ghcjs-app = example_linux.ghcjs-app;
   android-app = example_linux.android.app.aarch64;
@@ -16,4 +21,6 @@
   ios-app = example_darwin.ios.app.aarch64;
   darwin-app = example_darwin.hsPkgs.reflex-todomvc.components.exes.reflex-todomvc;
   darwin-dev = example_linux.shells.ghc;
+
+  inherit tests_linux tests_macos;
 }

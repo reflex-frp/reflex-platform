@@ -1,6 +1,7 @@
+{ system ? builtins.currentSystem }:
 let
   nix-thunk = import ../dep/nix-thunk {};
-  exampleFunc = attrs: import ../example attrs;
+  exampleFunc = attrs: import ../example (attrs // { inherit system; });
   getOutPath = attr: attr.outPath;
   runTests = list: thunkPacked.pkgs.runCommandNoCC "tests" {} (builtins.concatStringsSep "\n" list);
 
