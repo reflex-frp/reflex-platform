@@ -1,7 +1,9 @@
 # Example usage of this project
 {
+  system ? builtins.currentSystem,
   reflex-platform ? import ../default.nix {
     android_sdk_accept_license = true;
+    inherit system;
     allowUnfree = true;
     doPatch = true;
     patches = [
