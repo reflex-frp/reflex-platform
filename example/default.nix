@@ -16,7 +16,8 @@
     ];
   },
 
-  nix-thunk ? import ../dep/nix-thunk { }
+  nix-thunk ? import ../dep/nix-thunk { },
+  thunkInputs ? [ ../dep/android-activity ]
 }:
 reflex-platform.project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
@@ -33,9 +34,7 @@ reflex-platform.project ({ pkgs, thunkSource, ... }: {
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
-  inputThunks = [
-    ../dep/android-activity
-  ];
+  inputThunks = thunkInputs;
   shells = ps: with ps; [
     reflex-todomvc
   ];

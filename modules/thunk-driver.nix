@@ -5,6 +5,7 @@
   # NOTE: Recursive hash function that produces reliable hashes of the directory
   # This has been tested to be reliable
 
+  # REVIEW: Check if we actually want to do it this way
   # hashDirRec :: [FilePath] -> [String] -> [String]
   hashDirRec = { path, exclude ? [] }: let
     dir = builtins.removeAttrs (builtins.readDir path) exclude;
@@ -94,6 +95,7 @@
     "gitdir" = builtins.readDir dir ? ".git";
   }."${x}";
 
+  # TODO: Maybe we want all of this to use hashContentsForAttrs instead of relying on git rev
   # parseFor :: String -> FilePath -> AttrSet
   parseFor = x: v: {
     "gitlab" = let
