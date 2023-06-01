@@ -97,4 +97,62 @@ in
  in proj (def toplevel);
 
  inherit bootPkgs pkgs;
-}
+ inherit (pkgs.haskell-nix) compiler;
+
+ setGhcLibdir = builtins.throw "setGhcLibdir is automatically done by haskell.nix!";
+ tryReflexShell = pkgs.lib.warn "tryReflexShell has been replaced by (nix-build ./example -A shells.default)" (import ./example {}).shells.default;
+ cabal2nixResult = builtins.throw "cabal2nixResult is no longer supported!";
+ androidSupport = builtins.throw "androidSupport is replaced by project.nix";
+ iosSupport = builtins.throw "iosSupport is replaced by project.nix";
+
+ ghcjsExternsJs = null;
+ workOn = builtins.throw "workOn requires you to setup a project";
+
+ build-wasm-app-wrapper = null;
+ build-wasm-app = null;
+
+ pinBuildInputs = null;
+
+ reflexEnv = (import ./example {}).shells.default;
+ tryReflexPackages = pkgs.lib.warn "tryReflexPackages is an unstable interface, since the package-set may change!" (import ./example {}).hsPkgs;
+
+ cachePackages = null;
+
+ generalDevTools' = {
+   inherit (pkgs) nodejs pkg-config closurecompiler nix-prefetch-scripts curl;
+   cabal2nix = builtins.throw "Not available in haskell.nix!";
+ };
+
+ inherit system;
+} // (pkgs.lib.genAttrs [
+  "iosAarch64" "ghcIosAarch64" "ghcAndroidAarch64"
+  "ghcAndroidAarch32" "ghcSavedSplices" "ghcSavedSplices-8_6" "ghcSavedSplices-8_10"
+  "ghcjs" "ghcjs8_6" "ghcjs8_10" "wasm" "ghcWasm32-8_10" "ghc" "ghcHEAD" "ghc8_10"
+  "ghc8_6" "ghcAndroidAarch64" "ghcAndroidAarch64-8_6"
+  "ghcAndroidAarch64-8_10" "ghcAndroidAarch32"
+  "ghcAndroidAarch32-8_6" "ghcAndroidAarch32-8_10"
+  "ghcIosSimulator64" "ghcIosSimulator64-8_6"
+  "ghcIosSimulator64-8_10" "ghcIosAarch64"
+  "ghcIosAarch64-8_6" "ghcIosAarch64-8_10"
+  "ghcIosAarch32" "ghcIosAarch32-8_6"
+  "ghcIosAarch32-8_10" "android"
+  "android-8_6" "android-8_10" "androidWithHaskellPackages"
+  "iosAarch64" "iosAarch64-8_6" "iosAarch64-8_10" "iosAarch32"
+  "iosAarch32-8_6" "iosAarch32-8_10" "iosSimulator" "iosWithHaskellPackages"
+] (x: pkgs.lib.warn "${x} has been replaced with the compilers attr! To use a cross arch please use pkgs.pkgsCross.haskell-nix.compiler" pkgs.haskell-nix.compiler.ghc8107Splices))
+// (pkgs.lib.genAttrs [
+  "androidReflexTodomvc"
+  "androidReflexTodomvc-8_6" "androidReflexTodomvc-8_10"
+  "iosReflexTodomvc" "iosReflexTodomvc-8_6"
+  "iosReflexTodomvc-8_10" "iosSimulatorReflexTodomvc"
+] (x: builtins.throw "${x} is now built using the example directory! Ex: cd ./example && nix-build -A {android,ios}.app.aarch64"))
+// (pkgs.lib.genAttrs [
+  "mkHackageDocs"
+  "hackageDocs"
+  "generalDevTools"
+  "generalDevToolsAttrs"
+  "nativeHaskellPackages"
+  "workOnMulti"
+  "workOnMulti'"
+  "attrsToList"
+] (x: builtins.throw "${x} has been removed!"))

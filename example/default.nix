@@ -19,7 +19,15 @@
   },
 
   nix-thunk ? import ../dep/nix-thunk { },
-  thunkInputs ? [ ../dep/android-activity ]
+  thunkInputs ? [
+    ../dep/android-activity
+    {
+      thunk = ../dep/jsaddle;
+      subdirs = [
+        "jsaddle"
+      ];
+    }
+  ]
 }:
 reflex-platform.project ({ pkgs, thunkSource, ... }: {
   name = "reflex-todomvc";
