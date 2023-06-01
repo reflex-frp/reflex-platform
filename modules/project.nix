@@ -216,6 +216,22 @@ in baseProject.extend (foldExtensions ([
     # Easy way to get to the ghcjs app
     ghcjs-app = crossSystems.ghcjs.pkg-set.config.hsPkgs."${name}".components.exes."${name}";
 
+    workOn = import ./workon.nix {
+      inherit pkgs;
+      inputMap = inputMapDriver.inputMap;
+      cabalProject = inputMapDriver.cabalProject;
+    };
+
+    workOnTest = workOn {
+      package = "jsaddle-warp";
+      pkg-set = final.pkg-set.config.packages;
+      allowNewer = [
+        "lens"
+        "aeson"
+        "attoparsec"
+      ];
+      inherit compiler-nix-name;
+    };
     # Usage of cross-driver sets up all of the various splices cruft to
     # make an easy way to setup cross-compiling with splices
     crossSystems = builtins.mapAttrs
