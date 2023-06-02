@@ -38,8 +38,20 @@
     #hlint = "latest";
     #haskell-language-server = "latest";
   }
-}@bot_args: pkgs.lib.makeExtensible (self: let
+}@bot_args:
+
+pkgs.lib.makeExtensible (self: let
   foldExtensions = a: builtins.foldl' pkgs.lib.composeExtensions (_: _: { }) a;
+
+  unsafeGetPositionMsg = {
+    attr ? "",
+    set ? {},
+    msg ? pos: ""
+  }: let
+    # We could use __unsafeGetAttrPos instead of builtins.unsafeGetAttrPos but it freaks out IDEs
+    _pos = builtins.unsafeGetAttrPos attr set;
+  in x: pkgs.lib.warn ("${_pos.file}:${toString _pos.line} -- " + (msg _pos)) x;
+
   pkgdef-extras = (bot_args.pkg-def-extras or [])
   ++ pkgs.lib.optionals (builtins.hasAttr "extraPkgDef" self) self.extraPkgDef;
 
@@ -103,6 +115,11 @@ in baseProject.extend (foldExtensions ([
       inherit obsidian pkgs hackage-driver;
       inherit deps baseProject;
     };
+
+    __unsafe = {
+      shells = bot_args.shells;
+      bot_args = bot_args;
+    };
     # Null out haskell.nix's default cross setup, since it doesn't work
     # properly
     projectCross = builtins.abort "Haskell.nix projectCross isn't supported!";
@@ -134,6 +151,7 @@ in baseProject.extend (foldExtensions ([
       inherit (bot_args) shells;
       exactDeps = true;
       project = final;
+      unsafeMsg = unsafeGetPositionMsg;
     };
     shells = rec {
       default = shell-driver {
