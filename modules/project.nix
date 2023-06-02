@@ -32,6 +32,7 @@
 , sha256map ? null
 , pkg-def-extras ? []
 , extraArgs ? { }
+, workon ? ""
 , shellTools ? {
     cabal = "3.2.0.0";
     #hlint = "latest";
@@ -220,11 +221,17 @@ in baseProject.extend (foldExtensions ([
       inherit pkgs;
       inputMap = inputMapDriver.inputMap;
       cabalProject = inputMapDriver.cabalProject;
+      pkg-set = final.pkg-set.config.packages;
     };
+
+    workOnShell = (workOn ({
+      package = bot_args.workon.package or builtins.throw "WorkOn needs a package!";
+      inherit compiler-nix-name;
+    } // workon)).shell;
 
     workOnTest = workOn {
       package = "jsaddle-warp";
-      pkg-set = final.pkg-set.config.packages;
+      #pkg-set = final.pkg-set.config.packages;
       allowNewer = [
         "lens"
         "aeson"

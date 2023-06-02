@@ -74,7 +74,7 @@ project ({ pkgs, thunkSource }: {
 We no longer have a set flag that enables or disables certain compiler versions for your build. The new way to set this is via `compiler-nix-name`.
 
 ```nix
-project ({pkgs, thunkSource}{
+project ({pkgs, thunkSource}: {
     compiler-nix-name = "ghc8107Splices";
 })
 ```

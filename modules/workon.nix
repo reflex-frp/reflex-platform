@@ -1,4 +1,4 @@
-{ pkgs, inputMap, cabalProject }@args: let
+{ pkgs, inputMap, cabalProject, pkg-set }@args: let
   unpackPackage = path: pkgs.runCommandNoCC "unpack-package" { } ''
     mkdir -p $out
     if [[ $path == *.tar.gz ]]; then
@@ -10,7 +10,7 @@
     echo -e "packages: .\n" > $out/cabal.project
   '';
 in
-  { package, pkg-set, compiler-nix-name, constraints ? [], allowNewer ? [], allowOlder ? [], ... }: let
+  { package, compiler-nix-name, constraints ? [], allowNewer ? [], allowOlder ? [], tools ? { cabal-install = "3.4.0.0"; }, ... }: let
 
   constraintsToString = [ ("constraints: " + builtins.concatStringsSep "," constraints) ];
 
@@ -47,8 +47,6 @@ in proj.extend (self: super: {
   src = unpackPackage (pkg-set."${package}".src);
   shell = self.shellFor {
     packages = ps: [ ps.${splitDrvName.name} ];
-    tools = {
-      cabal-install = "3.4.0.0";
-    };
+    inherit tools;
   };
 })
