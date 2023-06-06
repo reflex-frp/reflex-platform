@@ -108,7 +108,11 @@
       json = readJSON (v + "/git.json");
     in gitParser v json;
     "unpacked" = let
-      json = readUnpacked v;
+      generated_attrs = hashContentsForAttrs v;
+      json = {
+        url = "https://fake.git/lib/${generated_attrs.name}";
+        rev = "${generated_attrs.rev}";
+      };
     in unpackedParser v json;
     "nonthunk" = let
       generated_attrs = hashContentsForAttrs v;

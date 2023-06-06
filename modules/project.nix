@@ -50,7 +50,7 @@ pkgs.lib.makeExtensible (self: let
   }: let
     # We could use __unsafeGetAttrPos instead of builtins.unsafeGetAttrPos but it freaks out IDEs
     _pos = builtins.unsafeGetAttrPos attr set;
-  in x: pkgs.lib.warn ("${_pos.file}:${toString _pos.line} -- " + (msg _pos)) x;
+  in x: __trace ("${_pos.file}:${toString _pos.line} -- " + (msg _pos)) x;
 
   pkgdef-extras = (bot_args.pkg-def-extras or [])
   ++ pkgs.lib.optionals (builtins.hasAttr "extraPkgDef" self) self.extraPkgDef;

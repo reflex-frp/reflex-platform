@@ -45,8 +45,8 @@ reflex-platform.project ({ pkgs, thunkSource, ... }: {
     bundleName = "Reflex TodoMVC";
   };
   inputThunks = thunkInputs;
-  shells = ps: with ps; [
-    reflex-todomvc
+  shells = [
+    "reflex-todomvc"
   ];
   extraSrcFiles = {
     library.extraSrcFiles = [ "style.css" "reflex-todomvc.app" ];
