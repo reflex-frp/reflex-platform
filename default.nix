@@ -514,7 +514,7 @@ in let this = rec {
       hasktags
       hlint
       stylish-haskell # Recent stylish-haskell only builds with AMP in place
-      reflex-ghci
+      # reflex-ghci
       ;
     inherit (nixpkgs)
       cabal2nix
