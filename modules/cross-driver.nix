@@ -68,13 +68,6 @@ in crossPkgs.haskell-nix.project' {
       }
       */
   ] ++ overrides
-  ++ lib.optionals (stdenv.hostPlatform.isiOS) ([
-    {
-      packages."${name}".ghcOptions = [
-        "-fwhole-archive-hs-libs"
-      ];
-    }
-  ])
     # Disable some stuff to make ghcjs properly function
     # since haskell.nix enables too strict of rules by default
     ++ lib.optionals (stdenv.targetPlatform.isGhcjs) ([

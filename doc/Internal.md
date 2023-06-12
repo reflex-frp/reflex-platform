@@ -16,7 +16,7 @@ We don't use haskell.nix's implementation of cross-compiling since it seems to b
 
 This module defines how to set-up the project for cross-compiling. We currently have hacks for both iOS and GHCJS due to some bugs that we've found.
 
-iOS has a bug with at least GHC 8.10.7 where the linker crashes when we try to link the final executable. We fix this by passing `-fwhole-archive-hs-libs` to GHC so it doesn't dead-strip the resulting binary
+iOS has a bug with at least GHC 8.10.7 where the linker crashes when we try to link the final executable. We fix this by patching GHC so it doesn't dead-strip the resulting binary
 
 We have custom configuration for our fork/modification to GHCJS so we have to make sure that we don't forget about packages we add into the compiler. This is why we have to set `reinstallableLibGhc` to false, alongside re-setting up `nonReinstallablePkgs`
 

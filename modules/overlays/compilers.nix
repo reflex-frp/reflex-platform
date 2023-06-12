@@ -189,6 +189,7 @@ in {
             url = "https://raw.githubusercontent.com/obsidiansystems/splices-load-save.nix/master/patches/ghc-8.10.7/splices.patch";
             sha256 = "sha256-pIMPDpBwL3tYPEbIgTfE1oNgL2KMLp7ovcp6E2KOIVY=";
           })
+          ../patches/aarch64-darwin/fix_dead_strip.patch
         ] ++ final.lib.optionals (final.stdenv.targetPlatform.isAndroid && final.stdenv.targetPlatform.isAarch32) [
            #Aarch32 android
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-make-stage-1-lib-ghc.patch")

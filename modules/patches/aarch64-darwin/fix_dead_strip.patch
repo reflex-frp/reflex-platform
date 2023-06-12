@@ -1,0 +1,32 @@
+diff --git a/compiler/main/DriverPipeline.hs b/compiler/main/DriverPipeline.hs
+index 1bc08779cc..45017feac4 100644
+--- a/compiler/main/DriverPipeline.hs
++++ b/compiler/main/DriverPipeline.hs
+@@ -1768,7 +1768,7 @@ linkBinary' staticLink dflags o_files dep_packages = do
+     let
+       dead_strip
+         | gopt Opt_WholeArchiveHsLibs dflags = []
+-        | otherwise = if osSubsectionsViaSymbols (platformOS platform)
++        | otherwise = if osSubsectionsViaSymbols platform
+                         then ["-Wl,-dead_strip"]
+                         else []
+     let lib_paths = libraryPaths dflags
+diff --git a/libraries/ghc-boot/GHC/Platform.hs b/libraries/ghc-boot/GHC/Platform.hs
+index d11015a54c..791fde0bb6 100644
+--- a/libraries/ghc-boot/GHC/Platform.hs
++++ b/libraries/ghc-boot/GHC/Platform.hs
+@@ -272,9 +272,11 @@ osUsesFrameworks _        = False
+ platformUsesFrameworks :: Platform -> Bool
+ platformUsesFrameworks = osUsesFrameworks . platformOS
+ 
+-osSubsectionsViaSymbols :: OS -> Bool
+-osSubsectionsViaSymbols OSDarwin = True
+-osSubsectionsViaSymbols _        = False
++osSubsectionsViaSymbols :: Platform -> Bool
++osSubsectionsViaSymbols plat = case (platformArch plat, platformOS plat) of
++                                 (ArchAArch64, OSDarwin) -> False
++                                 (_, OSDarwin) -> True
++                                 (_, _) -> False
+ 
+ -- | Platform-specific settings formerly hard-coded in Config.hs.
+ --

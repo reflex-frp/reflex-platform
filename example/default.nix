@@ -67,17 +67,8 @@ reflex-platform.project ({ pkgs, thunkSource, ... }: {
 	      webkit2gtk = if (pkgs.stdenv.targetPlatform.isAndroid) then lib.mkForce false else true;
 	    };
       };
-      packages.reflex-todomvc.components.exes.reflex-todomvc-wkwebview.configureFlags = [
-        "--ld-option=-v"
-      ];
       packages.reflex-todomvc.components.exes.reflex-todomvc = {
         frameworks = if (!pkgs.stdenv.targetPlatform.isiOS && pkgs.stdenv.targetPlatform.isDarwin) then [ pkgs.darwin.apple_sdk.frameworks.CoreFoundation ] else [ ];
-        configureFlags = [
-          "--ld-option=-v"
-        ];
-        ghcOptions = [
-          "-fwhole-archive-hs-libs"
-        ];
         postInstall = lib.optionalString (pkgs.stdenv.hostPlatform.isDarwin) ''
           mkdir -p $out/reflex-todomvc.app
           cp -r reflex-todomvc.app $out
