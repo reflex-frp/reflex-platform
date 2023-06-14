@@ -1,8 +1,8 @@
 {
-  "owner": "reflex-frp",
+  "owner": "dfordivam",
   "repo": "reflex-dom",
-  "branch": "release/reflex-dom-core/0.8.0.0",
+  "branch": "dn-hydration-test-fixes",
   "private": false,
-  "rev": "f14e954310115cd0d2d1679e1059a3e588ad4762",
-  "sha256": "0fdil74zq7d6drc1lzx3nfdsajqfw5p3llqkakvh6ga207s8ll97"
+  "rev": "cbf371978c8fe835419233a98430c36abef26c77",
+  "sha256": "15m9kc63inrd39sp1vnp5jgnqwybq54wrwvc0f8vq6gxmz4vd1qd"
 }
