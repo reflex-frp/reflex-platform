@@ -177,14 +177,7 @@ in
 
   webdriver = self.callHackage "webdriver" "0.9.0.1" {};
 
-  # Not on Hackage yet
-  # Version 1.2.1 not on Hackage yet
-  hspec-webdriver = self.callCabal2nix "hspec-webdriver" (fetchFromGitHub {
-    owner = "dfordivam";
-    repo = "hspec-webdriver-clone";
-    rev = "0d748b7bb7cd74dce0a55a1ec86b01dbb8a71cd8";
-    sha256 = "1criynifhvmnqwhrshmzylikqkvlgq98xf72w9cdd2zpjw539qf0";
-  }) {};
+  hspec-webdriver = self.callHackage "hspec-webdriver" "1.2.1" {};
 
   constraints-extras = self.callCabal2nix "constraints-extras" (hackGet ./dep/constraints-extras) {};
   some = self.callHackage "some" "1.0.2" {};
