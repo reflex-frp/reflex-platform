@@ -175,7 +175,7 @@ in
   commutative-semigroups = self.callCabal2nix "commutative-semigroups" self._dep.commutative-semigroups {};
   witherable = self.callHackage "witherable" "0.4.2" {};
 
-  webdriver = self.callHackage "webdriver" "0.9.0.1" {};
+  webdriver = self.callHackage "webdriver" "0.10.0.0" {};
 
   hspec-webdriver = self.callHackage "hspec-webdriver" "1.2.1" {};
 
