@@ -177,7 +177,7 @@ in
 
   webdriver = self.callHackage "webdriver" "0.10.0.0" {};
 
-  hspec-webdriver = self.callHackage "hspec-webdriver" "1.2.1" {};
+  hspec-webdriver = self.callHackage "hspec-webdriver" "1.2.2" {};
 
   constraints-extras = self.callCabal2nix "constraints-extras" (hackGet ./dep/constraints-extras) {};
   some = self.callHackage "some" "1.0.2" {};
