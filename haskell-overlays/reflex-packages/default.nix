@@ -80,8 +80,8 @@ in
       ];
 
       testSystemDepends = with nixpkgs; (drv.testSystemDepends or []) ++ lib.optionals (nixpkgs.stdenv.hostPlatform.isLinux) [
-        nixpkgs_oldChromium.selenium-server-standalone
-        nixpkgs_oldChromium.chromium
+        selenium-server-standalone
+        chromium
         which
       ] ++ lib.optionals (!noGcTest) [
         nixpkgs.iproute
