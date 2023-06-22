@@ -5,7 +5,6 @@
   shellTools,
   exactDeps,
   unsafeMsg,
-  buildInputs ? [],
   ...
 }: shellArgs:
 
@@ -27,6 +26,7 @@ let
     justCross ? false,
     targetSystem ? "",
     crossBuilds ? [  ],
+    buildInputs ? [ ],
     ...
   }@args: let
     crossProjects = map (a: crossSystems."${a}".shellFor {
