@@ -5,6 +5,7 @@
   shellTools,
   exactDeps,
   unsafeMsg,
+  buildInputs ? [],
   ...
 }: shellArgs:
 
@@ -39,14 +40,14 @@ let
     '') crossBuilds;
     default = project.shellFor {
       packages = ps: __shells__ ps;
-      inherit withHoogle exactDeps;
+      inherit withHoogle exactDeps buildInputs;
       tools = shellTools;
       inputsFrom = crossProjects;
       shellHook = builtins.concatStringsSep "\n" shellSetup;
     };
     cross = crossSystems."${targetSystem}".shellFor {
       packages = ps: __shells__ ps;
-      inherit withHoogle exactDeps;
+      inherit withHoogle exactDeps buildInputs;
       tools = shellTools;
       shellHook = builtins.concatStringsSep "\n" shellSetup;
     };
