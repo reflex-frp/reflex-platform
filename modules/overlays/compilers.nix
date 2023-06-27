@@ -68,7 +68,6 @@ in {
 
   obsidianCompilers = {
     jsstring-overrides = [
-      { packages.jsaddle.src = (final._dep.source.jsaddle) + "/jsaddle"; }
       ({ pkgs, config, lib, ... }: {
         packages.hashable.patches = [ ../patches/hashable/hashable.patch ];
         packages.aeson = {
