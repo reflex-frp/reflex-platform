@@ -11,7 +11,7 @@ This project's release branch is `master`. This log is written from the perspect
   * reflex-dom-core 0.8.0.0
   * reflex-vty 0.4.1.1
   * reflex-fsnotify 0.3.0.0
-  * reflex-process 0.3.1.2-r1
+  * reflex-process 0.3.2.0
   * beam-core 0.10.0.0
   * beam-migrate 0.5.2.0
   * beam-postgres 0.5.3.0
