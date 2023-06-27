@@ -1,5 +1,5 @@
 {
-  "url": "git://github.com/obsidiansystems/js-framework-benchmark.git",
+  "url": "https://github.com/obsidiansystems/js-framework-benchmark.git",
   "rev": "dfcf229cb5280a25aa54ab506fe9b8a4aa108179",
   "sha256": "0jikl7yljmkcapybh012b906lqa7hvab6cv99l8b7wv6kk9lnxs9",
   "fetchSubmodules": false

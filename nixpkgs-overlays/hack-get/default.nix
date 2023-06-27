@@ -37,7 +37,7 @@ self:
       else if hasValidThunk "git.json" then (
         let gitArgs = filterArgs (builtins.fromJSON (builtins.readFile (p + "/git.json")));
         in if builtins.elem "@" (lib.stringToCharacters gitArgs.url)
-          then self.fetchgitPrivate gitArgs
+          then builtins.fetchGit (builtins.removeAttrs gitArgs ["sha256" "fetchSubmodules"])
           else self.fetchgit gitArgs
         )
       else if hasValidThunk "github.json" then
