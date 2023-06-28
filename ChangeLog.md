@@ -7,7 +7,7 @@ This project's release branch is `master`. This log is written from the perspect
 * *Breaking change*: GHC 8.10.7 is now selected by default. Set `__useNewerCompiler` in default.nix to false if you'd like to keep using GHC 8.6.5.
 * Haskell Library Updates
   * all-cabal-hashes "Update from Hackage at 2023-05-25T12:06:44Z" ([f297f1f3](https://github.com/commercialhaskell/all-cabal-hashes/commit/f297f1f3fc337e2f94783f254cb6db1ee2022adb))
-  * reflex 0.9.0.1
+  * reflex 0.9.1.0
   * reflex-dom-core 0.8.0.0
   * reflex-ghci 0.2.0.0
   * reflex-vty 0.4.1.1
