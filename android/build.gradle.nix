@@ -70,7 +70,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode ${version.code}
         versionName "${version.name}"
         multiDexEnabled false
