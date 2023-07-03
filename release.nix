@@ -9,12 +9,12 @@ let
     tests = import ./tests/thunk_tests.nix { inherit system; };
   in {
     recurseForDerivations = true;
-    ghcjs-app = example.ghcjs-app;
     app = example.hsPkgs.reflex-todomvc.components.exes.reflex-todomvc;
     ghcShell = example.shells.ghc;
     inherit (tests) testOut;
   } // pkgs.lib.optionalAttrs (system == "x86_64-linux") {
     android-app = example.android.app.aarch64;
+    ghcjs-app = example.ghcjs-app;
   } // pkgs.lib.optionalAttrs (system == "x86_64-darwin") {
     ios-app = example.ios.app.aarch64;
   });
