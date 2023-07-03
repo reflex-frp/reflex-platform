@@ -26,7 +26,7 @@
 
   ghc8107 = default.pkgs.haskell-nix.compiler.ghc8107;
   ghc8107Splices = default.pkgs.haskell-nix.compiler.ghc8107Splices;
-  ghc8107JSSTringGHC = default.pkgs.haskell-nix.compiler.ghc8107JSString;
+  ghc8107JSSTringGHC = default.pkgs.haskell-nix.compiler.ghcjs8107JSString;
 
   inherit tests_linux tests_macos;
 }
