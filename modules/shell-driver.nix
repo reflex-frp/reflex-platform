@@ -6,7 +6,7 @@
   exactDeps,
   unsafeMsg,
   ...
-}: shellArgs:
+}@top: shellArgs:
 
 # NOTE: Enable this after were completely deprecated string-shells
 #assert project.pkgs.lib.assertMsg (builtins.any (x: (builtins.isAttrs x)) (shells project.pkg-set.config.packages)) "Shell packages can't be strings, please don't wrap in a string!";
@@ -27,6 +27,9 @@ let
     targetSystem ? "",
     crossBuilds ? [  ],
     buildInputs ? [ ],
+    additional ? [ ],
+    shellTools ? top.shellTools or {},
+    exactDeps ? top.exactDeps or false,
     ...
   }@args: let
     crossProjects = map (a: crossSystems."${a}".shellFor {
@@ -44,6 +47,7 @@ let
       tools = shellTools;
       inputsFrom = crossProjects;
       shellHook = builtins.concatStringsSep "\n" shellSetup;
+      inherit additional;
     };
     cross = crossSystems."${targetSystem}".shellFor {
       packages = ps: __shells__ ps;
