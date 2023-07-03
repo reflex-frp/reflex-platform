@@ -27,7 +27,7 @@ let
     targetSystem ? "",
     crossBuilds ? [  ],
     buildInputs ? [ ],
-    additional ? [ ],
+    additional ? (p: with p; [ ]),
     shellTools ? top.shellTools or {},
     exactDeps ? top.exactDeps or false,
     ...
