@@ -1,32 +1,25 @@
-{
-  example_darwin ? import ./example/default.nix {
-    system = "x86_64-darwin";
-  },
-  example_linux ? import ./example/default.nix {
-    system = "x86_64-linux";
-  },
-  tests_linux ? import ./tests/thunk_tests.nix {
-    system = "x86_64-linux";
-  },
-  tests_macos ? import ./tests/thunk_tests.nix {
-    system = "x86_64-darwin";
-  },
-  default ? import ./default.nix { }
-}: {
-  ghcjs-app = example_linux.ghcjs-app;
-  android-app = example_linux.android.app.aarch64;
-  linux-app = example_linux.hsPkgs.reflex-todomvc.components.exes.reflex-todomvc;
-  linux-dev = example_linux.shells.ghc;
+{ supportedSystems ? [ "x86_64-linux"  "x86_64-darwin" ], ... }:
+let
+  project = import ./default.nix { };
+  pkgs = project.pkgs;
+  systems = pkgs.lib.genAttrs supportedSystems;
 
-  ghcjs_macos = example_darwin.ghcjs-app;
-  ios-app = example_darwin.ios.app.aarch64;
-  darwin-app = example_darwin.hsPkgs.reflex-todomvc.components.exes.reflex-todomvc;
-  darwin-dev = example_linux.shells.ghc;
-
-
-  ghc8107 = default.pkgs.haskell-nix.compiler.ghc8107;
-  ghc8107Splices = default.pkgs.haskell-nix.compiler.ghc8107Splices;
-  #ghc8107JSSTringGHC = default.pkgs.haskell-nix.compiler.ghcjs8107JSString;
-
-  inherit tests_linux tests_macos;
+  allAttrs = systems (system: let
+    example = import ./example/default.nix { inherit system; };
+    tests = import ./tests/thunk_tests.nix { inherit system; };
+  in {
+    recurseForDerivations = true;
+    ghcjs-app = example.ghcjs-app;
+    app = example.hsPkgs.reflex-todomvc.components.exes.reflex-todomvc;
+    ghcShell = example.shells.ghc;
+    inherit (tests) testOut;
+  } // pkgs.lib.optionalAttrs (system == "x86_64-linux") {
+    android-app = example.android.app.aarch64;
+  } // pkgs.lib.optionalAttrs (system == "x86_64-darwin") {
+    ios-app = example.ios.app.aarch64;
+  });
+in allAttrs // {
+  recurseForDerivations = true;
+  ghc8107 = pkgs.haskell-nix.compiler.ghc8107;
+  ghc8107Splices = pkgs.haskell-nix.compiler.ghc8107Splices;
 }
