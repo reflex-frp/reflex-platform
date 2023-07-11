@@ -190,7 +190,7 @@ in
   }) {};
 
   constraints-extras = self.callCabal2nix "constraints-extras" (hackGet ./dep/constraints-extras) {};
-  some = self.callHackage "some" "1.0.2" {};
+  some = self.callHackage "some" "1.0.4" {};
   prim-uniq = self.callHackage "prim-uniq" "0.2" {};
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.5.1" {};
   dependent-map = self.callCabal2nix "dependent-map" (hackGet ./dep/dependent-map) {};
