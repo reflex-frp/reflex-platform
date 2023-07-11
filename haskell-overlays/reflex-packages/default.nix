@@ -195,8 +195,8 @@ in
   aeson-gadt-th = self.callHackage "aeson-gadt-th" "0.2.5.1" {};
   dependent-map = self.callCabal2nix "dependent-map" (hackGet ./dep/dependent-map) {};
   dependent-monoidal-map = self.callCabal2nix "dependent-monoidal-map" self._dep.dependent-monoidal-map {};
-  dependent-sum = self.callCabal2nix "dependent-sum" (hackGet ./dep/dependent-sum + "/dependent-sum") {};
-  dependent-sum-template = self.callCabal2nix "dependent-sum-template" (hackGet ./dep/dependent-sum + "/dependent-sum-template") {};
+  dependent-sum = self.callCabal2nix "dependent-sum" self._dep.dependent-sum {};
+  dependent-sum-template = self.callCabal2nix "dependent-sum-template" self._dep.dependent-sum-template {};
   dependent-sum-universe-orphans = self.callCabal2nix "dependent-sum-universe-orphans" self._dep.dependent-sum-universe-orphans {};
   dependent-sum-aeson-orphans = self.callCabal2nix "dependent-sum-aeson-orphans" self._dep.dependent-sum-aeson-orphans {};
 
