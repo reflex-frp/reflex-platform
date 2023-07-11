@@ -2,6 +2,13 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* Bump `some` to 1.0.4
+* Bump `dependent-sum-template` to 0.1.2.0
+
+(The thunk for `dependent-sum` is also changed, but there is no corresponding code change so the version is the same. This is just part of separating it from `dependent-sum-template`.)
+
 ## v1.0.1.0
 
 * iOS: Bump SDK version from 15.0 -> 16.1
