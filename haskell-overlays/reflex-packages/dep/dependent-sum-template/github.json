@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "dependent-sum-template",
-  "branch": "develop",
+  "branch": "master",
   "private": false,
-  "rev": "d05995c05d62751817c3d75f86ac345b16d529be",
+  "rev": "2204b5dbb8eec475b4b8db4b2ef51c761bfdf209",
   "sha256": "1dvvsawnc1w60r2c9ix4p8idbi0dpb223ffvh6662fa2qzwmijp7"
 }
