@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "dependent-sum",
-  "branch": "bump-constraints-extras",
+  "branch": "develop",
   "private": false,
-  "rev": "619727ba1792e39a68d23c62e75a923672e87a54",
-  "sha256": "0r86aqvdkfi1s75va0i8q0kcx989qx9q4cypgy4sl5db8q983pic"
+  "rev": "b066b509021d2db13564fa1519ea7de20a8d206c",
+  "sha256": "1pmw2n3xxjz22yqbdnnmrh6yfg50p6n4v2ji0iww1ml8prc3gqfq"
 }

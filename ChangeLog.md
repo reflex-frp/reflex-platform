@@ -17,6 +17,8 @@ This project's release branch is `master`. This log is written from the perspect
   * beam-migrate 0.5.2.0
   * beam-postgres 0.5.3.0
   * beam-automigrate 0.1.3.0
+  * some 1.0.4
+  * dependent-sum-template 0.1.2.0
 
 ## v1.0.1.0
 
