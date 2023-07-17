@@ -2,12 +2,23 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-## Unreleased
+## v1.1.0.0
 
-* Bump `some` to 1.0.4
-* Bump `dependent-sum-template` to 0.1.2.0
-
-(The thunk for `dependent-sum` is also changed, but there is no corresponding code change so the version is the same. This is just part of separating it from `dependent-sum-template`.)
+* *Breaking change*: GHC 8.10.7 is now selected by default. Set `__useNewerCompiler` in default.nix to false if you'd like to keep using GHC 8.6.5.
+* Haskell Library Updates
+  * all-cabal-hashes "Update from Hackage at 2023-05-25T12:06:44Z" ([f297f1f3](https://github.com/commercialhaskell/all-cabal-hashes/commit/f297f1f3fc337e2f94783f254cb6db1ee2022adb))
+  * reflex 0.9.1.0
+  * reflex-dom-core 0.8.0.0
+  * reflex-ghci 0.2.0.0
+  * reflex-vty 0.4.1.1
+  * reflex-fsnotify 0.3.0.0
+  * reflex-process 0.3.2.0
+  * beam-core 0.10.0.0
+  * beam-migrate 0.5.2.0
+  * beam-postgres 0.5.3.0
+  * beam-automigrate 0.1.3.0
+  * some 1.0.4
+  * dependent-sum-template 0.1.2.0
 
 ## v1.0.1.0
 

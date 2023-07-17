@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "reflex-project-skeleton",
+  "branch": "master",
   "private": false,
-  "fetchSubmodules": false,
-  "rev": "30d29322d74e98d189b755c3d25fffecfee32fe1",
-  "sha256": "14vcmi3bdmlcj228wj0hzjyqmixyfrd0ch8qzp2655kzik7dbgga"
+  "rev": "62a1c81f094bf39e694b03ac5aecc5ab13605955",
+  "sha256": "0cahpv5s2jcwb6qhyl7d35f4vj340hv0cki39vf1zhpcxnymamkv"
 }

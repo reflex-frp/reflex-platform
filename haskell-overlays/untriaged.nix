@@ -31,10 +31,10 @@ self: super: {
   unicode-collation = self.callHackage "unicode-collation" "0.1.3.1" {};
 
   # beam packages
-  beam-core = self.callHackage "beam-core" "0.9.1.0" {};
-  beam-migrate = self.callHackage "beam-migrate" "0.5.1.0" {};
-  beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.1.0" {});
-  beam-automigrate = self.callHackage "beam-automigrate" "0.1.2.0" {};
+  beam-core = self.callHackage "beam-core" "0.10.0.0" {};
+  beam-migrate = self.callHackage "beam-migrate" "0.5.2.0" {};
+  beam-postgres = haskellLib.dontCheck (self.callHackage "beam-postgres" "0.5.3.0" {});
+  beam-automigrate = self.callHackage "beam-automigrate" "0.1.3.0" {};
 
   # hnix 0.12 and dependencies
   hnix = dontCheck
@@ -86,5 +86,9 @@ self: super: {
   websockets = self.callHackage "websockets" "0.12.7.3" {};
   http2 = self.callHackage "http2" "3.0.3" {};
   HsYAML-aeson = self.callHackage "HsYAML-aeson" "0.2.0.1" {};
-
+  fsnotify = self.callHackage "fsnotify" "0.4.1.0" {};
+  unliftio = self.callHackage "unliftio" "0.2.24.0" {};
+  sandwich = self.callHackage "sandwich" "0.1.0.6" {};
+  ghcid = self.callHackage "ghcid" "0.8.8" {};
+  postgresql-simple = self.callHackage "postgresql-simple" "0.6.5" {};
 }
