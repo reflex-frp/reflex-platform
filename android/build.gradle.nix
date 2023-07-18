@@ -44,7 +44,7 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion '30.0.2'
 
     lintOptions {
@@ -70,7 +70,7 @@ android {
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode ${version.code}
         versionName "${version.name}"
         multiDexEnabled false
