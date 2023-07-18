@@ -38,6 +38,8 @@
     #hlint = "latest";
     #haskell-language-server = "latest";
   }
+, index-state ? null
+, ...
 }@bot_args:
 
 pkgs.lib.makeExtensible (self: let
@@ -90,7 +92,7 @@ pkgs.lib.makeExtensible (self: let
 
   # Base project without any extensions added
   baseProject = (pkgs.haskell-nix.project' {
-    inherit name compiler-nix-name sha256map;
+    inherit name compiler-nix-name sha256map index-state;
     inputMap = inputMapDriver.inputMap // inputMap;
     pkg-def-extras = pkgdef-extras;
     src = src-driver pkgs;
@@ -273,6 +275,7 @@ in baseProject.extend (foldExtensions ([
         src = src-driver v;
 
         inherit sha256map;
+        inherit index-state;
         inputMap = inputMapDriver.inputMap // inputMap;
 
         # Haskell.nix derives is ghcjs off of the compiler-nix-name
