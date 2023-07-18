@@ -75,7 +75,10 @@ pkgs.lib.makeExtensible (self: let
     };
     hackage = [ ];
     #hackage = hackageOverlays;
-    extraCabalProject = bot_args.extraCabalProject or [] ++ inputMapDriver.cabalProject or [];
+    extraCabalProject =
+      bot_args.extraCabalProject or []
+      ++ inputMapDriver.cabalProject or []
+      ++ extraArgs.extraCabalProject or [];
   };
 
   checkHackageOverlays = c: v: if combinedOverlays == [ ] then c else v;
