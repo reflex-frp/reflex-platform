@@ -1,7 +1,5 @@
 { src,
   pkgs,
-  hackage,
-  constraints ? [  ],
   extraCabalProject
 }: let
   extraCabal = map (a: ''

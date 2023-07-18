@@ -70,13 +70,6 @@ in {
     jsstring-overrides = [
       ({ pkgs, config, lib, ... }: {
         packages.hashable.patches = [ ../patches/hashable/hashable.patch ];
-        packages.aeson = {
-          src = final._dep.source.aeson;
-          components.library.ghcOptions = [
-            "-package ghcjs-base"
-            "-package transformers"
-          ];
-        };
       })
       ({ pkgs, config, lib, ... }: {
         packages.attoparsec = {
@@ -94,7 +87,7 @@ in {
         buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107JSString;
       in let booted-ghcjs = (final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs.nix") {
           ghcjsSrcJson = (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs810-src.json");
-          ghcjsVersion =  "8.10.7"; # Must match the version in the ghcjs.cabal file
+          ghcjsVersion = "8.10.7"; # Must match the version in the ghcjs.cabal file
           ghc = buildGHC;
           ghcVersion = "8.10.7";
           compiler-nix-name = "ghcjs8107JSString";
@@ -164,6 +157,7 @@ in {
     };
     ghc = {
       ghcjs8107JSString = prev.haskell-nix.compiler.ghc8107;
+      ghcjs865JSString = prev.haskell-nix.compiler.ghc865;
       ghc8107Splices = final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghc") {
         extra-passthru = {
           buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107;

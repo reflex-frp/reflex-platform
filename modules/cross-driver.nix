@@ -73,16 +73,24 @@ in crossPkgs.haskell-nix.project' {
     ++ lib.optionals (stdenv.targetPlatform.isGhcjs) ([
       {
         config.doExactConfig = lib.mkForce false;
-        config.reinstallableLibGhc = lib.mkForce false;
+        config.reinstallableLibGhc = lib.mkForce true;
         # We add modified packages to the compiler so we have to add them here
         config.nonReinstallablePkgs = lib.mkForce [
           "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base" "deepseq"
-          "array" "ghc-boot-th" "pretty" "template-haskell" "ghcjs-prim" "ghcjs-th" "ghc-boot"
+          "array" "ghc-boot-th" "pretty" "template-haskell" "ghcjs-prim" "ghcjs-th"
           "ghc" "Win32" "array" "binary" "bytestring" "containers" "directory" "filepath" "ghc-boot"
-          "ghc-compact" "ghc-prim" "hpc" "mtl" "parsec" "process" "text" "time" "transformers"
+
+          "ghc-compact" "ghc-prim" "hpc" "mtl" "parsec" "process"
+          "text"
+          "time" "transformers"
           "unix" "xhtml" "terminfo"
           # Our stuff
-          "ghcjs-base" "primitive" "dlist" "vector"
+          "dlist"
+          "primitive"
+          "vector"
+          "ghcjs-base"
+          #"primitive" "dlist" "vector"
+          #"aeson" "attoparsec"
         ];
       }
     ] ++ lib.optionals (compiler-nix-name == "ghcjs8107JSString") crossPkgs.obsidianCompilers.jsstring-overrides)

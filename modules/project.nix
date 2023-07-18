@@ -4,6 +4,7 @@
 , compiler-nix-name ? "ghc8107Splices" # What compiler we should be using
 , ghcjs-compiler-nix-name ? "ghcjs8107JSString"
 , src # Source of the current project
+, packages ? pkgs: { }
 , overrides ? [ ] # Overrides to packages
 , extraSrcFiles ? { } # ExtraSrcFiles to include in the project builds
 , setupCross ? true # Setup cross-compiling
@@ -52,10 +53,10 @@ pkgs.lib.makeExtensible (self: let
   in x: __trace ("${_pos.file}:${toString _pos.line} -- " + (msg _pos)) x;
 
   pkgdef-extras = (bot_args.pkg-def-extras or [])
-  ++ pkgs.lib.optionals (builtins.hasAttr "extraPkgDef" self) self.extraPkgDef;
+    ++ pkgs.lib.optionals (builtins.hasAttr "extraPkgDef" self) self.extraPkgDef;
 
   combinedOverlays = pkgs.lib.optionals (hackageOverlays != []) hackageOverlays
-  ++ pkgs.lib.optionals (builtins.hasAttr "extraOverlays" self) self.extraOverlays;
+    ++ pkgs.lib.optionals (builtins.hasAttr "extraOverlays" self) self.extraOverlays;
 
   hackage-driver = import ./hackage-driver.nix {
     pkgs = pkgs;
@@ -64,21 +65,25 @@ pkgs.lib.makeExtensible (self: let
 
   inputMapDriver = import ./thunk-driver.nix {
     inherit thunkSource pkgs;
-    inputMap = inputThunks;
+    inputMap = inputThunks ++ [
+      pkgs._dep.source.attoparsec
+      #pkgs._dep.source.aeson
+    ];
   };
 
+  parsePackages = p: [ ("packages: " + builtins.concatStringsSep ", " (pkgs.lib.mapAttrsToList (k: v: "${v}") (packages p))) ];
+
   # Driver to generate a fake hackage
-  src-driver = import ./src-driver.nix {
+  src-driver = p1: import ./src-driver.nix {
     inherit pkgs;
     src = pkgs.haskell-nix.haskellLib.cleanGit {
       inherit name src;
     };
-    hackage = [ ];
-    #hackage = hackageOverlays;
     extraCabalProject =
       bot_args.extraCabalProject or []
       ++ inputMapDriver.cabalProject or []
-      ++ extraArgs.extraCabalProject or [];
+      ++ extraArgs.extraCabalProject or []
+      ++ pkgs.lib.optionals (parsePackages p1 != []) parsePackages p1;
   };
 
   checkHackageOverlays = c: v: if combinedOverlays == [ ] then c else v;
@@ -88,7 +93,7 @@ pkgs.lib.makeExtensible (self: let
     inherit name compiler-nix-name sha256map;
     inputMap = inputMapDriver.inputMap // inputMap;
     pkg-def-extras = pkgdef-extras;
-    src = src-driver;
+    src = src-driver pkgs;
     extra-hackage-tarballs = (checkHackageOverlays {} hackage-driver.extra-hackage-tarballs) // hackage-extra-tarballs;
     extra-hackages = (checkHackageOverlays [] hackage-driver.extra-hackages) ++ extra-hackages;
 
@@ -265,7 +270,7 @@ in baseProject.extend (foldExtensions ([
       (a: v: import ./cross-driver.nix {
         # Project name and source
         inherit name;
-        src = src-driver;
+        src = src-driver v;
 
         inherit sha256map;
         inputMap = inputMapDriver.inputMap // inputMap;
