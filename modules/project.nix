@@ -123,6 +123,7 @@ in baseProject.extend (foldExtensions ([
       inherit plugins;
       inherit obsidian pkgs hackage-driver;
       inherit deps baseProject;
+      inherit src;
     };
 
     __unsafe = {
@@ -169,6 +170,8 @@ in baseProject.extend (foldExtensions ([
 
       ghc = shell-driver {
         crossBuilds = [ ];
+        packages = packages self.pkgs;
+        srcdir = builtins.toPath src;
       };
 
       ghcjs = shell-driver {
