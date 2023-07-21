@@ -41,15 +41,6 @@ let
 
     # We do this since we expect haskell.nix to solve our project for use and provide correct deps
     # we can get away with this. Otherwise our "packages" attribute in nix would completely break everything
-    shellCabalProject = builtins.toFile "cabal.shell.project" ''
-      packages: ${builtins.replaceStrings ["./"] ["${srcdir}/"] (builtins.concatStringsSep " "  (builtins.attrValues packages))}
-    '';
-
-    wrapCabal = ''
-      export CABAL_PROJECT=${shellCabalProject}
-      alias cabal="cabal --project-file=${shellCabalProject} --builddir=${srcdir}/dist-newstyle"
-    '';
-
     shellSetup = map (config: ''
       alias ${config}-ghc=${crossSystems."${config}".pkgs.stdenv.targetPlatform.config}-ghc
       alias ${config}-cabal=${crossSystems."${config}".pkgs.stdenv.targetPlatform.config}-cabal
@@ -59,7 +50,7 @@ let
       inherit withHoogle exactDeps buildInputs;
       tools = shellTools;
       inputsFrom = crossProjects;
-      shellHook = wrapCabal + (builtins.concatStringsSep "\n" shellSetup);
+      shellHook = (builtins.concatStringsSep "\n" shellSetup);
       inherit additional;
     };
     cross = crossSystems."${targetSystem}".shellFor {
