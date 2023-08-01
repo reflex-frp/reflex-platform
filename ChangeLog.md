@@ -8,6 +8,7 @@ This project's release branch is `master`. This log is written from the perspect
   * reflex 0.9.2.0
   * reflex-vty 0.5.1.0
   * reflex-process 0.3.2.1
+  * reflex-ghci 0.2.0.1
 
 ## v1.1.0.0
 
