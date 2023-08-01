@@ -1,6 +1,6 @@
 { nixpkgsFunc ? import ./nixpkgs
 , system ? builtins.currentSystem
-, config ? {}
+, config ? { }
 , enableLibraryProfiling ? false
 , enableExposeAllUnfoldings ? true
 , enableTraceReflexEvents ? false
@@ -170,6 +170,7 @@ let iosSupport = system == "x86_64-darwin";
         aarch64 = {
           crossSystem = lib.systems.examples.aarch64-android-prebuilt //
           { isStatic = true; };
+          sdkVer = "31";
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
