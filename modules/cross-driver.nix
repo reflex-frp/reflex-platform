@@ -95,13 +95,7 @@ in crossPkgs.haskell-nix.project' {
       }
     ] ++ lib.optionals (compiler-nix-name == "ghcjs8107JSString") crossPkgs.obsidianCompilers.jsstring-overrides)
 
-    # Do this if were not on ghcjs
-    ++ lib.optionals (!stdenv.targetPlatform.isGhcjs) ([
-        ({ config, lib, ... }: { packages.Cabal.patches = lib.mkForce [ ]; })
-      ]
-    # NOTE: Use the splice driver to setup the loading side of splices
-    # refer to ./splice-driver.nix
-    ++ lib.optionals (crossPkgs.stdenv.hostPlatform != crossPkgs.stdenv.buildPlatform) (splice-driver {
+    ++ lib.optionals (crossPkgs.stdenv.targetPlatform.isGhcjs || crossPkgs.stdenv.hostPlatform != crossPkgs.stdenv.buildPlatform) (splice-driver {
     attrs = pkg-set.config.packages;
     string = (aname: cname: subname:
       if cname == "library" then ''
@@ -111,7 +105,14 @@ in crossPkgs.haskell-nix.project' {
         echo "!!! Loading Splices ${spliced-packages.config.hsPkgs.${aname}.components.${cname}.${subname}}/lib/haskell.nix/$pname"
         export EXTERNAL_SPLICES_LOAD="${spliced-packages.config.hsPkgs.${aname}.components.${cname}.${subname}}/lib/haskell.nix/$pname"
       '');
-    }) ++ (hardening-driver {
+    })
+    # Do this if were not on ghcjs
+    ++ lib.optionals (!stdenv.targetPlatform.isGhcjs) ([
+        ({ config, lib, ... }: { packages.Cabal.patches = lib.mkForce [ ]; })
+      ]
+    # NOTE: Use the splice driver to setup the loading side of splices
+    # refer to ./splice-driver.nix
+   ++ (hardening-driver {
       attrs = pkg-set.config.packages;
     }));
 }

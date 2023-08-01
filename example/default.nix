@@ -29,7 +29,12 @@
     }
   ]
 }:
-reflex-platform.project ({ pkgs, thunkSource, ... }: {
+reflex-platform.project ({ pkgs, thunkSource, ... }: let
+     unpacker = tarball: name: pkgs.runCommandNoCC "${name}-to-dir" {} ''
+      unpackFile ${tarball}
+      mv ${name}-* $out
+    '';
+in {
   name = "reflex-todomvc";
   src = thunkSource ../dep/reflex-todomvc;
   compiler-nix-name = "ghc8107Splices";
@@ -44,7 +49,13 @@ reflex-platform.project ({ pkgs, thunkSource, ... }: {
     bundleIdentifier = "org.reflexfrp.todomvc";
     bundleName = "Reflex TodoMVC";
   };
-  inputThunks = thunkInputs;
+  inputThunks = thunkInputs ++ [
+    pkgs._dep.ghcjsBaseTextJSStringSrc
+    pkgs._dep.source.aeson
+    (unpacker pkgs.haskell.packages.ghcjs810.dlist.src "dlist")
+    (unpacker pkgs.haskell.packages.ghcjs810.vector.src "vector")
+    (unpacker pkgs.haskell.packages.ghcjs810.primitive.src "primitive")
+  ];
   shells = [
     "reflex-todomvc"
   ];

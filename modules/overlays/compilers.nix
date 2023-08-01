@@ -84,7 +84,7 @@ in {
     ];
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
       ghcjs8107JSString = let
-        buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107JSString;
+        buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107Splices;
       in let booted-ghcjs = (final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs.nix") {
           ghcjsSrcJson = (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs810-src.json");
           ghcjsVersion = "8.10.7"; # Must match the version in the ghcjs.cabal file
