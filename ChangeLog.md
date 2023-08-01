@@ -2,6 +2,12 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* Haskell Library Updated
+  * reflex 0.9.2.0
+  * reflex-vty 0.5.1.0
+
 ## v1.1.0.0
 
 * *Breaking change*: GHC 8.10.7 is now selected by default. Set `__useNewerCompiler` in default.nix to false if you'd like to keep using GHC 8.6.5.
