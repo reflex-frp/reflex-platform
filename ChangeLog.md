@@ -9,6 +9,7 @@ This project's release branch is `master`. This log is written from the perspect
   * reflex-vty 0.5.1.0
   * reflex-process 0.3.2.1
   * reflex-ghci 0.2.0.1
+* Update android targetSdk to 31
 
 ## v1.1.0.0
 
