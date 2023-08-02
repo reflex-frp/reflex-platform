@@ -40,6 +40,7 @@ final: prev: {
       buildGHC
     }: (final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs.nix") {
       inherit ghcjsSrcJson ghcjsVersion ghcVersion compiler-nix-name;
+      patches = configurePatches;
       ghc = buildGHC;
     }).overrideAttrs (drv: {
       phases = (drv.phases or []) ++ [ "unpackPhase" "patchPhase" "buildPhase" ];

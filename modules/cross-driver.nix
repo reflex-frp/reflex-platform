@@ -93,7 +93,7 @@ in crossPkgs.haskell-nix.project' {
           #"aeson" "attoparsec"
         ];
       }
-    ] ++ lib.optionals (compiler-nix-name == "ghcjs8107JSString") crossPkgs.obsidianCompilers.jsstring-overrides)
+    ] ++ lib.optionals (compiler-nix-name == "ghcjs8107JSString" || compiler-nix-name == "ghcjs8107JSStringSplices") crossPkgs.obsidianCompilers.jsstring-overrides)
 
     ++ lib.optionals (crossPkgs.stdenv.targetPlatform.isGhcjs || crossPkgs.stdenv.hostPlatform != crossPkgs.stdenv.buildPlatform) (splice-driver {
     attrs = pkg-set.config.packages;

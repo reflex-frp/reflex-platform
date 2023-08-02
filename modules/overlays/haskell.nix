@@ -11,11 +11,13 @@ final: prev: rec {
   ghc-boot-packages-nix = prev.ghc-boot-packages-nix // {
     ghc8107Splices = obsidian-materialization.ghc8107Splices;
     ghcjs8107JSString = obsidian-materialization.ghcjs8107JSString;
+    ghcjs8107JSStringSplices = obsidian-materialization.ghcjs8107JSStringSplices;
     ghcjs8107 = obsidian-materialization.ghcjs8107;
   };
 
   ghc-boot-packages-nix-unchecked = prev.ghc-boot-packages-nix-unchecked // {
     ghc8107Splices = obsidian-materialization-unchecked.ghc8107Splices;
+    ghcjs8107JSStringSplices = obsidian-materialization.ghcjs8107JSStringSplices;
     ghcjs8107JSString = obsidian-materialization-unchecked.ghcjs8107JSString;
     ghcjs8107 = obsidian-materialization-unchecked.ghcjs8107;
   };

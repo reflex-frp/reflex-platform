@@ -56,16 +56,6 @@ in {
       ({ pkgs, config, lib, ... }: {
         packages.hashable.patches = [ ../patches/hashable/hashable.patch ];
       })
-      ({ pkgs, config, lib, ... }: {
-        packages.attoparsec = {
-          src = final._dep.source.attoparsec;
-          components.sublibs.attoparsec-internal = {
-            ghcOptions = [
-              "-package ghcjs-base"
-            ];
-          };
-        };
-      })
     ];
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
       ghcjs8107JSString = let
@@ -93,7 +83,7 @@ in {
           ghcjsSrcJson = ./git.json;
           ghcjsVersion = "8.10.7";
           ghcVersion = "8.10.7";
-          compiler-nix-name = "ghcjs8107JSSTring";
+          compiler-nix-name = "ghcjs8107JSStringSplices";
           configurePatches = [
             "${final._dep.ctimePatch}"
           ];
