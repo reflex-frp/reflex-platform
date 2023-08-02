@@ -24,6 +24,9 @@ final: prev: rec {
   haskell-nix = prev.haskell-nix // {
     checkMaterialization = false;
     compiler = prev.haskell-nix.compiler // final.obsidianCompilers.ghc // prev.lib.optionalAttrs (final.stdenv.targetPlatform.isGhcjs or false) final.obsidianCompilers.ghcjs;
-    ghcjsProject = import (final._dep.source."haskell.nix" + "/lib/ghcjs-project.nix") { pkgs = final; materialized-dir = ../../materialized; };
+    ghcjsProject = import (final._dep.source."haskell.nix" + "/lib/ghcjs-project.nix") {
+      pkgs = final;
+      materialized-dir = ../../materialized;
+    };
   };
 }

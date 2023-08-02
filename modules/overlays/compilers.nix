@@ -1,47 +1,5 @@
 { useTextJSString ? false, useFastWeak ? true }: final: prev: let
- installDeps = targetPrefix:
-      ''
-      $out/bin/${targetPrefix}ghc-pkg --version
-      for P in $($out/bin/${targetPrefix}ghc-pkg list --simple-output | sed 's/-[0-9][0-9.]*//g'); do
-        mkdir -p $out/exactDeps/$P
-        touch $out/exactDeps/$P/configure-flags
-        touch $out/exactDeps/$P/cabal.config
-
-        if id=$($out/bin/${targetPrefix}ghc-pkg field $P id --simple-output); then
-          echo "--dependency=$P=$id" >> $out/exactDeps/$P/configure-flags
-        elif id=$($out/bin/${targetPrefix}ghc-pkg field "z-$P-z-*" id --simple-output); then
-          name=$($out/bin/${targetPrefix}ghc-pkg field "z-$P-z-*" name --simple-output)
-          # so we are dealing with a sublib. As we build sublibs separately, the above
-          # query should be safe.
-          echo "--dependency=''${name#z-$P-z-}=$id" >> $out/exactDeps/$P/configure-flags
-        fi
-        if ver=$($out/bin/${targetPrefix}ghc-pkg field $P version --simple-output); then
-          echo "constraint: $P == $ver" >> $out/exactDeps/$P/cabal.config
-          echo "constraint: $P installed" >> $out/exactDeps/$P/cabal.config
-        fi
-      done
-
-      mkdir -p $out/evalDeps
-      for P in $($out/bin/${targetPrefix}ghc-pkg list --simple-output | sed 's/-[0-9][0-9.]*//g'); do
-        touch $out/evalDeps/$P
-        if id=$($out/bin/${targetPrefix}ghc-pkg field $P id --simple-output); then
-          echo "package-id $id" >> $out/evalDeps/$P
-        fi
-      done
-    '';
-    ghcForBuilding810
-      = if (final.buildPlatform.isAarch64 && final.buildPlatform.isDarwin)
-          then final.buildPackages.buildPackages.haskell-nix.bootstrap.compiler.ghc8107
-        else if (final.buildPlatform.isAarch64 || final.targetPlatform.isAarch64)
-          then final.buildPackages.buildPackages.haskell-nix.compiler.ghc884
-        else final.buildPackages.buildPackages.haskell-nix.compiler.ghc865;
-    bootPkgs = with final.buildPackages; {
-      ghc = final.buildPackages.buildPackages.haskell-nix.bootstrap.compiler."${buildBootstrapper.compilerNixName}";
-      alex = final.haskell-nix.bootstrap.packages.alex-unchecked;
-      happy = final.haskell-nix.bootstrap.packages.happy-unchecked;
-      hscolour = final.haskell-nix.bootstrap.packages.hscolour-unchecked;
-    };
-    sphinx = with final.buildPackages; (python3Packages.sphinx_1_7_9 or python3Packages.sphinx);
+  lib = import ./lib.nix final prev;
 in {
   _dep = (prev._dep or {}) // rec {
     textSrc = final.fetchgit {
@@ -64,9 +22,36 @@ in {
       url = "https://github.com/reflex-frp/reflex-platform/raw/develop/haskell-overlays/ghcjs-text-jsstring-8.10/ghcjs-base-text-jsstring.patch";
       sha256 = "sha256-QmPGCakSWqqg1zXM4MU4pHOk+O+y9ZSt+My+ecl5+nM=";
     });
+    ctimePatch = final.fetchpatch {
+      name = "ghcjs-base-ctime-64-bit.patch";
+      url = "https://github.com/ghcjs/ghcjs/commit/b7711fbca7c3f43a61f1dba526e6f2a2656ef44c.patch";
+      hash = "sha256-zZ3l8/5gbIGtvu0s2Xl92fEDhkhJ2c2w+5Ql5qkvr3s=";
+    };
+    fast-weak-patch = final.fetchurl {
+      url = "https://github.com/reflex-frp/reflex-platform/raw/develop/haskell-overlays/ghcjs-8.10-fast-weak/fast-weak.patch";
+      sha256 = "sha256-ldHC96D/bJxlXmfar/apPj3QZ4P1tnSVNY5ELFvXH/I=";
+    };
   };
 
-  obsidianCompilers = {
+  obsidianCompilers = rec {
+    unpacker = tarball: name: final.runCommandNoCC "${name}-to-dir" {} ''
+      unpackFile ${tarball}
+      mv ${name}-* $out
+    '';
+    thunkSets = rec {
+      common = [
+        (unpacker final.haskell.packages.ghcjs810.dlist.src "dlist")
+        (unpacker final.haskell.packages.ghcjs810.vector.src "vector")
+        (unpacker final.haskell.packages.ghcjs810.primitive.src "primitive")
+        final._dep.ghcjsBaseTextJSStringSrc
+      ];
+      aeson-1541 = [
+        final._dep.source.aeson-1541
+      ] ++ common;
+      aeson-2 = [
+        final._dep.source.aeson
+      ] ++ common;
+    };
     jsstring-overrides = [
       ({ pkgs, config, lib, ... }: {
         packages.hashable.patches = [ ../patches/hashable/hashable.patch ];
@@ -84,89 +69,86 @@ in {
     ];
     ghcjs = builtins.mapAttrs (_: v: v // { useLLVM = false; }) {
       ghcjs8107JSString = let
-        buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107Splices;
-      in let booted-ghcjs = (final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs.nix") {
+        booted-ghcjs = lib.bootGHCJS {
           ghcjsSrcJson = (final._dep.source."haskell.nix" + "/compiler/ghcjs/ghcjs810-src.json");
-          ghcjsVersion = "8.10.7"; # Must match the version in the ghcjs.cabal file
-          ghc = buildGHC;
+          ghcjsVersion = "8.10.7";
           ghcVersion = "8.10.7";
           compiler-nix-name = "ghcjs8107JSString";
-        }).overrideAttrs (drv: {
-          phases = (drv.phases or []) ++ [ "unpackPhase" "patchPhase" "buildPhase" ];
-          postUnpack = ''
-            set -x
-            (
-              echo $sourceRoot
-              cd $sourceRoot
-              rm -r lib/boot/pkg/text
-              # unpackFile ${final._dep.textSrc}
-              # chmod +w text-*
-              # mv text-* lib/boot/pkg/text
-              cp --no-preserve=mode -r "${final._dep.textSrc}" lib/boot/pkg/text
-              unpackFile ${final._dep.ghcjsBaseTextJSStringSrc}
-              chmod +w ghcjs-base-*
-              mv ghcjs-base-* lib/boot/pkg/ghcjs-base
-              unpackFile ${final.haskell.packages.ghcjs810.dlist.src}
-              chmod +w dlist-*
-              mv dlist-* lib/boot/pkg/dlist
-              unpackFile ${final.haskell.packages.ghcjs810.vector.src}
-              chmod +w vector-*
-              mv vector-* lib/boot/pkg/vector
-              unpackFile ${final.haskell.packages.ghcjs810.primitive.src}
-              chmod +w primitive-*
-              mv primitive-* lib/boot/pkg/primitive
-              sed -i 's/    - mtl/    - mtl\n    - dlist\n    - primitive\n    - vector\n    - ghcjs-base/' lib/boot/boot.yaml
-              cat lib/boot/boot.yaml
-            )
-            '';
+          buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107JSString;
           patches = [
-            (final.fetchurl {
-              url = "https://github.com/reflex-frp/reflex-platform/raw/develop/haskell-overlays/ghcjs-8.10-fast-weak/fast-weak.patch";
-              sha256 = "sha256-ldHC96D/bJxlXmfar/apPj3QZ4P1tnSVNY5ELFvXH/I=";
-            })
+            final._dep.fast-weak-patch
             ../patches/ghcjs/revert.patch
           ];
-        });
-      in let targetPrefix = "js-unknown-ghcjs-"; in final.runCommand "${targetPrefix}ghc-8.10.7" {
-          nativeBuildInputs = [ final.xorg.lndir ];
-            passthru = {
-              inherit targetPrefix;
-              version = "8.10.7";
-              isHaskellNixCompiler = true;
-              enableShared = false;
-              inherit (booted-ghcjs) configured-src bundled-ghcjs project;
-              inherit booted-ghcjs buildGHC;
-              extraConfigureFlags = [
-                "--ghcjs"
-                "--with-ghcjs=${targetPrefix}ghc"
-                "--with-ghcjs-pkg=${targetPrefix}ghc-pkg"
-                "--with-gcc=${final.buildPackages.emscripten}/bin/emcc"
-              ];
-            };
-          } (''
-                mkdir -p $out/bin
-                cd $out/bin
-                ln -s ${booted-ghcjs}/bin/ghcjs ${targetPrefix}ghc
-                ln -s ${booted-ghcjs}/bin/ghcjs-pkg ${targetPrefix}ghc-pkg
-                ln -s ${buildGHC}/bin/hsc2hs ${targetPrefix}hsc2hs
-                cd ..
-                mkdir -p lib/${targetPrefix}ghc-8.10.7
-                cd lib
-                lndir ${booted-ghcjs}/lib ${targetPrefix}ghc-8.10.7
-            '' + installDeps targetPrefix);
+          postUnpack = lib.JSSTringPostUnpack;
+        };
+      in lib.mkFinalGHCJS {
+        inherit booted-ghcjs;
+        buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107JSString;
+        installDeps = lib.installDeps;
+      };
+
+      ghcjs8107JSStringSplices = let
+        booted-ghcjs = lib.bootGHCJS {
+          buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107JSStringSplices;
+          ghcjsSrcJson = ./git.json;
+          ghcjsVersion = "8.10.7";
+          ghcVersion = "8.10.7";
+          compiler-nix-name = "ghcjs8107JSSTring";
+          configurePatches = [
+            "${final._dep.ctimePatch}"
+          ];
+          patches = [
+            final._dep.fast-weak-patch
+          ];
+          postUnpack = lib.JSSTringPostUnpack;
+        };
+      in lib.mkFinalGHCJS {
+        inherit booted-ghcjs;
+        buildGHC = final.buildPackages.haskell-nix.compiler.ghcjs8107JSStringSplices;
+        installDeps = lib.installDeps;
+      };
     };
-    ghc = {
+    ghc = rec {
       ghcjs8107JSString = prev.haskell-nix.compiler.ghc8107;
       ghcjs865JSString = prev.haskell-nix.compiler.ghc865;
+
+      ghcjs8107JSStringSplices = final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghc") {
+        extra-passthru = {
+          buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107;
+        };
+
+        bootPkgs = lib.bootPkgs // {
+          ghc = lib.ghcForBuilding810;
+        };
+        inherit (lib) sphinx installDeps;
+
+        buildLlvmPackages = final.buildPackages.llvmPackages_12;
+        llvmPackages = final.llvmPackages_12;
+
+        src-spec = rec {
+          version = "8.10.7";
+          url = "https://downloads.haskell.org/~ghc/${version}/ghc-${version}-src.tar.xz";
+          sha256 = "179ws2q0dinl1a39wm9j37xzwm84zfz3c5543vz8v479khigdvp3";
+        };
+
+        ghc-patches = [
+          ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/Cabal-unbreak-GHCJS.patch")
+          (final.fetchurl {
+            url = "https://raw.githubusercontent.com/obsidiansystems/splices-load-save.nix/master/patches/ghc-8.10.7/splices.patch";
+            sha256 = "sha256-pIMPDpBwL3tYPEbIgTfE1oNgL2KMLp7ovcp6E2KOIVY=";
+          })
+        ];
+      };
+
       ghc8107Splices = final.callPackage (final._dep.source."haskell.nix" + "/compiler/ghc") {
         extra-passthru = {
           buildGHC = final.buildPackages.haskell-nix.compiler.ghc8107;
         };
 
-        bootPkgs = bootPkgs // {
-          ghc = ghcForBuilding810;
+        bootPkgs = lib.bootPkgs // {
+          ghc = lib.ghcForBuilding810;
         };
-        inherit sphinx installDeps;
+        inherit (lib) sphinx installDeps;
 
         buildLlvmPackages = final.buildPackages.llvmPackages_12;
         llvmPackages = final.llvmPackages_12;
@@ -184,12 +166,10 @@ in {
           })
           ../patches/aarch64-darwin/fix_dead_strip.patch
         ] ++ final.lib.optionals (final.stdenv.targetPlatform.isAndroid && final.stdenv.targetPlatform.isAarch32) [
-           #Aarch32 android
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-make-stage-1-lib-ghc.patch")
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10-3434-armv7a.patch")
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/libraries-prim-os-android-armv7a.patch")
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10.7-linker-weak-and-common-armv7a.patch")
-          #((final._dep.source."haskell.nix") + "/overlays/patches/ghc/libc-memory-symbols-armv7a.patch")
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10-android.patch")
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10.7-android-bionic-symbols.patch")
           ((final._dep.source."haskell.nix") + "/overlays/patches/ghc/ghc-8.10.7-bionic-libc.patch")

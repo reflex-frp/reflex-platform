@@ -3,6 +3,6 @@
   "repo": "haskell.nix",
   "branch": "dylang/splices-aarch32",
   "private": false,
-  "rev": "85ed919fd0280a5078eab9814f306f0e0301d372",
-  "sha256": "0x2k5aw0j4binfgjcl8ri5bjm5mny3kl0rswizjwb74mw0glvr0l"
+  "rev": "14788a8232973cb9a68ae7e311e3ed63f67ff823",
+  "sha256": "0cxnj3dmrrxmahpdxb3lqkjifcwd3c6q4w1d2xhklr68mxr5z2sw"
 }
