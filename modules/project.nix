@@ -125,6 +125,7 @@ in baseProject.extend (foldExtensions ([
       inherit obsidian pkgs hackage-driver;
       inherit deps baseProject;
       inherit src;
+      finalSrc = src-driver self.pkgs;
     };
 
     __unsafe = {
