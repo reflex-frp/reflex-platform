@@ -5,7 +5,7 @@ This project's release branch is `master`. This log is written from the perspect
 ## Unreleased
 
 * Haskell Library Updated
-  * reflex-dom 0.6.2.0
+  * reflex-dom 0.6.3.0
   * android-activity 0.2.0.0
 * Update android target sdk version to 33
 
