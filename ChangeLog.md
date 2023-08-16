@@ -6,6 +6,7 @@ This project's release branch is `master`. This log is written from the perspect
 
 * Haskell Library Updated
   * reflex-dom 0.6.2.0
+  * android-activity 0.2.0.0
 
 ## v1.1.1.0 - 2023-08-01
 
