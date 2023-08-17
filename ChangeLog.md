@@ -2,6 +2,13 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## Unreleased
+
+* Haskell Library Updated
+  * reflex-dom 0.6.3.0
+  * android-activity 0.2.0.0
+* Update android target sdk version to 33
+
 ## v1.1.1.0 - 2023-08-01
 
 * Haskell Library Updated

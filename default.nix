@@ -170,7 +170,7 @@ let iosSupport = system == "x86_64-darwin";
         aarch64 = {
           crossSystem = lib.systems.examples.aarch64-android-prebuilt //
           { isStatic = true; };
-          sdkVer = "31";
+          sdkVer = "30";
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
