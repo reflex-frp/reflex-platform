@@ -3,8 +3,8 @@
 When using Nix on NixOS, only root can add binary caches to the system.  This will force `try-reflex` to rebuild GHCJS from scratch, which takes hours.  To use the binary cache, you can add the following lines to your `/etc/nixos/configuration.nix`:
 
 ```
-nix.substituters = [ "https://cache.nixos.org/" "https://nixcache.reflex-frp.org" ];
-nix.trusted-public-keys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
+nix.settings.substituters = [ "https://nixcache.reflex-frp.org" ];
+nix.settings.trusted-public-keys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
 ```
 
 If you already have one of these variables set up, just add these values to the existing lists.
