@@ -2,11 +2,11 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
-## Unreleased
+## v1.1.2.0 - 2023-09-07
 
-* Haskell Library Updated
-  * reflex-dom 0.6.3.0
-  * android-activity 0.2.0.0
+* Haskell Libraries Updated
+  * [reflex-dom 0.6.3.0](https://hackage.haskell.org/package/reflex-dom-0.6.3.0/changelog)
+  * [android-activity 0.2.0.0](https://github.com/obsidiansystems/android-activity/blob/v0.2.0.0/changelog.md#02)
 * Update android target sdk version to 33
 
 ## v1.1.1.0 - 2023-08-01
