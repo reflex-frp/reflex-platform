@@ -49,10 +49,15 @@ let iosSupport = system == "x86_64-darwin";
             bootPkgs = super.haskell.packages.ghc865Binary // {
               happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
             };
+            useLdGold = !(self.stdenv.targetPlatform.isAarch32) && self.stdenv.hostPlatform.useAndroidPrebuilt;
+            enableDocs = false;
+            enableHaddockProgram = false;
           };
           ghcSplices-8_10 = (super.haskell.compiler.ghc8107.override {
             # New option for GHC 8.10. Explicitly enable profiling builds
             enableProfiledLibs = true;
+            #enableShared = self.stdenv.hostPlatform == self.stdenv.targetPlatform;
+            #enableShared = false;
             bootPkgs = super.haskell.packages.ghc865Binary // {
               happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
             };
@@ -107,11 +112,11 @@ let iosSupport = system == "x86_64-darwin";
             postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
             configureFlags = ["--disable-shared" "--enable-static"];
           });
-      };
+        };
       zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
         { static = true; shared = false; });
-    };
+      };
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
@@ -127,8 +132,12 @@ let iosSupport = system == "x86_64-darwin";
         mobileGhcOverlay
         allCabalHashesOverlay
         (self: super: {
-          binutils-unwrapped = super.binutils-unwrapped.override {
-            autoreconfHook = lib.optional self.stdenv.buildPlatform.isDarwin super.autoreconfHook269;
+
+          #NOTE(Dylan): If you ever hit this "null" you've done something terribly wrong :^)
+          runtimeShellPackage = if self.stdenv.hostPlatform.isGhcjs then null else super.runtimeShellPackage;
+
+          polkit = super.polkit.override {
+            gobject-introspection = super.gobject-introspection-unwrapped;
           };
 
           # Bump ios-deploy
@@ -145,6 +154,24 @@ let iosSupport = system == "x86_64-darwin";
               };
             });
           };
+          openjdk16-bootstrap = super.openjdk16-bootstrap.override {
+            gtkSupport = false;
+          };
+          adoptopenjdk-hotspot-bin-16 = super.adoptopenjdk-hotspot-bin-16.override {
+            gtkSupport = false;
+          };
+
+          sqlite = super.sqlite.overrideAttrs (old: lib.optionalAttrs (self.stdenv.hostPlatform.useAndroidPrebuilt or false) {
+            postBuild = ''
+              mkdir -p $debug
+            '';
+          });
+          
+          libiconv = super.libiconv.overrideAttrs (old: lib.optionalAttrs (self.stdenv.hostPlatform.useAndroidPrebuilt or false) {
+            configureFlags = [ "--disable-shared" "--enable-static" ];
+          });
+
+          libffi = if (self.stdenv.hostPlatform.useAndroidPrebuilt or false) then super.libffi_3_3 else super.libffi;
         })
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
@@ -166,17 +193,34 @@ let iosSupport = system == "x86_64-darwin";
     wasmCross = nixpkgs.hackGet ./wasm-cross;
     webGhcSrc = (import (wasmCross + /webghc.nix) { inherit fetchgit; }).ghc8107SplicesSrc;
     nixpkgsCross = {
+      # NOTE(Dylan Green):
+      # sdkVer 30 is the minimum for android, else we have to use libffi 3.3
+      # bionic doesn't support/expose memfd_create before sdk30
+      # https://android.googlesource.com/platform/bionic/+/refs/heads/master/docs/status.md
+      # Look for "new libc functions in R (API Level 30):", memfd_create will be one of the functions /
+      # symbols we need to build newer libffi
+      # This means we'll drop all SDKs pre-30
+
+      # NOTE(Dylan Green):
+      # We don't want to use "isStatic" here as we still rely on shared-objects
+      # adding "isStatic" completely disables generating most SOs, and we still need them
+      # for libffi (at the very least). Currently the big issues are caused by the linker attempting (and failing)
+      # to link against a dynamic crtbegin.o (crtbegin.c) bionic does provide a static crtbegin, although the linker
+      # defaults to a dynamic version
+
+      # TODO(Dylan Green):
+      # Look into making this a proper static build up into "reflex-todomvc"
       android = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         aarch64 = {
-          crossSystem = lib.systems.examples.aarch64-android-prebuilt //
-          { isStatic = true; };
-          sdkVer = "30";
+          crossSystem = lib.systems.examples.aarch64-android-prebuilt // {
+            #isStatic = true;
+            sdkVer = "30";
+          };
         };
         aarch32 = {
           crossSystem = lib.systems.examples.armv7a-android-prebuilt // {
-            isStatic = true;
-            # Choose an old version so it's easier to find phones to test on
-            sdkVer = "23";
+            #isStatic = true;
+            sdkVer = "30";
           };
         };
       };
@@ -269,8 +313,7 @@ let iosSupport = system == "x86_64-darwin";
   ghcjs = if __useNewerCompiler then ghcjs8_10 else ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
-      bootPkgs = with nixpkgsCross.ghcjs.buildPackages.haskell.packages;
-        ghc865 // { happy = ghc865.callHackage "happy" "1.19.9" {}; };
+      bootPkgs = old.ghc.bootPkgs // { happy = old.ghc.bootPkgs.happy_1_19_12; };
       cabal-install = import ./haskell-overlays/ghcjs-8.6/cabal-install.nix { inherit nixpkgs; };
       ghcjsSrc = import ./haskell-overlays/ghcjs-8.6/src.nix {
         inherit (nixpkgs.stdenvNoCC) mkDerivation;
@@ -562,7 +605,7 @@ in let this = rec {
   reflexEnv = platform:
     let haskellPackages = builtins.getAttr platform this;
         ghcWithStuff = if platform == "ghc"
-                       then haskellPackages.ghcWithHoogle
+                       then haskellPackages.ghcWithPackages
                        else haskellPackages.ghcWithPackages;
     in ghcWithStuff (p: import ./packages.nix {
       haskellPackages = p;

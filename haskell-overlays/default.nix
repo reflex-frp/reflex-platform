@@ -50,6 +50,10 @@ rec {
 
     (optionalExtension enableExposeAllUnfoldings exposeAllUnfoldings)
 
+    #(NEW;Dylan Green):
+    # We no longer need to set gold as "lld" is default on the
+    # android toolchain now
+    #(OLD;Dylan Green):
     # Force "gold" on Android due to a linker bug on bfd
     # Also force -fPIC on for Android, we need it either way
 
@@ -58,20 +62,16 @@ rec {
     # arm* needs the same linker options, x86* -> arm* does not
 
     (optionalExtension (super.ghc.stdenv.targetPlatform.isAndroid or false) (self: super:
-      {
+    {
         mkDerivation = drv: super.mkDerivation (drv // {
           buildFlags = [
-            "--ghc-option=-optl-fuse-ld=gold"
-            "--ld-option=-fuse-ld=gold"
             "--ld-option=-fPIE"
             "--ld-option=-pie"
             "--ghc-option=-fPIC"
             "--ghc-option=-fPIE"
           ] ++ (drv.buildFlags or [ ]);
 
-          configureFlags = [
-            "--with-ld=${super.ghc.stdenv.targetPlatform.config}-ld.gold"
-          ] ++ (drv.configureFlags or [ ]);
+          configureFlags = [ ] ++ (drv.configureFlags or [ ]);
         });
       }))
 
@@ -139,6 +139,17 @@ rec {
     (optionalExtension useTextJSString textJSString-8_10)
     (optionalExtension useTextJSString ghcjs-textJSString-8_10)
     (optionalExtension useFastWeak ghcjs-fast-weak_8_10)
+    (self: super: rec {
+      mkDerivation = drv: super.mkDerivation (drv // {
+        setupHaskellDepends = (drv.setupHaskellDepends or []) ++ [
+          nixpkgs.buildPackages.stdenv.cc
+        ];
+        # This is ugly
+        preConfigure = (drv.preConfigure or "") + ''
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${nixpkgs.buildPackages.gmp}/lib:${nixpkgs.buildPackages.libffi}/lib
+        '';
+      });
+    })
   ]
     self
     super;
