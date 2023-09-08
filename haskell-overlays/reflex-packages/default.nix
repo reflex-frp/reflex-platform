@@ -106,9 +106,10 @@ in
       libraryHaskellDepends = [ 
         self.reflex 
         self.reflex-dom-core 
-        self.jsaddle-webkit2gtk 
         self.aeson
-      ] ++ lib.optional (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) self.android-activity;
+      ] ++ lib.optional (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) self.android-activity
+        # webkit2gtk does not support darwin or aarch64
+        ++ lib.optional (!(nixpkgs.stdenv.hostPlatform.isDarwin || nixpkgs.stdenv.hostPlatform.isAarch64)) self.jsaddle-webkit2gtk;
     }));
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
