@@ -58,9 +58,10 @@ let iosSupport = system == "x86_64-darwin";
             enableProfiledLibs = true;
             #enableShared = self.stdenv.hostPlatform == self.stdenv.targetPlatform;
             #enableShared = false;
-            bootPkgs = super.haskell.packages.ghc865Binary // {
-              happy = super.haskell.packages.ghc865Binary.happy_1_19_12;
-            };
+            bootPkgs = if (super.stdenv.hostPlatform.isAarch64 && super.stdenv.hostPlatform.isLinux) then (super.haskell.packages.ghc8107Binary // {
+              happy = super.haskell.packages.ghc8107Binary.happy_1_19_12;
+            }) else
+            (super.haskell.packages.ghc865Binary // { happy = super.haskell.packages.ghc865Binary.happy_1_19_12; });
           }).overrideAttrs (drv: {
             src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc-8.10;
             # When building from the ghc git repo, ./boot must be run before configuring, whereas
@@ -166,7 +167,7 @@ let iosSupport = system == "x86_64-darwin";
               mkdir -p $debug
             '';
           });
-          
+
           libiconv = super.libiconv.overrideAttrs (old: lib.optionalAttrs (self.stdenv.hostPlatform.useAndroidPrebuilt or false) {
             configureFlags = [ "--disable-shared" "--enable-static" ];
           });
