@@ -2,6 +2,11 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## v1.2.0.0
+
+* Haskell Libraries Updates
+  * reflex-dom 0.6.3.1
+
 ## v1.1.2.0 - 2023-09-07
 
 * Haskell Libraries Updated
