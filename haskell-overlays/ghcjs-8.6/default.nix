@@ -38,8 +38,6 @@ self: super: rec {
     patches = (drv.patches or []) ++ [ ./ghcjs-network.patch ];
   });
 
-  attoparsec = self.callHackage "attoparsec" "0.13.2.2" {};
-
   # These packages require doctest
   comonad = dontCheck super.comonad;
   http-types = dontCheck super.http-types;
