@@ -113,12 +113,12 @@ let iosSupport = system == "x86_64-darwin";
         libiconv = super.darwin.libiconv.overrideAttrs (_:
           lib.optionalAttrs (self.stdenv.hostPlatform != self.stdenv.buildPlatform) {
             postInstall = "rm $out/include/libcharset.h $out/include/localcharset.h";
-            configureFlags = ["--disable-shared" "--enable-static"];
+            configureFlags = ["--enable-shared" "--enable-static"];
           });
         };
       zlib = super.zlib.override (lib.optionalAttrs
         (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
-        { static = true; shared = false; });
+        { static = true; shared = true; });
       };
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
@@ -230,7 +230,6 @@ let iosSupport = system == "x86_64-darwin";
       ios = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         simulator64 = {
           crossSystem = lib.systems.examples.iphone64-simulator // {
-            #isStatic = true;
             sdkVer = iosSdkVersion;
             inherit xcodeVer;
           };
