@@ -17,7 +17,6 @@ let
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
-  useWebkit2GtkFlag = lib.optional (self.ghc.stdenv.hostPlatform.isAarch64) "-f-webkit2gtk";
 
   inherit (nixpkgs) stdenv;
   # Older chromium for reflex-dom-core test suite
@@ -100,7 +99,7 @@ in
     reflex-dom = haskellLib.doJailbreak (haskellLib.overrideCabal (self.callCabal2nixWithOptions "reflex-dom" (reflexDomRepo + "/reflex-dom") (lib.concatStringsSep " " (lib.concatLists [
       reflexOptimizerFlag
       useTemplateHaskellFlag
-      useWebkit2GtkFlag
+      [ "-f-webkit2gtk" ]
     ])) { }) (drv: {
       preConfigure = (drv.preConfigure or "") + ''
         sed -i 's|aeson >=1.4 && <1.6|aeson -any|g' *.cabal
@@ -111,8 +110,6 @@ in
         self.reflex-dom-core
         self.aeson
       ] ++ lib.optional (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) self.android-activity
-        # webkit2gtk does not support darwin or aarch64
-        ++ lib.optional (!(nixpkgs.stdenv.hostPlatform.isDarwin || nixpkgs.stdenv.hostPlatform.isAarch64)) self.jsaddle-webkit2gtk
         ++ lib.optional (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) self.android-activity;
     }));
 
