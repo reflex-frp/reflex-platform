@@ -59,7 +59,7 @@ let iosSupport = system == "x86_64-darwin";
             enableProfiledLibs = true;
             #enableShared = self.stdenv.hostPlatform == self.stdenv.targetPlatform;
             #enableShared = false;
-            bootPkgs = if (super.stdenv.hostPlatform.isAarch64 && super.stdenv.hostPlatform.isLinux) then (super.haskell.packages.ghc8107Binary // {
+            bootPkgs = if (super.stdenv.hostPlatform.isAarch64) then (super.haskell.packages.ghc8107Binary // {
               happy = super.haskell.packages.ghc8107Binary.happy_1_19_12;
             }) else
             (super.haskell.packages.ghc865Binary // { happy = super.haskell.packages.ghc865Binary.happy_1_19_12; });
