@@ -6,6 +6,7 @@
 , enableLibraryProfiling
 , enableTraceReflexEvents
 , useTextJSString
+, useWebkit2Gtk
 , enableExposeAllUnfoldings
 , __useTemplateHaskell
 , ghcSavedSplices-8_6
@@ -162,6 +163,7 @@ rec {
     inherit
       haskellLib lib nixpkgs thunkSet fetchFromGitHub fetchFromBitbucket hackGet
       useFastWeak useReflexOptimizer enableTraceReflexEvents enableLibraryProfiling __useTemplateHaskell
+      useWebkit2Gtk
       ;
   };
   exposeAllUnfoldings = import ./expose-all-unfoldings.nix { };
