@@ -20,7 +20,7 @@ let
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
   useWebkit2GtkFlag = if useWebkit2Gtk
     then ["-fwebkit2gtk"]
-    else ["-f-webkit2gtk"];
+    else ["-f-webkit2gtk"] ++ lib.optional (nixpkgs.stdenv.hostPlatform.isLinux or false) "-fuse-warp"; # Enable warp on linux if webkit2gtk is disabled. Other platforms have other default runners
 
   inherit (nixpkgs) stdenv;
   # Older chromium for reflex-dom-core test suite
@@ -114,7 +114,8 @@ in
         self.reflex-dom-core
         self.aeson
       ] ++ lib.optional (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) self.android-activity
-        ++ lib.optional (nixpkgs.stdenv.hostPlatform.isDarwin or false) self.jsaddle-wkwebview;
+        ++ lib.optional (nixpkgs.stdenv.hostPlatform.isDarwin or false) self.jsaddle-wkwebview
+        ++ lib.optional (nixpkgs.stdenv.hostPlatform.isLinux or false) self.jsaddle-warp;
     }));
 
   chrome-test-utils = self.callCabal2nix "chrome-test-utils" (reflexDomRepo + "/chrome-test-utils") {};
