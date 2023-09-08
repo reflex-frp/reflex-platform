@@ -2,6 +2,7 @@
 , lib, nixpkgs
 , thunkSet, fetchFromGitHub, fetchFromBitbucket, hackGet
 , useFastWeak, useReflexOptimizer, enableTraceReflexEvents, enableLibraryProfiling, __useTemplateHaskell
+, useWebkit2Gtk
 }:
 
 with haskellLib;
@@ -17,7 +18,9 @@ let
 
   reflexOptimizerFlag = lib.optional (useReflexOptimizer && (self.ghc.cross or null) == null) "-fuse-reflex-optimizer";
   useTemplateHaskellFlag = lib.optional (!__useTemplateHaskell) "-f-use-template-haskell";
-  useWebkit2GtkFlag = lib.optional (self.ghc.stdenv.hostPlatform.isAarch64) "-f-webkit2gtk";
+  useWebkit2GtkFlag = if useWebkit2Gtk
+    then ["-fwebkit2gtk"]
+    else ["-f-webkit2gtk"];
 
   inherit (nixpkgs) stdenv;
   # Older chromium for reflex-dom-core test suite
@@ -111,8 +114,6 @@ in
         self.reflex-dom-core
         self.aeson
       ] ++ lib.optional (nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt or false) self.android-activity
-        # webkit2gtk does not support darwin or aarch64
-        ++ lib.optional (!(nixpkgs.stdenv.hostPlatform.isDarwin || nixpkgs.stdenv.hostPlatform.isAarch64)) self.jsaddle-webkit2gtk
         ++ lib.optional (nixpkgs.stdenv.hostPlatform.isDarwin or false) self.jsaddle-wkwebview;
     }));
 
