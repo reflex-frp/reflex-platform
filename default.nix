@@ -20,6 +20,7 @@
 
 let iosSupport = system == "x86_64-darwin";
     androidSupport = lib.elem system [ "x86_64-linux" ];
+    ghc86Support = lib.elem system ["x86_64-linux" "x86_64-darwin"];
 
     xcodeVer = {
       "16.1" = "14.1";
@@ -635,7 +636,7 @@ in let this = rec {
         iosReflexTodomvc iosSimulatorReflexTodomvc
       ];
 
-  inherit cabal2nixResult system androidSupport iosSupport;
+  inherit cabal2nixResult system androidSupport iosSupport ghc86Support;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
