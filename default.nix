@@ -136,8 +136,9 @@ let iosSupport = system == "x86_64-darwin";
         allCabalHashesOverlay
         (self: super: {
 
-          #NOTE(Dylan): If you ever hit this "null" you've done something terribly wrong :^)
-          runtimeShellPackage = if self.stdenv.hostPlatform.isGhcjs then null else super.runtimeShellPackage;
+          runtimeShellPackage = if self.stdenv.hostPlatform.isGhcjs
+            then super.buildPackages.runtimeShellPackage
+            else super.runtimeShellPackage;
 
           polkit = super.polkit.override {
             gobject-introspection = super.gobject-introspection-unwrapped;

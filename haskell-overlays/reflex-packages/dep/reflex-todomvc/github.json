@@ -2,6 +2,7 @@
   "owner": "reflex-frp",
   "repo": "reflex-todomvc",
   "branch": "nostdenvlib",
+  "private": false,
   "rev": "c1611b866b860976b33fccb3a5206b0e0866adb8",
-  "sha256": "sha256-k3mL7HTy22K1wPQhHkjlwxa/YgAzLf6vN03YSC0q06E="
+  "sha256": "18fk58nlin2d6ypzwb9k01iby5n3wm41w8glq2sn5nzjfkn8nyck"
 }

@@ -212,11 +212,12 @@ Building the frontend with GHC can drastically speed up build times, and
 enables you to test from GHCi for even faster reloads.
 
 JSaddle is a set of libraries that allows Reflex-DOM to swap out its
-JavaScript backend easily. By default, Reflex-DOM’s ``mainWidget`` will
-work on GHC out of the box, using the ``jsaddle-webkit2gtk`` backend. So
-simply building your ``frontend`` package using GHC will produce a
-working native program that renders DOM using WebKit. This is
-recommended for native desktop releases.
+JavaScript backend easily. By default, Reflex-DOM’s ``mainWidget`` will work on
+GHC out of the box, using the default backend for your platform (e.g.,
+jsaddle-warp on linux, wkwebview on macOS). So simply building your
+``frontend`` package using GHC will produce a working program that renders DOM.
+To select the webkit2gtk backend for reflex-dom on linux, set the useWebkit2Gtk
+flag to true in default.nix. Note that webkit2gtk only works on x86_64-linux.
 
 To build this with ``nix-build``:
 

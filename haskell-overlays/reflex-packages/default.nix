@@ -50,7 +50,18 @@ in
     (lib.optional useFastWeak "-ffast-weak")
   ])) {};
 
-  reflex-todomvc = haskellLib.doJailbreak (self.callPackage self._dep.reflex-todomvc {});
+  reflex-todomvc =
+    let
+      flags =
+        if useWebkit2Gtk && nixpkgs.stdenv.hostPlatform.isLinux
+        then [ "-f-warp" "-f-webkitgtk" "-f-wkwebview" ]
+        else if nixpkgs.stdenv.hostPlatform.isLinux
+        then [ "-fwarp" "-f-webkitgtk" "-f-wkwebview" "-f-webkit2gtk" ]
+        else if nixpkgs.stdenv.hostPlatform.isDarwin
+        then [ "-fwkwebview" "-f-webkit2gtk" "-f-webkitgtk" ]
+        else [];
+    in
+      (haskellLib.doJailbreak (self.callCabal2nixWithOptions "reflex-todomvc" self._dep.reflex-todomvc (lib.concatStringsSep " " flags) {}));
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
 
   # The tests for reflex-dom-core are not deterministic, disable them, and run them manually
