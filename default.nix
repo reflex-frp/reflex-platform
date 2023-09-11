@@ -129,6 +129,7 @@ let iosSupport = system == "x86_64-darwin";
     nixpkgsArgs = {
       inherit system;
       overlays = [
+        (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
         hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
@@ -178,7 +179,6 @@ let iosSupport = system == "x86_64-darwin";
 
           libffi = if (self.stdenv.hostPlatform.useAndroidPrebuilt or false) then super.libffi_3_3 else super.libffi;
         })
-        (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
       ] ++ nixpkgsOverlays;
       config = config // {
         permittedInsecurePackages = (config.permittedInsecurePackages or []) ++ [
@@ -276,12 +276,6 @@ let iosSupport = system == "x86_64-darwin";
     makeRecursivelyOverridable = x: x // {
       override = new: makeRecursivelyOverridable (x.override (old: (combineOverrides old new)));
     };
-
-    cabal2nixResult = src: builtins.trace "cabal2nixResult is deprecated; use ghc.haskellSrc2nix or ghc.callCabal2nix instead" (ghc.haskellSrc2nix {
-      name = "for-unknown-package";
-      src = "file://${src}";
-      sha256 = null;
-    });
 
   ghcSavedSplices = if __useNewerCompiler then ghcSavedSplices-8_10 else ghcSavedSplices-8_6;
   ghcSavedSplices-8_6 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_6).override {
@@ -636,7 +630,7 @@ in let this = rec {
         iosReflexTodomvc iosSimulatorReflexTodomvc
       ];
 
-  inherit cabal2nixResult system androidSupport iosSupport ghc86Support;
+  inherit system androidSupport iosSupport ghc86Support;
   project = args: import ./project this (args ({ pkgs = nixpkgs; } // this));
   tryReflexShell = pinBuildInputs ("shell-" + system) tryReflexPackages;
   ghcjsExternsJs = ./ghcjs.externs.js;
