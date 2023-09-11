@@ -603,7 +603,7 @@ in let this = rec {
   reflexEnv = platform:
     let haskellPackages = builtins.getAttr platform this;
         ghcWithStuff = if platform == "ghc"
-                       then haskellPackages.ghcWithPackages
+                       then haskellPackages.ghcWithHoogle
                        else haskellPackages.ghcWithPackages;
     in ghcWithStuff (p: import ./packages.nix {
       haskellPackages = p;
