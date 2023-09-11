@@ -55,7 +55,7 @@ in
       flags =
         if useWebkit2Gtk && nixpkgs.stdenv.hostPlatform.isLinux
         then [ "-f-warp" "-f-webkitgtk" "-f-wkwebview" ]
-        else if nixpkgs.stdenv.hostPlatform.isLinux
+        else if (nixpkgs.stdenv.hostPlatform.isLinux && !nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt)
         then [ "-fwarp" "-f-webkitgtk" "-f-wkwebview" "-f-webkit2gtk" ]
         else if nixpkgs.stdenv.hostPlatform.isDarwin
         then [ "-fwkwebview" "-f-webkit2gtk" "-f-webkitgtk" ]
