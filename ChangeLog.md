@@ -4,6 +4,9 @@ This project's release branch is `master`. This log is written from the perspect
 
 ## v1.2.0.0
 
+* Add support for aarch64-darwin (apple silicon macs) and aarch64-linux. See [docs/platform-support.md](./docs/platform-support.md) for more information about what's supported and what isn't on each platform.
+* nixpkgs updated to 22.11
+* *Breaking change*: Disable webkit2gtk backend for reflex-dom by default. To enable it, use the useWebkit2Gtk flag in `default.nix`.
 * Haskell Libraries Updates
   * reflex-dom 0.6.3.1
 
