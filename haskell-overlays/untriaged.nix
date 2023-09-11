@@ -92,4 +92,5 @@ self: super: {
   postgresql-simple = self.callHackage "postgresql-simple" "0.6.5" {};
   ghc-lib-parser = super.ghc-lib-parser_8_10_7_20220219;
   ghc-lib-parser-ex = super.ghc-lib-parser-ex_8_10_0_24;
+  stylish-haskell = doJailbreak (self.callHackage "stylish-haskell" "0.13.0.0" {}); # jailbreak to allow newer aeson
 }
