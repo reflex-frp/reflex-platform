@@ -138,7 +138,7 @@ let iosSupport = system == "x86_64-darwin";
         allCabalHashesOverlay
         (self: super: {
 
-          runtimeShellPackage = if self.stdenv.hostPlatform.isGhcjs
+          runtimeShellPackage = if (self.stdenv.hostPlatform.isGhcjs || self.stdenv.targetPlatform.isiOS)
             then super.buildPackages.runtimeShellPackage
             else super.runtimeShellPackage;
 
