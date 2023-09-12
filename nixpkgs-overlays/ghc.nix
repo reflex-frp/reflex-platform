@@ -2,6 +2,7 @@
 
 self: super: {
   cabal2nix-unwrapped = self.haskell.packages.ghc8107.cabal2nix;
+  cabal-install = self.haskell.packages.ghc8107.cabal-install;
   # Apply custom patches to Haskell compilers
   haskell = super.haskell // {
     compiler = super.haskell.compiler // {

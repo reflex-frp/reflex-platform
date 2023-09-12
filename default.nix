@@ -555,7 +555,6 @@ in let this = rec {
       cabal-install
       ghcid
       hasktags
-      hlint
       stylish-haskell # Recent stylish-haskell only builds with AMP in place
       reflex-ghci
       ;
