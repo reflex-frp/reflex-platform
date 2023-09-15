@@ -7,9 +7,9 @@ Depending on the build system you are using, you can build for the following tar
 |               | Javascript | Android | iOS | Linux x86_64 | Linux aarch64 | macOS (intel) | macOS (m1/m2) |
 |---------------|------------|---------|-----|--------------|---------------|---------------|---------------|
 | Linux x86_64  | ✅         | ✅      |     | ✅           |               |               |               |
-| Linux aarch64 | ✅         | ✅      |     |              | ✅            |               |               |
+| Linux aarch64 | ✅         |         |     |              | ✅            |               |               |
 | macOS (intel) | ✅         |         | ✅  |              |               | ✅            |               |
-| macOS (m1/m2) | ✅         |         | ✅  |              |               |               | ✅            |
+| macOS (m1/m2) | ✅         |         |     |              |               |               | ✅            |
 
 * On aarch64 platforms (aarch64-linux and aarch64-darwin), we do not support ghc-8.6.5 or ghcjs-8.6.5.
 * From Linux, you can't build for iOS or macOS because the apple toolchain is restricted to macOS.
