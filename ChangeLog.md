@@ -10,6 +10,7 @@ This project's release branch is `master`. This log is written from the perspect
 * *Breaking change*: Remove deprecated cabal2nixResult
 * Haskell Libraries Updates
   * reflex-dom 0.6.3.1
+* ios: Update ios-deploy to v1.12.2
 
 ## v1.1.2.0 - 2023-09-07
 

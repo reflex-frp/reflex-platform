@@ -146,20 +146,17 @@ let iosSupport = system == "x86_64-darwin";
             gobject-introspection = super.gobject-introspection-unwrapped;
           };
 
-          # Bump ios-deploy
-          # - for faster deployments
-          # - fixes debug deploy with iOS 16/macos 12.3/ xcode 13.4.1
-          darwin = super.darwin // {
-            ios-deploy = super.darwin.ios-deploy.overrideAttrs (_: {
-              version = "HEAD";
+          darwin = super.darwin.overrideScope (dself: dsuper: {
+            ios-deploy = dsuper.ios-deploy.overrideAttrs (_: {
+              version = "1.12.2";
               src = self.fetchFromGitHub {
                 owner = "ios-control";
                 repo = "ios-deploy";
-                rev = "b3254438719b6bc82ceab1f630e7d642a9acfac5"; # unreleased
-                sha256 = "W45Qjr3xqvDWieLBgt4//nthxxcc3hgrJNrpSk7vWj8=";
+                rev = "ed7de7792d28a5110242748649047a95c95ea917";
+                sha256 = "082w7j490khfpbv1diwrjixjbg9g93wdr2khyzdhv8xmzzwq4lad";
               };
             });
-          };
+          });
           openjdk16-bootstrap = super.openjdk16-bootstrap.override {
             gtkSupport = false;
           };
