@@ -229,6 +229,7 @@ let iosSupport = system == "x86_64-darwin";
       ios = lib.mapAttrs (_: args: nixpkgsFunc (nixpkgsArgs // args)) rec {
         simulator64 = {
           crossSystem = lib.systems.examples.iphone64-simulator // {
+            isStatic = true;
             sdkVer = iosSdkVersion;
             inherit xcodeVer;
           };
