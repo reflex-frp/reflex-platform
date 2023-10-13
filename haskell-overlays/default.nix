@@ -76,6 +76,15 @@ rec {
         });
       }))
 
+    # TODO(Dylan): Add this casing to the compiler patch
+    (optionalExtension (super.ghc.stdenv.targetPlatform.isiOS && super.ghc.stdenv.targetPlatform.isx86_64) (self: super: {
+      mkDerivation = drv: super.mkDerivation (drv // {
+        buildFlags = [
+          "--ghc-option=-fwhole-archive-hs-libs"
+        ];
+      });
+    }))
+
     combined-any
     (optionalExtension (!(super.ghc.isGhcjs or false)) combined-ghc)
     (optionalExtension (super.ghc.isGhcjs or false) combined-ghcjs)

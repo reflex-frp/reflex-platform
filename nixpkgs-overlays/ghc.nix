@@ -7,12 +7,12 @@ self: super: {
   haskell = super.haskell // {
     compiler = super.haskell.compiler // {
       ghc8107 = super.haskell.compiler.ghc8107.overrideAttrs (drv: {
-        patches = (drv.patches or []) ++ (super.lib.optionals (super.stdenv.buildPlatform.isDarwin && super.stdenv.buildPlatform.isAarch64) [
+        patches = (drv.patches or []) ++ lib.optionals (self.stdenv.targetPlatform.isiOS || self.stdenv.targetPlatform.isAarch64 && self.stdenv.targetPlatform.isDarwin) [
           (super.fetchurl {
             url = "https://raw.githubusercontent.com/reflex-frp/reflex-platform/mars/modules/patches/aarch64-darwin/fix_dead_strip.patch";
             sha256 = "sha256-1VcftxpaMmLzMnB8X4M6Xg9o+OmgpaNOeF7Yrn1x0EI=";
           })
-        ]);
+        ];
       });
     };
     packages = super.haskell.packages // {

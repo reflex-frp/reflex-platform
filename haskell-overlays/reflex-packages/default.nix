@@ -57,6 +57,8 @@ in
         then [ "-f-warp" "-f-webkitgtk" "-f-wkwebview" ]
         else if (nixpkgs.stdenv.hostPlatform.isLinux && !nixpkgs.stdenv.hostPlatform.useAndroidPrebuilt)
         then [ "-fwarp" "-f-webkitgtk" "-f-wkwebview" "-f-webkit2gtk" ]
+        else if self.ghc.stdenv.targetPlatform.isiOS
+        then [ "-f-webkit2gtk" "-f-warp" "-f-webkitgtk" ]
         else if nixpkgs.stdenv.hostPlatform.isDarwin
         then [ "-fwkwebview" "-f-webkit2gtk" "-f-webkitgtk" ]
         else [];
@@ -69,6 +71,7 @@ in
     inherit (self) ghc;
     noGcTest = stdenv.hostPlatform.system != "x86_64-linux"
             || stdenv.hostPlatform != stdenv.buildPlatform
+            || stdenv.targetPlatform.isiOS
             || (ghc.isGhcjs or false);
   in haskellLib.overrideCabal
     (self.callCabal2nixWithOptions "reflex-dom-core" (reflexDomRepo + "/reflex-dom-core") (lib.concatStringsSep " " (lib.concatLists [
