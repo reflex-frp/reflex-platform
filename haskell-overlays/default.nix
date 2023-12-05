@@ -77,7 +77,7 @@ rec {
       }))
 
     # TODO(Dylan): Add this casing to the compiler patch
-    (optionalExtension (super.ghc.stdenv.targetPlatform.isiOS && super.ghc.stdenv.targetPlatform.isx86_64) (self: super: {
+    (optionalExtension (super.ghc.stdenv.targetPlatform.isiOS && (super.ghc.stdenv.targetPlatform.isx86_64 || super.ghc.version == "8.6.5")) (self: super: {
       mkDerivation = drv: super.mkDerivation (drv // {
         buildFlags = [
           "--ghc-option=-fwhole-archive-hs-libs"
