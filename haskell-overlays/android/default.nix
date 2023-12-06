@@ -11,10 +11,29 @@ in
 self: super: {
   _dep = super._dep or {} // thunkSet ./dep;
 
-  android-activity = self.callPackage self._dep.android-activity {
-    inherit (nixpkgs.buildPackages) jdk;
-  };
-
+  android-activity = haskellLib.overrideCabal (self.callCabal2nix "android-activity" (self._dep.android-activity + "/") {
+    log = nixpkgs.androidndkPkgs_24.libraries; 
+  }) (drv: let
+    jdk-fixed = (nixpkgs.buildPackages.jdk17.override {
+      headless = true;
+      enableGnome2 = false;
+      enableJavaFX = false;
+      openjdk17-bootstrap = nixpkgs.buildPackages.openjdk17-bootstrap.override {
+        gtkSupport = false;
+      };
+    });
+  in { 
+    librarySystemDepends = (drv.librarySystemDepends or []) ++ [ jdk-fixed ];
+    enableSharedExecutables = true;
+    enableSharedLibraries = true;
+    enableStaticLibraries = false;
+    buildTools = (drv.buildTools or []) ++ [ ];
+    configureFlags = (drv.configureFlags or []) ++ [
+      "--enable-shared"
+      #"-v3"
+    ];
+  });
+ 
   syb = haskellLib.overrideCabal super.syb (drv: { jailbreak = true; });
   cabal-doctest = null;
 
@@ -22,9 +41,15 @@ self: super: {
   lifted-async = haskellLib.doJailbreak super.lifted-async;
   safe-exceptions = haskellLib.doJailbreak super.safe-exceptions;
 
+
   blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
   cryptonite = haskellLib.disableCabalFlag super.cryptonite "integer-gmp";
-
+  
+  OneTuple = haskellLib.overrideCabal super.OneTuple (drv: {
+    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+      self.hashable
+    ];
+  });
   hashable = enableFPic super.hashable;
   primitive = enableFPic super.primitive;
 
@@ -32,6 +57,15 @@ self: super: {
     doHaddock = false;
     dontStrip = true;
     enableSharedExecutables = false;
+  });
+
+  # HACK(Dylan Green):
+  # Temporary fix for RPATH troubles regarding attoparsec
+  attoparsec = haskellLib.overrideCabal super.attoparsec (drv: {
+    preFixup = ''
+      rm -rf "$(pwd)"
+      mkdir "$(pwd)"
+    '';
   });
 
   # HACK(matthewbauer):

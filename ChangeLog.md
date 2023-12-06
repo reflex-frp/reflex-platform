@@ -2,6 +2,16 @@
 
 This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
 
+## v1.2.0.0
+
+* Add support for aarch64-darwin (apple silicon macs) and aarch64-linux. See [docs/platform-support.md](./docs/platform-support.md) for more information about what's supported and what isn't on each platform.
+* nixpkgs updated to 22.11
+* *Breaking change*: Disable webkit2gtk backend for reflex-dom by default. To enable it, use the useWebkit2Gtk flag in `default.nix`.
+* *Breaking change*: Remove deprecated cabal2nixResult
+* Haskell Libraries Updates
+  * reflex-dom 0.6.3.1
+* ios: Update ios-deploy to v1.12.2
+
 ## v1.1.2.0 - 2023-09-07
 
 * Haskell Libraries Updated

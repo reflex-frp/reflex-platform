@@ -113,7 +113,7 @@ in
   #
   #     tools = ghc: with ghc; [ hpack pkgs.chromium ];
 
-, withHoogle ? true
+, withHoogle ? false
   # Set to false to disable building the hoogle database when entering
   # the nix-shell.
 
@@ -169,7 +169,7 @@ let
     shells = mapAttrs (name: pnames:
       workOnMulti {
         envFunc = _: prj.${name}.override { overrides = self: super: nixpkgs.lib.optionalAttrs withHoogle {
-          ghcWithPackages = self.ghcWithHoogle;
+          ghcWithPackages = (super.ghcWithPackages.override { withHoogle = true; });
         }; };
         packageNames = pnames;
         inherit tools shellToolOverrides;

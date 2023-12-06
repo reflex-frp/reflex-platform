@@ -9,8 +9,7 @@ let
     name = "reflex-project-skeleton-${projectFile}";
     phases = [ "unpackPhase" "buildPhase" "installPhase" ];
     src = skeletonSrc;
-    CABAL_CONFIG = builtins.toFile "cabal.config" ''
-    '';
+    CABAL_CONFIG = builtins.toFile "cabal.config" '''';
     buildPhase = ''
       HOME=$NIX_BUILD_TOP
       cabal new-build all --project-file=${projectFile} ${if reflex-platform.nixpkgs.stdenv.isDarwin then "--ghc-option=-dynamic" else ""}

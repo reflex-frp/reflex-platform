@@ -6,7 +6,7 @@
 
 with haskellLib;
 
-self: super: {
+self: super: rec {
   # Profiling failures seee https://github.com/ghcjs/ghcjs/issues/759
   optparse-applicative = haskellLib.overrideCabal super.optparse-applicative (drv: {
     broken = drv.broken or false || enableLibraryProfiling;
@@ -15,11 +15,11 @@ self: super: {
     broken = drv.broken or false || enableLibraryProfiling;
   });
 
-  ghcWithPackages = selectFrom: nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
-    inherit (self) ghc llvmPackages;
-    packages = selectFrom self;
-  } // nixpkgs.lib.optionalAttrs useReflexOptimizer {
-    ghcLibdir = "${self.ghc.bootPackages.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPackages.ghc.name}";
+  ghcWithPackages = nixpkgs.buildPackages.callPackage (nixpkgs.path + "/pkgs/development/haskell-modules/with-packages-wrapper.nix") {
+    haskellPackages = self;
+    hoogleWithPackages = super.hoogleWithPackages;
+  } // lib.optionalAttrs (useReflexOptimizer) {
+    ghcLibdir = lib.optionalString useReflexOptimizer "${self.ghc.bootPkgs.ghcWithPackages (p: [ p.reflex ])}/lib/${self.ghc.bootPkgs.ghc.name}";
   };
 
   ghc = if !(lib.versionAtLeast super.ghc.ghcVersion "8.2") then super.ghc else super.ghc.overrideAttrs (_: {
@@ -47,6 +47,11 @@ self: super: {
   semigroupoids = disableCabalFlag super.semigroupoids "doctests";
   these = dontCheck super.these;
   email-validate = dontCheck super.email-validate;
+  OneTuple = overrideCabal super.OneTuple (drv: {
+    libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [
+      self.hashable
+    ];
+  });
 
   # These tests are not expected to support ghcjs
   QuickCheck = dontCheck super.QuickCheck;

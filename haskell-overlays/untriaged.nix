@@ -46,7 +46,6 @@ self: super: {
     self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-core") {};
   hnix-store-remote =
     self.callCabal2nix "hnix" (nixpkgs.hackGet ./hnix/hnix-store + "/hnix-store-remote") {};
-  data-fix = self.callHackage "data-fix" "0.3.2" {};
   neat-interpolation = self.callHackage "neat-interpolation" "0.4" {};
   prettyprinter = self.callHackage "prettyprinter" "1.7.0" {};
   cryptohash-sha512 = doJailbreak super.cryptohash-sha512;
@@ -87,8 +86,11 @@ self: super: {
   http2 = self.callHackage "http2" "3.0.3" {};
   HsYAML-aeson = self.callHackage "HsYAML-aeson" "0.2.0.1" {};
   fsnotify = self.callHackage "fsnotify" "0.4.1.0" {};
-  unliftio = self.callHackage "unliftio" "0.2.24.0" {};
+  unliftio = dontCheck (self.callHackage "unliftio" "0.2.24.0" {});
   sandwich = self.callHackage "sandwich" "0.1.0.6" {};
   ghcid = self.callHackage "ghcid" "0.8.8" {};
   postgresql-simple = self.callHackage "postgresql-simple" "0.6.5" {};
+  ghc-lib-parser = super.ghc-lib-parser_8_10_7_20220219;
+  ghc-lib-parser-ex = super.ghc-lib-parser-ex_8_10_0_24;
+  stylish-haskell = doJailbreak (self.callHackage "stylish-haskell" "0.13.0.0" {}); # jailbreak to allow newer aeson
 }
