@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "haskell.nix",
-  "branch": "dylang/splices-aarch32",
+  "branch": "make-install-plan-hidden-directories",
   "private": false,
-  "rev": "14788a8232973cb9a68ae7e311e3ed63f67ff823",
-  "sha256": "0cxnj3dmrrxmahpdxb3lqkjifcwd3c6q4w1d2xhklr68mxr5z2sw"
+  "rev": "93ed4e7dd2654cc3f7d9f7b795dd98628a6b4333",
+  "sha256": "0lr1a05fp8gsa9arwzpy18f952vlfqhs7d5ypqryv8lfxdyrwbfb"
 }
