@@ -7,8 +7,6 @@ with haskellLib;
 
 self: super: {
 
-  # Need an older version for GHC 8.6
-  haddock-api = dontHaddock (doJailbreak (self.callHackage "haddock-api" "2.22.0" {}));
   # TODO this conflicts with the pandoc version
   # haddock-library = doJailbreak (self.callHackage "haddock-library" "1.7.0" {});
 

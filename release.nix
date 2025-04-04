@@ -1,4 +1,4 @@
-# This file aggregates some things for CI to build. It constants is unstable
+# This file aggregates some things for CI to build. Its contents are unstable
 # and shouldn't be used by other code using reflex-platform.
 
 { self-args ? { config.android_sdk.accept_license = true; }
@@ -22,7 +22,6 @@ let
     ]) [
       reflex-platform.nixpkgsCross.ios.aarch64
       reflex-platform.nixpkgsCross.android.aarch64
-      reflex-platform.nixpkgsCross.android.aarch32
     ]
   );
 
@@ -52,7 +51,6 @@ let
 
     dep = {}
       // (lib.optionalAttrs reflex-platform.androidSupport reflex-platform.ghcAndroidAarch64._dep)
-      // (lib.optionalAttrs reflex-platform.ghc86Support reflex-platform.ghcjs8_6._dep)
       // benchmark.dep
       ;
 
@@ -81,11 +79,8 @@ let
         ghc.reflex-process = reflex-platform.ghc.reflex-process;
         ghc.reflex-fsnotify = reflex-platform.ghc.reflex-fsnotify;
         skeleton-test-ghc = skeleton-test.ghc;
-      } // lib.optionalAttrs (reflex-platform.ghc86Support) {
-        ghc8_6.reflexTodomvc = reflex-platform.ghc8_6.reflex-todomvc;
       } // lib.optionalAttrs (reflex-platform.androidSupport) {
         inherit (reflex-platform) androidReflexTodomvc;
-        inherit (reflex-platform) androidReflexTodomvc-8_6;
         inherit (reflex-platform) androidReflexTodomvc-8_10;
         androidReflexTodomvc-release = reflex-platform.android.buildApp {
           package = p: p.reflex-todomvc;
@@ -97,7 +92,6 @@ let
         skeleton-test-project-android = skeleton-test.project.android;
       } // lib.optionalAttrs (reflex-platform.iosSupport) {
         inherit (reflex-platform) iosReflexTodomvc;
-        inherit (reflex-platform) iosReflexTodomvc-8_6;
         inherit (reflex-platform) iosReflexTodomvc-8_10;
         inherit (reflex-platform) iosSimulatorReflexTodomvc;
         skeleton-test-project-ios = skeleton-test.project.ios;
@@ -121,11 +115,7 @@ let
       nojsstring = ({
         ghcjs.reflexTodomvc = reflex-platform-nojsstring.ghcjs.reflex-todomvc;
         ghcjs8_10.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_10.reflex-todomvc;
-      } // lib.optionalAttrs reflex-platform.ghc86Support { 
-        ghcjs8_6.reflexTodomvc = reflex-platform-nojsstring.ghcjs8_6.reflex-todomvc;
       });
-    } // lib.optionalAttrs reflex-platform.ghc86Support {
-      ghcjs8_6.reflexTodomvc = jsexeHydra reflex-platform.ghcjs8_6.reflex-todomvc;
     } // lib.optionalAttrs (system == "x86_64-linux") {
       inherit
         #benchmark

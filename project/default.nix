@@ -180,8 +180,7 @@ let
       then mapAttrs (name: config:
              let
                ghcAndroidAarch64 = this.ghcAndroidAarch64.override { overrides = overrides'; };
-               ghcAndroidAarch32 = this.ghcAndroidAarch32.override { overrides = overrides'; };
-             in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64 ghcAndroidAarch32; }).buildApp
+             in (this.androidWithHaskellPackages { inherit ghcAndroidAarch64; }).buildApp
                ({ package = p: p.${name}; } // config)
            ) android
       else throw "Android builds are not supported on this platform.";

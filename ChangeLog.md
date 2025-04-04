@@ -1,6 +1,13 @@
 # Revision history for reflex-platform
 
-This project's release branch is `master`. This log is written from the perspective of the release branch: when changes hit `master`, they are considered released.
+This project's release branch is `master`. This log is written from the perspective of the release branch:
+when changes hit `master`, they are considered released.
+
+## Not yet released
+
+* *Breaking change*: Support for GHCJS version 8.6.5 has been removed, along with the `__useNewerCompiler`
+  option. As a consequence, 32-bit Android (AArch32) is no longer a supported build target. This is in
+  anticipation of migrating from GHCJS version 8.10.7 to upstream GHC version 9.12.2 which has a JS backend.
 
 ## v1.2.0.0
 

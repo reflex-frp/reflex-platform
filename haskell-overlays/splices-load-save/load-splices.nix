@@ -1,4 +1,4 @@
-{ haskellLib, fetchFromGitHub, lib, splicedHaskellPackages, isExternalPlugin }:
+{ lib, haskellLib, splicedHaskellPackages }:
 
 self: super:
 
@@ -36,9 +36,8 @@ let splicedPkg = drv:
           echo "!!! splices at: ${if hasSplicedPkg drv then spliceDir drv else "N/A"} !!!"
         '';
       };
-    # Additional preBuilds steps if the compiler supports external plugins
-    # E.g. GHC version > 8.6
-    preBuildExternalPluginAttrs = drv: lib.optionalAttrs (hasSplicedPkg drv && isExternalPlugin)
+    # Additional preBuilds steps
+    preBuildExternalPluginAttrs = drv: lib.optionalAttrs (hasSplicedPkg drv)
       {
         preBuild = ''
           export EXTERNAL_SPLICES_LOAD=${spliceDir drv}
@@ -50,8 +49,7 @@ in {
   # Add some flags to load splices from nativeHaskellPackages
   mkDerivation = drv: super.mkDerivation (drv //
     {
-      buildFlags = lib.optional (hasSplicedPkg drv && !isExternalPlugin) "--ghc-option=-load-splices=${spliceDir drv}"
-                ++ (drv.buildFlags or []);
+      buildFlags = drv.buildFlags or [];
       preBuild = (preBuildBaseAttrs drv).preBuild + ((preBuildExternalPluginAttrs drv).preBuild or "");
     });
 }
