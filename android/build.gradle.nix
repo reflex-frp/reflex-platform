@@ -37,7 +37,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 30
-    buildToolsVersion '30.0.2'
+    buildToolsVersion '35.0.0'
 
     lintOptions {
       checkReleaseBuilds false
