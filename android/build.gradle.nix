@@ -59,6 +59,8 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    namespace "${applicationId}"
+
     defaultConfig {
         applicationId "${applicationId}"
         minSdkVersion 21
