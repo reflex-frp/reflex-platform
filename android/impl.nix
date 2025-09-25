@@ -28,7 +28,7 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
         substitute ${./deploy.sh} $out/bin/deploy \
           --subst-var-by coreutils ${nixpkgs.coreutils} \
           --subst-var-by adb ${androidenv.androidPkgs_9_0.platform-tools} \
-          --subst-var-by java ${nixpkgs.openjdk17_headless} \
+          --subst-var-by java ${nixpkgs.openjdk_headless} \
           --subst-var-by out $out
         chmod +x "$out/bin/deploy"
       '';
@@ -39,9 +39,9 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
       which fetchurl buildEnv;
       inherit androidenv;
       gradle = nixpkgs.gradle.override {
-        java = nixpkgs.buildPackages.openjdk11_headless;
+        java = nixpkgs.buildPackages.openjdk_headless;
       };
-      jdk = nixpkgs.buildPackages.openjdk17_headless;
+      jdk = nixpkgs.buildPackages.openjdk_headless;
     };
     inherit (nixpkgs.lib) splitString escapeShellArg mapAttrs attrNames concatStrings optionalString;
 in {

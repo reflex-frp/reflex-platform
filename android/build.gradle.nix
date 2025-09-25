@@ -17,17 +17,9 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:8.13.0'
         ${googleServicesClasspath}
     }
-}
-
-task proguard(type: proguard.gradle.ProGuardTask) {
-  configuration 'proguard.txt'
-
-    // injars 'build/libs/proguard-gradle-example.jar'
-    // outjars 'build/libs/proguard-gradle-example.out.jar'
-
 }
 
 allprojects {
@@ -45,7 +37,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 30
-    buildToolsVersion '30.0.2'
+    buildToolsVersion '35.0.0'
 
     lintOptions {
       checkReleaseBuilds false
@@ -66,6 +58,8 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    namespace "${applicationId}"
 
     defaultConfig {
         applicationId "${applicationId}"
@@ -91,7 +85,6 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            useProguard false
             zipAlignEnabled true
             ${if releaseKey == null then "" else ''
             signingConfig signingConfigs.release
@@ -99,7 +92,6 @@ android {
         }
         debug {
             minifyEnabled false
-            useProguard false
             debuggable true
         }
     }
