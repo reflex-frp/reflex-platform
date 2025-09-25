@@ -22,14 +22,6 @@ buildscript {
     }
 }
 
-task proguard(type: proguard.gradle.ProGuardTask) {
-  configuration 'proguard.txt'
-
-    // injars 'build/libs/proguard-gradle-example.jar'
-    // outjars 'build/libs/proguard-gradle-example.out.jar'
-
-}
-
 allprojects {
     repositories {
         mavenLocal {
@@ -91,7 +83,6 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            useProguard false
             zipAlignEnabled true
             ${if releaseKey == null then "" else ''
             signingConfig signingConfigs.release
@@ -99,7 +90,6 @@ android {
         }
         debug {
             minifyEnabled false
-            useProguard false
             debuggable true
         }
     }
