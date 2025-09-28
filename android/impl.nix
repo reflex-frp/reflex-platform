@@ -139,7 +139,7 @@ in {
             }
         '') abiVersions) + ''
           rsync -r --chmod=+w "${assets}"/ "$out/assets/"
-          rsync -r --chmod=+w "${resources}"/ "$out/res/"
+          rsync -r --chmod=+w "${nixpkgs.callPackage ./buildIcons.nix {} { src = iconPath; }}"/ "$out/res/"
           [ -d "$out/assets" ]
           [ -d "$out/res" ]
         '');
