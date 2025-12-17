@@ -1,8 +1,8 @@
 {
-  "owner": "obsidiansystems",
+  "owner": "nixos",
   "repo": "nixpkgs",
-  "branch": "reflex-platform-unstable",
+  "branch": "haskell-updates",
   "private": false,
-  "rev": "22cf53eb29f52af963398de744c422d6fe15a3d4",
-  "sha256": "1hz0jhf40byn5v44sznx27msy5mx3a8i25pbqyh5dd42rripdd8z"
+  "rev": "9bd652c4305d1f6b6b59451036fd0a44a13f78d5",
+  "sha256": "0prw6ixmcw92khcijdi20h2bckfx6jz7i3asw3d8d59ybdniljqd"
 }

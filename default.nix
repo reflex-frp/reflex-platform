@@ -117,34 +117,31 @@ let iosSupport = system == "x86_64-darwin";
             configureFlags = ["--enable-shared" "--enable-static"];
           });
         };
-      zlib = super.zlib.override (lib.optionalAttrs
-        (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
-        { static = true; shared = true; });
+      #zlib = super.zlib.override (lib.optionalAttrs
+      #  (self.stdenv.hostPlatform != self.stdenv.buildPlatform)
+      #  { static = true; shared = true; });
       };
 
     mobileGhcOverlay = import ./nixpkgs-overlays/mobile-ghc { inherit lib; };
 
-    allCabalHashesOverlay = import ./nixpkgs-overlays/all-cabal-hashes;
-
     nixpkgsArgs = {
       inherit system;
       overlays = [
-        (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
         hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
         splicesEval
         mobileGhcOverlay
-        allCabalHashesOverlay
+        #allCabalHashesOverlay
         (self: super: {
 
           runtimeShellPackage = if (self.stdenv.hostPlatform.isGhcjs || self.stdenv.targetPlatform.isiOS)
             then super.buildPackages.runtimeShellPackage
             else super.runtimeShellPackage;
 
-          polkit = super.polkit.override {
-            gobject-introspection = super.gobject-introspection-unwrapped;
-          };
+          #polkit = super.polkit.override {
+          #  gobject-introspection = super.gobject-introspection-unwrapped;
+          #};
 
           darwin = super.darwin.overrideScope (dself: dsuper: {
             ios-deploy = dsuper.ios-deploy.overrideAttrs (_: {
@@ -168,10 +165,6 @@ let iosSupport = system == "x86_64-darwin";
             postBuild = ''
               mkdir -p $debug
             '';
-          });
-
-          libiconv = super.libiconv.overrideAttrs (old: lib.optionalAttrs (self.stdenv.hostPlatform.useAndroidPrebuilt or false) {
-            configureFlags = [ "--disable-shared" "--enable-static" ];
           });
 
           libffi = if (self.stdenv.hostPlatform.useAndroidPrebuilt or false) then super.libffi_3_3 else super.libffi;
@@ -306,7 +299,10 @@ let iosSupport = system == "x86_64-darwin";
       })
     ]);
   };
-  ghcjs = if __useNewerCompiler then ghcjs8_10 else ghcjs8_6;
+  ghcjs = ghcjs9_12;
+  ghcjs9_12 = (makeRecursivelyOverridable nixpkgs.pkgsCross.ghcjs.haskell.packages.ghc912).override {
+    overrides = nixpkgs.haskell.overlays.combined;
+  };
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
       bootPkgs = old.ghc.bootPkgs // { happy = old.ghc.bootPkgs.happy_1_19_12; };
@@ -332,7 +328,10 @@ let iosSupport = system == "x86_64-darwin";
     overrides = nixpkgsCross.wasm.haskell.overlays.combined;
   });
 
-  ghc = if __useNewerCompiler then ghc8_10 else ghc8_6;
+  ghc = ghc9_12;
+  ghc9_12 = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghc912).override {
+    overrides = nixpkgs.haskell.overlays.combined;
+  };
   ghcHEAD = (makeRecursivelyOverridable nixpkgs.haskell.packages.ghcHEAD).override {
     overrides = nixpkgs.haskell.overlays.combined;
   };
@@ -549,19 +548,18 @@ in let this = rec {
   # Tools that are useful for development under both ghc and ghcjs
   generalDevTools' = { nativeHaskellPackages ? ghc }: {
     inherit (nativeHaskellPackages)
+      haskell-language-server
       Cabal
-      cabal-install
-      ghcid
       hasktags
-      stylish-haskell # Recent stylish-haskell only builds with AMP in place
-      reflex-ghci
       ;
     inherit (nixpkgs)
+      cabal-install
+      ghcid
       cabal2nix
       curl
       nix-prefetch-scripts
       nodejs
-      pkgconfig
+      pkg-config
       closurecompiler
       ;
   };
