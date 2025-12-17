@@ -31,7 +31,7 @@ in rec {
 
   defaultResources = ./res;
   defaultAssets = ./assets;
-  defaultIconPath = "@drawable/ic_launcher";
+  defaultIconPath = ./res/drawable-xhdpi/ic_launcher.png;
 
   buildIcons = nixpkgs.callPackage ./buildIcons.nix {};
 

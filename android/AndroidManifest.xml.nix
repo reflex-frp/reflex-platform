@@ -18,7 +18,7 @@ in ''
       android:versionCode="${version.code}"
       android:versionName="${version.name}">
     <application android:label="@string/app_name"
-                 android:icon="${iconPath}"
+                 android:icon="@drawable/ic_launcher"
                  android:allowBackup="${boolStr allowBackup}"
                  android:fullBackupContent="${boolStr fullBackupContent}"
                  android:hardwareAccelerated="true"
