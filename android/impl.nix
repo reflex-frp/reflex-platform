@@ -3,19 +3,19 @@ let overrideAndroidCabal = package: overrideCabal package (drv: {
   # -Wl,--unresolved-symbols=ignore-in-object-files
   preConfigure = (drv.preConfigure or "") + ''
         export NIX_CFLAGS_LINK="-no-pie -v"
-        sed -i 's%^executable *\(.*\)$%executable lib\1.so\n    cc-options: -no-pie -shared -fPIC\n    ld-options: -no-pie -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n    ghc-options: -fPIC -shared -no-pie -threaded -no-hs-main -lHSrts_thr -lffi -lm -llog%i' *.cabal
+        sed -i 's%^executable *\(.*\)$%executable lib\1.so\n    cc-options: -no-pie -shared -fPIC\n    ld-options: -no-pie -shared -Wl,--gc-sections,--version-script=${./haskellActivity.version},-u,Java_systems_obsidian_HaskellActivity_haskellStartMain,-u,hs_main\n    ghc-options: -fPIC -shared -no-pie -optl=-z -optl=max-page-size=16384 -optl=-z -optl=common-page-size=16384 -threaded -no-hs-main -lHSrts_thr -lffi -lm -llog%i' *.cabal
       '';
       # -no-hs-main
       configureFlags = (drv.configureFlags or []) ++ [
         "--enable-shared"
       ];
       });
-    /*  
+    /*
     overrideAndroidCabal = package: overrideCabal package (drv: {
       preConfigure = ''
         export NIX_CFLAGS_COMPILE=""
         export NIX_CFLAGS_LINK="-v -no-pie"
-      '';    
+      '';
       });
     */
     androidenv = nixpkgs.androidenv;

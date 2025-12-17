@@ -174,7 +174,10 @@ let iosSupport = system == "x86_64-darwin";
             configureFlags = [ "--disable-shared" "--enable-static" ];
           });
 
-          libffi = if (self.stdenv.hostPlatform.useAndroidPrebuilt or false) then super.libffi_3_3 else super.libffi;
+          libffi = (if (self.stdenv.hostPlatform.useAndroidPrebuilt or false) then super.libffi_3_3 else super.libffi)
+            .overrideAttrs (old: {
+              ${if self.stdenv.hostPlatform.isAndroid then "LDFLAGS" else null} = "-Wl,-z,max-page-size=16384";
+            });
         })
       ] ++ nixpkgsOverlays;
       config = config // {
